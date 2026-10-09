@@ -1,0 +1,374 @@
+<!--
+  Concept 06: The Expedition Log
+  Idea: a top-bound, ruled log book. Every island is a dated log entry (newest first) with its coastline sketched in the
+        margin; "Begin a new expedition" is a fresh blank entry at the top; older entries are a page-flip away, five per leaf.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unclaimed Acres - Expedition log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="journal.css">
+<style>
+  :root { --line: 32px; --margin: 168px; }
+  main { padding-bottom: 100px; }
+  .wrap.narrow { width: min(1060px, 100% - 32px); }
+
+  /* header: account chip */
+  .account { display: flex; align-items: center; gap: 14px; }
+  .acct { display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px 7px 12px; background: var(--card); background-image: var(--noise);
+    box-shadow: var(--shadow); border-radius: 3px; transform: rotate(1.2deg); }
+  .acct::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--rule); background: var(--paper-2); }
+  .acct small { display: block; font-family: var(--sc); font-size: .7rem; letter-spacing: .16em; color: var(--rust); line-height: 1; }
+  .acct b { display: block; font-family: var(--hand); font-weight: 600; color: var(--blue); font-size: 1.45rem; line-height: 1; }
+  .signout { font-family: var(--hand); font-size: 1.3rem; color: var(--ink-soft); text-decoration: none; }
+  .signout:hover { color: var(--blue); text-decoration: underline; text-underline-offset: 4px; }
+
+  /* the log book: cloth binding on top, a stack of leaves underneath */
+  .log { position: relative; margin-top: 6px; perspective: 2400px; }
+  .binding { position: relative; z-index: 2; height: 46px; border-radius: 7px 7px 2px 2px; background-color: #3d3529; background-image: var(--noise),
+      linear-gradient(180deg, rgba(255,255,255,.08), transparent 40%, rgba(0,0,0,.25));
+    box-shadow: 0 6px 10px -6px rgba(30, 20, 5, .6); display: flex; align-items: center; justify-content: center; }
+  .binding::before, .binding::after { content: ""; position: absolute; left: 18px; right: 18px; height: 0; border-top: 1.5px dashed rgba(240, 225, 190, .45); }
+  .binding::before { top: 9px; } .binding::after { bottom: 9px; }
+  .binding .plate { position: relative; z-index: 1; padding: 3px 22px 2px; background: var(--card); background-image: var(--noise); box-shadow: 0 1px 3px rgba(0,0,0,.4);
+    font-family: var(--sc); letter-spacing: .2em; font-size: .86rem; color: var(--ink); border-radius: 2px; }
+  .leaves { position: relative; }
+  .leaves::after { /* the edges of the leaves still to come */
+    content: ""; position: absolute; left: 6px; right: 6px; bottom: calc(-1 * var(--edge, 6px)); height: var(--edge, 6px); z-index: -1; border-radius: 0 0 6px 6px;
+    background: repeating-linear-gradient(180deg, #e8dcc0 0 2px, #cdbb94 2px 3px); box-shadow: 0 24px 40px -24px rgba(50, 35, 10, .6); }
+  .leafpage { border-radius: 0 0 4px 4px; padding: 34px 52px 30px 0; }
+
+  .log-head { display: grid; grid-template-columns: var(--margin) 1fr auto; align-items: end; gap: 0 0; padding-bottom: 14px; border-bottom: 3px double rgba(165, 69, 45, .55); }
+  .log-head .meta { grid-column: 2 / -1; display: flex; justify-content: space-between; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; margin-bottom: 14px; }
+  .log-head .title { grid-column: 2; }
+  .log-head h1 { font-size: clamp(2.4rem, 1.6rem + 2vw, 3.4rem); }
+  .log-head .kicker { margin-bottom: 4px; }
+  .search { grid-column: 3; display: flex; align-items: center; gap: 10px; padding-bottom: 6px; }
+  .search label { font-family: var(--hand); color: var(--ink-soft); font-size: 1.3rem; }
+  .search[hidden] { display: none; }
+  .search input { width: 210px; border: 0; border-bottom: 1.5px solid var(--ink-soft); background: transparent; padding: 2px 4px 2px 28px; font-family: var(--hand); font-size: 1.45rem; color: var(--blue);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a5246' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='6'/%3E%3Cpath d='M15 15l5 5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-size: 18px; background-position: 2px 50%; }
+  .search input::placeholder { color: rgba(90, 82, 70, .55); }
+  .search input:focus-visible { outline: none; border-bottom-color: var(--blue); box-shadow: 0 2px 0 var(--blue); border-radius: 0; }
+  .search input::-webkit-search-cancel-button { cursor: pointer; }
+
+  /* the ruled body */
+  .ruled { position: relative; min-height: calc(var(--line) * 15); padding-top: var(--line);
+    background-image:
+      linear-gradient(90deg, transparent calc(var(--margin) - 8px), rgba(165, 69, 45, .5) calc(var(--margin) - 8px) calc(var(--margin) - 7px), transparent calc(var(--margin) - 7px) calc(var(--margin) - 4px), rgba(165, 69, 45, .5) calc(var(--margin) - 4px) calc(var(--margin) - 3px), transparent calc(var(--margin) - 3px)),
+      repeating-linear-gradient(180deg, transparent 0 calc(var(--line) - 1px), rgba(37, 70, 127, .2) calc(var(--line) - 1px) var(--line)); }
+  .entries { position: relative; }
+  .entry { position: relative; display: grid; grid-template-columns: var(--margin) 1fr; margin-bottom: var(--line); }
+  .entry > * { min-width: 0; }
+  .margin { padding: 0 22px 0 30px; text-align: right; font-family: var(--hand); color: var(--rust); line-height: var(--line); }
+  .margin .d { display: block; font-size: 1.55rem; font-weight: 700; }
+  .margin .y { display: block; font-size: 1.1rem; color: var(--ink-soft); }
+  .margin .sketch { display: block; width: 66px; height: 64px; margin: 0 0 0 auto; }
+  .body { padding-left: 22px; line-height: var(--line); }
+  .ehead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .ehead h2 { font-size: 1.95rem; line-height: var(--line); }
+  .ehead .no { font-family: var(--hand); color: var(--ink-soft); font-size: 1.2rem; white-space: nowrap; }
+  .note { margin: 0; font-family: var(--hand); font-weight: 600; color: var(--blue); font-size: 1.6rem; line-height: var(--line); }
+  .figs { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 15px; margin: 0; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; line-height: var(--line); }
+  .figs span b { font-family: var(--sc); font-weight: 400; font-size: .74rem; letter-spacing: .12em; color: var(--ink-soft); margin-right: 5px; }
+  .figs-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px 18px; flex-wrap: wrap; }
+  .cont { font-size: 1.45rem; line-height: var(--line); white-space: nowrap; }
+  .cont svg { width: 30px; height: 16px; }
+
+  /* the newest entry gets the full treatment */
+  .entry.full .body { display: grid; grid-template-columns: 1fr 300px; column-gap: 34px; }
+  .entry.full .ehead { grid-column: 1 / -1; }
+  .entry.full .ehead h2 { font-size: 2.6rem; }
+  .entry.full .note { font-size: 1.85rem; }
+  .weather { margin: 0; font-family: var(--hand); color: var(--ink-soft); font-size: 1.35rem; line-height: var(--line); }
+  .weather b { font-family: var(--sc); font-weight: 400; font-size: .74rem; letter-spacing: .12em; color: var(--rust); margin-right: 6px; }
+  .entry.full .figs-row { display: block; }
+  .entry.full .cont { display: inline-flex; margin-top: var(--line); font-size: 1.7rem; }
+  .taped-in { grid-column: 2; grid-row: 2 / span 6; align-self: start; margin: 22px 0 0; padding: 10px 10px 38px; transform: rotate(2.2deg); }
+  .taped-in .tape.a { top: -12px; left: -18px; transform: rotate(-38deg); width: 80px; }
+  .taped-in .tape.b { top: -8px; right: -16px; transform: rotate(32deg); width: 74px; }
+  .taped-in .frame { overflow: hidden; }
+  .taped-in figcaption { font-size: 1.2rem; bottom: 6px; }
+  .doodle { display: block; width: 104px; height: 84px; margin: 6px 0 0 auto; color: var(--blue); opacity: .8; }
+
+  /* a fresh entry at the top */
+  .entry.blank .margin .d { color: rgba(165, 69, 45, .55); }
+  .entry.blank .ehead h2 { color: rgba(43, 39, 33, .32); font-style: italic; }
+  .blank-line { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-top: 8px; min-height: calc(var(--line) * 2 - 8px); }
+  .pen-btn { --b: var(--blue); position: relative; display: inline-flex; align-items: center; gap: .7em; padding: .55em 1.4em .5em 1.05em; border: 0; border-radius: 999px 6px 6px 999px; cursor: pointer;
+    font-family: var(--sc); font-size: 1.06rem; letter-spacing: .08em; color: #f4ecd8; background: linear-gradient(180deg, #2d5394, #1d3866);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 2px 0 #142748, 0 10px 18px -8px rgba(20, 30, 60, .7); transition: transform .15s ease; line-height: 1.2; }
+  .pen-btn svg { width: 30px; height: 30px; flex: none; transform: rotate(-35deg); transition: transform .25s ease; }
+  .pen-btn:hover { transform: translateY(-1px); }
+  .pen-btn:hover svg { transform: rotate(-20deg) translateY(-1px); }
+  .pen-btn:active { transform: translateY(1px); }
+  .blot { width: 34px; height: 19px; color: #1d3866; opacity: .7; margin-left: -16px; transform: translateY(10px); }
+  .blank-hint { font-family: var(--hand); color: var(--ink-soft); font-size: 1.25rem; line-height: 1.1; }
+
+  .empty { font-family: var(--hand); color: var(--blue); font-size: 1.6rem; line-height: var(--line); padding-left: calc(var(--margin) + 22px); }
+  .the-end { display: grid; grid-template-columns: var(--margin) 1fr; line-height: var(--line); font-family: var(--hand); color: var(--ink-soft); font-size: 1.35rem; }
+  .the-end p { margin: 0; padding-left: 22px; display: flex; align-items: center; gap: 12px; }
+  .the-end svg { width: 70px; height: 18px; color: var(--blue-soft); }
+
+  /* paging */
+  .pager { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-top: 8px; padding: 12px 0 0 var(--margin); border-top: 1px solid rgba(180,156,116,.5);
+    font-family: var(--display); font-style: italic; color: var(--ink-soft); }
+  .pager[hidden] { display: none; }
+  .pager button { font: inherit; background: none; border: 0; padding: 4px 6px; cursor: pointer; font-family: var(--hand); font-style: normal; font-size: 1.45rem; color: var(--blue); display: inline-flex; align-items: center; gap: .35em; border-radius: 4px; }
+  .pager button:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+  .pager button:disabled { color: rgba(90, 82, 70, .35); cursor: default; }
+  .pager .newer { justify-self: start; padding-left: 22px; }
+  .pager .older { justify-self: end; }
+  .pager .where { text-align: center; }
+  .dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
+  .dots button { width: 22px; height: 22px; padding: 0; justify-content: center; font-size: 1rem; border: 1px solid transparent; border-radius: 50%; }
+  .dots button[aria-current="page"] { border-color: var(--blue); }
+
+  /* the leaf that flips up over the binding */
+  .flip { position: absolute; left: 0; right: 0; top: 0; z-index: 4; transform-origin: 50% 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; pointer-events: none;
+    background-color: var(--paper); background-image: var(--noise), var(--fibres); box-shadow: 0 10px 30px -10px rgba(50, 35, 10, .5); }
+  .flip::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(60, 40, 10, .3), transparent 50%); opacity: 0; animation: page-shade .7s ease forwards; }
+  .flip .ruled { min-height: 0; }
+  .flip-up { animation: flip-up .7s cubic-bezier(.45, .05, .3, 1) forwards; }
+  .flip-down { animation: flip-down .7s cubic-bezier(.45, .05, .3, 1) forwards; }
+  @keyframes flip-up { from { transform: rotateX(0); } to { transform: rotateX(180deg); } }
+  @keyframes flip-down { from { transform: rotateX(180deg); } to { transform: rotateX(0); } }
+
+  @media (max-width: 860px) {
+    :root { --margin: 76px; }
+    .leafpage { padding: 26px 18px 24px 0; }
+    .log-head { grid-template-columns: minmax(0, 1fr); padding-left: 18px; }
+    .log-head .meta, .log-head .title { grid-column: 1; }
+    .pen-btn { font-size: .92rem; padding: .5em 1.1em .45em .8em; }
+    .log-head .meta { flex-direction: column; font-size: 1.15rem; }
+    .search { grid-column: 1; padding-top: 14px; }
+    .search input { width: 100%; max-width: 260px; }
+    .margin { padding: 0 12px 0 6px; }
+    .margin .d { font-size: 1.25rem; }
+    .margin .sketch { width: 52px; height: 52px; }
+    .body { padding-left: 14px; }
+    .ehead { flex-direction: column; gap: 0; }
+    .entry.full .body { grid-template-columns: 1fr; }
+    .entry.full .ehead h2 { font-size: 2.1rem; }
+    .taped-in { grid-column: 1; grid-row: auto; margin: 14px 8px 18px 0; }
+    .taped-in .tape.b { right: 2px; }
+    .doodle { display: none; }
+    .pager { grid-template-columns: 1fr 1fr; padding-left: 0; }
+    .pager .where { grid-column: 1 / -1; grid-row: 1; }
+    .pager .newer { padding-left: 0; }
+    .the-end p { padding-left: 14px; }
+    .empty { padding-left: calc(var(--margin) + 14px); }
+  }
+  @media (max-width: 640px) {
+    .account .acct small { display: none; }
+    .account { flex-direction: column; align-items: flex-end; gap: 0; }
+    .acct { padding: 6px 12px 6px 10px; }
+    .acct b { font-size: 1.2rem; }
+    .signout { font-size: 1.1rem; }
+    .binding .plate { font-size: .72rem; letter-spacing: .14em; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../landing-ideas/02-field-journal.html" aria-label="Unclaimed Acres, field journal home">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <div class="account">
+      <span class="acct"><span><small>signed in</small><b>fennel.wam</b></span></span>
+      <a class="signout" href="#sign-out">Sign out</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap narrow">
+    <div class="log" id="log">
+      <div class="binding" aria-hidden="true"><span class="plate">Expedition Log &middot; vol. i</span></div>
+      <div class="leaves" id="leaves">
+        <section class="leafpage sheet" aria-labelledby="log-title">
+          <div class="log-head">
+            <div class="meta"><span id="kept">Kept by fennel.wam</span><span id="begun"></span></div>
+            <div class="title">
+              <p class="kicker">Your islands, newest first</p>
+              <h1 id="log-title">The Expedition Log</h1>
+            </div>
+            <form class="search" id="search" role="search" hidden>
+              <label for="q">find:</label>
+              <input id="q" type="search" placeholder="an island or a note" autocomplete="off" aria-describedby="found">
+            </form>
+          </div>
+          <div class="ruled" id="ruled">
+            <p class="sr-only" id="found" aria-live="polite"></p>
+            <div class="entries" id="entries"></div>
+          </div>
+          <nav class="pager" id="pager" aria-label="Pages of the log" hidden></nav>
+        </section>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="islands.js"></script>
+<script>
+(function () {
+  var PER = 5;
+  var ARROW_R = '<svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg>';
+  var ARROW_L = '<svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M32 10C24 7 14 6 3 9M9 3C6.5 5 4.5 7 3 9c2.5 1.3 5 3 7 5"/></svg>';
+  var PEN = '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' +
+    '<path d="M16 2c4 5 6 10 6 15l-6 12-6-12c0-5 2-10 6-15z" fill="rgba(255,255,255,.12)"/><path d="M16 29V17"/><circle cx="16" cy="15" r="2" fill="currentColor"/><path d="M12.5 8h7" opacity=".6"/></svg>';
+  var BLOT = '<svg class="blot" viewBox="0 0 40 22" aria-hidden="true"><path fill="currentColor" d="M10 12c0-4 4-7 8-6 3-3 9-2 10 2 4 0 6 4 3 6 1 3-3 5-6 4-2 2-7 2-9 0-4 1-7-2-6-6z"/><circle cx="35" cy="6" r="1.6" fill="currentColor"/><circle cx="4" cy="17" r="1.2" fill="currentColor"/><circle cx="31" cy="19" r=".9" fill="currentColor"/></svg>';
+  var BOAT = '<svg class="doodle" viewBox="0 0 104 84" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M22 54h50l-7 10H30z"/><path d="M47 54V14"/><path d="M47 16c10 8 16 20 18 34H47"/><path d="M45 20c-8 8-13 18-14 30h14"/><path d="M47 14l8 3-8 3"/>' +
+    '<path d="M8 70q6-4 12 0t12 0 12 0 12 0 12 0 12 0" stroke-width="1.3"/><path d="M18 78q5-3 10 0t10 0" stroke-width="1.1" opacity=".7"/>' +
+    '<path d="M74 22q3-3 6 0 3-3 6 0M84 34q2-2 4 0 2-2 4 0" stroke-width="1.3"/></svg>';
+  var SQUIGGLE = '<svg viewBox="0 0 70 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c6-6 10 6 16 0s10 6 16 0 10 6 16 0 10 6 16 0"/></svg>';
+  var WEATHER = ['fair, a light westerly; the sea calm', 'grey morning, clearing by noon', 'clear and cold; good visibility', 'sea mist until midday',
+    'bright, a steady breeze from the south', 'showers, then sun on the hills', 'still air; the water like glass', 'breezy, white caps offshore'];
+  var MONTHS = { January: 'Jan.', February: 'Feb.', March: 'Mar.', April: 'Apr.', May: 'May', June: 'June', July: 'July', August: 'Aug.', September: 'Sept.', October: 'Oct.', November: 'Nov.', December: 'Dec.' };
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // field figures, rounded to the half as you would jot them down
+  function figure(v) {
+    if (v === 0) return 'none';
+    if (v < 1) return 'a trace';
+    var r = Math.round(v * 2) / 2;
+    return Math.floor(r) + (r % 1 ? '&frac12;' : '') + '%';
+  }
+  function dateParts(s) { var p = s.split(' '); return { d: p[0] + ' ' + (MONTHS[p[1]] || p[1]), y: p[2] }; }
+
+  UA.islands().then(function (all) {
+    var n = all.length;
+    var newest = all.slice().reverse();
+    var entriesEl = document.getElementById('entries'), pager = document.getElementById('pager');
+    var leaves = document.getElementById('leaves'), logEl = document.getElementById('log');
+    var q = document.getElementById('q'), found = document.getElementById('found');
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var page = 0, query = '', flipping = false;
+
+    document.getElementById('kept').textContent = 'Kept by ' + UA.player;
+    document.getElementById('begun').textContent = n > 1 ? 'begun ' + all[0].charted + ', ' + n + ' entries' : 'begun ' + all[0].charted;
+    if (n > 1) document.getElementById('search').hidden = false;
+
+    function figs(isl) {
+      var s = isl.stats;
+      return '<p class="figs" aria-label="Field figures, share of the chart">' +
+        '<span><b>land</b>' + figure(s.land) + '</span><span><b>forest</b>' + figure(s.forest) + '</span><span><b>peaks</b>' + figure(s.mountain) + '</span>' +
+        '<span><b>sand</b>' + figure(s.beach) + '</span><span><b>fresh water</b>' + figure(s.freshWater) + '</span></p>';
+    }
+    function cont(isl) {
+      return '<a class="link-hand cont" href="#enter-' + isl.id + '" aria-label="Continue the expedition on ' + esc(isl.name) + '">continue the expedition ' + ARROW_R + '</a>';
+    }
+    function entry(isl, full) {
+      var dp = dateParts(isl.charted);
+      var m = '<div class="margin"><span class="d">' + dp.d + '</span><span class="y">' + dp.y + '</span>' +
+        '<span class="sketch">' + UA.outline(isl, { size: '100%', pad: 4, stroke: 1.8, ink: '#25467f', land: 'rgba(247,240,222,.6)', shoreColor: 'rgba(37,70,127,.25)' }) + '</span>' +
+        (full ? BOAT : '') + '</div>';
+      var head = '<div class="ehead"><h2>' + esc(isl.name) + '</h2><span class="no">entry no. ' + (isl.index + 1) + ' &middot; last ashore ' + isl.lastVisit + '</span></div>';
+      if (!full) {
+        return '<article class="entry" aria-label="' + esc(isl.name) + ', charted ' + isl.charted + '">' + m + '<div class="body">' + head +
+          '<p class="note">&ldquo;' + esc(isl.note) + '&rdquo;</p><div class="figs-row">' + figs(isl) + cont(isl) + '</div></div></article>';
+      }
+      return '<article class="entry full" aria-label="' + esc(isl.name) + ', charted ' + isl.charted + '">' + m + '<div class="body">' + head +
+        '<div class="text"><p class="weather"><b>Weather</b>' + WEATHER[isl.index % WEATHER.length] + '.</p>' +
+        '<p class="note">&ldquo;' + esc(isl.note) + '&rdquo;</p>' + figs(isl) + cont(isl) + '</div>' +
+        '<figure class="photo taped-in"><span class="tape a" aria-hidden="true"></span><span class="tape b" aria-hidden="true"></span><div class="frame">' +
+        '<img src="' + isl.render + '" width="1600" height="907" style="transform:' + isl.renderTransform + '" alt="' + esc(isl.name) + ' painted from above: green land, forest and beaches in a blue sea.">' +
+        '</div><figcaption>taped in: ' + esc(isl.name) + ' from above</figcaption></figure></div></article>';
+    }
+    function blankEntry() {
+      var today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), dp = dateParts(today);
+      return '<article class="entry blank" aria-label="A blank entry for a new expedition"><div class="margin"><span class="d">' + dp.d + '</span><span class="y">' + dp.y + '</span></div>' +
+        '<div class="body"><div class="ehead"><h2>an island not yet named&hellip;</h2><span class="no">entry no. ' + (n + 1) + '</span></div>' +
+        '<div class="blank-line"><button class="pen-btn" type="button">' + PEN + 'Begin a new expedition</button>' + BLOT +
+        '<span class="blank-hint">a fresh page, dated today</span></div></div></article>';
+    }
+
+    function matches() {
+      if (!query) return newest;
+      var t = query.toLowerCase();
+      return newest.filter(function (isl) { return (isl.name + ' ' + isl.note).toLowerCase().indexOf(t) >= 0; });
+    }
+    function pagesOf(list) { return Math.max(1, Math.ceil(list.length / PER)); }
+
+    function leafHtml(p) {
+      var list = matches(), html = '';
+      var slice = list.slice(p * PER, p * PER + PER);
+      if (!query && p === 0 && UA.canCreate) html += blankEntry();
+      if (!slice.length) html += '<p class="empty">No entry mentions &ldquo;' + esc(query) + '&rdquo;. Try another word.</p>';
+      slice.forEach(function (isl, i) { html += entry(isl, !query && p === 0 && i === 0); });
+      if (p === pagesOf(list) - 1 && slice.length) {
+        html += '<div class="the-end"><span></span><p>' + SQUIGGLE + (query ? 'end of the search' : (n === 1 ? 'the rest of this page waits for the next landfall' : 'the first page of the log')) + '</p></div>';
+      }
+      return html;
+    }
+    function renderPager() {
+      var list = matches(), total = pagesOf(list);
+      found.textContent = query ? list.length + (list.length === 1 ? ' entry' : ' entries') + ' found' : '';
+      if (total < 2) { pager.hidden = true; pager.innerHTML = ''; return; }
+      pager.hidden = false;
+      var dots = '';
+      for (var i = 0; i < total; i++) dots += '<button type="button" data-page="' + i + '" aria-label="Leaf ' + (i + 1) + '"' + (i === page ? ' aria-current="page"' : '') + '>' + (i + 1) + '</button>';
+      pager.innerHTML = '<button class="newer" type="button" data-page="' + (page - 1) + '"' + (page === 0 ? ' disabled' : '') + '>' + ARROW_L + ' newer entries</button>' +
+        '<div class="where">leaf ' + (page + 1) + ' of ' + total + '<div class="dots">' + dots + '</div></div>' +
+        '<button class="older" type="button" data-page="' + (page + 1) + '"' + (page === total - 1 ? ' disabled' : '') + '>older entries ' + ARROW_R + '</button>';
+      leaves.style.setProperty('--edge', Math.min(14, 3 + (total - 1 - page) * 3) + 'px');
+    }
+    function show(p) { page = p; entriesEl.innerHTML = leafHtml(p); renderPager(); }
+
+    // Older entries: the current leaf flips up over the binding. Newer: the previous leaf comes back down.
+    function goTo(p, focusSel) {
+      var total = pagesOf(matches());
+      if (p < 0 || p >= total || p === page || flipping) return;
+      var older = p > page;
+      if (still.matches || document.hidden) { show(p); after(focusSel); return; }
+      flipping = true;
+      var ruled = document.getElementById('ruled');
+      var oldH = ruled.offsetHeight;
+      var f = document.createElement('div');
+      f.className = 'flip ' + (older ? 'flip-up' : 'flip-down');
+      f.setAttribute('aria-hidden', 'true');
+      f.innerHTML = '<div class="ruled"><div class="entries">' + (older ? entriesEl.innerHTML : leafHtml(p)) + '</div></div>';
+      f.style.top = ruled.offsetTop + 'px';
+      ruled.parentNode.appendChild(f);
+      f.style.height = Math.max(oldH, 200) + 'px';
+      if (older) show(p);
+      ruled.style.minHeight = oldH + 'px';
+      var done = false;
+      function land() {
+        if (done) return; done = true;
+        if (!older) show(p);
+        f.remove(); ruled.style.minHeight = ''; flipping = false; after(focusSel);
+      }
+      f.addEventListener('animationend', function (e) { if (e.target === f) land(); });
+      setTimeout(land, 950);
+      var top = logEl.getBoundingClientRect().top;
+      if (top < 0) logEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function after(sel) { if (sel) { var b = pager.querySelector(sel); if (b && !b.disabled) b.focus(); else entriesEl.querySelector('a, button') && entriesEl.querySelector('a, button').focus(); } }
+
+    pager.addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-page]');
+      if (!b || b.disabled) return;
+      var sel = b.classList.contains('older') ? '.older' : b.classList.contains('newer') ? '.newer' : '[data-page="' + b.dataset.page + '"]';
+      goTo(Number(b.dataset.page), sel);
+    });
+    var t;
+    q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { query = q.value.trim(); show(0); }, 120); });
+    document.getElementById('search').addEventListener('submit', function (e) { e.preventDefault(); query = q.value.trim(); show(0); });
+
+    show(0);
+  });
+})();
+</script>
+</body>
+</html>

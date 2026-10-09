@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Island Selection Ideas</title>
+<style>
+  :root { --bg: #f4f2ee; --panel: #ffffff; --tile: #eeebe5; --ink: #1f1d1a; --muted: #6f6a62; --line: #d9d4cb; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93; --line: #3a3732; }
+  }
+  :root[data-theme="dark"] { --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93; --line: #3a3732; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header, main { max-width: 1400px; margin: 0 auto; padding: 0 16px; }
+  header { padding-top: 28px; padding-bottom: 16px; }
+  .crumb { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+  .crumb a { color: inherit; }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.01em; }
+  .sub { margin: 0; color: var(--muted); max-width: 75ch; }
+  main { display: grid; gap: 18px; padding-bottom: 48px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px; }
+  .shot { position: relative; aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden; background: var(--tile); }
+  .shot iframe { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; border: 0; transform-origin: 0 0; pointer-events: none; }
+  .shot .wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+  .shot .tag { position: absolute; left: 8px; top: 8px; z-index: 2; font-size: 12px; padding: 3px 8px; border-radius: 999px; background: rgba(20,18,15,.78); color: #efe6d0; }
+  a.shotlink { display: block; border-radius: 8px; }
+  .meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 12px 2px 2px; flex-wrap: wrap; }
+  h2 { margin: 0; font-size: 18px; }
+  .num { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 6px; }
+  .card p { margin: 4px 2px 0; color: var(--muted); font-size: 13.5px; }
+  .opens { display: flex; gap: 6px; }
+  .open { font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--tile); color: var(--ink); text-decoration: none; }
+  .open:hover { border-color: var(--muted); }
+  .open[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+  a.shotlink:focus-visible, .open:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<header>
+  <p class="crumb"><a href="../topdown/index.html">Sheets</a> / Island selection ideas</p>
+  <h1>Island selection ideas</h1>
+  <p class="sub">Ten ways to show a signed-in player their islands, in the field journal style of the landing page. Each concept is previewed with one island (most players) and with twenty. Open a page to try it; the dark bar at the bottom of each page switches between 1, 5 and 20 islands and shows or hides "chart a new island".</p>
+</header>
+<main id="grid"></main>
+<script>
+const IDEAS = [
+  ['01-atlas-index', 'The Atlas Index', 'A table of contents in the open journal: each island is an index line with a tiny coastline; clicking turns to that island\'s own spread.'],
+  ['02-specimen-board', 'The Specimen Board', 'Islands pinned like the creature specimen cards, with the player\'s note; a dashed card charts a new island.'],
+  ['03-postcards', 'Postcards', 'A welcome-back page and the islands as postcards; lift one to the front, flip it to read the back and enter.'],
+  ['04-chart-table', 'The Chart Table', 'All islands drawn in one shared hand-drawn ocean across both pages, with "uncharted waters" for the next one.'],
+  ['05-island-bookmarks', 'A Bookmark per Island', 'Every island gets its own bookmark on the book; the open spread is that island, turned with the 3D page animation.'],
+  ['06-expedition-log', 'The Expedition Log', 'A ruled log book: each island is a dated entry with a margin sketch; page back through older expeditions.'],
+  ['07-compass-rondell', 'The Compass Rondell', 'Round chart plates around a brass compass dial; turn the dial to bring an island to north.'],
+  ['08-bottle-shelf', 'Messages in Bottles', 'Each island is a bottle with a rolled chart on a sill; uncork one to unroll its chart.'],
+  ['09-map-drawers', 'The Cartographer\'s Cabinet', 'A plan chest with one labelled drawer per island; the open drawer shows the chart lying inside.'],
+  ['10-notebook-shelf', 'One Journal per Island', 'Each island is its own cloth-bound notebook; one lies on the desk, many stand on a shelf.'],
+];
+const grid = document.getElementById('grid');
+grid.innerHTML = IDEAS.map(([slug, name, idea], i) => `
+  <article class="card" data-slug="${slug}">
+    <div class="shots">
+      ${[1, 20].map(n => `<a class="shotlink" href="${slug}.html?n=${n}" target="_blank" aria-label="Open ${name} with ${n} island${n > 1 ? 's' : ''}">
+        <div class="shot" data-n="${n}"><span class="tag">${n} island${n > 1 ? 's' : ''}</span><div class="wait">Being designed…</div></div></a>`).join('')}
+    </div>
+    <div class="meta"><h2><span class="num">${String(i + 1).padStart(2, '0')}</span>${name}</h2>
+      <span class="opens"><a class="open" href="${slug}.html?n=1" target="_blank" aria-disabled="true">Open page</a></span></div>
+    <p>${idea}</p>
+  </article>`).join('');
+
+// Live previews at 1440 x 900, scaled down to each slot.
+const fit = shot => { const f = shot.querySelector('iframe'); if (f) f.style.transform = `scale(${shot.clientWidth / 1440})`; };
+new ResizeObserver(() => document.querySelectorAll('.shot').forEach(fit)).observe(document.body);
+async function check() {
+  let missing = 0;
+  for (const card of document.querySelectorAll('.card')) {
+    if (card.dataset.ready) continue;
+    const url = card.dataset.slug + '.html';
+    let ok = false;
+    try { ok = (await fetch(url, { cache: 'no-store' })).ok; } catch (e) {}   // GET: the local server answers HEAD with an error
+    if (!ok) { missing++; continue; }
+    card.dataset.ready = 1;
+    card.querySelectorAll('.shot').forEach(shot => {
+      shot.querySelector('.wait').remove();
+      shot.insertAdjacentHTML('beforeend', `<iframe src="${url}?n=${shot.dataset.n}&demo=0" title="Preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>`);
+      fit(shot);
+    });
+    card.querySelector('.open').removeAttribute('aria-disabled');
+  }
+  if (missing) setTimeout(check, 10000);   // pages still being designed show up on their own
+}
+check();
+</script>
+</body>
+</html>

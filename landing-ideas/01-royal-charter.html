@@ -1,0 +1,666 @@
+<!--
+  Concept: Royal Charter
+  Idea: Anno-1800 grandeur made calm. The page reads like an ornate land charter granted to the player,
+        with the island hung as a gilded oil painting, creatures as a portrait gallery and crops as a merchant's ledger.
+  Palette: parchment #F2E8D0 / #E6D6B0, deep navy #0F1C2E / #16263D, brass-gold #B98B3E / #E6C47C, wax red #8C2320, ink #2A2218
+  Fonts: Playfair Display SC (titles, plaques), Cormorant Garamond (body, italics), IM Fell English (flourishes, numerals)
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unclaimed Acres · A Charter for Your Island</title>
+<meta name="description" content="Unclaimed Acres: a calm island farming and creature game on the WAX blockchain. Your island, granted by charter.">
+<link rel="icon" href="assets/emblem.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=Playfair+Display+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --parch:#F2E8D0; --parch-2:#E8D9B4; --parch-3:#D9C59A;
+    --navy:#0F1C2E; --navy-2:#16263D; --navy-3:#21365A;
+    --gold:#B98B3E; --gold-hi:#EBCB86; --gold-lo:#7A5824;
+    --wax:#8C2320; --wax-hi:#C2463B; --wax-lo:#55120F;
+    --ink:#2A2218; --ink-soft:#5A4A35;
+    --serif:"Cormorant Garamond", Georgia, "Times New Roman", serif;
+    --title:"Playfair Display SC", "Cormorant Garamond", Georgia, serif;
+    --fell:"IM Fell English", "Cormorant Garamond", Georgia, serif;
+    --gilt:linear-gradient(135deg,#6E4C1C 0%,#E9C982 18%,#A97A33 34%,#F6DFA0 50%,#8F6526 68%,#D9B56A 84%,#6E4C1C 100%);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; color:var(--ink); font-family:var(--serif); font-size:20px; line-height:1.55;
+    background-color:var(--parch);
+    background-image:
+      radial-gradient(ellipse at 15% 10%, rgba(255,250,235,.7), transparent 55%),
+      radial-gradient(ellipse at 85% 60%, rgba(196,164,108,.18), transparent 60%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45 0 0 0 0 .34 0 0 0 0 .18 0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  img{max-width:100%; display:block}
+  a{color:inherit}
+  :focus-visible{outline:3px solid var(--gold); outline-offset:4px; border-radius:4px}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .wrap{width:min(1240px, calc(100% - 48px)); margin-inline:auto}
+
+  /* ---------- ornaments ---------- */
+  .rule{display:block; width:min(460px,80%); height:22px; margin:0 auto; color:var(--gold)}
+  .corner{position:absolute; width:74px; height:74px; color:var(--gold); pointer-events:none}
+  .corner.tl{top:14px; left:14px}
+  .corner.tr{top:14px; right:14px; transform:scaleX(-1)}
+  .corner.bl{bottom:14px; left:14px; transform:scaleY(-1)}
+  .corner.br{bottom:14px; right:14px; transform:scale(-1,-1)}
+  .eyebrow{font-family:var(--title); font-size:14px; letter-spacing:.32em; color:var(--gold-lo); text-transform:lowercase}
+
+  /* ---------- header ---------- */
+  .top{
+    position:relative; z-index:5; background:var(--navy); color:var(--parch);
+    border-bottom:1px solid var(--gold-lo); box-shadow:0 1px 0 rgba(235,203,134,.25), 0 6px 0 var(--navy-2), 0 7px 0 rgba(185,139,62,.55);
+  }
+  .top .wrap{display:flex; align-items:center; justify-content:space-between; gap:24px; height:86px}
+  .brand{display:flex; align-items:center; gap:14px; text-decoration:none}
+  .brand img{width:52px; height:52px; filter:drop-shadow(0 3px 6px rgba(0,0,0,.45))}
+  .brand b{font-family:var(--title); font-weight:400; font-size:25px; letter-spacing:.06em; color:var(--gold-hi)}
+  .brand b span{display:block; font-family:var(--serif); font-style:italic; font-size:14px; letter-spacing:.08em; color:rgba(242,232,208,.65); margin-top:-4px}
+  .nav{display:flex; align-items:center; gap:34px}
+  .nav a{font-family:var(--title); font-size:15px; letter-spacing:.18em; text-decoration:none; color:rgba(242,232,208,.82); padding:6px 0; border-bottom:1px solid transparent; transition:color .2s, border-color .2s}
+  .nav a:hover{color:var(--gold-hi); border-color:var(--gold)}
+  .nav a .n{font-family:var(--fell); color:var(--gold); margin-right:6px; letter-spacing:0}
+
+  /* small seal button for the header */
+  .seal-sm{
+    display:inline-flex; align-items:center; gap:12px; cursor:pointer;
+    font-family:var(--title); font-size:15px; letter-spacing:.14em; color:var(--parch);
+    background:linear-gradient(var(--navy-2),var(--navy-2)) padding-box, var(--gilt) border-box;
+    border:1.5px solid transparent; border-radius:999px; padding:8px 22px 8px 8px;
+    transition:transform .2s, box-shadow .2s;
+  }
+  .seal-sm::before{
+    content:""; width:30px; height:30px; border-radius:50%;
+    background:radial-gradient(circle at 36% 32%, var(--wax-hi), var(--wax) 55%, var(--wax-lo));
+    box-shadow:inset 0 0 0 4px rgba(85,18,15,.55), inset 0 0 0 5px rgba(232,140,120,.35), 0 2px 4px rgba(0,0,0,.4);
+  }
+  .seal-sm:hover{box-shadow:0 0 0 4px rgba(185,139,62,.18)}
+
+  /* ---------- the big wax seal ---------- */
+  .seal{
+    position:relative; width:168px; height:168px; border:0; padding:0; background:none; cursor:pointer;
+    font-family:var(--title); color:#FBE9D6; flex:none; border-radius:50%;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .seal svg{position:absolute; inset:0; width:100%; height:100%; filter:drop-shadow(0 10px 14px rgba(60,10,8,.35)) drop-shadow(0 2px 2px rgba(60,10,8,.4))}
+  .seal .lbl{position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; line-height:1.05; text-shadow:0 -1px 0 rgba(60,8,6,.6), 0 1px 0 rgba(255,190,170,.25)}
+  .seal .lbl small{font-family:var(--fell); font-style:italic; font-size:13px; letter-spacing:.04em; opacity:.85; margin-bottom:4px}
+  .seal .lbl strong{font-weight:700; font-size:19px; letter-spacing:.12em}
+  .seal .lbl em{font-style:normal; font-size:11px; letter-spacing:.3em; margin-top:6px; opacity:.8}
+  .seal:hover{transform:rotate(-6deg) scale(1.03)}
+  .seal:active{transform:scale(.97)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative; padding:76px 0 72px}
+  .hero .wrap{display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:64px; align-items:center}
+  .hero h1{font-family:var(--title); font-weight:400; font-size:clamp(40px,4.6vw,66px); line-height:1.04; margin:18px 0 22px; color:var(--navy); letter-spacing:.01em}
+  .hero h1 i{font-family:var(--fell); font-style:italic; font-weight:400; color:var(--gold-lo); letter-spacing:0; text-transform:none; display:inline-block; line-height:.8}
+  .hero .lede{font-size:22px; color:var(--ink-soft); max-width:30em; margin:0}
+  .hero .lede::first-letter{font-family:var(--fell); float:left; font-size:70px; line-height:.78; padding:9px 6px 0 0; color:var(--wax)}
+  .hero .actions{display:flex; align-items:center; gap:28px; margin-top:34px}
+  .hero .actions p{margin:0; font-size:17px; font-style:italic; color:var(--ink-soft); max-width:16em}
+  .hero .actions a{font-family:var(--title); font-style:normal; font-size:14px; letter-spacing:.2em; color:var(--navy); text-decoration:none; border-bottom:1px solid var(--gold); display:inline-block; margin-top:8px; padding-bottom:2px}
+
+  /* gilded frame */
+  .frame{
+    position:relative; padding:20px; background:var(--gilt); border-radius:3px;
+    box-shadow:
+      0 1px 0 rgba(255,240,200,.6) inset, 0 -2px 0 rgba(60,40,10,.5) inset,
+      0 36px 60px -20px rgba(15,28,46,.55), 0 14px 24px -12px rgba(15,28,46,.4);
+  }
+  .frame::before{ /* inner carved bead */
+    content:""; position:absolute; inset:9px; border-radius:2px; pointer-events:none;
+    border:2px solid rgba(90,60,20,.55); box-shadow:inset 0 0 0 1px rgba(255,236,190,.55), 0 0 0 1px rgba(255,236,190,.35);
+  }
+  .frame .mat{position:relative; padding:5px; background:#2E2312; box-shadow:inset 0 3px 8px rgba(0,0,0,.6)}
+  .frame .mat img{width:100%; height:auto; aspect-ratio:1920/1090; object-fit:cover}
+  .frame .mat::after{content:""; position:absolute; inset:5px; box-shadow:inset 0 0 40px rgba(20,15,5,.35); pointer-events:none}
+  .frame .rosette{position:absolute; width:26px; height:26px; color:#F6DFA0}
+  .frame .rosette.a{top:-3px; left:-3px} .frame .rosette.b{top:-3px; right:-3px}
+  .frame .rosette.c{bottom:-3px; left:-3px} .frame .rosette.d{bottom:-3px; right:-3px}
+  .plaque{
+    display:table; margin:22px auto 0; padding:9px 26px 10px; text-align:center;
+    background:linear-gradient(180deg,#F1D79A,#C59A4E 55%,#9E7634); border-radius:2px;
+    box-shadow:0 1px 0 rgba(255,245,215,.8) inset, 0 -1px 0 rgba(80,52,16,.6) inset, 0 6px 12px -4px rgba(15,28,46,.4);
+    color:#3A2810; text-shadow:0 1px 0 rgba(255,240,200,.6);
+  }
+  .plaque b{display:block; font-family:var(--title); font-weight:400; font-size:15px; letter-spacing:.2em}
+  .plaque small{display:block; font-style:italic; font-weight:600; font-size:14px; line-height:1.2; color:#3E2C12}
+
+  .still{position:relative; height:0}
+  .still .sl{position:absolute; pointer-events:none; filter:drop-shadow(0 12px 8px rgba(60,40,10,.25))}
+  .still{z-index:2}
+  .still .panda{left:44px; top:-139px; width:170px; filter:drop-shadow(0 4px 2px rgba(30,20,5,.45))}
+  .still .crop1{right:22px; top:-52px; width:118px}
+  .still .crop2{right:-34px; top:-30px; width:92px}
+  @media (max-width:760px){ .still .panda{width:96px; left:20px; top:-66px} .still .crop1{width:70px; right:10px; top:-36px} .still .crop2{width:56px; right:-12px; top:-22px} }
+
+  /* ---------- section titles ---------- */
+  .sec{position:relative; padding:110px 0}
+  .sec-head{text-align:center; max-width:760px; margin:0 auto 64px}
+  .sec-head .num{font-family:var(--fell); font-size:22px; color:var(--wax); letter-spacing:.1em}
+  .sec-head h2{font-family:var(--title); font-weight:400; font-size:clamp(38px,4.4vw,60px); line-height:1.05; margin:6px 0 18px; color:var(--navy); letter-spacing:.03em}
+  .sec-head p{font-size:21px; color:var(--ink-soft); margin:18px auto 0; max-width:36em}
+
+  /* ---------- the land ---------- */
+  .land .doc{
+    position:relative; padding:76px 72px; background:rgba(255,250,236,.55);
+    border:1px solid rgba(185,139,62,.5); box-shadow:inset 0 0 0 7px rgba(242,232,208,.9), inset 0 0 0 8px rgba(185,139,62,.55), 0 30px 60px -40px rgba(60,40,10,.5);
+  }
+  .land .grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:72px; align-items:center}
+  .clauses{list-style:none; margin:0; padding:0; counter-reset:art}
+  .clauses li{display:grid; grid-template-columns:62px 1fr; gap:4px 18px; padding:24px 0; border-top:1px solid rgba(185,139,62,.45)}
+  .clauses li:first-child{border-top:0; padding-top:0}
+  .clauses .roman{grid-row:span 2; font-family:var(--fell); font-size:44px; line-height:1; color:var(--gold); text-align:center}
+  .clauses h3{margin:0; font-family:var(--title); font-weight:400; font-size:17px; letter-spacing:.2em; color:var(--navy)}
+  .clauses h3 i{font-family:var(--serif); letter-spacing:.02em; color:var(--ink-soft); font-size:18px}
+  .clauses p{margin:0; font-size:20px}
+  .land figure{margin:0}
+  .land figcaption{margin-top:16px; text-align:center; font-style:italic; font-size:17px; color:var(--ink-soft)}
+  .frame.slim{padding:14px}
+  .frame.slim::before{inset:6px}
+  .frame.slim .mat img{aspect-ratio:4/3.4}
+
+  /* ---------- the residents (gallery wall) ---------- */
+  .residents{
+    color:var(--parch);
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(80,110,160,.28), transparent 60%),
+      radial-gradient(ellipse at 50% 120%, rgba(0,0,0,.45), transparent 60%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><g fill='none' stroke='%23E6C47C' stroke-opacity='.07' stroke-width='1'><path d='M32 6c6 8 6 14 0 20c-6-6-6-12 0-20zM32 58c6-8 6-14 0-20c-6 6-6 12 0 20zM6 32c8-6 14-6 20 0c-6 6-12 6-20 0zM58 32c-8-6-14-6-20 0c6 6 12 6 20 0z'/><circle cx='32' cy='32' r='3'/><circle cx='0' cy='0' r='3'/><circle cx='64' cy='0' r='3'/><circle cx='0' cy='64' r='3'/><circle cx='64' cy='64' r='3'/></g></svg>"),
+      var(--navy);
+    border-block:1px solid var(--gold-lo);
+    box-shadow:inset 0 6px 0 var(--navy-2), inset 0 7px 0 rgba(185,139,62,.5), inset 0 -6px 0 var(--navy-2), inset 0 -7px 0 rgba(185,139,62,.5);
+  }
+  .residents .sec-head h2{color:var(--parch)}
+  .residents .sec-head p{color:rgba(242,232,208,.75)}
+  .residents .sec-head .num{color:var(--gold-hi)}
+  .gallery{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:56px 40px; align-items:end}
+  .portrait{margin:0; text-align:center}
+  .portrait .frame{padding:13px}
+  .portrait .frame::before{inset:6px}
+  .portrait .canvas{
+    position:relative; aspect-ratio:1/1; overflow:hidden;
+    background:radial-gradient(ellipse at 50% 38%, #FBF4E2 0%, #EFE2C2 55%, #D8C395 100%);
+    box-shadow:inset 0 0 0 4px #2E2312, inset 0 0 34px rgba(80,55,20,.35);
+  }
+  .portrait .canvas img{position:absolute; inset:8%; width:84%; height:84%; object-fit:contain; transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+  .portrait:hover .canvas img{transform:scale(1.04)}
+  .portrait.oval .frame{border-radius:50%/50%; padding:13px}
+  .portrait.oval .frame::before{border-radius:50%}
+  .portrait.oval .canvas{border-radius:50%; aspect-ratio:4/5}
+  .portrait.tall .canvas{aspect-ratio:4/5}
+  .portrait figcaption{margin-top:20px}
+  .portrait .plaque{margin-top:0; padding:7px 20px 8px}
+  .portrait .plaque b{font-size:14px}
+  .portrait .plaque small{font-size:13px}
+
+  .from-above{margin-top:88px; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,2fr); gap:56px; align-items:center; padding-top:56px; border-top:1px solid rgba(185,139,62,.35)}
+  .from-above h3{font-family:var(--title); font-weight:400; font-size:30px; letter-spacing:.06em; margin:0 0 12px; color:var(--gold-hi)}
+  .from-above p{margin:0; color:rgba(242,232,208,.78); font-size:19px}
+  .medals{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:28px; list-style:none; margin:0; padding:0}
+  .medal{text-align:center}
+  .medal .disc{
+    position:relative; aspect-ratio:1; border-radius:50%; padding:9px; background:var(--gilt);
+    box-shadow:0 14px 24px -10px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,240,200,.6);
+  }
+  .medal .disc div{
+    width:100%; height:100%; border-radius:50%; position:relative; overflow:hidden;
+    background:radial-gradient(circle at 50% 40%, #4E7A3E, #36602F 60%, #274A24);
+    box-shadow:inset 0 0 0 3px #2E2312, inset 0 0 20px rgba(0,0,0,.45);
+  }
+  .medal img{position:absolute; inset:10%; width:80%; height:80%; object-fit:contain; filter:drop-shadow(0 6px 4px rgba(0,0,0,.35))}
+  .medal span{display:block; margin-top:12px; font-family:var(--title); font-size:13px; letter-spacing:.2em; color:rgba(242,232,208,.8)}
+
+  /* ---------- the harvest (ledger) ---------- */
+  .ledger-book{
+    position:relative; padding:56px 56px 40px; background:#F7EFD9;
+    background-image:
+      linear-gradient(90deg, transparent 0 124px, rgba(140,35,32,.35) 124px 125px, transparent 125px 129px, rgba(140,35,32,.35) 129px 130px, transparent 130px),
+      repeating-linear-gradient(180deg, transparent 0 39px, rgba(33,54,90,.05) 39px 40px);
+    border:1px solid rgba(122,88,36,.45);
+    box-shadow:0 2px 0 #E2D2AA, 0 4px 0 #D6C394, 0 6px 0 #CBB683, 0 40px 60px -30px rgba(60,40,10,.6);
+  }
+  .ledger-book::before{ /* leather spine edge */
+    content:""; position:absolute; top:-1px; bottom:-1px; left:-14px; width:14px; border-radius:6px 0 0 6px;
+    background:linear-gradient(90deg,#3A1512,#6E2420 60%,#4A1A16);
+  }
+  .ledger-title{display:flex; justify-content:space-between; align-items:baseline; gap:24px; padding:0 0 18px 88px; border-bottom:2px double rgba(42,34,24,.55)}
+  .ledger-title h3{margin:0; font-family:var(--fell); font-weight:400; font-style:italic; font-size:30px; color:var(--navy)}
+  .ledger-title span{font-style:italic; font-size:18px; color:var(--ink-soft)}
+  table.ledger{width:100%; border-collapse:collapse; font-size:18px}
+  .ledger caption{caption-side:bottom; text-align:left; padding:22px 0 0 88px; font-style:italic; font-size:18px; color:var(--ink-soft)}
+  .ledger th{font-family:var(--title); font-weight:400; font-size:12px; letter-spacing:.22em; color:var(--gold-lo); text-align:center; padding:18px 6px 12px; border-bottom:1px solid rgba(42,34,24,.4); vertical-align:bottom}
+  .ledger th:first-child, .ledger td:first-child{text-align:center; width:60px}
+  .ledger th.l{text-align:left}
+  .ledger td{padding:14px 6px; border-bottom:1px solid rgba(42,34,24,.18); text-align:center; vertical-align:middle}
+  .ledger tbody tr{transition:background .25s}
+  .ledger tbody tr:hover{background:rgba(185,139,62,.09)}
+  .ledger .folio{font-family:var(--fell); font-size:24px; color:var(--wax)}
+  .ledger .produce{display:flex; align-items:center; gap:16px; text-align:left; min-width:230px}
+  .ledger .produce img{width:96px; height:96px; flex:none; filter:drop-shadow(0 6px 5px rgba(60,40,10,.25))}
+  .ledger .produce b{display:block; font-family:var(--title); font-weight:400; font-size:19px; letter-spacing:.06em; color:var(--navy); line-height:1.15}
+  .ledger .produce small{font-style:italic; font-size:16px; color:var(--ink-soft)}
+  .ledger td.stage img{width:58px; height:58px; margin:0 auto}
+  .ledger td.seed img{width:76px; height:76px; margin:0 auto}
+  .ledger td.wilt img{width:72px; height:72px; margin:0 auto; opacity:.9}
+  .ledger .grow{display:flex; justify-content:center; gap:0}
+  .ledger .grow img{width:100px; height:100px; flex:none; margin:-8px 0}
+  .ledger th.c-prod{width:300px} .ledger th.c-seed{width:96px} .ledger th.wilt{width:110px}
+  .ledger .arrow{color:var(--gold); font-family:var(--fell)}
+  .ledger-tally{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:56px; text-align:center}
+  .ledger-tally div{padding:0 20px; border-left:1px solid rgba(185,139,62,.5)}
+  .ledger-tally div:first-child{border-left:0}
+  .ledger-tally b{display:block; font-family:var(--fell); font-weight:400; font-size:64px; line-height:1; color:var(--navy)}
+  .ledger-tally span{font-family:var(--title); font-size:13px; letter-spacing:.22em; color:var(--gold-lo)}
+
+  /* ---------- closing seal ---------- */
+  .closing{text-align:center; padding:40px 0 130px}
+  .closing .doc{position:relative; max-width:900px; margin:0 auto; padding:84px 60px 76px; border:1px solid rgba(185,139,62,.55); box-shadow:inset 0 0 0 7px rgba(242,232,208,.95), inset 0 0 0 8px rgba(185,139,62,.5); background:rgba(255,250,236,.5)}
+  .closing .whereas{font-family:var(--fell); font-style:italic; font-size:22px; color:var(--gold-lo); margin:0}
+  .closing h2{font-family:var(--title); font-weight:400; font-size:clamp(40px,5vw,68px); line-height:1.04; color:var(--navy); margin:14px 0 22px}
+  .closing p.body{font-size:21px; max-width:32em; margin:0 auto; color:var(--ink-soft)}
+  .closing .sign{display:flex; align-items:center; justify-content:center; gap:44px; margin-top:52px}
+  .closing .line{flex:1; max-width:220px; text-align:center; font-style:italic; font-size:16px; color:var(--ink-soft)}
+  .closing .line .sig{border-bottom:1px solid rgba(42,34,24,.5); padding-bottom:2px; margin-bottom:6px}
+  .closing .line .sig{display:block; font-family:var(--fell); font-style:italic; font-size:24px; color:var(--navy); height:40px; line-height:40px}
+  .closing .seal{width:190px; height:190px}
+  .wallets{margin-top:40px; font-size:18px; color:var(--ink-soft)}
+  .wallets b{font-family:var(--title); font-weight:400; letter-spacing:.12em; font-size:16px; color:var(--navy)}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--navy); color:rgba(242,232,208,.7); padding:56px 0 46px; border-top:1px solid var(--gold-lo); box-shadow:inset 0 6px 0 var(--navy-2), inset 0 7px 0 rgba(185,139,62,.5)}
+  footer .wrap{display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap}
+  footer p{margin:0; font-size:17px; font-style:italic}
+  footer nav{display:flex; gap:26px}
+  footer nav a{font-family:var(--title); font-size:13px; letter-spacing:.2em; text-decoration:none; color:rgba(242,232,208,.75)}
+  footer nav a:hover{color:var(--gold-hi)}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:1100px){
+    .nav{gap:22px}
+    .gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .ledger td.wilt, .ledger th.wilt{display:none}
+  }
+  @media (max-width:960px){
+    .nav{display:none}
+    .hero .wrap, .land .grid, .from-above{grid-template-columns:1fr; gap:48px}
+    .hero{padding-top:44px}
+    .land .doc{padding:56px 36px}
+  }
+  @media (max-width:760px){
+    body{font-size:18px}
+    .wrap{width:calc(100% - 32px)}
+    .top .wrap{height:72px}
+    .brand img{width:42px; height:42px}
+    .brand b{font-size:19px}
+    .brand b span{display:none}
+    .seal-sm{padding:6px 14px 6px 6px; font-size:13px; letter-spacing:.08em}
+    .seal-sm::before{width:24px; height:24px}
+    .sec{padding:76px 0}
+    .hero .actions{flex-direction:column; align-items:flex-start}
+    .land .doc{padding:44px 20px}
+    .corner{width:44px; height:44px}
+    .corner.tl,.corner.tr{top:8px} .corner.bl,.corner.br{bottom:8px}
+    .corner.tl,.corner.bl{left:8px} .corner.tr,.corner.br{right:8px}
+    .clauses li{grid-template-columns:44px 1fr}
+    .clauses .roman{font-size:34px}
+    .gallery{gap:40px 18px}
+    .portrait .plaque{padding:6px 10px}
+    .portrait .plaque b{font-size:12px; letter-spacing:.12em}
+    .medals{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .ledger-book{padding:32px 16px 28px; background-image:repeating-linear-gradient(180deg, transparent 0 39px, rgba(33,54,90,.09) 39px 40px)}
+    .ledger-book::before{display:none}
+    .ledger-title{padding-left:0; flex-direction:column; gap:4px}
+    .ledger caption{padding-left:0}
+    .ledger thead{display:none}
+    .ledger, .ledger tbody, .ledger tr, .ledger td{display:block; width:100%}
+    .ledger tr{display:grid; grid-template-columns:auto 1fr; gap:6px 12px; padding:18px 0; border-bottom:1px solid rgba(42,34,24,.25)}
+    .ledger td{border:0; padding:0}
+    .ledger td:first-child{width:auto}
+    .ledger td.seed, .ledger td.wilt{display:none}
+    .ledger td.stage{grid-column:1 / -1}
+    .ledger .produce{min-width:0}
+    .ledger .grow{justify-content:flex-start; flex-wrap:wrap}
+    .ledger .grow img{width:calc((100% - 16px)/5); height:auto; max-width:58px}
+    .ledger-tally{grid-template-columns:1fr; gap:24px}
+    .ledger-tally div{border-left:0}
+    .closing .doc{padding:56px 22px}
+    .closing .sign{flex-direction:column; gap:28px}
+    .closing .line{width:100%}
+    footer .wrap{flex-direction:column; align-items:flex-start}
+  }
+  @media (max-width:440px){
+    .brand{gap:10px}
+    .brand b{font-size:16px; letter-spacing:.02em}
+    .seal-sm{font-size:12px; letter-spacing:.04em; padding:9px 12px}
+    .seal-sm::before{display:none}
+    .portrait .plaque{max-width:100%}
+    .seal{width:150px; height:150px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important; scroll-behavior:auto !important}
+  }
+</style>
+</head>
+<body>
+
+<!-- shared ornaments -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="rule" viewBox="0 0 460 22">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <path d="M6 11H176" stroke-width="1"/>
+        <path d="M40 15H170" stroke-width=".6" opacity=".7"/>
+        <path d="M284 11H454" stroke-width="1"/>
+        <path d="M290 15H420" stroke-width=".6" opacity=".7"/>
+        <path d="M178 11c10-10 22-10 26 0c-4 6-12 6-14 0" stroke-width="1.1"/>
+        <path d="M282 11c-10-10-22-10-26 0c4 6 12 6 14 0" stroke-width="1.1"/>
+      </g>
+      <g fill="currentColor">
+        <path d="M230 2l9 9l-9 9l-9-9z"/>
+        <circle cx="212" cy="11" r="2.2"/><circle cx="248" cy="11" r="2.2"/>
+        <circle cx="6" cy="11" r="2"/><circle cx="454" cy="11" r="2"/>
+      </g>
+      <path d="M230 6l5 5l-5 5l-5-5z" fill="#F2E8D0" opacity=".7"/>
+    </symbol>
+    <symbol id="corner" viewBox="0 0 74 74">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <path d="M2 72V2H72" stroke-width="1.6"/>
+        <path d="M9 72V9H72" stroke-width=".8"/>
+        <path d="M9 30c10 0 16-6 16-16" stroke-width="1"/>
+        <path d="M30 9c0 10-6 16-16 16" stroke-width="1"/>
+        <path d="M30 9c6 6 14 6 20 0M9 30c6 6 6 14 0 20" stroke-width=".9"/>
+      </g>
+      <g fill="currentColor">
+        <path d="M2 2l12 3l-9 9z"/>
+        <circle cx="19" cy="19" r="3.2"/>
+        <circle cx="54" cy="9" r="1.8"/><circle cx="9" cy="54" r="1.8"/>
+      </g>
+    </symbol>
+    <symbol id="rosette" viewBox="0 0 26 26">
+      <circle cx="13" cy="13" r="11" fill="#8F6526"/>
+      <circle cx="13" cy="13" r="9.5" fill="url(#g-ros)"/>
+      <g fill="#7A5824" opacity=".75"><path d="M13 5l1.6 6.4L21 13l-6.4 1.6L13 21l-1.6-6.4L5 13l6.4-1.6z"/></g>
+      <circle cx="13" cy="13" r="2" fill="#FBEAB8"/>
+    </symbol>
+    <radialGradient id="g-ros" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#FBE7AE"/><stop offset=".6" stop-color="#D0A458"/><stop offset="1" stop-color="#8A6024"/></radialGradient>
+    <radialGradient id="g-wax" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#D2564A"/><stop offset=".45" stop-color="#A12C26"/><stop offset=".85" stop-color="#6E1814"/><stop offset="1" stop-color="#55120F"/></radialGradient>
+    <symbol id="wax" viewBox="0 0 200 200">
+      <path fill="url(#g-wax)" d="M100 6c9 0 13 6 21 7s15-4 22 1s5 13 11 19s15 4 19 12s-3 14 0 22s12 11 12 20s-8 12-9 20s5 15 0 22s-14 4-19 11s-1 16-8 21s-15-1-23 3s-11 12-20 12s-12-8-20-10s-16 4-23-1s-3-14-9-20s-16-5-20-13s4-14 1-22s-12-12-12-21s9-12 10-20s-5-15 0-22s15-4 20-11s1-16 8-20s15 1 23-3s12-9 21-9z"/>
+      <circle cx="100" cy="100" r="68" fill="none" stroke="#4A0F0C" stroke-opacity=".55" stroke-width="5"/>
+      <circle cx="100" cy="100" r="64" fill="none" stroke="#F2A090" stroke-opacity=".28" stroke-width="1.4"/>
+      <circle cx="100" cy="100" r="72" fill="none" stroke="#F2A090" stroke-opacity=".2" stroke-width="1"/>
+      <g fill="#F2A090" fill-opacity=".22">
+        <circle cx="100" cy="38" r="2"/><circle cx="100" cy="162" r="2"/><circle cx="38" cy="100" r="2"/><circle cx="162" cy="100" r="2"/>
+      </g>
+      <ellipse cx="72" cy="58" rx="22" ry="10" transform="rotate(-35 72 58)" fill="#fff" fill-opacity=".1"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Unclaimed Acres, home">
+      <img src="assets/emblem.svg" alt="" width="52" height="52">
+      <b>Unclaimed Acres<span>an island farming &amp; creature game</span></b>
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#land"><span class="n">I.</span>The Land</a>
+      <a href="#residents"><span class="n">II.</span>The Residents</a>
+      <a href="#harvest"><span class="n">III.</span>The Harvest</a>
+    </nav>
+    <button class="seal-sm" type="button">Connect wallet</button>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div>
+        <div class="eyebrow">letters of grant &middot; given under seal</div>
+        <h1 id="hero-title">An island, granted <i>to you</i> alone.</h1>
+        <p class="lede">Unclaimed Acres is a calm island farming and creature game on the WAX blockchain. Sow sixty-four crops, keep more than fifty creatures, and tend your own shores at whatever pace pleases you.</p>
+        <div class="actions">
+          <button class="seal" type="button" aria-label="Connect wallet">
+            <svg aria-hidden="true"><use href="#wax"/></svg>
+            <span class="lbl"><small>affix your</small><strong>Connect</strong><em>WALLET</em></span>
+          </button>
+          <p>The game is in development.<br><a href="#land">Read the charter</a></p>
+        </div>
+      </div>
+      <figure style="margin:0">
+        <div class="frame">
+          <svg class="rosette a" aria-hidden="true"><use href="#rosette"/></svg>
+          <svg class="rosette b" aria-hidden="true"><use href="#rosette"/></svg>
+          <svg class="rosette c" aria-hidden="true"><use href="#rosette"/></svg>
+          <svg class="rosette d" aria-hidden="true"><use href="#rosette"/></svg>
+          <div class="mat">
+            <img src="assets/island-overview.webp" width="1920" height="1090" alt="A generated island seen from above: green lowlands ringed by sandy beaches, pine forests, and a terraced grey mountain with a snowy peak, surrounded by deep blue sea.">
+          </div>
+        </div>
+        <div class="still" aria-hidden="true">
+          <img class="sl panda" src="../topdown/animals__redpanda/side.svg" alt="">
+          <img class="sl crop1" src="../crops/pumpkin/7-harvest-front.svg" alt="">
+          <img class="sl crop2" src="../crops/strawberries/7-harvest-front.svg" alt="">
+        </div>
+        <figcaption class="plaque"><b>An Island, as Recorded</b><small>generated &amp; stored on the WAX blockchain</small></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <svg class="rule" aria-hidden="true"><use href="#rule"/></svg>
+
+  <!-- THE LAND -->
+  <section class="sec land" id="land" aria-labelledby="land-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num">Part the First</div>
+        <h2 id="land-title">The Land</h2>
+        <svg class="rule" aria-hidden="true"><use href="#rule"/></svg>
+        <p>Be it known that each island is a thing apart: raised from the sea once, written down for good, and held in your name.</p>
+      </div>
+      <div class="doc">
+        <svg class="corner tl" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="corner tr" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="corner bl" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="corner br" aria-hidden="true"><use href="#corner"/></svg>
+        <div class="grid">
+          <ol class="clauses">
+            <li><span class="roman" aria-hidden="true">I</span><h3>Of its Making</h3><p>Every island is generated and stored on the WAX blockchain. Its coasts, hills and woods are recorded there, not merely painted.</p></li>
+            <li><span class="roman" aria-hidden="true">II</span><h3>Of its Keeping</h3><p>The island is owned by your wallet. The deed is yours to hold.</p></li>
+            <li><span class="roman" aria-hidden="true">III</span><h3>Of its Character</h3><p>No two islands are alike. Yours may hold peninsulas and sheltered bays, long beaches, deep forests, quiet lakes, and terraced mountains capped with snow.</p></li>
+            <li><span class="roman" aria-hidden="true">IV</span><h3>Of its Hours</h3><p>No hurry is written into this charter. Play at your own pace; the land will keep.</p></li>
+          </ol>
+          <figure>
+            <div class="frame slim">
+              <svg class="rosette a" aria-hidden="true"><use href="#rosette"/></svg>
+              <svg class="rosette b" aria-hidden="true"><use href="#rosette"/></svg>
+              <svg class="rosette c" aria-hidden="true"><use href="#rosette"/></svg>
+              <svg class="rosette d" aria-hidden="true"><use href="#rosette"/></svg>
+              <div class="mat"><img src="assets/island-close.webp" width="1920" height="1090" alt="Close view of the island: a terraced, snow-topped mountain rising from green meadows, with pine forests and pale beaches along the shore."></div>
+            </div>
+            <figcaption>Detail: the terraced mountain, its forests and its shore.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE RESIDENTS -->
+  <section class="sec residents" id="residents" aria-labelledby="res-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num">Part the Second</div>
+        <h2 id="res-title">The Residents</h2>
+        <svg class="rule" aria-hidden="true"><use href="#rule"/></svg>
+        <p>More than fifty creatures, from the humble fox to the kirin and the phoenix, each drawn twice: once in profile, as hung here, and once from above, as they wander your island.</p>
+      </div>
+
+      <div class="gallery">
+        <figure class="portrait oval"><div class="frame"><div class="canvas"><img src="../topdown/animals__fox/side.svg" alt="A red fox mid-leap" loading="lazy"></div></div>
+          <figcaption class="plaque"><b>The Fox</b><small>of the lowland wood</small></figcaption></figure>
+        <figure class="portrait"><div class="frame"><div class="canvas"><img src="../topdown/animals__redpanda/side.svg" alt="A red panda with a ringed tail" loading="lazy"></div></div>
+          <figcaption class="plaque"><b>The Red Panda</b><small>keeper of the canopy</small></figcaption></figure>
+        <figure class="portrait oval"><div class="frame"><div class="canvas"><img src="../topdown/creatures__kitsune/side.svg" alt="A white kitsune with a fan of red-tipped tails" loading="lazy"></div></div>
+          <figcaption class="plaque"><b>The Kitsune</b><small>of many tails</small></figcaption></figure>
+        <figure class="portrait"><div class="frame"><div class="canvas"><img src="../topdown/felines__moon-cat/side.svg" alt="A blue moon cat with star markings, sitting" loading="lazy"></div></div>
+          <figcaption class="plaque"><b>The Moon Cat</b><small>who keeps late hours</small></figcaption></figure>
+        <figure class="portrait"><div class="frame"><div class="canvas"><img src="../topdown/beasts__blossom-stag/side.svg" alt="A stag with cherry blossoms growing from its antlers" loading="lazy"></div></div>
+          <figcaption class="plaque"><b>The Blossom Stag</b><small>in spring livery</small></figcaption></figure>
+        <figure class="portrait oval"><div class="frame"><div class="canvas"><img src="../topdown/flyers__pegasus/side.svg" alt="A white winged pegasus in flight" loading="lazy"></div></div>
+          <figcaption class="plaque"><b>The Pegasus</b><small>of the high air</small></figcaption></figure>
+        <figure class="portrait"><div class="frame"><div class="canvas"><img src="../topdown/turtles__crystal-turtle/side.svg" alt="A violet turtle with a shell of glowing crystals" loading="lazy"></div></div>
+          <figcaption class="plaque"><b>The Crystal Turtle</b><small>slow &amp; precious</small></figcaption></figure>
+        <figure class="portrait oval"><div class="frame"><div class="canvas"><img src="../topdown/creatures__phoenix/side.svg" alt="A flame-feathered phoenix with spread wings" loading="lazy"></div></div>
+          <figcaption class="plaque"><b>The Phoenix</b><small>ever returning</small></figcaption></figure>
+      </div>
+
+      <div class="from-above">
+        <div>
+          <h3>As Seen from Above</h3>
+          <p>On the island map the residents are drawn from overhead, the same creatures in a second hand, roaming meadow and shore.</p>
+        </div>
+        <ul class="medals">
+          <li class="medal"><div class="disc"><div><img src="../topdown/animals__redpanda/top.svg" alt="Red panda seen from above" loading="lazy"></div></div><span>Red Panda</span></li>
+          <li class="medal"><div class="disc"><div><img src="../topdown/creatures__kitsune/top.svg" alt="Kitsune seen from above" loading="lazy"></div></div><span>Kitsune</span></li>
+          <li class="medal"><div class="disc"><div><img src="../topdown/turtles__crystal-turtle/top.svg" alt="Crystal turtle seen from above" loading="lazy"></div></div><span>Crystal Turtle</span></li>
+          <li class="medal"><div class="disc"><div><img src="../topdown/animals__owl/top.svg" alt="Owl seen from above, wings spread" loading="lazy"></div></div><span>Owl</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE HARVEST -->
+  <section class="sec harvest" id="harvest" aria-labelledby="harvest-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="num">Part the Third</div>
+        <h2 id="harvest-title">The Harvest</h2>
+        <svg class="rule" aria-hidden="true"><use href="#rule"/></svg>
+        <p>Sixty-four crops, the familiar and the fanciful, each entered in the ledger through eight stages: seed, sowing, three growths, harvest, the yield, and the wilted.</p>
+      </div>
+
+      <div class="ledger-book">
+        <div class="ledger-title"><h3>Ledger of Produce</h3><span>A few folios, of sixty-four</span></div>
+        <table class="ledger">
+          <caption>Growth columns read from sowing to harvest, as each plot is seen from above.</caption>
+          <thead>
+            <tr>
+              <th scope="col">No.</th>
+              <th scope="col" class="l c-prod">Produce</th>
+              <th scope="col" class="c-seed">Seed</th>
+              <th scope="col">Sown &rarr; growing &rarr; ready</th>
+              <th scope="col" class="wilt">Wilted</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="folio">i</td>
+              <td><div class="produce"><img src="../crops/strawberries/7-harvest-front.svg" alt="" loading="lazy"><div><b>Strawberries</b><small>sweet, low &amp; spreading</small></div></div></td>
+              <td class="seed"><img src="../crops/strawberries/1-seeds-front.svg" alt="Strawberry seedlings" loading="lazy"></td>
+              <td class="stage"><div class="grow" role="img" aria-label="Strawberries in five growth stages, from sown soil to a ripe harvest">
+                <img src="../crops/strawberries/2-sown.svg" alt="" loading="lazy"><img src="../crops/strawberries/3-first-growth.svg" alt="" loading="lazy"><img src="../crops/strawberries/4-second-growth.svg" alt="" loading="lazy"><img src="../crops/strawberries/5-third-growth.svg" alt="" loading="lazy"><img src="../crops/strawberries/6-harvest.svg" alt="" loading="lazy"></div></td>
+              <td class="wilt"><img src="../crops/strawberries/8-dead.svg" alt="Wilted strawberry plant" loading="lazy"></td>
+            </tr>
+            <tr>
+              <td class="folio">ii</td>
+              <td><div class="produce"><img src="../crops/pumpkin/7-harvest-front.svg" alt="" loading="lazy"><div><b>Pumpkin</b><small>for the autumn table</small></div></div></td>
+              <td class="seed"><img src="../crops/pumpkin/1-seeds-front.svg" alt="Pumpkin seeds" loading="lazy"></td>
+              <td class="stage"><div class="grow" role="img" aria-label="Pumpkin in five growth stages, from sown soil to a ripe harvest">
+                <img src="../crops/pumpkin/2-sown.svg" alt="" loading="lazy"><img src="../crops/pumpkin/3-first-growth.svg" alt="" loading="lazy"><img src="../crops/pumpkin/4-second-growth.svg" alt="" loading="lazy"><img src="../crops/pumpkin/5-third-growth.svg" alt="" loading="lazy"><img src="../crops/pumpkin/6-harvest.svg" alt="" loading="lazy"></div></td>
+              <td class="wilt"><img src="../crops/pumpkin/8-dead.svg" alt="Wilted pumpkin vine" loading="lazy"></td>
+            </tr>
+            <tr>
+              <td class="folio">iii</td>
+              <td><div class="produce"><img src="../crops/coffee/7-harvest-front.svg" alt="" loading="lazy"><div><b>Coffee</b><small>cherries &amp; roasted bean</small></div></div></td>
+              <td class="seed"><img src="../crops/coffee/1-seeds-front.svg" alt="Coffee seeds" loading="lazy"></td>
+              <td class="stage"><div class="grow" role="img" aria-label="Coffee in five growth stages, from sown soil to a ripe harvest">
+                <img src="../crops/coffee/2-sown.svg" alt="" loading="lazy"><img src="../crops/coffee/3-first-growth.svg" alt="" loading="lazy"><img src="../crops/coffee/4-second-growth.svg" alt="" loading="lazy"><img src="../crops/coffee/5-third-growth.svg" alt="" loading="lazy"><img src="../crops/coffee/6-harvest.svg" alt="" loading="lazy"></div></td>
+              <td class="wilt"><img src="../crops/coffee/8-dead.svg" alt="Wilted coffee shrub" loading="lazy"></td>
+            </tr>
+            <tr>
+              <td class="folio">iv</td>
+              <td><div class="produce"><img src="../crops/sunflower/7-harvest-front.svg" alt="" loading="lazy"><div><b>Sunflower</b><small>turned to the light</small></div></div></td>
+              <td class="seed"><img src="../crops/sunflower/1-seeds-front.svg" alt="Sunflower seeds" loading="lazy"></td>
+              <td class="stage"><div class="grow" role="img" aria-label="Sunflower in five growth stages, from sown soil to full bloom">
+                <img src="../crops/sunflower/2-sown.svg" alt="" loading="lazy"><img src="../crops/sunflower/3-first-growth.svg" alt="" loading="lazy"><img src="../crops/sunflower/4-second-growth.svg" alt="" loading="lazy"><img src="../crops/sunflower/5-third-growth.svg" alt="" loading="lazy"><img src="../crops/sunflower/6-harvest.svg" alt="" loading="lazy"></div></td>
+              <td class="wilt"><img src="../crops/sunflower/8-dead.svg" alt="Wilted sunflower" loading="lazy"></td>
+            </tr>
+            <tr>
+              <td class="folio">v</td>
+              <td><div class="produce"><img src="../crops/moonbloom/7-harvest-front.svg" alt="" loading="lazy"><div><b>Moonbloom</b><small>a rarer, fabled flower</small></div></div></td>
+              <td class="seed"><img src="../crops/moonbloom/1-seeds-front.svg" alt="Moonbloom seeds" loading="lazy"></td>
+              <td class="stage"><div class="grow" role="img" aria-label="Moonbloom in five growth stages, from sown soil to full bloom">
+                <img src="../crops/moonbloom/2-sown.svg" alt="" loading="lazy"><img src="../crops/moonbloom/3-first-growth.svg" alt="" loading="lazy"><img src="../crops/moonbloom/4-second-growth.svg" alt="" loading="lazy"><img src="../crops/moonbloom/5-third-growth.svg" alt="" loading="lazy"><img src="../crops/moonbloom/6-harvest.svg" alt="" loading="lazy"></div></td>
+              <td class="wilt"><img src="../crops/moonbloom/8-dead.svg" alt="Wilted moonbloom" loading="lazy"></td>
+            </tr>
+            <tr>
+              <td class="folio">vi</td>
+              <td><div class="produce"><img src="../crops/egg-plant/7-harvest-front.svg" alt="" loading="lazy"><div><b>Egg-plant</b><small>which, truly, grows eggs</small></div></div></td>
+              <td class="seed"><img src="../crops/egg-plant/1-seeds-front.svg" alt="Egg-plant seeds" loading="lazy"></td>
+              <td class="stage"><div class="grow" role="img" aria-label="Egg-plant in five growth stages, from sown soil to a bush full of eggs">
+                <img src="../crops/egg-plant/2-sown.svg" alt="" loading="lazy"><img src="../crops/egg-plant/3-first-growth.svg" alt="" loading="lazy"><img src="../crops/egg-plant/4-second-growth.svg" alt="" loading="lazy"><img src="../crops/egg-plant/5-third-growth.svg" alt="" loading="lazy"><img src="../crops/egg-plant/6-harvest.svg" alt="" loading="lazy"></div></td>
+              <td class="wilt"><img src="../crops/egg-plant/8-dead.svg" alt="Wilted egg-plant" loading="lazy"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ledger-tally">
+        <div><b>64</b><span>crops entered</span></div>
+        <div><b>8</b><span>stages apiece</span></div>
+        <div><b>50+</b><span>resident creatures</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSING SEAL -->
+  <section class="closing" aria-labelledby="close-title">
+    <div class="wrap">
+      <div class="doc">
+        <svg class="corner tl" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="corner tr" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="corner bl" aria-hidden="true"><use href="#corner"/></svg>
+        <svg class="corner br" aria-hidden="true"><use href="#corner"/></svg>
+        <p class="whereas">In witness whereof</p>
+        <h2 id="close-title">Your acres await their claimant.</h2>
+        <svg class="rule" aria-hidden="true"><use href="#rule"/></svg>
+        <p class="body" style="margin-top:22px">Affix your seal to take up the charter. The island, its residents and its harvest will be ready whenever you are.</p>
+        <div class="sign">
+          <div class="line"><span class="sig">Unclaimed Acres</span>the grantor</div>
+          <button class="seal" type="button" aria-label="Connect wallet">
+            <svg aria-hidden="true"><use href="#wax"/></svg>
+            <span class="lbl"><small>affix your</small><strong>Connect</strong><em>WALLET</em></span>
+          </button>
+          <div class="line"><span class="sig" aria-hidden="true"></span>the claimant</div>
+        </div>
+        <p class="wallets">Seal with <b>WAX Cloud Wallet</b>, <b>Wombat</b> or <b>Anchor</b>.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Unclaimed Acres, back to top">
+      <img src="assets/emblem.svg" alt="" width="44" height="44">
+      <b>Unclaimed Acres</b>
+    </a>
+    <nav aria-label="Footer">
+      <a href="#land">The Land</a><a href="#residents">The Residents</a><a href="#harvest">The Harvest</a>
+    </nav>
+    <p>In development on the WAX blockchain.</p>
+  </div>
+</footer>
+</body>
+</html>

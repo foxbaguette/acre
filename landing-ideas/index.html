@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landing Page Ideas</title>
+<style>
+  :root { --bg: #f4f2ee; --panel: #ffffff; --tile: #eeebe5; --ink: #1f1d1a; --muted: #6f6a62; --line: #d9d4cb; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93; --line: #3a3732; }
+  }
+  :root[data-theme="dark"] { --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93; --line: #3a3732; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header, main { max-width: 1400px; margin: 0 auto; padding: 0 16px; }
+  header { padding-top: 28px; padding-bottom: 16px; }
+  .crumb { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+  .crumb a { color: inherit; }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.01em; }
+  .sub { margin: 0; color: var(--muted); max-width: 70ch; }
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr)); gap: 18px; padding-bottom: 48px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; }
+  .shot { position: relative; aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden; background: var(--tile); }
+  .shot iframe { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; border: 0; transform-origin: 0 0; pointer-events: none; }
+  .shot .wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
+  .meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 12px 2px 2px; }
+  h2 { margin: 0; font-size: 18px; }
+  .num { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 6px; }
+  .card p { margin: 4px 2px 0; color: var(--muted); font-size: 13.5px; }
+  .open { flex: none; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--tile); color: var(--ink); text-decoration: none; }
+  .open:hover { border-color: var(--muted); }
+  .open[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+  a.shotlink { display: block; border-radius: 8px; }
+  a.shotlink:focus-visible, .open:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<header>
+  <p class="crumb"><a href="../topdown/index.html">Sheets</a> / Landing page ideas</p>
+  <h1>Landing page ideas</h1>
+  <p class="sub">Ten completely different directions for the Unclaimed Acres landing page, each showing the islands, the creatures and the crops. The previews are live pages at 1440 x 900; open one to scroll the whole page.</p>
+</header>
+<main id="grid"></main>
+<script>
+const IDEAS = [
+  ['01-royal-charter', 'Royal Charter', 'Anno grandeur made calm: the page is an ornate land charter with a gilded painting of your island, a portrait gallery of residents and a merchant ledger of crops.'],
+  ['02-field-journal', 'Field Journal', 'A naturalist\'s expedition notebook: pinned specimens, pressed-plant growth plates and a hand-annotated island chart.'],
+  ['03-diorama', 'Diorama', 'A floating 3D island built from the real tiles, with crops and creatures on it, in a bright, toy-like cozy style.'],
+  ['04-seasons', 'From Seed to Harvest', 'Scroll storytelling: one crop grows stage by stage while the day passes from dawn to dusk, ending on the island.'],
+  ['05-codex', 'Bestiary Codex', 'Dark and premium: creatures as framed collectible cards, crops in a glass seed vault, gold-foil details.'],
+  ['06-market', 'Saturday Market', 'A sunny farmers\' market: striped awnings, wooden crates of produce, chalkboards and creatures as market visitors.'],
+  ['07-editorial', 'Editorial', 'Minimal Swiss style: huge type, whitespace, numbered sections and one enormous image per idea.'],
+  ['08-lanterns', 'Lanterns at Dusk', 'A calm night: glowing fantasy crops and luminous creatures under the stars, the island at dusk.'],
+  ['09-tile-mosaic', 'Tile Mosaic', 'The page is built from the game\'s own tiles: sea, shore, meadow and soil rows, with a game-HUD interface.'],
+  ['10-travel-posters', 'Travel Posters', 'Retro national-park posters: bold flat colour, condensed type, "Visit your island", "Meet the locals".'],
+];
+const grid = document.getElementById('grid');
+grid.innerHTML = IDEAS.map(([slug, name, idea], i) => `
+  <article class="card" data-slug="${slug}">
+    <a class="shotlink" href="${slug}.html" target="_blank" aria-label="Open ${name} in a new tab">
+      <div class="shot"><div class="wait">Being designed…</div></div>
+    </a>
+    <div class="meta"><h2><span class="num">${String(i + 1).padStart(2, '0')}</span>${name}</h2>
+      <a class="open" href="${slug}.html" target="_blank" aria-disabled="true">Open page</a></div>
+    <p>${idea}</p>
+  </article>`).join('');
+
+// Live previews: each page at 1440 x 900, scaled down to its card.
+const fit = shot => { const f = shot.querySelector('iframe'); if (f) f.style.transform = `scale(${shot.clientWidth / 1440})`; };
+new ResizeObserver(es => es.forEach(e => fit(e.target))).observe(document.body);
+window.addEventListener('resize', () => document.querySelectorAll('.shot').forEach(fit));
+async function check() {
+  let missing = 0;
+  for (const card of document.querySelectorAll('.card')) {
+    if (card.dataset.ready) continue;
+    const url = card.dataset.slug + '.html';
+    let ok = false;
+    try { ok = (await fetch(url, { cache: 'no-store' })).ok; } catch (e) {}   // serve.ps1 answers HEAD with an error, so ask with GET
+    if (!ok) { missing++; continue; }
+    card.dataset.ready = 1;
+    const shot = card.querySelector('.shot');
+    shot.innerHTML = `<iframe src="${url}" title="Preview of ${card.querySelector('h2').textContent}" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>`;
+    fit(shot);
+    card.querySelector('.open').removeAttribute('aria-disabled');
+  }
+  if (missing) setTimeout(check, 10000);   // pages still being designed show up on their own
+}
+check();
+</script>
+</body>
+</html>

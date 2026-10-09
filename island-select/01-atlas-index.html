@@ -1,0 +1,457 @@
+<!--
+  Concept 01: The Atlas Index
+  Idea: the open journal shows a table of contents of your islands (name, dotted leader, page number, a tiny
+        coastline in the margin, last visit in handwriting); hover a line to see its chart on the facing page,
+        click to turn the page to that island's own spread and enter it from there.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unclaimed Acres - Your islands (Atlas Index)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="journal.css">
+<style>
+  /* ---------- header: account chip ---------- */
+  .top { padding: 14px 0 4px; }
+  .account { display: flex; align-items: center; gap: 14px; }
+  .acct-chip { display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px 7px 8px; border-radius: 999px;
+    background: var(--card); background-image: var(--noise); box-shadow: var(--shadow); font-family: var(--serif); font-size: 1.02rem; color: var(--ink); }
+  .acct-chip i { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-style: normal;
+    background: radial-gradient(circle at 35% 30%, #d77b5f, var(--rust) 60%, #6f2a18); color: #fbeee0; font-family: var(--display); font-size: 1rem; }
+  .acct-chip small { display: block; font-family: var(--sc); font-size: .66rem; letter-spacing: .16em; color: var(--rust); line-height: 1; }
+  .acct-chip b { font-weight: 500; display: block; line-height: 1.15; }
+  .signout { font-family: var(--hand); font-size: 1.35rem; color: var(--blue); text-decoration: none; }
+  .signout:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+  main { padding-bottom: 80px; }
+  .book { margin-top: 50px; }
+  .page-l, .page-r { padding-top: 30px; padding-bottom: 18px; }
+  .folio { margin-top: 16px; }
+  .entry-meta { display: flex; justify-content: space-between; gap: 12px; font-family: var(--hand); color: var(--blue); font-size: 1.3rem;
+    border-bottom: 1px solid var(--rule); padding-bottom: 5px; margin-bottom: 18px; }
+  .roman { font-family: var(--display); color: var(--rust); font-size: 1.2rem; display: block; margin-bottom: 2px; font-style: italic; }
+
+  /* ---------- the index ---------- */
+  .contents-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .contents-h h2 { margin: 0; font-size: clamp(2.6rem, 1.8rem + 2.2vw, 3.6rem); }
+  .contents-h h2 em { font-style: italic; color: var(--blue); }
+  .contents-h p { margin: 0; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; white-space: nowrap; transform: rotate(-2deg); }
+  .index { list-style: none; margin: 0; padding: 0 0 0 64px; position: relative; }
+  .index::before { /* the margin rule, like a ledger */
+    content: ""; position: absolute; left: 50px; top: -6px; bottom: -6px; border-left: 1px solid rgba(165, 69, 45, .45); box-shadow: 3px 0 0 -2px rgba(165, 69, 45, .25); }
+  .index li { position: relative; }
+  .entry { position: relative; display: grid; grid-template-columns: auto auto 1fr auto; align-items: baseline; gap: 0 12px;
+    padding: 5px 8px 4px; margin: 0 -8px; color: var(--ink); text-decoration: none; border-radius: 3px; width: calc(100% + 16px);
+    background: none; border: 0; font: inherit; text-align: left; cursor: pointer; transition: background-color .15s ease; }
+  .entry:hover, .entry:focus-visible, .entry.is-active { background-color: rgba(37, 70, 127, .07); }
+  .entry:focus-visible { outline-offset: 1px; }
+  .e-coast { position: absolute; left: -64px; top: 50%; width: 46px; height: 46px; margin-top: -23px; transition: transform .2s ease; }
+  .entry:hover .e-coast, .entry.is-active .e-coast { transform: scale(1.12) rotate(-3deg); }
+  .e-name { font-family: var(--display); font-size: 1.5rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .e-visit { font-family: var(--hand); color: var(--blue); font-size: 1.22rem; line-height: 1; white-space: nowrap; transform: rotate(-2deg); }
+  .e-lead { align-self: end; height: 1.1em; margin-bottom: .32em; min-width: 24px;
+    background: radial-gradient(circle, var(--ink-soft) 0 1.1px, transparent 1.5px) 0 100% / 9px 4px repeat-x; opacity: .7; }
+  .e-page { font-family: var(--display); font-size: 1.35rem; font-variant-numeric: oldstyle-nums; min-width: 1.6em; text-align: right; }
+  .e-note { grid-column: 1 / -1; font-family: var(--hand); color: var(--ink-soft); font-size: 1.2rem; line-height: 1.1; margin-top: 2px; }
+  .entry.new .e-name { font-family: var(--hand); color: var(--blue); font-size: 1.55rem; font-weight: 600; }
+  .entry.new .e-page { color: var(--rule); }
+  .entry.new .e-coast { border: 1.5px dashed var(--blue-soft); border-radius: 50%; display: grid; place-items: center; color: var(--blue); }
+  .entry.new .e-coast svg { width: 20px; height: 20px; }
+  .roomy .entry { padding-top: 12px; padding-bottom: 10px; }
+  .roomy .e-coast { width: 52px; height: 52px; margin-top: -26px; left: -66px; }
+  .index li + li { border-top: 1px dashed rgba(180, 156, 116, .45); }
+  .blank-lines { list-style: none; margin: 0; padding: 0 0 0 64px; position: relative; }
+  .blank-lines::before { content: ""; position: absolute; left: 50px; top: 0; bottom: 0; border-left: 1px solid rgba(165, 69, 45, .3); }
+  .blank-lines li { height: 46px; border-top: 1px dashed rgba(180, 156, 116, .45); }
+  .blank-lines li:last-child { border-bottom: 1px dashed rgba(180, 156, 116, .3); }
+  .index-note { margin: 18px 0 0 64px; font-family: var(--hand); color: var(--blue); font-size: 1.4rem; line-height: 1.2; display: flex; gap: 10px; align-items: flex-start; }
+  .index-note svg { flex: none; width: 34px; height: 30px; margin-top: -4px; }
+  .exlibris { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin: 6px 6px 0 0; }
+  .exlibris svg { width: 104px; height: 104px; color: var(--rust); opacity: .78; transform: rotate(-14deg); mix-blend-mode: multiply; }
+  .exlibris span { font-family: var(--hand); color: var(--ink-soft); font-size: 1.2rem; line-height: 1.15; text-align: right; transform: rotate(-3deg); }
+  .create-hint { display: block; margin-top: 4px; font-size: 1.15rem; color: var(--ink-soft); }
+
+  /* ---------- facing page: preview of a chart ---------- */
+  .preview { display: flex; flex-direction: column; }
+  .pv-chart { position: relative; margin: 0 auto; width: min(100%, 372px); aspect-ratio: 1; background: rgba(253, 249, 239, .55);
+    border: 1px solid rgba(180, 156, 116, .6); box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 8px 18px -12px rgba(60, 45, 20, .5); }
+  .pv-chart > svg:first-child { display: block; }
+  .pv-chart .compass { position: absolute; right: 10px; top: 10px; width: 58px; height: 58px; color: var(--blue); opacity: .75; }
+  .pv-chart .scale { position: absolute; left: 14px; bottom: 10px; font-family: var(--hand); color: var(--blue); font-size: 1rem; line-height: 1; }
+  .pv-chart .scale i { display: block; width: 70px; height: 6px; margin-top: 3px; border: 1px solid var(--blue); border-top: 0;
+    background: linear-gradient(90deg, var(--blue) 0 25%, transparent 25% 50%, var(--blue) 50% 75%, transparent 75%); opacity: .7; }
+  .pv-swap { animation: pv-in .35s ease; }
+  @keyframes pv-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .pv-cap { display: flex; justify-content: space-between; gap: 12px; font-family: var(--hand); color: var(--blue); font-size: 1.2rem; width: min(100%, 372px); margin: 6px auto 0; }
+  .pv-text { width: min(100%, 372px); margin: 10px auto 0; }
+  .pv-text h2 { font-size: 2.3rem; margin: 0 0 2px; }
+  .pv-text .hand { font-size: 1.45rem; margin: 0 0 8px; }
+  .pv-meta { font-family: var(--sc); font-size: .82rem; letter-spacing: .12em; color: var(--rust); margin: 0 0 6px; }
+  .pv-empty { position: absolute; inset: 14%; border: 1.5px dashed var(--blue-soft); border-radius: 46% 54% 50% 50% / 52% 46% 54% 48%;
+    display: grid; place-items: center; text-align: center; font-family: var(--hand); color: var(--blue); font-size: 1.5rem; line-height: 1.15; padding: 20px; }
+
+  /* ---------- an island's own spread ---------- */
+  .isle-h { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 14px; flex-wrap: wrap; }
+  .isle-h h2 { font-size: clamp(2.2rem, 1.5rem + 1.8vw, 3.1rem); margin: 0 0 8px; white-space: nowrap; }
+  .isle-h .hand { margin-left: auto !important; }
+  .isle-h .hand { font-size: 1.4rem; transform: rotate(-2deg); white-space: nowrap; margin: 0; }
+  .chart-full { position: relative; margin: 6px auto 0; width: min(100%, 384px); aspect-ratio: 1; background: rgba(253, 249, 239, .6);
+    border: 1px solid rgba(180, 156, 116, .7); box-shadow: 0 8px 18px -12px rgba(60, 45, 20, .5); }
+  .chart-full > svg:first-child { display: block; }
+  .chart-full .compass { position: absolute; right: 12px; top: 12px; width: 66px; height: 66px; color: var(--blue); opacity: .75; }
+  .chart-full .scale { position: absolute; left: 14px; bottom: 12px; font-family: var(--hand); color: var(--blue); font-size: 1.05rem; line-height: 1; }
+  .chart-full .scale i { display: block; width: 80px; height: 6px; margin-top: 3px; border: 1px solid var(--blue); border-top: 0;
+    background: linear-gradient(90deg, var(--blue) 0 25%, transparent 25% 50%, var(--blue) 50% 75%, transparent 75%); opacity: .7; }
+  .chart-cap { display: flex; justify-content: space-between; gap: 10px; width: min(100%, 384px); margin: 6px auto 0; font-family: var(--hand); color: var(--blue); font-size: 1.2rem; }
+
+  .render { position: relative; width: 90%; margin: 8px auto 0; transform: rotate(1.3deg); }
+  .render .ph { overflow: hidden; aspect-ratio: 1600 / 907; background: #2a5a78; }
+  .render .ph img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: auto; }
+  .render.photo { padding: 10px 10px 40px; }
+  .render .tape.a { top: -12px; left: 26px; transform: rotate(-7deg); }
+  .render .tape.b { top: -10px; right: 30px; transform: rotate(6deg); }
+
+  .record { position: relative; margin: 16px 0 0; display: grid; grid-template-columns: 1fr auto; gap: 8px 28px; align-items: end; }
+  .record h3 { grid-column: 1 / -1; font-family: var(--sc); font-size: .9rem; letter-spacing: .14em; color: var(--rust); margin: 0; display: flex; align-items: center; gap: .7em; }
+  .record h3::after { content: ""; flex: 1; height: 1px; background: var(--rule); opacity: .6; }
+  .rec { list-style: none; margin: 0; padding: 0; }
+  .rec li { display: grid; grid-template-columns: 6.2em 1fr 3.4em; align-items: center; gap: 10px; font-family: var(--hand); color: var(--blue); font-size: 1.24rem; line-height: 1.18; }
+  .rec li b { font-weight: 600; color: var(--ink); font-family: var(--hand); }
+  .rec li span:last-child { text-align: right; }
+  .rec .bar { height: 9px; position: relative; border-bottom: 1px solid rgba(37, 70, 127, .25); }
+  .rec .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: var(--v); min-width: 2px;
+    background: repeating-linear-gradient(-55deg, var(--c, var(--blue)) 0 1.4px, transparent 1.4px 4px); border: 1px solid var(--c, var(--blue)); border-radius: 1px 3px 2px 1px; opacity: .8; }
+  .rec-foot { grid-column: 1 / -1; margin: 0; font-size: .95rem; color: var(--ink-soft); font-style: italic; }
+
+  .enter { display: inline-flex; align-items: center; gap: 16px; text-decoration: none; color: var(--ink); padding: 4px 18px 4px 4px; border-radius: 999px; }
+  .wax { position: relative; flex: none; width: 80px; height: 80px; display: grid; place-items: center; color: rgba(255, 226, 205, .78);
+    background: radial-gradient(circle at 36% 30%, #d06a4c, #9b3420 55%, #5e1c0f 100%);
+    border-radius: 49% 51% 47% 53% / 52% 47% 53% 48%;
+    box-shadow: inset -4px -6px 10px rgba(50, 10, 0, .45), inset 4px 4px 8px rgba(255, 190, 160, .35), 0 6px 12px -4px rgba(60, 20, 5, .55);
+    transform: rotate(-8deg); transition: transform .2s ease; }
+  .wax::before { content: ""; position: absolute; inset: 9px; border-radius: 50%; border: 2px solid rgba(70, 15, 5, .35); box-shadow: 0 1px 0 rgba(255, 200, 170, .3); }
+  .wax svg { width: 50px; height: 50px; filter: drop-shadow(0 -1px 0 rgba(60, 10, 0, .5)) drop-shadow(0 1px 0 rgba(255, 200, 170, .35)); }
+  .enter-txt { display: flex; flex-direction: column; }
+  .enter-txt b { font-family: var(--sc); font-weight: 400; font-size: 1.45rem; letter-spacing: .08em; line-height: 1.1; }
+  .enter-txt small { font-family: var(--hand); color: var(--blue); font-size: 1.25rem; line-height: 1.1; }
+  .enter:hover .wax, .enter:focus-visible .wax { transform: rotate(4deg) scale(1.04); }
+  .enter:hover b { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; }
+  .enter-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
+  .enter-row .visit { margin: 0; font-family: var(--hand); color: var(--ink-soft); font-size: 1.25rem; line-height: 1.15; text-align: right; }
+
+  .folio .turn-link svg { flex: none; }
+  .bookmark.isle-tab { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+  .bookmarks { justify-content: flex-start; }
+  .bookmark { flex: 0 1 auto; padding-inline: 1.1em; }
+
+  @media (max-width: 980px) {
+    .book { margin-top: 56px; }
+    .page-r { padding-top: 26px; }
+    .index { padding-left: 56px; }
+    .index::before { left: 44px; }
+    .e-coast { left: -56px; width: 40px; height: 40px; margin-top: -20px; }
+    .roomy .e-coast { left: -58px; width: 44px; height: 44px; margin-top: -22px; }
+    .blank-lines { padding-left: 56px; }
+    .blank-lines::before { left: 44px; }
+    .blank-lines li:nth-child(n+3) { display: none; }
+    .index-note { margin-left: 0; }
+  }
+  @media (max-width: 980px) { .book { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) {
+    .top .wrap { flex-wrap: wrap; gap: 8px; }
+    .account { margin-left: auto; }
+    .acct-chip small { display: none; }
+    .acct-chip { padding-right: 12px; font-size: .92rem; }
+    .acct-chip i { width: 26px; height: 26px; }
+    .e-name { font-size: 1.3rem; }
+    .entry { grid-template-columns: minmax(0, auto) 0 1fr auto; }
+    .e-visit { display: none; }
+    .contents-h p { display: none; }
+    .isle-h { flex-direction: column; gap: 0; }
+    .rec li { grid-template-columns: 5.4em 1fr 3.2em; font-size: 1.2rem; }
+    .enter-row .visit { text-align: left; }
+    .folio { flex-wrap: wrap; gap: 4px 14px; }
+    .folio .turn-link { font-size: 1.25rem; white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../landing-ideas/02-field-journal.html" aria-label="Unclaimed Acres, back to the field journal">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <div class="account">
+      <span class="acct-chip"><i aria-hidden="true">f</i><span><small>signed in</small><b id="player">fennel.wam</b></span></span>
+      <a class="signout" href="../landing-ideas/02-field-journal.html">Sign out</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <h1 class="sr-only">Your islands</h1>
+    <div class="book" id="book" aria-live="off">
+      <nav class="bookmarks" aria-label="Journal sections" id="bookmarks"></nav>
+      <div class="page page-l sheet" id="page-l"></div>
+      <div class="page page-r sheet" id="page-r"></div>
+    </div>
+  </div>
+</main>
+
+<script src="islands.js"></script>
+<script>
+(function () {
+  var PER_PAGE = 11;
+  var ARROW_R = '<svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg>';
+  var ARROW_L = '<svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M32 10C24 7 14 6 3 9M9 3C6.5 5 4.5 7 3 9c2.5 1.3 5 3 7 5"/></svg>';
+  var CURL = '<svg viewBox="0 0 34 30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 4c2 10 9 18 26 20M22 18c3 2 5 4 7 6-3 1-6 2-8 4"/></svg>';
+  var PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  var COMPASS = '<svg class="compass" viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="50" cy="50" r="30" stroke-width="1.5"/><circle cx="50" cy="50" r="24" stroke-width=".8" stroke-dasharray="2 3"/>' +
+    '<path d="M50 8 56 50 50 92 44 50Z" fill="currentColor" fill-opacity=".25" stroke-width="1.4"/><path d="M50 8 56 50H44Z" fill="currentColor" stroke-width="1"/><path d="M8 50 50 45 92 50 50 55Z" stroke-width="1.2"/>' +
+    '<text x="50" y="6" font-family="IM Fell English SC, serif" font-size="12" fill="currentColor" stroke="none" text-anchor="middle">N</text></svg>';
+  var ROMAN = ['i', 'ii', 'iii', 'iv'];
+  var ORD = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth',
+    'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth'];
+
+  var book = document.getElementById('book');
+  var sides = { l: document.getElementById('page-l'), r: document.getElementById('page-r') };
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var narrow = window.matchMedia('(max-width: 980px)');
+  var order = [], current = null, turning = false, list = [];
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pageOf(i) { return 2 * i + 1; }
+  function bigChart(isl, cls, size) {
+    return '<div class="' + cls + '">' + UA.outline(isl, { sea: 'rgba(37,70,127,.07)', land: '#f6eed8', stroke: .6, grid: 'rgba(37,70,127,.18)', pad: 2,
+      label: 'Chart of ' + isl.name + ', coastline only' }) + COMPASS + '<span class="scale">one league<i></i></span></div>';
+  }
+
+  /* ---------------- building the spreads ---------------- */
+  function build() {
+    var entries = list.map(function (isl) { return { isl: isl }; });
+    if (UA.canCreate) entries.push({ create: true });
+    var pages = Math.max(1, Math.ceil(entries.length / PER_PAGE));
+    var roomy = list.length <= 5;
+    var L = '', R = '';
+
+    for (var p = 0; p < pages; p++) {
+      var id = 'contents-' + (p + 1), chunk = entries.slice(p * PER_PAGE, (p + 1) * PER_PAGE);
+      order.push(id);
+      var items = chunk.map(function (e) {
+        if (e.create) {
+          return '<li><button type="button" class="entry new" data-new="1" aria-describedby="new-hint">' +
+            '<span class="e-coast" aria-hidden="true">' + PLUS + '</span><span class="e-name">chart a new island</span><span class="e-visit"></span>' +
+            '<span class="e-lead" aria-hidden="true"></span><span class="e-page" aria-hidden="true">&mdash;</span></button></li>';
+        }
+        var isl = e.isl, pg = pageOf(isl.index);
+        return '<li><a class="entry" href="#isle-' + isl.index + '" data-turn="isle-' + isl.index + '" data-i="' + isl.index + '"' +
+          ' aria-label="' + esc(isl.name) + ', page ' + pg + ', last visit ' + esc(isl.lastVisit) + '">' +
+          '<span class="e-coast">' + UA.outline(isl, { land: '#efe3c2', stroke: 1.6, shore: false, pad: 6 }) + '</span>' +
+          '<span class="e-name">' + esc(isl.name) + '</span><span class="e-visit">' + esc(isl.lastVisit) + '</span>' +
+          '<span class="e-lead" aria-hidden="true"></span><span class="e-page">' + pg + '</span>' +
+          (roomy ? '<span class="e-note">&ldquo;' + esc(isl.note) + '&rdquo;</span>' : '') + '</a></li>';
+      }).join('');
+      var extra = '';
+      if (p === pages - 1 && list.length <= 3) {
+        var blanks = '';
+        for (var b = 0; b < 4 - list.length; b++) blanks += '<li></li>';
+        extra = '<ul class="blank-lines" aria-hidden="true">' + blanks + '</ul>' +
+          '<p class="index-note">' + CURL + '<span>' + (list.length === 1 ? 'One island so far. The rest of these lines are waiting.' : 'Plenty of lines left in this journal.') +
+          (UA.canCreate ? '<span class="create-hint" id="new-hint">Charting new islands opens soon; the line is kept for it.</span>' : '') + '</span></p>' +
+          (list.length === 1 ? '<div class="exlibris"><span>from the journal of<br>' + esc(UA.player) + '</span><svg aria-hidden="true"><use href="#stamp"/></svg></div>' : '');
+      } else if (UA.canCreate && p === pages - 1) {
+        extra = '<p class="sr-only" id="new-hint">Charting new islands opens soon.</p>';
+      }
+      var folioL = '<div class="folio"><span>' + ROMAN[p * 2] + '</span>' +
+        (p > 0 ? '<a class="turn-link" href="#contents-' + p + '" data-turn="contents-' + p + '">' + ARROW_L + ' contents, ' + ROMAN[(p - 1) * 2] + '</a>' : '') + '</div>';
+      var folioR = '<div class="folio">' + (p < pages - 1 ? '<a class="turn-link" href="#contents-' + (p + 2) + '" data-turn="contents-' + (p + 2) + '">continued overleaf ' + ARROW_R + '</a>' : '') +
+        '<span>' + ROMAN[p * 2 + 1] + '</span></div>';
+      L += '<section class="leaf" data-ch="' + id + '" aria-label="Contents' + (pages > 1 ? ', page ' + (p + 1) + ' of ' + pages : '') + '" hidden><div class="leaf-body">' +
+        '<div class="entry-meta"><span>' + esc(UA.player) + '&rsquo;s islands</span><span>' + (pages > 1 ? 'index, ' + ROMAN[p * 2] : 'index') + '</span></div>' +
+        '<div class="contents-h"><h2>' + (p === 0 ? 'Contents' : 'Contents, <em>cont.</em>') + '</h2>' +
+        '<p>' + (list.length === 1 ? 'one island, charted' : list.length + ' islands, charted') + '</p></div>' +
+        '<ol class="index' + (roomy ? ' roomy' : '') + '" start="' + (p * PER_PAGE + 1) + '">' + items + '</ol>' + extra + '</div>' + folioL + '</section>';
+      R += '<section class="leaf" data-ch="' + id + '" aria-label="Chart preview" hidden><div class="leaf-body preview" data-preview="' + id + '"></div>' + folioR + '</section>';
+    }
+
+    list.forEach(function (isl, i) {
+      var id = 'isle-' + i, pg = pageOf(i), s = isl.stats;
+      order.push(id);
+      var rows = [['land', s.land, 'var(--moss)'], ['forest', s.forest, '#3d6a3a'], ['mountain', s.mountain, 'var(--ink-soft)'], ['beach', s.beach, '#b8892f'], ['fresh water', s.freshWater, '#2f6f86']];
+      var rec = rows.map(function (r) {
+        return '<li><b>' + r[0] + '</b><span class="bar" aria-hidden="true"><i style="--v:' + Math.min(100, r[1]) + '%;--c:' + r[2] + '"></i></span><span>' + r[1] + '%</span></li>';
+      }).join('');
+      var prev = i > 0 ? '<a class="turn-link" href="#isle-' + (i - 1) + '" data-turn="isle-' + (i - 1) + '">' + ARROW_L + ' ' + esc(list[i - 1].name) + '</a>' : '';
+      var next = i < list.length - 1 ? '<a class="turn-link" href="#isle-' + (i + 1) + '" data-turn="isle-' + (i + 1) + '">' + esc(list[i + 1].name) + ' ' + ARROW_R + '</a>' : '';
+      var contentsId = 'contents-' + (Math.floor(i / PER_PAGE) + 1);
+      L += '<section class="leaf" data-ch="' + id + '" aria-label="' + esc(isl.name) + ', chart" hidden><div class="leaf-body">' +
+        '<div class="entry-meta"><span>Page ' + pg + '</span><span>charted ' + esc(isl.charted) + '</span></div>' +
+        '<span class="roman">The ' + (ORD[i] || (i + 1) + 'th') + ' island</span>' +
+        '<div class="isle-h"><h2>' + esc(isl.name) + '</h2><p class="hand">&ldquo;' + esc(isl.note) + '&rdquo;</p></div>' +
+        bigChart(isl, 'chart-full') +
+        '<div class="chart-cap"><span>fig. ' + pg + ' &mdash; the coastline, as charted</span><span>not to scale</span></div>' +
+        '</div><div class="folio"><span>' + pg + '</span><a class="turn-link" href="#' + contentsId + '" data-turn="' + contentsId + '">' + ARROW_L + ' back to contents</a></div></section>';
+      R += '<section class="leaf" data-ch="' + id + '" aria-label="' + esc(isl.name) + ', field record" hidden><div class="leaf-body">' +
+        '<figure class="photo render"><span class="tape a"></span><span class="tape b"></span><div class="ph">' +
+        '<img src="' + isl.render + '" width="1600" height="907" loading="lazy" style="transform:' + isl.renderTransform + '" alt="' + esc(isl.name) + ' painted from above: green land, forest and sandy shore in a blue sea.">' +
+        '</div><figcaption>' + esc(isl.name) + ', from above</figcaption></figure>' +
+        '<div class="record"><h3>Field record</h3><ul class="rec" aria-label="Share of the chart">' + rec + '</ul>' +
+        '<p class="rec-foot">Shares of the whole chart, sea included.</p></div>' +
+        '<div class="enter-row"><a class="enter" href="#enter-' + isl.id + '"><span class="wax" aria-hidden="true"><svg><use href="#stamp-mark"/></svg></span>' +
+        '<span class="enter-txt"><b>Enter island</b><small>step ashore on ' + esc(isl.name) + '</small></span></a>' +
+        '<p class="visit">last visit<br>' + esc(isl.lastVisit) + '</p></div>' +
+        '</div><div class="folio">' + (list.length > 1 ? (prev || '<span></span>') + (next || '') : '') + '<span>' + (pg + 1) + '</span></div></section>';
+    });
+
+    sides.l.innerHTML = L;
+    sides.r.innerHTML = R;
+
+    // bookmarks: contents, and the island visited most recently
+    var last = list.length - 1;
+    var bm = '<a class="bookmark" href="#contents-1" data-turn="contents-1" data-tab="contents">Contents</a>';
+    if (list.length > 1) bm += '<a class="bookmark isle-tab" href="#isle-' + last + '" data-turn="isle-' + last + '" data-tab="isle-' + last + '">Last visited</a>';
+    else bm += '<a class="bookmark isle-tab" href="#isle-0" data-turn="isle-0" data-tab="isle-0">' + esc(list[0].name) + '</a>';
+    document.getElementById('bookmarks').innerHTML = bm;
+
+    // default previews: the island visited most recently, if on that page, otherwise the page's first line
+    order.forEach(function (id) {
+      if (id.indexOf('contents-') !== 0) return;
+      var p = Number(id.split('-')[1]) - 1;
+      var first = p * PER_PAGE, lastOnPage = Math.min(list.length, (p + 1) * PER_PAGE) - 1;
+      preview(id, last >= first && last <= lastOnPage ? last : (first < list.length ? first : -1), true);
+    });
+  }
+
+  function preview(spread, i, quiet) {
+    var box = document.querySelector('[data-preview="' + spread + '"]');
+    if (!box) return;
+    if (box.dataset.i === String(i)) return;
+    box.dataset.i = i;
+    var html;
+    if (i < 0) {
+      html = '<div class="entry-meta"><span>fig. &mdash;</span><span>uncharted waters</span></div>' +
+        '<div class="pv-chart"><div class="pv-empty">a new island<br>will be drawn here</div>' + COMPASS + '</div>' +
+        '<div class="pv-text"><h2>A blank page</h2><p class="hand">the chart table opens soon</p><p class="pv-meta">kept for your next island</p></div>';
+    } else {
+      var isl = list[i], pg = pageOf(i);
+      html = '<div class="entry-meta"><span>fig. ' + pg + '</span><span>last visit: ' + esc(isl.lastVisit) + '</span></div>' +
+        bigChart(isl, 'pv-chart') +
+        '<div class="pv-cap"><span>' + esc(isl.name) + ', coastline</span><span>not to scale</span></div>' +
+        '<div class="pv-text"><p class="pv-meta">charted ' + esc(isl.charted) + ' &middot; page ' + pg + '</p><h2>' + esc(isl.name) + '</h2><p class="hand">&ldquo;' + esc(isl.note) + '&rdquo;</p>' +
+        '<a class="link-hand" href="#isle-' + i + '" data-turn="isle-' + i + '">turn to page ' + pg + ' ' + ARROW_R + '</a></div>';
+    }
+    box.innerHTML = html;
+    if (!quiet) { box.classList.remove('pv-swap'); void box.offsetWidth; box.classList.add('pv-swap'); }
+    var leafL = sides.l.querySelector('.leaf[data-ch="' + spread + '"]');
+    if (leafL) leafL.querySelectorAll('.entry').forEach(function (e) {
+      e.classList.toggle('is-active', i < 0 ? !!e.dataset.new : e.dataset.i === String(i));
+    });
+  }
+
+  /* ---------------- turning pages (as on the landing page) ---------------- */
+  function leaf(side, id) { return sides[side].querySelector('.leaf[data-ch="' + id + '"]'); }
+  function reveal(side, id) { sides[side].querySelectorAll('.leaf').forEach(function (l) { l.hidden = l.dataset.ch !== id; }); }
+  function mark(id) {
+    document.querySelectorAll('.bookmark').forEach(function (b) {
+      var on = b.dataset.tab === 'contents' ? id.indexOf('contents-') === 0 : b.dataset.turn === id;
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  }
+  function sizeBook() {
+    book.style.removeProperty('--page-h');
+    if (narrow.matches) return;
+    var h = 0;
+    ['l', 'r'].forEach(function (s) {
+      sides[s].querySelectorAll('.leaf').forEach(function (l) { reveal(s, l.dataset.ch); h = Math.max(h, sides[s].offsetHeight); });
+      reveal(s, current);
+    });
+    book.style.setProperty('--page-h', h + 'px');
+  }
+  function face(side, id, cls) {
+    var f = document.createElement('div');
+    f.className = 'face ' + cls + ' page sheet page-' + side;
+    var copy = leaf(side, id).cloneNode(true);
+    copy.hidden = false;
+    copy.querySelectorAll('[id]').forEach(function (n) { n.removeAttribute('id'); });
+    copy.removeAttribute('aria-label');
+    f.setAttribute('aria-hidden', 'true');
+    f.appendChild(copy);
+    return f;
+  }
+  function focusLeaf(id) {
+    var target = leaf('l', id).querySelector('h2') ;
+    if (target) { target.tabIndex = -1; target.focus({ preventScroll: true }); }
+  }
+  function turnTo(id, fromUser) {
+    if (id === current || turning || order.indexOf(id) < 0) return;
+    var forward = order.indexOf(id) > order.indexOf(current), from = current;
+    current = id; mark(id);
+    if (fromUser) history.replaceState(null, '', location.search + '#' + id);
+    if (narrow.matches || still.matches || document.hidden) {
+      reveal('l', id); reveal('r', id);
+      if (fromUser) { book.scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth', block: 'start' }); focusLeaf(id); }
+      return;
+    }
+    turning = true;
+    var t = document.createElement('div');
+    t.className = 'turn ' + (forward ? 'turn-fwd' : 'turn-back');
+    t.appendChild(face(forward ? 'r' : 'l', from, 'front'));
+    t.appendChild(face(forward ? 'l' : 'r', id, 'back'));
+    book.appendChild(t);
+    reveal(forward ? 'r' : 'l', id);
+    var done = false;
+    function land() {
+      if (done) return; done = true;
+      reveal(forward ? 'l' : 'r', id);
+      t.remove(); turning = false;
+      if (fromUser) focusLeaf(id);
+    }
+    t.addEventListener('animationend', function (e) { if (e.target === t) land(); });
+    setTimeout(land, 1000);
+  }
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-turn]');
+    if (!a) return;
+    e.preventDefault();
+    turnTo(a.dataset.turn, true);
+  });
+  function onPoint(e) {
+    var en = e.target.closest && e.target.closest('.entry');
+    if (!en || !current || current.indexOf('contents-') !== 0) return;
+    preview(current, en.dataset.new ? -1 : Number(en.dataset.i));
+  }
+  sides.l.addEventListener('mouseover', onPoint);
+  sides.l.addEventListener('focusin', onPoint);
+  sides.l.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    var all = Array.prototype.slice.call(leaf('l', current).querySelectorAll('.entry'));
+    var k = all.indexOf(document.activeElement);
+    if (k < 0) return;
+    var n = all[k + (e.key === 'ArrowDown' ? 1 : -1)];
+    if (n) { n.focus(); e.preventDefault(); }
+  });
+
+  UA.islands().then(function (l) {
+    list = l;
+    build();
+    var start = location.hash.slice(1);
+    current = order.indexOf(start) >= 0 ? start : order[0];
+    mark(current); reveal('l', current); reveal('r', current);
+    sizeBook();
+    window.addEventListener('load', sizeBook);
+    window.addEventListener('resize', function () { clearTimeout(sizeBook.t); sizeBook.t = setTimeout(sizeBook, 150); });
+    narrow.addEventListener('change', sizeBook);
+    if (document.fonts) document.fonts.ready.then(sizeBook);
+  });
+})();
+</script>
+</body>
+</html>

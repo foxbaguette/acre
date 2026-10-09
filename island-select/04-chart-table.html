@@ -1,0 +1,514 @@
+<!--
+  Concept 04: The Chart Table
+  Idea: one hand-drawn sea chart spread across both pages of the open journal. Every island the player owns is
+        drawn at its own spot in the same ocean; picking one pins its note (render, stats, "Enter island") to the
+        opposite page, and a dotted patch of "uncharted waters" holds the quill note for charting a new island.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your islands - Unclaimed Acres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="journal.css">
+<style>
+  html { background-color: #d8c59c; }
+  body { min-height: 100vh; }
+
+  /* ---------- header: account tag ---------- */
+  .acct { display: flex; align-items: center; gap: 12px; padding: 7px 10px 7px 12px; background: var(--card); background-image: var(--noise);
+    box-shadow: var(--shadow); border-radius: 3px; transform: rotate(1deg); position: relative; }
+  .acct::before { content: ""; position: absolute; left: -7px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%;
+    background: #d8c59c; box-shadow: inset 0 1px 2px rgba(60, 45, 20, .45); }
+  .acct-mark { width: 34px; height: 34px; color: var(--moss); flex: none; }
+  .acct-who { line-height: 1.05; }
+  .acct-who small { display: block; font-family: var(--hand); color: var(--blue); font-size: 1rem; }
+  .acct-who b { font-family: var(--sc); font-weight: 400; letter-spacing: .08em; font-size: 1.08rem; }
+  .acct-out { font-family: var(--sc); font-size: .86rem; letter-spacing: .1em; color: var(--rust); text-decoration: none;
+    border-left: 1px solid var(--rule); padding: 4px 4px 4px 12px; }
+  .acct-out:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+  /* ---------- the open book, one chart across both pages ---------- */
+  .chart-book { display: block; margin-top: 8px; }
+  .bookmarks[hidden], .uncharted[hidden], .new-mobile[hidden] { display: none !important; }
+  .chart-book.has-tabs { margin-top: 40px; }
+  .chart-book .bookmarks { left: auto; right: 22px; justify-content: flex-end; }
+  .chart-book .bookmark { flex: none; border: 0; border-top: 3px solid var(--tab, var(--rule)); cursor: pointer; font-family: var(--sc); padding: .55em 1.1em .45em; }
+  .spread { padding: 24px 26px 26px; border-radius: 4px 4px 6px 6px;
+    background-image: var(--noise), var(--fibres),
+      linear-gradient(90deg, transparent 0 44%, rgba(110, 80, 30, .08) 48.6%, rgba(60, 40, 10, .3) 50%, rgba(110, 80, 30, .1) 51.4%, transparent 56%),
+      radial-gradient(140% 100% at 50% 50%, transparent 62%, rgba(150, 115, 60, .16) 100%); }
+  .chart-wrap { position: relative; }
+  .chart { position: relative; aspect-ratio: 1200 / 700; container-type: inline-size; }
+  .chart[hidden] { display: none; }
+  .sea, .leader { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .leader { pointer-events: none; z-index: 4; }
+  .chart::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 6; background-image: var(--noise); opacity: .55; mix-blend-mode: multiply; }
+
+  /* cartouche (the page title, framed like an old chart's title box) */
+  .cartouche { position: absolute; z-index: 2; padding: 1.2cqw 1.6cqw 1cqw; text-align: center;
+    background: rgba(250, 244, 228, .78); border: 1.5px solid var(--ink); outline: 1px solid var(--ink); outline-offset: -6px; }
+  .cartouche::before, .cartouche::after { content: "\2766"; position: absolute; top: 50%; transform: translateY(-50%); font-size: 1.5cqw; color: var(--rust); }
+  .cartouche::before { left: .8cqw; } .cartouche::after { right: .8cqw; transform: translateY(-50%) scaleX(-1); }
+  .c-kick { margin: 0; font-family: var(--sc); font-size: clamp(9px, 1.05cqw, 13.5px); letter-spacing: .16em; color: var(--rust); }
+  .cartouche h1 { font-size: clamp(20px, 3.5cqw, 44px); margin: .1em 0 .05em; }
+  .cartouche h1 em { color: var(--blue); }
+  .c-sub { margin: 0; font-family: var(--hand); color: var(--blue); font-size: clamp(12px, 1.55cqw, 20px); line-height: 1.1; }
+
+  /* islands */
+  .isles { position: absolute; inset: 0; z-index: 3; }
+  .isle { position: absolute; aspect-ratio: 1; padding: 0; margin: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; color: inherit; }
+  .isle > svg.coast { width: 100%; height: 100%; display: block; transition: transform .25s ease, filter .25s ease; filter: drop-shadow(0 1px 0 rgba(43, 39, 33, .12)); }
+  .isle:hover > svg.coast, .isle:focus-visible > svg.coast { transform: translateY(-2px) scale(1.03); filter: drop-shadow(0 6px 6px rgba(60, 45, 20, .18)); }
+  .isle:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+  .isle::before { content: ""; position: absolute; inset: -6%; border-radius: 50%; border: 1.6px dashed var(--rust); opacity: 0; transform: scale(.9) rotate(-20deg); transition: opacity .25s ease, transform .35s ease; }
+  .isle[aria-pressed="true"]::before { opacity: .85; transform: none; }
+  .isle-name { position: absolute; left: 50%; top: calc(100% + .1cqw); transform: translateX(-50%); white-space: nowrap; pointer-events: none;
+    font-family: var(--sc); font-size: clamp(9px, 1.12cqw, 15px); letter-spacing: .1em; line-height: 1.1; color: var(--ink);
+    text-shadow: 0 0 3px var(--paper), 0 0 3px var(--paper), 0 0 6px var(--paper); }
+  .isle[aria-pressed="true"] .isle-name { color: var(--rust); }
+  .n1 .isle-name { font-size: clamp(12px, 2cqw, 26px); letter-spacing: .14em; }
+  .isle-no { position: absolute; left: 2%; top: 4%; width: 1.9cqw; height: 1.9cqw; min-width: 16px; min-height: 16px; display: grid; place-items: center; border-radius: 50%;
+    font-family: var(--display); font-style: italic; font-size: clamp(9px, 1.05cqw, 14px); line-height: 1; color: var(--ink); background: var(--paper); border: 1px solid var(--ink); }
+  .isle-tip { position: absolute; left: 50%; bottom: calc(100% + 2px); z-index: 2; pointer-events: none; white-space: nowrap; opacity: 0;
+    transform: translate(-50%, 6px) rotate(-2deg); transition: opacity .2s ease, transform .2s ease;
+    background: var(--card); background-image: var(--noise); box-shadow: var(--shadow); padding: .25em .8em .3em;
+    font-family: var(--hand); font-weight: 600; color: var(--blue); font-size: clamp(13px, 1.5cqw, 20px); line-height: 1.1; text-align: center; }
+  .isle-tip b { display: block; font-family: var(--sc); font-weight: 400; color: var(--ink); font-size: .78em; letter-spacing: .1em; }
+  .isle:hover, .isle:focus-visible { z-index: 5; }
+  .isle:hover .isle-tip, .isle:focus-visible .isle-tip { opacity: 1; transform: translate(-50%, 0) rotate(-2deg); }
+  .isle[aria-pressed="true"] .isle-tip { display: none; }
+  .last-flag { position: absolute; right: 4%; top: -2%; width: 2.4cqw; height: 3cqw; min-width: 14px; min-height: 18px; color: var(--rust); pointer-events: none; }
+
+  /* uncharted waters + quill note */
+  .uncharted { position: absolute; z-index: 3; display: grid; place-items: center; }
+  .quill { position: relative; display: flex; flex-direction: column; align-items: center; gap: .1em; transform: rotate(2.5deg);
+    padding: 1.4cqw 1.7cqw 1cqw; background: var(--card); background-image: var(--noise); box-shadow: var(--shadow); border: 0; border-radius: 2px;
+    cursor: pointer; color: var(--blue); transition: transform .2s ease; }
+  .quill:hover { transform: rotate(0deg) translateY(-2px); }
+  .quill svg { width: 3.4cqw; height: 3.4cqw; min-width: 22px; min-height: 22px; }
+  .quill .q-main { font-family: var(--hand); font-weight: 700; font-size: clamp(15px, 1.9cqw, 25px); line-height: 1; }
+  .quill .q-sub { font-family: var(--sc); font-size: clamp(8px, .95cqw, 12.5px); letter-spacing: .12em; color: var(--rust); }
+  .uncharted.tight .q-sub { display: none; }
+  .quill .tape { width: 5.8cqw; height: 1.8cqw; top: -.9cqw; left: calc(50% - 2.9cqw); transform: rotate(-4deg); }
+
+  /* pinned note for the chosen island */
+  .isle-card { position: absolute; z-index: 7; width: 336px; padding: 26px 22px 18px; background: var(--card); background-image: var(--noise);
+    box-shadow: var(--shadow), 0 26px 50px -24px rgba(50, 35, 10, .5); transform: rotate(-1deg); transform-origin: 50% 0; }
+  .isle-card[hidden] { display: none; }
+  .isle-card.pop { animation: pin-in .35s cubic-bezier(.2, .8, .3, 1.2); }
+  @keyframes pin-in { from { opacity: 0; transform: rotate(-4deg) translateY(-10px) scale(.96); } to { opacity: 1; transform: rotate(-1deg); } }
+  .isle-card:focus { outline: none; }
+  .isle-card .pin { top: 10px; }
+  .card-close { position: absolute; right: 8px; top: 6px; width: 34px; height: 34px; border: 0; background: none; cursor: pointer;
+    font-family: var(--hand); font-size: 1.6rem; line-height: 1; color: var(--ink-soft); border-radius: 50%; }
+  .card-close:hover { color: var(--rust); }
+  .card-kick { margin: 0 0 2px; font-family: var(--sc); font-size: .78rem; letter-spacing: .14em; color: var(--rust); }
+  .isle-card h2 { font-size: 2rem; margin: 0; }
+  .card-note { font-family: var(--hand); color: var(--blue); font-weight: 600; font-size: 1.35rem; line-height: 1.1; margin: 0 0 8px; }
+  .card-photo { position: relative; margin: 0 0 12px; padding: 7px 7px 7px; background: #fffaf0; box-shadow: 0 1px 2px rgba(60,45,20,.15), 0 6px 12px -6px rgba(60,45,20,.35); transform: rotate(1deg); }
+  .card-photo > div { overflow: hidden; aspect-ratio: 1600 / 907; background: #285a75; }
+  .card-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .card-photo .tape { width: 70px; height: 22px; top: -10px; left: calc(50% - 35px); transform: rotate(-3deg); }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; margin: 0; font-size: 1rem; }
+  .stats div { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; border-bottom: 1px dotted var(--rule); padding: 2px 0 1px; }
+  .stats dt { font-family: var(--sc); font-size: .8rem; letter-spacing: .1em; color: var(--ink-soft); }
+  .stats dd { margin: 0; font-family: var(--hand); font-weight: 600; color: var(--blue); font-size: 1.2rem; line-height: 1.1; }
+  .card-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+  .card-actions .btn { flex: 1; justify-content: center; }
+  .card-hint { font-family: var(--hand); color: var(--blue); font-size: 1.05rem; line-height: 1.1; margin: 8px 0 0; text-align: center; }
+
+  /* gazetteer (list view for crowded charts) */
+  .gaz { aspect-ratio: 1200 / 700; overflow: auto; padding: 6px 10px 0; scrollbar-width: thin; }
+  .gaz[hidden] { display: none; }
+  .gaz-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; column-span: all; margin-bottom: 8px; }
+  .gaz-head h2 { font-size: 2.2rem; margin: 0; }
+  .gaz-head p { margin: 0; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; }
+  .gaz ol { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 96px; }
+  .gaz li { break-inside: avoid; display: grid; grid-template-columns: 26px 50px 1fr auto; align-items: center; gap: 12px; padding: 7px 0; border-bottom: 1px solid rgba(180, 156, 116, .5); }
+  .g-no { font-family: var(--display); font-style: italic; color: var(--ink-soft); text-align: right; }
+  .g-map { width: 50px; height: 50px; }
+  .g-name { display: block; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; font-family: var(--display); font-size: 1.3rem; color: var(--ink); line-height: 1.1; }
+  .g-name:hover { color: var(--blue); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .g-note { display: block; font-family: var(--hand); color: var(--blue); font-size: 1.1rem; line-height: 1.1; }
+  .gaz .btn.small { font-size: .85rem; padding: .5em .9em .45em; }
+
+  .new-mobile { display: none; }
+
+  @media (max-width: 980px) {
+    .chart-book.has-tabs { margin-top: 56px; }
+    .chart-book .bookmarks { left: 0; right: 0; justify-content: flex-start; }
+  }
+  @media (max-width: 760px) {
+    .spread { padding: 14px 12px 18px; background-image: var(--noise), var(--fibres); }
+    .isle-card { position: relative; left: auto !important; top: auto !important; width: auto; margin: 18px 4px 4px; transform: none; }
+    .isle-card.pop { animation: none; }
+    .leader { display: none; }
+    .isle-tip, .isle-no, .last-flag { display: none; }
+    .quill { padding: 4px; } .quill .q-main, .quill .q-sub, .quill .tape { display: none; }
+    .new-mobile { display: flex; justify-content: center; margin-top: 16px; }
+    .new-mobile[hidden] { display: none; }
+    .gaz { aspect-ratio: auto; overflow: visible; padding: 4px 2px; }
+    .gaz ol { columns: 1; }
+    .gaz li { grid-template-columns: 20px 40px 1fr auto; gap: 8px; }
+    .g-map { width: 40px; height: 40px; }
+    .acct { gap: 8px; padding: 6px 8px; } .acct-mark, .acct-who small { display: none; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../landing-ideas/02-field-journal.html" aria-label="Unclaimed Acres, back to the front page">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <div class="acct">
+      <svg class="acct-mark" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="acct-who"><small>signed in as</small><b id="who">fennel.wam</b></span>
+      <a class="acct-out" href="#sign-out">Sign out</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="book chart-book" id="book">
+    <nav class="bookmarks" id="views" role="tablist" aria-label="How to show your islands" hidden>
+      <button class="bookmark" type="button" role="tab" id="tab-chart" aria-controls="chart" aria-selected="true">The Chart</button>
+      <button class="bookmark" type="button" role="tab" id="tab-gaz" aria-controls="gaz" aria-selected="false" tabindex="-1">Gazetteer</button>
+    </nav>
+    <div class="spread sheet">
+      <div class="chart-wrap">
+        <div class="chart" id="chart" role="tabpanel" aria-labelledby="tab-chart">
+          <svg class="sea" id="sea" viewBox="0 0 1200 700" aria-hidden="true"></svg>
+          <div class="cartouche" id="cartouche">
+            <p class="c-kick">A chart of the home waters of <span id="who2">fennel.wam</span></p>
+            <h1>Your <em>islands</em></h1>
+            <p class="c-sub" id="c-sub">&nbsp;</p>
+          </div>
+          <div class="isles" id="isles" role="group" aria-label="Your islands on the chart"></div>
+          <div class="uncharted" id="unch" hidden>
+            <button class="quill" type="button" id="new-island" aria-label="Chart a new island">
+              <span class="tape" aria-hidden="true"></span>
+              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M33 4C22 7 13 16 9 31c7-3 13-8 17-14-3 1-5 1-7 0 5-2 9-6 14-13z" fill="currentColor" fill-opacity=".12"/><path d="M9 31 5 37M14 36c3-1 6-1 9 0"/></svg>
+              <span class="q-main">chart a new island</span>
+              <span class="q-sub">a fresh coast, drawn for you</span>
+            </button>
+          </div>
+          <svg class="leader" id="leader" viewBox="0 0 1200 700" preserveAspectRatio="none" aria-hidden="true"></svg>
+        </div>
+        <article class="isle-card" id="card" tabindex="-1" aria-labelledby="card-title" hidden></article>
+        <div class="gaz" id="gaz" role="tabpanel" aria-labelledby="tab-gaz" hidden></div>
+      </div>
+      <p class="new-mobile" id="new-mobile" hidden><button class="btn small" type="button">Chart a new island</button></p>
+    </div>
+  </div>
+</main>
+
+<script src="islands.js"></script>
+<script>
+(function () {
+  var VW = 1200, VH = 700, G0 = 566, G1 = 634, INK = '#2b2721', BLUE = '#25467f';
+  var $ = function (s) { return document.querySelector(s); };
+  var pct = function (v, t) { return (v / t * 100).toFixed(3) + '%'; };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var hit = function (a, b, p) { p = p || 0; return a.x < b.x + b.w + p && b.x < a.x + a.w + p && a.y < b.y + b.h + p && b.y < a.y + a.h + p; };
+  var dist = function (a, b) { return Math.hypot(a.cx - b.cx, a.cy - b.cy); };
+  function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function boxOf(c, pad) { pad = pad || 0; return { x: c.cx - c.r - pad, y: c.cy - c.r - pad, w: 2 * (c.r + pad), h: 2 * (c.r + pad) }; }
+
+  /* ---------- deterministic layout: islands in jittered cells that avoid the fixed furniture ---------- */
+  function layout(n, create) {
+    var cart = { x: 34, y: 30, w: 360, h: 150 };
+    var scale = { x: 40, y: 640, w: 240, h: 40 };
+    var R = [cart, scale, { x: G0, y: 0, w: G1 - G0, h: VH }];
+    if (n === 1) {
+      var rose1 = { cx: 600, cy: 566, r: 70 }; scale = { x: 668, y: 636, w: 200, h: 40 }; R[1] = scale;
+      var un1 = create ? { x: 884, y: 446, w: 284, h: 228 } : null;
+      return { cart: cart, scale: scale, rose: rose1, unch: un1, R: R.concat([boxOf(rose1, 8)], un1 ? [un1] : []), soft: [{ x: 90, y: 176, w: 420, h: 520 }],
+        isles: [{ x: 790, y: 58, s: 300, lab: 40, cx: 940, cy: 208 }] };
+    }
+    var rose = n > 12 ? { cx: 600, cy: 350, r: 64 } : { cx: 600, cy: 520, r: 72 };
+    R.push(boxOf(rose, 8));
+    var unch = create ? (n > 12 ? { x: 904, y: 520, w: 266, h: 154 } : { x: 890, y: 470, w: 280, h: 204 }) : null;
+    if (unch) R.push(unch);
+    var s = n <= 3 ? 230 : n <= 6 ? 170 : n <= 12 ? 136 : 112, cells = [], lab = 24;
+    for (var attempt = 0; attempt < 14; attempt++) {
+      cells = []; lab = Math.round(Math.max(22, s * .17)); var gap = 14;
+      [[28, G0], [G1, 1172]].forEach(function (p, page) {
+        var x0 = p[0], x1 = p[1];
+        var cols = Math.max(1, Math.floor((x1 - x0) / (s + gap))), cw = (x1 - x0) / cols;
+        var rows = Math.max(1, Math.floor((VH - 56) / (s + lab + gap))), ch = (VH - 56) / rows;
+        for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+          var cell = { x: x0 + c * cw, y: 28 + r * ch }, rnd = rng(1000 + page * 97 + r * 13 + c * 7 + n);
+          var sx = cw - s, sy = ch - s - lab;
+          var tries = [[rnd(), rnd()], [.5, .5], [0, 0], [1, 0], [0, 1], [1, 1], [.5, 0], [.5, 1], [0, .5], [1, .5]];
+          for (var t = 0; t < tries.length; t++) {
+            var f = { x: cell.x + sx * tries[t][0], y: cell.y + sy * tries[t][1], w: s, h: s + lab };
+            if (!R.some(function (q) { return hit(f, q, 6); })) {
+              cells.push({ x: f.x, y: f.y, s: s, lab: lab, page: page, r: r, c: c, cx: f.x + s / 2, cy: f.y + s / 2 }); break;
+            }
+          }
+        }
+      });
+      if (cells.length >= n) break;
+      s = Math.round(s * .93);
+    }
+    // spread the chosen cells out (farthest point first), then number them in reading order
+    var pool = cells.slice(), pick = [], anchor = { cx: 900, cy: 230 };
+    while (pick.length < n && pool.length) {
+      var best = 0, bd = -Infinity;
+      pool.forEach(function (c, i) {
+        var d = pick.length ? Math.min.apply(null, pick.map(function (p) { return dist(p, c); })) : -dist(c, anchor);
+        if (d > bd + .01) { bd = d; best = i; }
+      });
+      pick.push(pool.splice(best, 1)[0]);
+    }
+    pick.sort(function (a, b) { return a.page - b.page || a.r - b.r || a.c - b.c; });
+    return { cart: cart, scale: scale, rose: rose, unch: unch, R: R, isles: pick };
+  }
+
+  /* ---------- the drawn chart ---------- */
+  function compassRose(cx, cy, r) {
+    var o = '<g transform="translate(' + cx + ' ' + cy + ')">';
+    o += '<circle r="' + (r * 1.04) + '" fill="rgba(250,244,228,.75)"/>';
+    o += '<circle r="' + r + '" fill="none" stroke="' + INK + '" stroke-width="1.3"/><circle r="' + (r * .9) + '" fill="none" stroke="' + INK + '" stroke-width=".6"/>';
+    for (var i = 0; i < 64; i++) {
+      var a = i * Math.PI / 32, l = i % 8 === 0 ? .8 : i % 2 === 0 ? .85 : .875;
+      o += '<line x1="' + (Math.sin(a) * r * .9).toFixed(2) + '" y1="' + (-Math.cos(a) * r * .9).toFixed(2) + '" x2="' + (Math.sin(a) * r * l).toFixed(2) + '" y2="' + (-Math.cos(a) * r * l).toFixed(2) + '" stroke="' + INK + '" stroke-width=".6"/>';
+    }
+    function point(deg, len, w) {
+      var a = deg * Math.PI / 180, tip = [Math.sin(a) * len, -Math.cos(a) * len];
+      var l = [Math.sin(a - Math.PI / 4) * w, -Math.cos(a - Math.PI / 4) * w], rr = [Math.sin(a + Math.PI / 4) * w, -Math.cos(a + Math.PI / 4) * w];
+      var f = function (p) { return p[0].toFixed(2) + ' ' + p[1].toFixed(2); };
+      return '<path d="M0 0L' + f(tip) + 'L' + f(l) + 'Z" fill="' + INK + '" stroke="' + INK + '" stroke-width=".7" stroke-linejoin="round"/>' +
+        '<path d="M0 0L' + f(tip) + 'L' + f(rr) + 'Z" fill="#f7f0de" stroke="' + INK + '" stroke-width=".7" stroke-linejoin="round"/>';
+    }
+    [22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5].forEach(function (d) { o += point(d, r * .5, r * .09); });
+    [45, 135, 225, 315].forEach(function (d) { o += point(d, r * .66, r * .13); });
+    [0, 90, 180, 270].forEach(function (d) { o += point(d, r * .98, r * .17); });
+    o += '<circle r="' + (r * .07) + '" fill="#f7f0de" stroke="' + INK + '" stroke-width=".8"/>';
+    o += '<text y="' + (-r * 1.12) + '" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="' + (r * .3) + '" fill="#a5452d">N</text>';
+    return o + '</g>';
+  }
+
+  function blob(u, seed) {
+    var rnd = rng(seed), cx = u.x + u.w / 2, cy = u.y + u.h / 2, rx = u.w / 2 - 10, ry = u.h / 2 - 10, pts = [];
+    for (var i = 0; i < 16; i++) { var a = i / 16 * Math.PI * 2, k = .82 + rnd() * .18; pts.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]); }
+    var mid = function (p, q) { return [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]; }, f = function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); };
+    var d = 'M' + f(mid(pts[15], pts[0]));
+    for (var j = 0; j < 16; j++) d += 'Q' + f(pts[j]) + ' ' + f(mid(pts[j], pts[(j + 1) % 16]));
+    return d + 'Z';
+  }
+
+  function drawSea(L, list) {
+    var o = '<defs><clipPath id="neat"><rect x="18" y="18" width="1164" height="664"/></clipPath>';
+    var foot = L.isles.map(function (p) { return { x: p.x, y: p.y, w: p.s, h: p.s + p.lab }; });
+    // water-lining: concentric rings round each coast, cut out with a mask
+    L.isles.forEach(function (p, i) {
+      var k = 108 / p.s, g = '<g transform="translate(' + (p.x + p.s * 4 / 108) + ' ' + (p.y + p.s * 4 / 108) + ') scale(' + (p.s / 108) + ')"><g transform="' + list[i].svgTransform + '">';
+      var ring = function (w, col) { return '<path d="' + list[i].coast + '" fill="none" stroke="' + col + '" stroke-width="' + (w * k).toFixed(2) + '" stroke-linejoin="round"/>'; };
+      o += '<mask id="wl' + i + '" maskUnits="userSpaceOnUse" x="0" y="0" width="' + VW + '" height="' + VH + '">' + g +
+        ring(31, '#fff') + ring(28.4, '#000') + ring(20, '#fff') + ring(18, '#000') + ring(11, '#fff') + ring(9.6, '#000') + '</g></g></mask>';
+    });
+    o += '</defs>';
+    o += '<rect x="18" y="18" width="1164" height="664" fill="rgba(37,70,127,.035)"/>';
+    // rhumb lines from the rose and from two hidden wind knots, one per page
+    o += '<g clip-path="url(#neat)" stroke="' + BLUE + '" fill="none">';
+    [[L.rose.cx, L.rose.cy, .2], [300, 360, .1], [900, 330, .1]].forEach(function (h) {
+      for (var i = 0; i < 32; i++) {
+        var a = i * Math.PI / 16, main = i % 4 === 0;
+        o += '<line x1="' + h[0] + '" y1="' + h[1] + '" x2="' + (h[0] + Math.sin(a) * 1500).toFixed(1) + '" y2="' + (h[1] - Math.cos(a) * 1500).toFixed(1) + '" stroke-width="' + (main ? .8 : .5) + '" opacity="' + (main ? h[2] * 1.5 : h[2]) + '"' + (i % 2 ? ' stroke-dasharray="6 5"' : '') + '/>';
+      }
+    });
+    o += '</g>';
+    L.isles.forEach(function (p, i) { o += '<rect width="' + VW + '" height="' + VH + '" fill="' + BLUE + '" opacity=".42" mask="url(#wl' + i + ')"/>'; });
+    // uncharted waters: dotted edge, faint stipple, a note
+    if (L.unch) {
+      var u = L.unch, d = blob(u, 77), rs = rng(9);
+      o += '<path d="' + d + '" fill="rgba(247,240,222,.65)" stroke="' + BLUE + '" stroke-width="2" stroke-dasharray=".1 7" stroke-linecap="round"/>';
+      o += '<path d="' + d + '" fill="none" stroke="' + BLUE + '" stroke-width="1" stroke-dasharray=".1 7" stroke-linecap="round" transform="translate(' + (u.x + u.w / 2) + ' ' + (u.y + u.h / 2) + ') scale(.86) translate(' + (-(u.x + u.w / 2)) + ' ' + (-(u.y + u.h / 2)) + ')" opacity=".6"/>';
+      for (var q = 0; q < 40; q++) {
+        var qx = u.x + 24 + rs() * (u.w - 48), qy = u.y + 24 + rs() * (u.h - 48);
+        o += '<circle cx="' + qx.toFixed(1) + '" cy="' + qy.toFixed(1) + '" r=".9" fill="' + BLUE + '" opacity=".3"/>';
+      }
+      o += '<text x="' + (u.x + u.w / 2) + '" y="' + (u.y + 30) + '" text-anchor="middle" font-family="Caveat, cursive" font-weight="600" font-size="22" fill="' + BLUE + '" opacity=".85" transform="rotate(-3 ' + (u.x + u.w / 2) + ' ' + (u.y + 30) + ')">uncharted waters</text>';
+    }
+    // little waves wherever the sea is open
+    var blocked = foot.map(function (f) { return { x: f.x - 14, y: f.y - 10, w: f.w + 28, h: f.h + 14 }; }).concat(L.R, L.soft || [], [{ x: 0, y: 0, w: VW, h: 34 }, { x: 0, y: VH - 30, w: VW, h: 30 }, { x: 0, y: 0, w: 34, h: VH }, { x: VW - 40, y: 0, w: 40, h: VH }]);
+    var rw = rng(31), waves = '';
+    for (var y = 50; y < VH - 30; y += 46) for (var x = 40 + (y / 46 % 2) * 34; x < VW - 40; x += 74) {
+      var wx = x + (rw() - .5) * 34, wy = y + (rw() - .5) * 20, wb = { x: wx - 4, y: wy - 8, w: 36, h: 12 };
+      if (rw() < .3 || blocked.some(function (b) { return hit(wb, b, 4); })) continue;
+      waves += '<path d="M' + wx.toFixed(1) + ' ' + wy.toFixed(1) + 'q5 -5 10 0t10 0' + (rw() < .4 ? 't10 0' : '') + '"/>';
+    }
+    o += '<g fill="none" stroke="' + BLUE + '" stroke-width="1.3" stroke-linecap="round" opacity=".5">' + waves + '</g>';
+    // sea labels in handwriting, wherever they fit
+    var LABELS = [
+      { t: 'The Quiet Sea', x: 300, y: 420, fs: 46, rot: -5, ls: 6, op: .55 },
+      { t: 'The Quiet Sea', x: 900, y: 600, fs: 40, rot: -4, ls: 5, op: .55 },
+      { t: 'calm water, good anchorage', x: 300, y: 600, fs: 22, rot: -2 },
+      { t: 'kelp beds', x: 470, y: 250, fs: 22, rot: -8 },
+      { t: 'here the wind turns west', x: 860, y: 446, fs: 21, rot: 3 },
+      { t: 'deep', x: 1100, y: 160, fs: 22, rot: 6 },
+      { t: 'shallows', x: 690, y: 110, fs: 20, rot: -6 },
+      { t: 'seals on the rocks', x: 160, y: 300, fs: 20, rot: 4 },
+      { t: 'fog in the mornings', x: 1040, y: 380, fs: 20, rot: -3 }
+    ], placed = [], lab = '';
+    LABELS.forEach(function (l) {
+      var w = l.t.length * l.fs * .42 + (l.ls || 0) * l.t.length, b = { x: l.x - w / 2, y: l.y - l.fs * .8, w: w, h: l.fs };
+      if (b.x < 30 || b.x + b.w > VW - 30 || blocked.some(function (q) { return hit(b, q, 2); }) || placed.some(function (q) { return hit(b, q, 30); })) return;
+      if (placed.some(function (q) { return q.t === l.t; })) return;
+      b.t = l.t; placed.push(b);
+      lab += '<text x="' + l.x + '" y="' + l.y + '" text-anchor="middle" font-family="Caveat, cursive" font-weight="600" font-size="' + l.fs + '" letter-spacing="' + (l.ls || 0) + '" fill="' + BLUE + '" opacity="' + (l.op || .8) + '" transform="rotate(' + l.rot + ' ' + l.x + ' ' + l.y + ')">' + l.t + '</text>';
+    });
+    o += lab;
+    // a little ship in open water
+    var SHIPS = [[470, 575], [1060, 245], [200, 480], [820, 640], [470, 140], [700, 250], [330, 230]];
+    for (var si = 0; si < SHIPS.length; si++) {
+      var sp = SHIPS[si], sb = { x: sp[0] - 30, y: sp[1] - 30, w: 60, h: 50 };
+      if (blocked.some(function (q) { return hit(sb, q, 6); }) || placed.some(function (q) { return hit(sb, q, 6); })) continue;
+      o += '<g transform="translate(' + sp[0] + ' ' + sp[1] + ')" fill="none" stroke="' + INK + '" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">' +
+        '<path d="M-19 6h38l-7 8h-25z" fill="#f4ead2"/><path d="M1 6V-24M-10 6V-13"/>' +
+        '<path d="M2 -21c9 3 11 11 11 21H2z" fill="#f7f0de"/><path d="M-9 -11c6 2 7 7 7 14h-7z" fill="#f7f0de"/>' +
+        '<path d="M1 -24l8 2.5-8 2.5z" fill="#a5452d" stroke="#a5452d" stroke-width=".8"/>' +
+        '<path d="M-26 17q4-3 8 0t8 0M12 17q4-3 8 0t8 0" stroke="' + BLUE + '" opacity=".6"/></g>';
+      break;
+    }
+    // neat line with a graduated border
+    o += '<g fill="none" stroke="' + INK + '"><rect x="10" y="10" width="1180" height="680" stroke-width="1.6"/><rect x="18" y="18" width="1164" height="664" stroke-width=".8"/></g><g fill="' + INK + '" opacity=".85">';
+    for (var bx = 18, on = 0; bx < 1182; bx += 36, on ^= 1) if (on) { var bw = Math.min(36, 1182 - bx); o += '<rect x="' + bx + '" y="10" width="' + bw + '" height="8"/><rect x="' + bx + '" y="682" width="' + bw + '" height="8"/>'; }
+    for (var by = 18, on2 = 0; by < 682; by += 36, on2 ^= 1) if (on2) { var bh = Math.min(36, 682 - by); o += '<rect x="10" y="' + by + '" width="8" height="' + bh + '"/><rect x="1182" y="' + by + '" width="8" height="' + bh + '"/>'; }
+    o += '</g>';
+    o += compassRose(L.rose.cx, L.rose.cy, L.rose.r);
+    // scale of leagues
+    var s = L.scale, seg = s.w / 5;
+    o += '<g transform="translate(' + (s.x + 6) + ' ' + (s.y + 24) + ')"><text x="0" y="-10" font-family="IM Fell English SC, serif" font-size="13" letter-spacing="2" fill="' + INK + '">A scale of leagues</text>';
+    for (var k2 = 0; k2 < 5; k2++) o += '<rect x="' + (k2 * seg * .9) + '" y="0" width="' + (seg * .9) + '" height="5" fill="' + (k2 % 2 ? '#f7f0de' : INK) + '" stroke="' + INK + '" stroke-width=".8"/>';
+    o += '</g>';
+    return o;
+  }
+
+  /* ---------- page ---------- */
+  var chart = $('#chart'), isles = $('#isles'), card = $('#card'), leader = $('#leader'), gaz = $('#gaz');
+  var list = [], L = null, current = -1, narrow = window.matchMedia('(max-width: 760px)');
+
+  UA.islands().then(function (data) {
+    list = data;
+    var n = list.length;
+    L = layout(n, UA.canCreate);
+    chart.classList.toggle('n1', n === 1);
+    $('#who').textContent = UA.player; $('#who2').textContent = UA.player;
+    $('#c-sub').textContent = n === 1 ? 'one island charted, and a great deal of open sea' : n + ' islands charted so far';
+    var c = $('#cartouche');
+    c.style.left = pct(L.cart.x, VW); c.style.top = pct(L.cart.y, VH); c.style.width = pct(L.cart.w, VW); c.style.height = pct(L.cart.h, VH);
+    $('#sea').innerHTML = drawSea(L, list);
+
+    var last = 0; list.forEach(function (isl, i) { if (isl.lastVisit === 'today') last = i; });
+    isles.innerHTML = list.map(function (isl, i) {
+      var p = L.isles[i];
+      return '<button class="isle" type="button" data-i="' + i + '" aria-pressed="false" style="left:' + pct(p.x, VW) + ';top:' + pct(p.y, VH) + ';width:' + pct(p.s, VW) + '"' +
+        ' aria-label="' + esc(isl.name) + ', ' + esc(isl.note) + '. Last ashore ' + esc(isl.lastVisit) + '.">' +
+        UA.outline(isl, { land: '#f2e6c6', ink: INK, stroke: n === 1 ? .55 : .75, pad: 4 }).replace('<svg ', '<svg class="coast" ') +
+        (n > 4 ? '<span class="isle-no" aria-hidden="true">' + (i + 1) + '</span>' : '') +
+        (n > 1 && i === last ? '<svg class="last-flag" viewBox="0 0 20 26" aria-hidden="true"><path d="M3 25V2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3.5 3c5-2 8 2 14 0v9c-6 2-9-2-14 0z" fill="currentColor"/></svg>' : '') +
+        '<span class="isle-name" aria-hidden="true">' + esc(isl.name) + '</span>' +
+        '<span class="isle-tip" aria-hidden="true"><b>' + esc(isl.name) + '</b>' + esc(isl.note) + '</span></button>';
+    }).join('');
+
+    if (L.unch) {
+      var u = $('#unch'); u.hidden = false;
+      u.style.left = pct(L.unch.x, VW); u.style.top = pct(L.unch.y + 40, VH); u.style.width = pct(L.unch.w, VW); u.style.height = pct(L.unch.h - 50, VH); u.classList.toggle('tight', L.unch.h < 180);
+      $('#new-mobile').hidden = false;
+    }
+
+    // list view once the chart gets crowded
+    if (n >= 5) {
+      $('#views').hidden = false; $('#book').classList.add('has-tabs');
+      gaz.innerHTML = '<div class="gaz-head"><h2>Gazetteer</h2><p>' + n + ' islands, in the order you charted them</p></div><ol>' + list.map(function (isl, i) {
+        return '<li><span class="g-no">' + (i + 1) + '</span><span class="g-map">' + UA.outline(isl, { land: '#f2e6c6', stroke: 1.1, pad: 4 }) + '</span>' +
+          '<span><button class="g-name" type="button" data-show="' + i + '">' + esc(isl.name) + '</button><span class="g-note">' + esc(isl.note) + ' &middot; ashore ' + esc(isl.lastVisit) + '</span></span>' +
+          '<a class="btn small" href="#enter-' + isl.id + '" aria-label="Enter ' + esc(isl.name) + '">Enter</a></li>';
+      }).join('') + '</ol>';
+      if (n >= 20 && narrow.matches) view('gaz');
+    }
+    if (n === 1) select(0, false, true);
+  });
+
+  function stat(label, v) { return '<div><dt>' + label + '</dt><dd>' + v + '</dd></div>'; }
+  function select(i, focusCard, quiet) {
+    current = i;
+    var isl = list[i];
+    isles.querySelectorAll('.isle').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.i) === i)); });
+    var st = isl.stats, pc = function (x) { return (Math.round(x * 10) / 10) + '%'; };
+    card.innerHTML = '<span class="pin" aria-hidden="true"></span>' +
+      '<button class="card-close" type="button" aria-label="Put the note away">&times;</button>' +
+      '<p class="card-kick">' + (list.length > 1 ? 'No. ' + (i + 1) + ' &middot; ' : '') + 'charted ' + esc(isl.charted) + '</p>' +
+      '<h2 id="card-title">' + esc(isl.name) + '</h2>' +
+      '<p class="card-note">&ldquo;' + esc(isl.note) + '&rdquo;</p>' +
+      '<figure class="card-photo"><span class="tape" aria-hidden="true"></span><div><img src="' + isl.render + '" alt="Painted view of ' + esc(isl.name) + ' from above" style="transform:' + isl.renderTransform + '" width="1600" height="907"></div></figure>' +
+      '<dl class="stats">' + stat('Land', pc(st.land)) + stat('Forest', pc(st.forest)) + stat('Mountain', pc(st.mountain)) + stat('Beach', pc(st.beach)) + stat('Fresh water', pc(st.freshWater)) + stat('Ashore', esc(isl.lastVisit)) + '</dl>' +
+      '<div class="card-actions"><a class="btn" href="#enter-' + isl.id + '">Enter island <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a></div>';
+    card.hidden = false;
+    card.classList.remove('pop'); void card.offsetWidth; if (!quiet) card.classList.add('pop');
+    placeCard();
+    card.querySelector('.card-close').addEventListener('click', closeCard);
+    if (focusCard) card.querySelector('.btn').focus();
+  }
+  function closeCard() {
+    var was = current; current = -1; card.hidden = true; leader.innerHTML = '';
+    isles.querySelectorAll('.isle').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+    var b = isles.querySelector('[data-i="' + was + '"]'); if (b) b.focus();
+  }
+  function placeCard() {
+    if (current < 0 || !L) return;
+    leader.innerHTML = '';
+    if (narrow.matches) return;
+    var p = L.isles[current], k = chart.clientWidth / VW, cw = card.offsetWidth / k, chh = card.offsetHeight / k;
+    var left = p.cx >= 600, x = left ? 300 - cw / 2 : 900 - cw / 2;
+    var y = Math.min(Math.max(p.cy - chh / 2, 16), VH - chh - 8);
+    if (left && x < L.cart.x + L.cart.w && y < L.cart.y + L.cart.h + 14 && L.cart.y + L.cart.h + 14 + chh < VH) y = L.cart.y + L.cart.h + 14;
+    card.style.left = pct(x, VW); card.style.top = pct(y, VH);
+    // a dashed ink line from the note to its island
+    var ex = left ? x + cw - 4 : x + 4, ey = Math.min(Math.max(p.cy, y + 60), y + chh - 60);
+    var ix = left ? p.x + p.s * .08 : p.x + p.s * .92, iy = p.cy;
+    leader.innerHTML = '<path d="M' + ex.toFixed(1) + ' ' + ey.toFixed(1) + 'Q' + ((ex + ix) / 2).toFixed(1) + ' ' + (Math.min(ey, iy) - 40).toFixed(1) + ' ' + ix.toFixed(1) + ' ' + iy.toFixed(1) + '" fill="none" stroke="#a5452d" stroke-width="1.6" stroke-dasharray="5 5" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
+      '<circle cx="' + ix.toFixed(1) + '" cy="' + iy.toFixed(1) + '" r="4" fill="#a5452d"/>';
+  }
+  if (window.ResizeObserver) new ResizeObserver(function () { placeCard(); }).observe(chart);
+
+  isles.addEventListener('click', function (e) {
+    var b = e.target.closest('.isle'); if (!b) return;
+    select(Number(b.dataset.i), e.detail === 0);
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && current >= 0 && !card.hidden) closeCard(); });
+  function create() { var b = $('#new-island'); b.querySelector('.q-main').textContent = 'the quill is ready'; b.querySelector('.q-sub').textContent = 'charting opens soon'; }
+  $('#new-island').addEventListener('click', create);
+  $('#new-mobile button').addEventListener('click', create);
+
+  // the two views (chart / gazetteer) as bookmarks
+  function view(which) {
+    var g = which === 'gaz';
+    $('#tab-chart').setAttribute('aria-selected', String(!g)); $('#tab-gaz').setAttribute('aria-selected', String(g));
+    $('#tab-chart').tabIndex = g ? -1 : 0; $('#tab-gaz').tabIndex = g ? 0 : -1;
+    chart.hidden = g; gaz.hidden = !g;
+    if (g) { card.hidden = true; } else if (current >= 0) { card.hidden = false; placeCard(); }
+  }
+  $('#tab-chart').addEventListener('click', function () { view('chart'); });
+  $('#tab-gaz').addEventListener('click', function () { view('gaz'); });
+  $('#views').addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    var g = $('#tab-gaz').getAttribute('aria-selected') !== 'true'; view(g ? 'gaz' : 'chart'); (g ? $('#tab-gaz') : $('#tab-chart')).focus();
+  });
+  gaz.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-show]'); if (!b) return;
+    view('chart'); select(Number(b.dataset.show), e.detail === 0);
+    if (!e.detail) { var isle = isles.querySelector('[data-i="' + b.dataset.show + '"]'); if (isle && narrow.matches) isle.scrollIntoView({ block: 'center' }); }
+  });
+})();
+</script>
+</body>
+</html>

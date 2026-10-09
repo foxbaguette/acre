@@ -1,0 +1,706 @@
+<!--
+  Concept 09: Tile Mosaic
+  Idea: the page is built from the game's own tiles. You walk inland from the sea: tile shoreline -> sand ->
+        grass meadow with creatures -> fenced soil fields with crops in every growth stage -> cobblestone path,
+        with all UI drawn as a polished dark-glass game HUD.
+  Palette: HUD glass rgba(13,20,28,.8), HUD text #eef5f2 / #a8bcc3, gold #ffcb47 (button #f2a81d),
+           mint #7fe08c, aqua #63d4e6, plus the tiles' own sea / sand / grass / soil / stone colours
+  Fonts: Fredoka (display), Nunito (body)
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unclaimed Acres - Tile Mosaic</title>
+<meta name="description" content="Unclaimed Acres: a calm island farming and creature game on the WAX blockchain. Claim a generated island, grow 64 crops and meet more than 50 creatures.">
+<link rel="icon" href="assets/emblem.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --t: 96px;                       /* one game tile */
+    --hud: rgba(13, 20, 28, .80);
+    --hud-solid: #121b25;
+    --hud-line: rgba(255, 255, 255, .13);
+    --text: #eef5f2;
+    --muted: #a8bcc3;
+    --gold: #ffcb47;
+    --gold-2: #f2a81d;
+    --gold-3: #b9740b;
+    --mint: #7fe08c;
+    --aqua: #63d4e6;
+    --radius: 20px;
+    --display: "Fredoka", "Nunito", system-ui, sans-serif;
+    --body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --sea: url("../tiles/sea-01.svg");
+    --sea-deep: url("../tiles/sea-03.svg");
+    --water: url("../tiles/water-01.svg");
+    --sand: url("../tiles/sand-01.svg");
+    --grass: url("../tiles/grass-01.svg");
+    --grass-2: url("../tiles/grass-05.svg");
+    --soil: url("../tiles/soil.svg");
+    --path: url("../tiles/path-01.svg");
+    --fence: url("../tiles/fence-0101.svg");
+    /* step masks: 1 = tile present in the top row */
+    --steps-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 1' preserveAspectRatio='none'%3E%3Cpath d='M0 0h2v1H0zM3 0h3v1H3zM8 0h1v1H8z'/%3E%3C/svg%3E");
+    --steps-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 1' preserveAspectRatio='none'%3E%3Cpath d='M1 0h3v1H1zM5 0h1v1H5z'/%3E%3C/svg%3E");
+    --steps-c: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 1' preserveAspectRatio='none'%3E%3Cpath d='M0 0h1v1H0zM2 0h4v1H2zM7 0h2v1H7z'/%3E%3C/svg%3E");
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; background: #0d1820; }
+  body { margin: 0; font-family: var(--body); color: var(--text); font-size: 1.0625rem; line-height: 1.6; background: #0d1820; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--aqua); outline-offset: 3px; border-radius: 10px; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.06; margin: 0; letter-spacing: -.01em; }
+  p { margin: 0 0 1em; }
+  .wrap { width: min(1240px, 100% - 32px); margin-inline: auto; position: relative; }
+
+  /* ---------- tile bands ---------- */
+  .band { position: relative; background-image: var(--tile); background-size: var(--t) var(--t); background-position: 0 0; }
+  .band.sea { --tile: var(--sea); }
+  .band.sand { --tile: var(--sand); }
+  .band.grass { --tile: var(--grass); }
+  .band.field { --tile: var(--grass-2); }
+  .band.path { --tile: var(--path); }
+  /* stepped edge: one tile row that pokes up into the band above, like the island's coastline */
+  .stepped::before {
+    content: ""; position: absolute; left: 0; right: 0; top: calc(-1 * var(--t)); height: var(--t); z-index: 1;
+    background-image: var(--tile); background-size: var(--t) var(--t);
+    -webkit-mask: var(--steps, var(--steps-a)) 0 0 / calc(var(--t) * var(--n, 9)) var(--t) repeat-x;
+            mask: var(--steps, var(--steps-a)) 0 0 / calc(var(--t) * var(--n, 9)) var(--t) repeat-x;
+    pointer-events: none;
+  }
+  .stepped.b::before { --steps: var(--steps-b); --n: 7; }
+  .stepped.c::before { --steps: var(--steps-c); --n: 11; }
+  .band > .wrap { z-index: 2; }
+  .fence-row { height: var(--t); background: var(--fence) 0 0 / var(--t) var(--t) repeat-x; position: relative; z-index: 3; }
+  .tile-shade::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.12), transparent 30%, transparent 70%, rgba(0,0,0,.14)); }
+
+  /* ---------- HUD primitives ---------- */
+  .hud {
+    background: var(--hud);
+    border: 1px solid var(--hud-line);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 22px 50px -18px rgba(0, 0, 0, .65), 0 2px 6px rgba(0,0,0,.25);
+    -webkit-backdrop-filter: blur(12px) saturate(1.25);
+            backdrop-filter: blur(12px) saturate(1.25);
+  }
+  .chip { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mint);
+    background: rgba(127, 224, 140, .12); border: 1px solid rgba(127, 224, 140, .3); padding: 5px 12px 5px 10px; border-radius: 999px; }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 0 rgba(127,224,140,.6); animation: ping 2.4s ease-out infinite; }
+  @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(127,224,140,.55); } 70%, 100% { box-shadow: 0 0 0 9px rgba(127,224,140,0); } }
+  .chip.gold { color: var(--gold); background: rgba(255, 203, 71, .12); border-color: rgba(255, 203, 71, .32); }
+  .chip.aqua { color: var(--aqua); background: rgba(99, 212, 230, .12); border-color: rgba(99, 212, 230, .32); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    font-family: var(--display); font-weight: 600; font-size: 1.12rem; letter-spacing: .01em;
+    color: #2b1a00; background: linear-gradient(180deg, #ffd96e, var(--gold) 45%, var(--gold-2));
+    border: 0; border-radius: 14px; padding: 14px 24px 15px; cursor: pointer; text-decoration: none;
+    box-shadow: 0 4px 0 var(--gold-3), 0 10px 22px -6px rgba(242, 168, 29, .6), inset 0 1px 0 rgba(255,255,255,.6);
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  .btn svg { width: 20px; height: 20px; }
+  .btn:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 5px 0 var(--gold-3), 0 14px 26px -6px rgba(242, 168, 29, .7), inset 0 1px 0 rgba(255,255,255,.6); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--gold-3), 0 6px 14px -6px rgba(242, 168, 29, .6), inset 0 1px 0 rgba(255,255,255,.6); }
+  .btn.ghost { color: var(--text); background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2), 0 4px 0 rgba(0,0,0,.35); }
+  .btn.ghost:hover { background: rgba(255,255,255,.14); }
+  .btn.sm { font-size: 1rem; padding: 10px 18px 11px; border-radius: 12px; }
+
+  .eyebrow { font-weight: 800; font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin: 0 0 10px; }
+  .h2 { font-size: clamp(2rem, 1.3rem + 2.3vw, 3.1rem); margin-bottom: 14px; }
+  .muted { color: var(--muted); }
+
+  /* ---------- header HUD ---------- */
+  .topbar { position: absolute; top: 18px; left: 0; right: 0; z-index: 20; }
+  .topbar .hud { display: flex; align-items: center; gap: 18px; padding: 10px 10px 10px 14px; border-radius: 18px; }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand img { width: 46px; height: 46px; filter: drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
+  .brand b { font-family: var(--display); font-weight: 700; font-size: 1.42rem; letter-spacing: -.01em; line-height: 1; }
+  .brand b span { color: var(--gold); }
+  .nav { display: flex; gap: 4px; margin-left: 10px; }
+  .nav a { text-decoration: none; font-weight: 700; font-size: .98rem; color: var(--muted); padding: 8px 14px; border-radius: 10px; }
+  .nav a:hover { color: var(--text); background: rgba(255,255,255,.07); }
+  .res { display: flex; gap: 8px; margin-left: auto; }
+  .res span { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 12px 0 6px; border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid var(--hud-line); font-weight: 800; font-size: .95rem; }
+  .res span small { font-weight: 700; color: var(--muted); font-size: .8rem; }
+  .res img { width: 30px; height: 30px; }
+
+  /* ---------- hero ---------- */
+  .hero { --tile: var(--sea); min-height: 760px; overflow: hidden; padding: 140px 0 calc(var(--t) * 2.2); }
+  .hero .island {
+    position: absolute; inset: 0 0 calc(var(--t) * 1.5) auto; width: 74%; z-index: 0;
+    background: url("assets/island-hero.webp") 70% 30% / cover no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 0, #000 34%), linear-gradient(0deg, transparent 0, #000 30%);
+    -webkit-mask-composite: source-in;
+            mask: linear-gradient(90deg, transparent 0, #000 34%) intersect, linear-gradient(0deg, transparent 0, #000 30%);
+  }
+  .hero .vignette { position: absolute; inset: 0; z-index: 0; background: radial-gradient(70% 90% at 18% 45%, rgba(8, 18, 26, .55), transparent 70%); }
+  .shallows { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--t) * 2); z-index: 1; background: var(--water) 0 0 / var(--t) var(--t);
+    -webkit-mask: var(--steps-c) 0 0 / calc(var(--t) * 11) var(--t) repeat-x, linear-gradient(#000, #000) 0 100% / 100% 50% no-repeat;
+            mask: var(--steps-c) 0 0 / calc(var(--t) * 11) var(--t) repeat-x, linear-gradient(#000, #000) 0 100% / 100% 50% no-repeat; opacity: .6; }
+  .hero .wrap { z-index: 3; }
+  .hero-card { width: min(560px, 100%); padding: 34px 36px 30px; }
+  .hero h1 { font-size: clamp(2.5rem, 1.6rem + 3vw, 4.1rem); margin: 16px 0 16px; }
+  .hero h1 .hl { color: var(--gold); }
+  .hero-card .lead { font-size: 1.15rem; color: #d6e3e2; margin-bottom: 26px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .wallets { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--hud-line); font-size: .9rem; color: var(--muted); }
+  .wallets b { color: var(--text); font-weight: 700; background: rgba(255,255,255,.07); border-radius: 8px; padding: 2px 9px; }
+  .pin { position: absolute; z-index: 3; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; }
+  .pin .tag { padding: 8px 12px; border-radius: 12px; font-weight: 800; font-size: .86rem; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+  .pin .tag img { width: 26px; height: 26px; border-radius: 6px; }
+  .pin::after { content: ""; width: 2px; height: 26px; background: linear-gradient(var(--text), rgba(255,255,255,.2)); }
+  .pin .ring { position: absolute; bottom: -7px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--text); background: rgba(127,224,140,.6); }
+
+  /* ---------- islands (sand) ---------- */
+  .sand-zone { padding: 10px 0 calc(var(--t) * 1.6); }
+  .beach-props { position: relative; height: calc(var(--t) * 1.6); }
+  .prop { position: absolute; }
+  .prop.shadowed::after { content: ""; position: absolute; left: 14%; right: 14%; bottom: 4%; height: 12%; border-radius: 50%; background: radial-gradient(closest-side, rgba(40, 30, 10, .35), transparent); z-index: -1; }
+  .islands-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 28px; align-items: stretch; }
+  .panel { padding: 32px 34px; }
+  .map-card { padding: 12px; display: grid; gap: 12px; }
+  .map-card .view { position: relative; border-radius: 12px; overflow: hidden; }
+  .map-card .view img { width: 100%; aspect-ratio: 1920 / 1089; object-fit: cover; }
+  .map-card .view .label { position: absolute; left: 12px; top: 12px; background: rgba(13, 20, 28, .86); }
+  .map-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .map-row .view img { aspect-ratio: 16 / 10; transform: scale(var(--z, 1.9)); transform-origin: var(--o, 50% 50%); }
+  .features { list-style: none; padding: 0; margin: 22px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .features li { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 14px; background: rgba(255,255,255,.05); border: 1px solid var(--hud-line); font-weight: 700; font-size: .92rem; line-height: 1.2; }
+  .ftile { flex: none; width: 44px; height: 44px; border-radius: 10px; position: relative; overflow: hidden; background-size: 44px 44px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); }
+  .ftile img { position: absolute; inset: 2px; width: 40px; height: 40px; }
+  .facts { list-style: none; padding: 0; margin: 0 0 4px; display: grid; gap: 12px; }
+  .facts li { display: flex; gap: 12px; align-items: flex-start; }
+  .facts svg { flex: none; width: 24px; height: 24px; color: var(--mint); margin-top: 2px; }
+
+  /* ---------- meadow (grass) ---------- */
+  .meadow { padding: calc(var(--t) * .4) 0 calc(var(--t) * .6); }
+  .meadow-grid { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 30px; align-items: start; }
+  .inspector { padding: 28px 28px 24px; position: sticky; top: 24px; }
+  .inspect-card { margin-top: 20px; border-radius: 16px; background: rgba(255,255,255,.05); border: 1px solid var(--hud-line); padding: 14px; }
+  .inspect-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .inspect-head h3 { font-size: 1.4rem; }
+  .views { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; }
+  .views figure { margin: 0; border-radius: 12px; background: radial-gradient(circle at 50% 60%, rgba(255,255,255,.1), rgba(255,255,255,.02) 70%); padding: 8px; text-align: center; }
+  .views img { width: 100%; aspect-ratio: 1; }
+  .views figcaption { font-size: .74rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .views .top-view { background: var(--grass) 0 0 / 48px 48px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+  .views .top-view figcaption { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+  .hint { margin: 14px 0 0; font-size: .9rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .hint kbd { font-family: var(--body); font-weight: 800; font-size: .78rem; padding: 2px 7px; border-radius: 6px; background: rgba(255,255,255,.1); border: 1px solid var(--hud-line); }
+
+  .stage { position: relative; aspect-ratio: 820 / 640; }
+  .stage .deco { position: absolute; pointer-events: none; }
+  .critter { position: absolute; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 16px; transform: translate(-50%, -100%); }
+  .critter img { width: 100%; height: auto; position: relative; z-index: 1; transition: transform .25s ease; transform-origin: 50% 100%; }
+  .critter::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 3%; height: 14%; border-radius: 50%; background: radial-gradient(closest-side, rgba(15, 30, 5, .45), transparent); }
+  .critter.flyer::after { bottom: -18%; left: 26%; right: 26%; opacity: .55; }
+  .critter.top { transform: translate(-50%, -50%) rotate(var(--rot, 0deg)); }
+  .critter.top::after { inset: 8% 4% 0 10%; height: auto; transform: translate(6%, 8%); border-radius: 40%; background: radial-gradient(closest-side, rgba(15,30,5,.3), transparent); }
+  .critter:hover img, .critter:focus-visible img { transform: scale(1.06); }
+  .critter[aria-pressed="true"]::before { content: ""; position: absolute; left: 50%; bottom: -2%; width: 74%; height: 22%; transform: translateX(-50%); border-radius: 50%; border: 3px solid var(--gold); box-shadow: 0 0 14px rgba(255, 203, 71, .7); z-index: 0; }
+  .critter.top[aria-pressed="true"]::before { bottom: auto; top: 50%; width: 96%; height: 96%; transform: translate(-50%, -50%); }
+  .critter .name { position: absolute; left: 50%; top: 100%; transform: translate(-50%, 6px); white-space: nowrap; font-size: .8rem; font-weight: 800; padding: 4px 10px; border-radius: 9px; background: var(--hud-solid); color: var(--text); opacity: 0; transition: opacity .2s ease; pointer-events: none; z-index: 2; }
+  .critter.top .name { top: 50%; transform: translate(-50%, -50%) rotate(calc(-1 * var(--rot, 0deg))) translateY(56px); }
+  .critter:hover .name, .critter:focus-visible .name, .critter[aria-pressed="true"] .name { opacity: 1; }
+  .idle img { animation: idle 3.6s ease-in-out infinite; }
+  .idle.d2 img { animation-delay: -1.2s; } .idle.d3 img { animation-delay: -2.4s; }
+  @keyframes idle { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.025); } }
+  .float img { animation: float 4.5s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+  /* ---------- field (soil rows) ---------- */
+  .field-zone { padding: 34px 0 calc(var(--t) * .8); }
+  .field-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding: 28px 32px; margin-bottom: 34px; }
+  .field-head p { margin: 0; max-width: 48em; }
+  .counter { display: flex; gap: 10px; }
+  .counter div { text-align: center; padding: 10px 16px; border-radius: 14px; background: rgba(255,255,255,.06); border: 1px solid var(--hud-line); min-width: 96px; }
+  .counter b { display: block; font-family: var(--display); font-size: 2rem; line-height: 1; color: var(--gold); }
+  .counter span { font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .rows { display: grid; gap: 22px; }
+  .crop-row { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 16px; align-items: center; }
+  .row-label { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 10px; border-radius: 16px; }
+  .row-label img { width: 54px; height: 54px; border-radius: 12px; background: rgba(255,255,255,.07); padding: 4px; }
+  .row-label b { font-family: var(--display); font-weight: 600; font-size: 1.15rem; display: block; line-height: 1.1; }
+  .row-label small { color: var(--muted); font-weight: 700; font-size: .8rem; }
+  .plot { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr));
+    border-radius: 14px; overflow: hidden; background: var(--soil) 0 0 / var(--cell, 120px) var(--cell, 120px);
+    box-shadow: 0 0 0 3px rgba(60, 38, 18, .55), 0 6px 0 rgba(45, 28, 12, .55), 0 14px 24px -8px rgba(0,0,0,.45); }
+  .plot li { position: relative; aspect-ratio: 1; background: var(--soil) center / 100% 100%; box-shadow: inset -1px 0 0 rgba(35, 20, 8, .35); }
+  .plot li:last-child { box-shadow: none; }
+  .plot img { position: absolute; inset: 6%; width: 88%; height: 88%; filter: drop-shadow(0 4px 3px rgba(30, 15, 0, .35)); }
+  .plot li.front img { inset: 14%; width: 72%; height: 72%; }
+  .plot li.front::before { content: ""; position: absolute; inset: 12% 12% 8%; border-radius: 14px; background: rgba(13, 20, 28, .38); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+  .plot .st { position: absolute; left: 6px; top: 6px; z-index: 2; font-size: .7rem; font-weight: 800; min-width: 22px; height: 22px; padding: 0 6px; display: grid; place-items: center; border-radius: 7px; background: rgba(13, 20, 28, .82); color: var(--text); }
+  .stage-key { display: grid; grid-template-columns: 200px minmax(0, 1fr); column-gap: 16px; margin-top: 6px; }
+  .stage-key span { text-align: center; font-size: .78rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.7); }
+  .stage-key .spacer { grid-column: 1; }
+  .stage-key-inner { grid-column: 2 / -1; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); padding: 8px 0; border-radius: 12px; }
+
+  .inventory { margin-top: 40px; padding: 26px 28px; display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 28px; align-items: center; }
+  .slots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; }
+  .slots li { position: relative; aspect-ratio: 1; border-radius: 14px; background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03)); border: 1px solid var(--hud-line); box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); display: grid; place-items: center; transition: transform .15s ease, border-color .15s ease; }
+  .slots li:hover { transform: translateY(-2px); border-color: rgba(255, 203, 71, .55); }
+  .slots img { width: 78%; height: 78%; }
+  .slots li span { position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); white-space: nowrap; font-size: .76rem; font-weight: 800; padding: 3px 8px; border-radius: 7px; background: var(--hud-solid); opacity: 0; pointer-events: none; transition: opacity .15s ease; z-index: 2; }
+  .slots li:hover span { opacity: 1; }
+  .slots li.more { color: var(--muted); font-family: var(--display); font-weight: 600; font-size: 1.05rem; text-align: center; line-height: 1.1; border-style: dashed; }
+
+  /* ---------- path (quest log) ---------- */
+  .band.path::after { background: linear-gradient(180deg, rgba(25,20,14,.42), rgba(25,20,14,.22) 40%, rgba(25,20,14,.38)); }
+  .path-zone { padding: 70px 0 80px; }
+  .path-top { display: grid; grid-template-columns: minmax(0, 640px) 1fr; gap: 26px; align-items: center; margin-bottom: 26px; }
+  .path-top .intro { margin-bottom: 0; }
+  .walkers { position: relative; height: 220px; }
+  .walkers img { position: absolute; filter: drop-shadow(4px 8px 4px rgba(20, 15, 5, .45)); }
+  .path-zone .intro { max-width: 640px; padding: 26px 30px; margin-bottom: 26px; }
+  .quests { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+  .quest { padding: 22px 22px 22px; display: flex; flex-direction: column; gap: 12px; }
+  .quest .qhead { display: flex; align-items: center; gap: 12px; }
+  .quest .qicon { width: 56px; height: 56px; border-radius: 14px; flex: none; position: relative; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); background-size: 56px 56px; }
+  .quest .qicon img { position: absolute; inset: 4px; width: 48px; height: 48px; }
+  .quest .qnum { font-size: .74rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--aqua); }
+  .quest h3 { font-size: 1.28rem; }
+  .quest p { margin: 0; color: #cddad9; font-size: .98rem; }
+  .bar { height: 8px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; margin-top: auto; }
+  .bar i { display: block; height: 100%; width: var(--w); border-radius: inherit; background: linear-gradient(90deg, var(--mint), var(--aqua)); }
+
+  /* ---------- final ---------- */
+  .final { padding: calc(var(--t) * .7) 0 calc(var(--t) * 1.2); overflow: hidden; }
+  .final-card { max-width: 760px; margin-inline: auto; text-align: center; padding: 44px 40px 38px; position: relative; }
+  .final-card .h2 { font-size: clamp(2.2rem, 1.4rem + 2.8vw, 3.5rem); }
+  .final-card p { max-width: 34em; margin-inline: auto; }
+  .final-card .wallets { justify-content: center; border-top: 0; padding-top: 4px; }
+  .final .deco { position: absolute; pointer-events: none; }
+  .final .critter-deco { filter: drop-shadow(0 10px 6px rgba(15, 30, 5, .35)); }
+
+  footer.band { --tile: var(--sea-deep); padding: calc(var(--t) * .6) 0 40px; }
+  footer.band::after { content: ""; position: absolute; inset: 0; background: rgba(8, 16, 22, .55); }
+  footer .hud { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 28px; padding: 18px 22px; position: relative; z-index: 1; }
+  footer nav { display: flex; flex-wrap: wrap; gap: 4px; }
+  footer nav a { text-decoration: none; color: var(--muted); font-weight: 700; font-size: .95rem; padding: 6px 10px; border-radius: 8px; }
+  footer nav a:hover { color: var(--text); background: rgba(255,255,255,.07); }
+  footer small { color: var(--muted); font-size: .88rem; }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1180px) {
+    .res { display: none; }
+    .topbar .btn { margin-left: auto; }
+    .quests { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .meadow-grid { grid-template-columns: 1fr; }
+    .inspector { position: relative; top: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 28px; }
+    .inspector .inspect-card { margin-top: 0; grid-row: 1 / span 3; grid-column: 2; }
+    .inventory { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px) {
+    :root { --t: 72px; }
+    .nav { display: none; }
+    .islands-grid { grid-template-columns: 1fr; }
+    .hero .island { width: 100%; opacity: .55; }
+    .hero .pin, .final .deco, .walkers { display: none; }
+    .path-top { grid-template-columns: 1fr; }
+    .crop-row { grid-template-columns: 1fr; gap: 8px; }
+    .row-label { justify-self: start; }
+    .stage-key { grid-template-columns: 1fr; }
+    .stage-key .spacer { display: none; }
+    .stage-key-inner { grid-column: 1 / -1; }
+    .field-head { grid-template-columns: 1fr; }
+    .slots { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    :root { --t: 56px; }
+    body { font-size: 1rem; }
+    .topbar { top: 10px; }
+    .topbar .hud { padding: 8px; gap: 10px; }
+    .brand img { width: 38px; height: 38px; }
+    .brand b { font-size: 1.12rem; }
+    .topbar .btn { font-size: .9rem; padding: 9px 12px 10px; }
+    .topbar .btn svg { display: none; }
+    .hero { padding-top: 110px; min-height: 0; }
+    .hero-card, .panel, .inspector, .field-head, .inventory, .final-card, .path-zone .intro { padding: 22px 18px; }
+    .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .map-row { grid-template-columns: 1fr; }
+    .inspector { display: block; }
+    .inspector .inspect-card { margin-top: 18px; }
+    .stage { aspect-ratio: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 8px; padding-top: 10px; }
+    .stage .deco { display: none; }
+    .critter, .critter.top { position: relative; left: auto !important; top: auto !important; width: auto !important; transform: none; }
+    .critter .name { opacity: 1; position: static; transform: none !important; display: inline-block; margin-top: 2px; font-size: .7rem; }
+    .critter.top img { transform: none; width: 70%; margin: 0 auto; }
+    .plot { border-radius: 10px; }
+    .plot .st { left: 3px; top: 3px; height: 18px; min-width: 18px; font-size: .62rem; padding: 0 4px; border-radius: 5px; }
+    .plot { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .stage-key { display: none; }
+    .slots { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .quests { grid-template-columns: 1fr; }
+    .counter div { min-width: 0; flex: 1; }
+    .beach-props .prop.hide-sm { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="hud">
+      <a class="brand" href="#top" aria-label="Unclaimed Acres, home">
+        <img src="assets/emblem.svg" alt="">
+        <b>Unclaimed <span>Acres</span></b>
+      </a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#islands">Islands</a>
+        <a href="#creatures">Creatures</a>
+        <a href="#crops">Crops</a>
+        <a href="#play">How it plays</a>
+      </nav>
+      <div class="res" aria-label="What is in the game">
+        <span><img src="../crops/wheat/7-harvest-front.svg" alt="">64 <small>crops</small></span>
+        <span><img src="../topdown/animals__fox/side.svg" alt="">50+ <small>creatures</small></span>
+      </div>
+      <button class="btn sm" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M21 9h-6a3 3 0 0 0 0 6h6z"/></svg>
+        Connect wallet
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO: tile sea + island render + tile shoreline -->
+  <section class="band sea hero" aria-labelledby="hero-title">
+    <div class="island" role="img" aria-label="A generated island seen from above: green meadows, pine forests and a terraced, snow-capped mountain ringed by sandy beaches."></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="pin" style="left:80.8%;top:34%" aria-hidden="true"><span class="tag hud"><img src="../tiles/peak-01.svg" alt="">Terraced mountain</span><span class="ring"></span></div>
+    <div class="pin" style="left:89.5%;top:48%" aria-hidden="true"><span class="tag hud"><img src="../tiles/tree-04.svg" alt="">Pine forest</span><span class="ring"></span></div>
+    <div class="wrap">
+      <div class="hero-card hud">
+        <span class="chip"><span class="dot"></span>Island generated on WAX</span>
+        <h1 id="hero-title">Step ashore. <span class="hl">It&rsquo;s all yours.</span></h1>
+        <p class="lead">A calm farming and creature game. Every island is generated, stored on the WAX blockchain and owned by your wallet. Plant 64 crops, meet more than 50 creatures, and play entirely at your own pace.</p>
+        <div class="cta-row">
+          <button class="btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M21 9h-6a3 3 0 0 0 0 6h6z"/></svg>
+            Connect wallet
+          </button>
+          <a class="btn ghost" href="#islands">Explore the island</a>
+        </div>
+        <div class="wallets"><span>Works with</span><b>WAX Cloud Wallet</b><b>Wombat</b><b>Anchor</b></div>
+      </div>
+    </div>
+    <div class="shallows" aria-hidden="true"></div>
+  </section>
+
+  <!-- ISLANDS on sand -->
+  <section id="islands" class="band sand stepped tile-shade" aria-labelledby="islands-title">
+    <div class="wrap">
+      <div class="beach-props" aria-hidden="true">
+        <img class="prop" src="../tiles/decor-driftwood.svg" alt="" style="left:2%;top:4%;width:120px">
+        <img class="prop hide-sm" src="../tiles/decor-stone-2.svg" alt="" style="left:30%;top:22%;width:80px">
+        <div class="prop shadowed hide-sm" style="left:44%;top:-6%;width:150px"><img src="../topdown/deepsea__crystal-crab-polished/side.svg" alt=""></div>
+        <img class="prop hide-sm" src="../tiles/decor-stone-1.svg" alt="" style="left:63%;top:30%;width:70px">
+        <div class="prop shadowed hide-sm" style="left:76%;top:-14%;width:190px"><img src="../topdown/turtles__crystal-turtle/side.svg" alt=""></div>
+      </div>
+      <div class="sand-zone">
+        <div class="islands-grid">
+          <div class="panel hud">
+            <p class="eyebrow">Islands</p>
+            <h2 class="h2" id="islands-title">No two islands are alike</h2>
+            <p class="muted">Each island is generated from scratch and written to the WAX blockchain. It is owned by your wallet, so it is genuinely yours.</p>
+            <ul class="facts">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" opacity=".35"/><path d="m7.5 12.5 3 3 6-6.5"/></svg><span><strong>Generated</strong> coastlines, hills, forests and water</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" opacity=".35"/><path d="m7.5 12.5 3 3 6-6.5"/></svg><span><strong>Stored on WAX</strong>, not on a private server</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" opacity=".35"/><path d="m7.5 12.5 3 3 6-6.5"/></svg><span><strong>Owned by your wallet</strong></span></li>
+            </ul>
+            <ul class="features" aria-label="Landforms you may find">
+              <li><span class="ftile" style="background-image:url(../tiles/grass-03.svg)"><img src="../tiles/decor-meadow-yellow.svg" alt=""></span>Peninsulas</li>
+              <li><span class="ftile" style="background-image:url(../tiles/sea-02.svg)"></span>Bays</li>
+              <li><span class="ftile" style="background-image:url(../tiles/sand-02.svg)"><img src="../tiles/decor-driftwood.svg" alt=""></span>Beaches</li>
+              <li><span class="ftile" style="background-image:url(../tiles/grass-02.svg)"><img src="../tiles/tree-05.svg" alt=""></span>Forests</li>
+              <li><span class="ftile" style="background-image:url(../tiles/rock-02.svg)"><img src="../tiles/peak-02.svg" alt=""></span>Snowy peaks</li>
+              <li><span class="ftile" style="background-image:url(../tiles/water-02.svg)"><img src="../tiles/decor-lily.svg" alt=""></span>Lakes</li>
+            </ul>
+          </div>
+          <div class="map-card hud">
+            <div class="view">
+              <img src="assets/island-overview.webp" width="1920" height="1089" loading="lazy" alt="The whole island from above: a long peninsula with a northern bay, beaches all round, forests and a central terraced mountain.">
+              <span class="label chip aqua">Map view</span>
+            </div>
+            <div class="map-row">
+              <div class="view">
+                <img src="assets/island-close.webp" width="1920" height="1089" loading="lazy" alt="Close-up of the terraced mountain with snow on its summit." style="--o:50% 40%">
+                <span class="label chip gold">Terraced peak</span>
+              </div>
+              <div class="view">
+                <img src="assets/island-close.webp" width="1920" height="1089" loading="lazy" alt="Close-up of a dense pine forest beside the meadows." style="--o:82% 88%">
+                <span class="label chip">Forests</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CREATURES on grass -->
+  <section id="creatures" class="band grass stepped b tile-shade" aria-labelledby="creatures-title">
+    <div class="wrap meadow">
+      <div class="meadow-grid">
+        <div class="inspector hud">
+          <div>
+            <p class="eyebrow">Creatures</p>
+            <h2 class="h2" id="creatures-title">More than 50 creatures</h2>
+            <p class="muted">Foxes and red panda, kitsune and crystal turtles. Every creature is drawn from the side and from above, exactly as it walks across your map.</p>
+          </div>
+          <div class="inspect-card" aria-live="polite">
+            <div class="inspect-head"><h3 id="ins-name">Fox</h3><span class="chip gold">Inspect</span></div>
+            <div class="views">
+              <figure><img id="ins-side" src="../topdown/animals__fox/side.svg" alt="Fox, side view"><figcaption>Side</figcaption></figure>
+              <figure class="top-view"><img id="ins-top" src="../topdown/animals__fox/top.svg" alt="Fox, seen from above"><figcaption>Map</figcaption></figure>
+            </div>
+          </div>
+          <p class="hint">Tap a creature in the meadow to inspect it.</p>
+        </div>
+
+        <div class="stage" role="group" aria-label="Meadow with creatures. Select one to inspect it.">
+          <img class="deco" src="../tiles/tree-03.svg" alt="" style="left:-3%;top:-6%;width:17%">
+          <img class="deco" src="../tiles/tree-04.svg" alt="" style="left:84%;top:-8%;width:16%">
+          <img class="deco" src="../tiles/tree-02.svg" alt="" style="left:88%;top:58%;width:15%">
+          <img class="deco" src="../tiles/tree-06.svg" alt="" style="left:-2%;top:72%;width:13%">
+          <img class="deco" src="../tiles/decor-bush-2.svg" alt="" style="left:56%;top:-2%;width:11%">
+          <img class="deco" src="../tiles/decor-flowers-1.svg" alt="" style="left:30%;top:46%;width:12%">
+          <img class="deco" src="../tiles/decor-meadow-purple.svg" alt="" style="left:64%;top:44%;width:14%">
+          <img class="deco" src="../tiles/decor-flowers-2.svg" alt="" style="left:12%;top:38%;width:11%">
+          <img class="deco" src="../tiles/decor-stump.svg" alt="" style="left:74%;top:84%;width:9%">
+          <img class="deco" src="../tiles/decor-meadow-yellow.svg" alt="" style="left:40%;top:84%;width:13%">
+          <img class="deco" src="../tiles/decor-meadow-tall.svg" alt="" style="left:20%;top:12%;width:10%">
+
+          <button class="critter idle" type="button" aria-pressed="true" data-id="animals__fox" data-name="Fox" style="left:31%;top:38%;width:24%"><img src="../topdown/animals__fox/side.svg" alt=""><span class="name">Fox</span><span class="sr-only">Fox</span></button>
+          <button class="critter idle d2" type="button" aria-pressed="false" data-id="animals__redpanda" data-name="Red panda" style="left:60%;top:35%;width:20%"><img src="../topdown/animals__redpanda/side.svg" alt=""><span class="name">Red panda</span><span class="sr-only">Red panda</span></button>
+          <button class="critter idle d3" type="button" aria-pressed="false" data-id="creatures__kitsune" data-name="Kitsune" style="left:82%;top:56%;width:22%"><img src="../topdown/creatures__kitsune/side.svg" alt=""><span class="name">Kitsune</span><span class="sr-only">Kitsune</span></button>
+          <button class="critter idle" type="button" aria-pressed="false" data-id="beasts__blossom-stag" data-name="Blossom stag" style="left:16%;top:74%;width:23%"><img src="../topdown/beasts__blossom-stag/side.svg" alt=""><span class="name">Blossom stag</span><span class="sr-only">Blossom stag</span></button>
+          <button class="critter idle d2" type="button" aria-pressed="false" data-id="felines__moon-cat" data-name="Moon-cat" style="left:46%;top:78%;width:17%"><img src="../topdown/felines__moon-cat/side.svg" alt=""><span class="name">Moon-cat</span><span class="sr-only">Moon-cat</span></button>
+          <button class="critter idle d3" type="button" aria-pressed="false" data-id="story__wind-hare" data-name="Wind-hare" style="left:67%;top:96%;width:22%"><img src="../topdown/story__wind-hare/side.svg" alt=""><span class="name">Wind-hare</span><span class="sr-only">Wind-hare</span></button>
+          <button class="critter top" type="button" aria-pressed="false" data-id="animals__deer" data-name="Deer" style="left:8%;top:30%;width:11%;--rot:120deg"><img src="../topdown/animals__deer/top.svg" alt=""><span class="name">Deer</span><span class="sr-only">Deer</span></button>
+          <button class="critter top" type="button" aria-pressed="false" data-id="turtles__crystal-turtle" data-name="Crystal turtle" style="left:73%;top:9%;width:11%;--rot:-35deg"><img src="../topdown/turtles__crystal-turtle/top.svg" alt=""><span class="name">Crystal turtle</span><span class="sr-only">Crystal turtle</span></button>
+          <button class="critter flyer float" type="button" aria-pressed="false" data-id="flyers__glass-dragonfly" data-name="Glass dragonfly" style="left:47%;top:16%;width:12%"><img src="../topdown/flyers__glass-dragonfly/side.svg" alt=""><span class="name">Glass dragonfly</span><span class="sr-only">Glass dragonfly</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CROPS in soil rows -->
+  <section id="crops" class="band field" aria-labelledby="crops-title">
+    <div class="fence-row" aria-hidden="true"></div>
+    <div class="wrap field-zone">
+      <div class="field-head hud">
+        <div>
+          <p class="eyebrow">Crops</p>
+          <h2 class="h2" id="crops-title">Sow it, watch it grow, harvest</h2>
+          <p class="muted">64 crops, each drawn through 8 stages: the seeds, five stages in the soil seen from above, the harvest, and a wilted plant. From wheat and tomatoes to moonbloom, glowcaps and an egg plant that really grows eggs.</p>
+        </div>
+        <div class="counter" role="list">
+          <div role="listitem"><b>64</b><span>crops</span></div>
+          <div role="listitem"><b>8</b><span>stages each</span></div>
+        </div>
+      </div>
+
+      <div class="rows">
+        <div class="crop-row">
+          <div class="row-label hud"><img src="../crops/tomatoes/7-harvest-front.svg" alt=""><div><b>Tomatoes</b><small>Row 1</small></div></div>
+          <ol class="plot" aria-label="Tomatoes in 8 growth stages">
+            <li class="front"><span class="st">1</span><img src="../crops/tomatoes/1-seeds-front.svg" alt="Tomato seeds"></li>
+            <li><span class="st">2</span><img src="../crops/tomatoes/2-sown.svg" alt="Tomatoes, sown"></li>
+            <li><span class="st">3</span><img src="../crops/tomatoes/3-first-growth.svg" alt="Tomatoes, first growth"></li>
+            <li><span class="st">4</span><img src="../crops/tomatoes/4-second-growth.svg" alt="Tomatoes, second growth"></li>
+            <li><span class="st">5</span><img src="../crops/tomatoes/5-third-growth.svg" alt="Tomatoes, third growth, flowering"></li>
+            <li><span class="st">6</span><img src="../crops/tomatoes/6-harvest.svg" alt="Tomatoes, ready to harvest"></li>
+            <li class="front"><span class="st">7</span><img src="../crops/tomatoes/7-harvest-front.svg" alt="Harvested tomatoes"></li>
+            <li class="front"><span class="st">8</span><img src="../crops/tomatoes/8-dead.svg" alt="Wilted tomato plant"></li>
+          </ol>
+        </div>
+        <div class="crop-row">
+          <div class="row-label hud"><img src="../crops/sunflower/7-harvest-front.svg" alt=""><div><b>Sunflower</b><small>Row 2</small></div></div>
+          <ol class="plot" aria-label="Sunflowers in 8 growth stages">
+            <li class="front"><span class="st">1</span><img src="../crops/sunflower/1-seeds-front.svg" alt="Sunflower seeds" loading="lazy"></li>
+            <li><span class="st">2</span><img src="../crops/sunflower/2-sown.svg" alt="Sunflower, sown" loading="lazy"></li>
+            <li><span class="st">3</span><img src="../crops/sunflower/3-first-growth.svg" alt="Sunflower, first growth" loading="lazy"></li>
+            <li><span class="st">4</span><img src="../crops/sunflower/4-second-growth.svg" alt="Sunflower, second growth" loading="lazy"></li>
+            <li><span class="st">5</span><img src="../crops/sunflower/5-third-growth.svg" alt="Sunflower, third growth" loading="lazy"></li>
+            <li><span class="st">6</span><img src="../crops/sunflower/6-harvest.svg" alt="Sunflower in full bloom, ready to harvest" loading="lazy"></li>
+            <li class="front"><span class="st">7</span><img src="../crops/sunflower/7-harvest-front.svg" alt="Harvested sunflower" loading="lazy"></li>
+            <li class="front"><span class="st">8</span><img src="../crops/sunflower/8-dead.svg" alt="Wilted sunflower" loading="lazy"></li>
+          </ol>
+        </div>
+        <div class="crop-row">
+          <div class="row-label hud"><img src="../crops/moonbloom/7-harvest-front.svg" alt=""><div><b>Moonbloom</b><small>Row 3 &middot; fantasy</small></div></div>
+          <ol class="plot" aria-label="Moonbloom in 8 growth stages">
+            <li class="front"><span class="st">1</span><img src="../crops/moonbloom/1-seeds-front.svg" alt="Moonbloom seeds" loading="lazy"></li>
+            <li><span class="st">2</span><img src="../crops/moonbloom/2-sown.svg" alt="Moonbloom, sown" loading="lazy"></li>
+            <li><span class="st">3</span><img src="../crops/moonbloom/3-first-growth.svg" alt="Moonbloom, first growth" loading="lazy"></li>
+            <li><span class="st">4</span><img src="../crops/moonbloom/4-second-growth.svg" alt="Moonbloom, second growth" loading="lazy"></li>
+            <li><span class="st">5</span><img src="../crops/moonbloom/5-third-growth.svg" alt="Moonbloom, third growth" loading="lazy"></li>
+            <li><span class="st">6</span><img src="../crops/moonbloom/6-harvest.svg" alt="Moonbloom, ready to harvest" loading="lazy"></li>
+            <li class="front"><span class="st">7</span><img src="../crops/moonbloom/7-harvest-front.svg" alt="Harvested moonbloom" loading="lazy"></li>
+            <li class="front"><span class="st">8</span><img src="../crops/moonbloom/8-dead.svg" alt="Wilted moonbloom" loading="lazy"></li>
+          </ol>
+        </div>
+        <div class="crop-row">
+          <div class="row-label hud"><img src="../crops/pumpkin/7-harvest-front.svg" alt=""><div><b>Pumpkin</b><small>Row 4</small></div></div>
+          <ol class="plot" aria-label="Pumpkins in 8 growth stages">
+            <li class="front"><span class="st">1</span><img src="../crops/pumpkin/1-seeds-front.svg" alt="Pumpkin seeds" loading="lazy"></li>
+            <li><span class="st">2</span><img src="../crops/pumpkin/2-sown.svg" alt="Pumpkin, sown" loading="lazy"></li>
+            <li><span class="st">3</span><img src="../crops/pumpkin/3-first-growth.svg" alt="Pumpkin, first growth" loading="lazy"></li>
+            <li><span class="st">4</span><img src="../crops/pumpkin/4-second-growth.svg" alt="Pumpkin, second growth" loading="lazy"></li>
+            <li><span class="st">5</span><img src="../crops/pumpkin/5-third-growth.svg" alt="Pumpkin, third growth" loading="lazy"></li>
+            <li><span class="st">6</span><img src="../crops/pumpkin/6-harvest.svg" alt="Pumpkins, ready to harvest" loading="lazy"></li>
+            <li class="front"><span class="st">7</span><img src="../crops/pumpkin/7-harvest-front.svg" alt="Harvested pumpkin" loading="lazy"></li>
+            <li class="front"><span class="st">8</span><img src="../crops/pumpkin/8-dead.svg" alt="Wilted pumpkin plant" loading="lazy"></li>
+          </ol>
+        </div>
+        <div class="stage-key" aria-hidden="true">
+          <span class="spacer"></span>
+          <div class="stage-key-inner hud">
+            <span>Seeds</span><span>Sown</span><span>Sprout</span><span>Growing</span><span>Budding</span><span>Ready</span><span>Harvest</span><span>Wilted</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="inventory hud">
+        <div>
+          <p class="eyebrow">Seed bag</p>
+          <h3 style="font-size:1.6rem;margin-bottom:8px">A few of the 64</h3>
+          <p class="muted" style="margin:0">Everyday staples, tropical fruit and a handful of fantasy and silly crops. Hover a slot to see its name.</p>
+        </div>
+        <ul class="slots">
+          <li><img src="../crops/strawberries/7-harvest-front.svg" alt="Strawberries" loading="lazy"><span>Strawberries</span></li>
+          <li><img src="../crops/glowcap/7-harvest-front.svg" alt="Glowcap" loading="lazy"><span>Glowcap</span></li>
+          <li><img src="../crops/egg-plant/7-harvest-front.svg" alt="Egg plant" loading="lazy"><span>Egg plant</span></li>
+          <li><img src="../crops/milk-pouch/7-harvest-front.svg" alt="Milk pouch" loading="lazy"><span>Milk pouch</span></li>
+          <li><img src="../crops/dragon-fruit/7-harvest-front.svg" alt="Dragon fruit" loading="lazy"><span>Dragon fruit</span></li>
+          <li><img src="../crops/ember-pepper/7-harvest-front.svg" alt="Ember pepper" loading="lazy"><span>Ember pepper</span></li>
+          <li><img src="../crops/corn/7-harvest-front.svg" alt="Corn" loading="lazy"><span>Corn</span></li>
+          <li><img src="../crops/blueberries/7-harvest-front.svg" alt="Blueberries" loading="lazy"><span>Blueberries</span></li>
+          <li><img src="../crops/pineapple/7-harvest-front.svg" alt="Pineapple" loading="lazy"><span>Pineapple</span></li>
+          <li><img src="../crops/coffee/7-harvest-front.svg" alt="Coffee" loading="lazy"><span>Coffee</span></li>
+          <li><img src="../crops/carrots/7-harvest-front.svg" alt="Carrots" loading="lazy"><span>Carrots</span></li>
+          <li><img src="../crops/lemon/7-harvest-front.svg" alt="Lemon" loading="lazy"><span>Lemon</span></li>
+          <li><img src="../crops/wheat/7-harvest-front.svg" alt="Wheat" loading="lazy"><span>Wheat</span></li>
+          <li><img src="../crops/watermelon/7-harvest-front.svg" alt="Watermelon" loading="lazy"><span>Watermelon</span></li>
+          <li><img src="../crops/cacao/7-harvest-front.svg" alt="Cacao" loading="lazy"><span>Cacao</span></li>
+          <li class="more">+49<br>more</li>
+        </ul>
+      </div>
+    </div>
+    <div class="fence-row" aria-hidden="true"></div>
+  </section>
+
+  <!-- HOW IT PLAYS on cobblestone -->
+  <section id="play" class="band path tile-shade" aria-labelledby="play-title">
+    <div class="wrap path-zone">
+      <div class="path-top">
+      <div class="intro hud">
+        <p class="eyebrow">How it plays</p>
+        <h2 class="h2" id="play-title">A quest log with no timer</h2>
+        <p class="muted" style="margin:0">Unclaimed Acres is built to be played slowly. There is no rush and no clock to race; come back whenever you like. The game is in development, so these are the foundations.</p>
+      </div>
+      <div class="walkers" aria-hidden="true">
+        <img src="../topdown/animals__fox/top.svg" alt="" style="left:22%;top:6%;width:120px;transform:rotate(78deg)">
+        <img src="../topdown/animals__redpanda/top.svg" alt="" style="left:50%;top:38%;width:112px;transform:rotate(96deg)">
+        <img src="../topdown/creatures__kitsune/top.svg" alt="" style="left:2%;top:40%;width:128px;transform:rotate(84deg)">
+      </div>
+      </div>
+      <div class="quests">
+        <article class="quest hud">
+          <div class="qhead"><span class="qicon" style="background-image:url(../tiles/sand-03.svg)"><img src="assets/emblem.svg" alt=""></span><div><span class="qnum">Step 1</span><h3>Connect a wallet</h3></div></div>
+          <p>Sign in with WAX Cloud Wallet, Wombat or Anchor.</p>
+          <div class="bar"><i style="--w:100%"></i></div>
+        </article>
+        <article class="quest hud">
+          <div class="qhead"><span class="qicon" style="background-image:url(../tiles/grass-04.svg)"><img src="../tiles/tree-01.svg" alt=""></span><div><span class="qnum">Step 2</span><h3>Your own island</h3></div></div>
+          <p>Generated, stored on chain and owned by your wallet. Nobody else has one like it.</p>
+          <div class="bar"><i style="--w:72%"></i></div>
+        </article>
+        <article class="quest hud">
+          <div class="qhead"><span class="qicon" style="background-image:url(../tiles/soil.svg)"><img src="../crops/carrots/6-harvest.svg" alt=""></span><div><span class="qnum">Step 3</span><h3>Plant and harvest</h3></div></div>
+          <p>Raise crops through every stage, from seeds in the soil to a full harvest.</p>
+          <div class="bar"><i style="--w:48%"></i></div>
+        </article>
+        <article class="quest hud">
+          <div class="qhead"><span class="qicon" style="background-image:url(../tiles/grass-07.svg)"><img src="../topdown/animals__redpanda/top.svg" alt=""></span><div><span class="qnum">Step 4</span><h3>Meet the locals</h3></div></div>
+          <p>Discover more than 50 creatures, each drawn from the side and from above.</p>
+          <div class="bar"><i style="--w:24%"></i></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA on grass -->
+  <section class="band grass final" aria-labelledby="final-title">
+    <img class="deco" src="../tiles/tree-03.svg" alt="" style="left:3%;top:8%;width:150px">
+    <img class="deco" src="../tiles/tree-05.svg" alt="" style="left:14%;top:28%;width:120px">
+    <img class="deco" src="../tiles/tree-04.svg" alt="" style="right:4%;top:4%;width:140px">
+    <img class="deco" src="../tiles/tree-02.svg" alt="" style="right:12%;top:50%;width:120px">
+    <img class="deco" src="../tiles/decor-flowers-1.svg" alt="" style="left:20%;top:12%;width:96px">
+    <img class="deco" src="../tiles/decor-meadow-yellow.svg" alt="" style="right:20%;top:72%;width:110px">
+    <img class="deco critter-deco" src="../topdown/animals__redpanda/side.svg" alt="" style="left:3%;top:64%;width:170px">
+    <img class="deco critter-deco" src="../topdown/beasts__lantern-giraffe/side.svg" alt="" style="right:2%;top:30%;width:200px">
+    <img class="deco" src="../tiles/decor-meadow-white.svg" alt="" style="right:24%;top:16%;width:96px">
+    <div class="wrap">
+      <div class="final-card hud">
+        <span class="chip"><span class="dot"></span>Unclaimed</span>
+        <h2 class="h2" id="final-title" style="margin-top:16px">Your acres are waiting</h2>
+        <p class="muted">Connect a wallet to step onto your own island: room for a field, a meadow full of creatures, and all the time you want.</p>
+        <div class="cta-row" style="justify-content:center;margin-top:8px">
+          <button class="btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M21 9h-6a3 3 0 0 0 0 6h6z"/></svg>
+            Connect wallet
+          </button>
+        </div>
+        <div class="wallets"><b>WAX Cloud Wallet</b><b>Wombat</b><b>Anchor</b></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="band">
+  <div class="wrap">
+    <div class="hud">
+      <a class="brand" href="#top" aria-label="Unclaimed Acres, back to top">
+        <img src="assets/emblem.svg" alt="">
+        <b>Unclaimed <span>Acres</span></b>
+      </a>
+      <nav aria-label="Footer">
+        <a href="#islands">Islands</a><a href="#creatures">Creatures</a><a href="#crops">Crops</a><a href="#play">How it plays</a>
+      </nav>
+      <small>An island farming &amp; creature game on WAX. In development; all art shown is from the game.</small>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var btns = document.querySelectorAll('.critter');
+    var nm = document.getElementById('ins-name'), side = document.getElementById('ins-side'), top = document.getElementById('ins-top');
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        btns.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+        var id = b.dataset.id, n = b.dataset.name;
+        nm.textContent = n;
+        side.src = '../topdown/' + id + '/side.svg'; side.alt = n + ', side view';
+        top.src = '../topdown/' + id + '/top.svg'; top.alt = n + ', seen from above';
+      });
+    });
+  })();
+</script>
+</body>
+</html>

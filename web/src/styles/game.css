@@ -1,0 +1,98 @@
+/* The game page: the island fills the window; the journal appears only in small pieces at the edges. */
+
+.game { position: fixed; inset: 0; overflow: hidden; background: #1d4e70; }
+
+/* ---------- the island view (styles from topdown/tiles.html) ---------- */
+.game .view { position: absolute; inset: 0; overflow: hidden; background: #1d4e70; touch-action: none; cursor: grab; user-select: none; }
+.game .view.drag { cursor: grabbing; }
+.game .view canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.game .view .fx { pointer-events: none; }
+.game .view #live { filter: saturate(.88) contrast(1.06); }
+.game .view::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s; }
+.game .view.vignette::after { opacity: 1; background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(18,22,28,.4) 100%), linear-gradient(to bottom, rgba(214,226,236,.16), transparent 14%, transparent 86%, rgba(214,226,236,.12)); }
+.game .view.warm::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: linear-gradient(160deg, rgba(255,214,160,.10), rgba(40,64,96,.10)); mix-blend-mode: soft-light; }
+.game .view.w-storm canvas:not(#weather) { filter: saturate(.7) brightness(.82); }
+.game .view.w-rain canvas:not(#weather) { filter: saturate(.85) brightness(.93); }
+
+/* ---------- loading veil ---------- */
+.game-veil { position: absolute; inset: 0; z-index: 30; display: grid; place-content: center; justify-items: center; gap: 10px; text-align: center;
+  background-color: var(--paper); background-image: var(--noise), var(--fibres); color: var(--ink); padding: 24px; }
+.veil-stamp { width: 150px; height: 150px; color: var(--rust); opacity: .8; transform: rotate(-12deg); animation: veil-breathe 2.4s ease-in-out infinite; }
+@keyframes veil-breathe { 50% { transform: rotate(-8deg) scale(1.03); } }
+.game-veil .hand { font-size: 1.8rem; margin: 6px 0 0; }
+.veil-small { margin: 0 0 10px; color: var(--ink-soft); font-size: 1rem; max-width: 46ch; }
+
+/* ---------- HUD pieces: paper, ink and brass, kept small ---------- */
+.hud { position: absolute; z-index: 10; }
+.hud-tl { left: 18px; top: 16px; display: grid; gap: 8px; justify-items: start; }
+.hud-tr { right: 20px; top: 18px; }
+.hud-r { right: 18px; top: 50%; transform: translateY(-50%); display: grid; gap: 10px; }
+.hud-bl { left: 18px; bottom: 18px; display: flex; align-items: flex-end; gap: 6px; }
+.hud-br { right: 18px; bottom: 18px; }
+.hud-hint { left: 50%; bottom: 22px; transform: translateX(-50%); }
+
+.isle-tag { display: flex; align-items: center; gap: 12px; padding: 8px 18px 8px 10px; background: var(--card); background-image: var(--noise);
+  box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); border-radius: 3px; transform: rotate(-1.2deg); }
+.isle-tag-mark { width: 46px; height: 46px; color: var(--rust); flex: none; transform: rotate(-8deg); }
+.isle-tag small { display: block; font-family: var(--sc); font-size: .74rem; letter-spacing: .16em; color: var(--rust); line-height: 1.1; }
+.isle-tag b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.7rem; line-height: 1.05; color: var(--ink); }
+.back-link { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 5px 8px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(247, 240, 222, .86); color: var(--blue); font-family: var(--hand); font-size: 1.3rem; line-height: 1; box-shadow: 0 4px 12px -4px rgba(10, 8, 2, .45); }
+.back-link:hover { background: var(--paper); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+.game .acct { box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); }
+.game .acct::before { background: #8fa5ad; }
+
+.knob { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%; cursor: pointer; padding: 0;
+  font-family: var(--display); font-size: 1.7rem; line-height: 1; color: var(--ink);
+  background: radial-gradient(circle at 35% 30%, #fffaf0, var(--paper) 55%, #e2d4b4); border: 2px solid #b8924f;
+  box-shadow: inset 0 0 0 2px rgba(255, 250, 235, .7), 0 6px 14px -4px rgba(10, 8, 2, .55); transition: transform .15s ease; }
+.knob:hover { transform: scale(1.06); }
+.knob:active { transform: scale(.96); }
+.knob-fit svg { width: 26px; height: 26px; color: var(--rust); }
+
+.hud-label { font-family: var(--hand); color: #fdf6e3; font-size: 1.3rem; margin: 0 4px 6px 2px; text-shadow: 0 1px 3px rgba(0, 0, 0, .5); }
+.wx-tag { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px 7px 10px; border: 0; cursor: pointer; border-radius: 3px;
+  background: rgba(247, 240, 222, .84); background-image: var(--noise); color: var(--ink-soft); font-family: var(--sc); font-size: .82rem; letter-spacing: .08em;
+  box-shadow: 0 6px 14px -6px rgba(10, 8, 2, .55); transform: translateY(4px) rotate(var(--r, 0deg)); transition: transform .15s ease, background-color .15s ease; }
+.wx-tag:nth-of-type(1) { --r: -2deg; }
+.wx-tag:nth-of-type(2) { --r: 1.5deg; }
+.wx-tag:nth-of-type(3) { --r: -1deg; }
+.wx-tag svg { width: 18px; height: 18px; color: var(--blue); }
+.wx-tag:hover { transform: translateY(1px) rotate(var(--r, 0deg)); }
+.wx-tag[aria-pressed="true"] { background-color: var(--card); color: var(--ink); transform: translateY(-2px) rotate(var(--r, 0deg)); box-shadow: 0 8px 18px -6px rgba(10, 8, 2, .6), inset 0 -3px 0 var(--rust); }
+
+.notes-card { width: 300px; background: var(--card); background-image: var(--noise); border-radius: 3px; transform: rotate(.8deg);
+  box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 12px 26px -8px rgba(10, 8, 2, .6); }
+.notes-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border: 0; background: none; cursor: pointer;
+  font-family: var(--sc); font-size: .9rem; letter-spacing: .14em; color: var(--rust); }
+#field-notes { padding: 0 16px 14px; }
+#field-notes .rec li { grid-template-columns: 6em 1fr 3.4em; font-size: 1.2rem; }
+#field-notes .rec-foot { margin-top: 8px; }
+
+.hint-note { position: relative; margin: 0; padding: 12px 40px 12px 22px; background: var(--card); background-image: var(--noise); border-radius: 2px; transform: rotate(-1deg);
+  font-family: var(--hand); color: var(--blue); font-size: 1.35rem; line-height: 1.2; box-shadow: 0 12px 26px -8px rgba(10, 8, 2, .6); max-width: min(92vw, 640px); text-align: center; }
+.hint-note .pin { top: -6px; }
+.hint-close { position: absolute; right: 8px; top: 6px; width: 28px; height: 28px; border: 0; background: none; cursor: pointer; color: var(--ink-soft); font-size: 1.4rem; line-height: 1; }
+
+@media (max-width: 760px) {
+  .hud-tr { top: auto; bottom: 18px; right: 12px; }
+  .hud-br { bottom: auto; top: 16px; right: 12px; }
+  .notes-card { width: min(78vw, 280px); }
+  .isle-tag b { font-size: 1.35rem; }
+  .isle-tag-mark { width: 36px; height: 36px; }
+  .hud-bl { left: 12px; bottom: 76px; flex-wrap: wrap; }
+  .hud-label { display: none; }
+  .hud-r { right: 12px; }
+  .knob { width: 42px; height: 42px; }
+  .hud-hint { bottom: 140px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .veil-stamp { animation: none; }
+}
+@media (max-width: 760px) { .notes-card:not(.is-open) { width: auto; } }
+
+/* ---------- the splash while a returning player's wallet session is restored ---------- */
+.splash { position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; background-color: #d8c59c; background-image: var(--noise); }
+.splash svg { width: 140px; height: 140px; color: var(--rust); opacity: .8; transform: rotate(-12deg); animation: veil-breathe 2.4s ease-in-out infinite; }
+.splash p { font-family: var(--hand); color: var(--blue); font-size: 1.7rem; margin: 0; }

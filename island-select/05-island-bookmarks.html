@@ -1,0 +1,422 @@
+<!--
+  Concept 05: A Bookmark per Island
+  Idea: the landing page's two-page journal, now the player's own: every island has an index tab on the fore-edge of the
+        right page (name + tiny coastline); the open spread is the selected island, and a tab turns the page in 3D.
+        Many islands: a window of tabs plus a "Contents" tab that turns to an index of every island.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unclaimed Acres - Your islands</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="journal.css">
+<style>
+  .wrap { width: min(1340px, 100% - 40px); }
+  main { padding-bottom: 90px; }
+
+  /* header: account chip */
+  .account { display: flex; align-items: center; gap: 14px; }
+  .acct { position: relative; display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px 7px 12px; background: var(--card); background-image: var(--noise);
+    box-shadow: var(--shadow); border-radius: 3px; transform: rotate(1.2deg); }
+  .acct::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--rule); background: var(--paper-2); }
+  .acct small { display: block; font-family: var(--sc); font-size: .7rem; letter-spacing: .16em; color: var(--rust); line-height: 1; }
+  .acct b { display: block; font-family: var(--hand); font-weight: 600; color: var(--blue); font-size: 1.45rem; line-height: 1; }
+  .signout { font-family: var(--hand); font-size: 1.3rem; color: var(--ink-soft); text-decoration: none; }
+  .signout:hover { color: var(--blue); text-decoration: underline; text-underline-offset: 4px; }
+
+  /* the book, with room on the right for the fore-edge tabs */
+  .book { margin: 18px 168px 0 0; }
+  .book > .page { min-height: 700px; }
+  .entry-meta { display: flex; justify-content: space-between; gap: 12px; font-family: var(--hand); color: var(--blue); font-size: 1.35rem; border-bottom: 1px solid var(--rule); padding-bottom: 6px; margin-bottom: 22px; }
+
+  /* fore-edge index tabs */
+  .fore { position: absolute; left: calc(100% - 2px); top: 46px; width: 170px; display: flex; flex-direction: column; gap: 5px; z-index: 1; margin: 0; padding: 0; }
+  .fore-hint { position: absolute; left: calc(100% + 14px); top: -36px; margin: 0; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; transform: rotate(-3deg); white-space: nowrap; display: inline-flex; align-items: center; gap: .3em; }
+  .fore-hint svg { width: 24px; height: 26px; }
+  .ftab { --tab: var(--rule); display: flex; align-items: center; gap: 9px; min-height: 56px; padding: 6px 12px 6px 14px; text-decoration: none;
+    border-radius: 0 10px 10px 0; background-color: #ece2c8; background-image: var(--noise); border-right: 4px solid var(--tab);
+    box-shadow: 4px 2px 8px -5px rgba(60, 45, 20, .5), inset 9px 0 9px -9px rgba(60, 45, 20, .5);
+    color: var(--ink-soft); transform: translateX(-10px); transition: transform .18s ease, background-color .18s ease, color .18s ease; }
+  .ftab:hover { transform: translateX(-4px); color: var(--ink); }
+  .ftab[aria-selected="true"] { transform: translateX(0); background-color: var(--paper); color: var(--ink); box-shadow: 4px 2px 9px -5px rgba(60, 45, 20, .55); }
+  .ftab .coast { flex: none; width: 34px; height: 34px; }
+  .ftab .coast svg { display: block; }
+  .ftab .nm { min-width: 0; font-family: var(--sc); font-size: .84rem; letter-spacing: .06em; line-height: 1.12; }
+  .ftab .nm small { display: block; font-family: var(--hand); font-size: 1rem; letter-spacing: 0; color: var(--blue); margin-top: 1px; }
+  .ftab.c0 { --tab: var(--rule); } .ftab.c1 { --tab: #2f6f86; } .ftab.c2 { --tab: var(--moss); }
+  .ftab.c3 { --tab: var(--rust); } .ftab.c4 { --tab: var(--blue); } .ftab.c5 { --tab: #b8892f; }
+  .ftab.contents { --tab: var(--ink); min-height: 48px; }
+  .ftab.contents .coast { display: grid; place-items: center; color: var(--ink-soft); }
+  .ftab.newtab { --tab: transparent; background: rgba(247, 240, 222, .45); border: 1.5px dashed var(--blue-soft); border-left: 0; box-shadow: none; color: var(--blue); min-height: 48px; }
+  .ftab.newtab .nm { font-family: var(--hand); font-size: 1.3rem; letter-spacing: 0; }
+  .ftab.newtab .coast { display: grid; place-items: center; }
+  .ftab.newtab[aria-selected="true"] { background: var(--paper); }
+  .fore-more { margin: 4px 0 0 4px; font-family: var(--hand); color: var(--ink-soft); font-size: 1.15rem; line-height: 1.1; }
+  .fore-more a { color: var(--blue); }
+
+  /* left page: the island's record */
+  .isl-kicker { margin-top: 6px; }
+  .isl-name { font-size: clamp(3rem, 2rem + 2.6vw, 4.4rem) !important; margin: 2px 0 6px !important; }
+  .isl-note { position: relative; margin: 8px 0 26px; font-family: var(--hand); font-weight: 600; color: var(--blue); font-size: 1.85rem; line-height: 1.1; transform: rotate(-1.5deg); padding-left: 18px; border-left: 2px solid var(--blue-soft); }
+  .isl-note span { display: block; font-size: 1.2rem; color: var(--ink-soft); margin-top: 4px; }
+  .record { margin: 0 0 30px; }
+  .record h3 { font-family: var(--sc); font-size: .9rem; letter-spacing: .16em; color: var(--rust); margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .record h3 span { font-family: var(--hand); letter-spacing: 0; font-size: 1.15rem; color: var(--ink-soft); }
+  .record dl { margin: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 34px; }
+  .record .row { display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 8px; padding: 5px 0 4px; border-bottom: 1px dashed rgba(180, 156, 116, .7); }
+  .record dt { font-family: var(--sc); font-size: .86rem; letter-spacing: .1em; color: var(--ink-soft); }
+  .record .lead { border-bottom: 1.5px dotted rgba(90, 82, 70, .35); transform: translateY(-4px); }
+  .record dd { margin: 0; font-family: var(--hand); color: var(--blue); font-size: 1.45rem; line-height: 1; }
+  .record dd small { font-size: .9rem; }
+  .record .bar { grid-column: 1 / -1; height: 5px; margin-top: 2px; background: linear-gradient(90deg, var(--c, var(--blue)) var(--w), transparent var(--w)); opacity: .55; border-radius: 3px;
+    -webkit-mask: repeating-linear-gradient(110deg, #000 0 2px, transparent 2px 4px); mask: repeating-linear-gradient(110deg, #000 0 2px, transparent 2px 4px); }
+
+  .act { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+  .seal-btn { position: relative; display: inline-flex; align-items: center; text-decoration: none; padding-left: 40px; }
+  .seal-btn .ribbon { display: inline-flex; flex-direction: column; justify-content: center; min-height: 54px; padding: 6px 30px 6px 50px; color: #fbeee0;
+    background: linear-gradient(180deg, #b6553a, #8e3721); font-family: var(--sc); font-size: 1.12rem; letter-spacing: .1em; line-height: 1.05;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.15); }
+  .seal-btn .ribbon small { font-family: var(--hand); font-size: 1.2rem; letter-spacing: 0; opacity: .9; }
+  .seal-btn .seal { position: absolute; z-index: 2; left: 0; top: 50%; width: 88px; height: 88px; margin-top: -44px; transform: rotate(-10deg); transition: transform .25s ease;
+    filter: drop-shadow(0 4px 4px rgba(70, 20, 5, .4)); }
+  .seal-btn:hover .seal { transform: rotate(4deg) scale(1.05); }
+  .seal-btn:hover .ribbon { background: linear-gradient(180deg, #c05e42, #96391f); }
+  .seal-btn:active .seal { transform: rotate(4deg) scale(.97); }
+  .act .hint { font-family: var(--hand); color: var(--ink-soft); font-size: 1.25rem; line-height: 1.1; max-width: 12em; }
+
+  /* right page: the chart with the painted render taped beside it */
+  .chartwrap { position: relative; padding-bottom: 150px; }
+  .chartfig { position: relative; margin: 6px 0 0; width: 74%; border: 1px solid var(--rule); padding: 10px; background: #f8f1df; transform: rotate(-.6deg); box-shadow: 0 2px 6px -3px rgba(60,45,20,.3); }
+  .chartfig .sea { position: relative; }
+  .chartfig .sea::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(43,39,33,.35); pointer-events: none; }
+  .chartfig svg.map { display: block; width: 100%; height: auto; }
+  .chartfig .compass { position: absolute; right: -34px; top: -30px; width: 76px; height: 76px; color: var(--blue); background: radial-gradient(circle, var(--paper) 52%, transparent 54%); border-radius: 50%; z-index: 2; }
+  .chartfig .place { position: absolute; left: 12px; top: 12px; padding: 5px 12px 4px; background: rgba(250, 244, 228, .94); border: 1px solid var(--ink-soft); outline: 1px solid rgba(90,82,70,.35); outline-offset: 2px; font-family: var(--display); font-style: italic; font-size: 1.15rem; line-height: 1.1; color: var(--ink); pointer-events: none; }
+  .chartfig .place small { display: block; font-family: var(--sc); font-style: normal; font-size: .62rem; letter-spacing: .18em; color: var(--rust); }
+  .chartfig .scale { display: inline-flex; align-items: center; gap: 8px; font-family: var(--hand); color: var(--blue); font-size: 1rem; line-height: 1; }
+  .chartfig .scale i { display: block; width: 60px; height: 7px; border: 1.2px solid var(--blue); border-top: 0;
+    background: linear-gradient(90deg, var(--blue) 25%, transparent 25% 50%, var(--blue) 50% 75%, transparent 75%) 0 100% / 100% 3px no-repeat; }
+  .chartfig figcaption { display: flex; justify-content: flex-start; align-items: center; gap: 22px; font-family: var(--hand); color: var(--ink-soft); font-size: 1.2rem; padding: 6px 2px 0; }
+  .taped { position: absolute; right: -4px; bottom: 0; width: 56%; margin: 0; transform: rotate(3deg); z-index: 2; }
+  .taped .tape.a { top: -12px; left: 22px; transform: rotate(-9deg); }
+  .taped .tape.b { top: -10px; right: 18px; transform: rotate(8deg); width: 70px; }
+  .taped .frame { overflow: hidden; }
+  .taped figcaption { font-size: 1.2rem; }
+  .chart-aside { position: absolute; right: 0; top: 30px; width: 22%; margin: 0; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; line-height: 1.1; transform: rotate(4deg); text-align: center; }
+  .chart-aside svg { display: block; width: 40px; height: 52px; margin: 6px auto 0; transform: scaleY(-1) rotate(10deg); }
+
+  /* contents spread */
+  .toc-h { font-size: clamp(2.2rem, 1.5rem + 1.4vw, 2.7rem) !important; margin: 0 0 8px !important; }
+  .toc { list-style: none; margin: 0; padding: 0; }
+  .toc li { border-bottom: 1px dashed rgba(180, 156, 116, .55); }
+  .toc a { display: grid; grid-template-columns: 34px auto 1fr auto; align-items: center; gap: 12px; padding: 3px 4px; text-decoration: none; color: var(--ink); border-radius: 3px; }
+  .toc a:hover { background: rgba(37, 70, 127, .06); }
+  .toc .coast { width: 34px; height: 34px; }
+  .toc-cont { margin-top: 0; }
+  .toc .t { font-family: var(--display); font-size: 1.25rem; line-height: 1.05; }
+  .toc .t small { display: block; font-family: var(--hand); color: var(--blue); font-size: 1.1rem; }
+  .toc .lead { align-self: end; margin-bottom: 14px; border-bottom: 1.5px dotted rgba(90, 82, 70, .4); }
+  .toc .pg { font-family: var(--display); font-style: italic; color: var(--ink-soft); font-size: 1.1rem; }
+
+  /* blank page (new island) */
+  .blank-chart { position: relative; margin: 10px auto 0; width: 84%; aspect-ratio: 1; border: 1.5px dashed var(--blue-soft); border-radius: 4px; display: grid; place-items: center; }
+  .blank-chart svg.q { width: 46%; height: auto; color: var(--blue-soft); }
+  .blank-chart .compass { position: absolute; right: 16px; top: 16px; width: 62px; height: 62px; color: var(--blue); opacity: .6; }
+  .new-lede { max-width: 26em; }
+  .new-list { list-style: none; padding: 0; margin: 26px 0 30px; font-family: var(--hand); color: var(--blue); font-size: 1.4rem; line-height: 1.2; }
+  .new-list li { position: relative; padding: 6px 0 6px 30px; border-bottom: 1px dashed rgba(180, 156, 116, .6); }
+  .new-list li::before { content: ""; position: absolute; left: 4px; top: 13px; width: 14px; height: 14px; border: 1.5px solid var(--ink-soft); border-radius: 2px; }
+  .margin-note { font-family: var(--hand); color: var(--blue); font-size: 1.5rem; line-height: 1.15; transform: rotate(-2deg); padding-left: 16px; border-left: 2px solid var(--blue-soft); }
+
+  @media (max-width: 1180px) {
+    .book { margin-right: 150px; }
+    .fore { width: 152px; }
+    .ftab .nm { font-size: .78rem; }
+    .record dl { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 980px) {
+    .book { margin: 76px 0 0; grid-template-columns: minmax(0, 1fr); }
+    .chartfig .compass { right: -12px; top: -22px; width: 60px; height: 60px; }
+    .fore { left: 0; right: 0; top: auto; bottom: 100%; width: auto; flex-direction: row; overflow-x: auto; scrollbar-width: none; padding: 8px 2px 0; gap: 4px; }
+    .ftab { flex: none; min-height: 0; border-radius: 10px 10px 0 0; border-right: 0; border-top: 4px solid var(--tab); transform: translateY(6px); padding: 6px 12px 8px; }
+    .ftab:hover { transform: translateY(3px); }
+    .ftab[aria-selected="true"] { transform: translateY(1px); }
+    .ftab.newtab { border: 1.5px dashed var(--blue-soft); border-bottom: 0; }
+    .ftab .coast { width: 26px; height: 26px; }
+    .ftab .coast svg { width: 26px; height: 26px; }
+    .ftab .nm small { display: none; }
+    .fore-hint, .fore-more { display: none; }
+    .chartfig { width: 86%; }
+    .chart-aside { display: none; }
+  }
+  @media (max-width: 640px) {
+    .account .acct small { display: none; }
+    .account { flex-direction: column; align-items: flex-end; gap: 0; }
+    .signout { font-size: 1.1rem; }
+    .record .row { grid-template-columns: auto 1fr auto; }
+    .acct { padding: 6px 12px 6px 10px; }
+    .acct b { font-size: 1.2rem; }
+    .seal-btn .ribbon { padding-right: 24px; }
+    .chartwrap { padding-bottom: 110px; }
+    .taped { width: 64%; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../landing-ideas/02-field-journal.html" aria-label="Unclaimed Acres, field journal home">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <div class="account">
+      <span class="acct"><span><small>signed in</small><b>fennel.wam</b></span></span>
+      <a class="signout" href="#sign-out">Sign out</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <h1 class="sr-only">Your islands</h1>
+    <div class="book" id="book">
+      <p class="fore-hint" aria-hidden="true"><svg viewBox="0 0 24 26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 2c2 8 6 15 14 20M12 21c2.5.8 5 1.2 6.5 1.5-.3-2.5-.4-5-.2-7"/></svg> your islands</p>
+      <nav class="fore" id="fore" role="tablist" aria-label="Your islands" aria-orientation="vertical"></nav>
+      <div class="page page-l sheet" id="page-l"><div class="leaf"></div></div>
+      <div class="page page-r sheet" id="page-r"><div class="leaf"></div></div>
+    </div>
+  </div>
+</main>
+
+<script src="islands.js"></script>
+<script>
+(function () {
+  var ARROW_R = '<svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg>';
+  var ARROW_L = '<svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M32 10C24 7 14 6 3 9M9 3C6.5 5 4.5 7 3 9c2.5 1.3 5 3 7 5"/></svg>';
+  var COMPASS = '<svg class="compass" viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="50" cy="50" r="30" stroke-width="1.5"/><circle cx="50" cy="50" r="24" stroke-width=".8" stroke-dasharray="2 3"/>' +
+    '<path d="M50 8 56 50 50 92 44 50Z" fill="currentColor" fill-opacity=".2" stroke-width="1.4"/><path d="M50 8 56 50H44Z" fill="currentColor" stroke-width="1"/><path d="M8 50 50 45 92 50 50 55Z" stroke-width="1.2"/>' +
+    '<text x="50" y="6" font-family="IM Fell English SC, serif" font-size="12" fill="currentColor" stroke="none" text-anchor="middle">N</text></svg>';
+  var WEATHER = ['calm', 'light westerly', 'clear, cold', 'sea mist', 'fair', 'showers', 'bright', 'breezy'];
+  var MAXTABS = 6;
+
+  // A wax seal: an uneven rust disc with the station's island pressed in.
+  var sealN = 0;
+  function sealSvg() {
+    var pts = [], k = 22, id = 'wax' + (sealN++);
+    for (var i = 0; i < k; i++) {
+      var a = i / k * Math.PI * 2, r = 44 + (i % 3 === 0 ? 3.2 : i % 2 ? -1.2 : 1.6) + Math.sin(i * 2.3) * 1.4;
+      pts.push((50 + Math.cos(a) * r).toFixed(1) + ' ' + (50 + Math.sin(a) * r).toFixed(1));
+    }
+    return '<svg class="seal" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="' + id + '" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#d0704f"/><stop offset=".55" stop-color="#a5452d"/><stop offset="1" stop-color="#6f2a18"/></radialGradient></defs>' +
+      '<path d="M' + pts.join(' L') + 'Z" fill="url(#' + id + ')" stroke="#7a2f1b" stroke-width="1" stroke-linejoin="round"/>' +
+      '<circle cx="50" cy="50" r="33" fill="none" stroke="#6f2a18" stroke-opacity=".55" stroke-width="2.5"/><circle cx="50.8" cy="50.9" r="33" fill="none" stroke="#f0a284" stroke-opacity=".35" stroke-width="1"/>' +
+      '<g color="#5e2213" opacity=".75"><use href="#isle" x="24" y="24" width="52" height="52"/></g>' +
+      '<ellipse cx="36" cy="30" rx="11" ry="5" fill="#fff" opacity=".18" transform="rotate(-28 36 30)"/></svg>';
+  }
+
+  function pct(v) { return v === 0 ? 'none' : (v < 1 ? 'a trace' : (Math.round(v * 10) / 10) + '<small>%</small>'); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  UA.islands().then(function (list) {
+    var n = list.length;
+    var useContents = n > MAXTABS + 1;
+    var book = document.getElementById('book'), fore = document.getElementById('fore');
+    var sides = { l: document.getElementById('page-l'), r: document.getElementById('page-r') };
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var narrow = window.matchMedia('(max-width: 980px)');
+
+    // reading order of the book: contents, each island, then the blank page
+    var order = [];
+    if (useContents) order.push('contents');
+    list.forEach(function (isl, i) { order.push('island-' + (i + 1)); });
+    if (UA.canCreate) order.push('new');
+    var current = 'island-' + n;   // open at the island visited most recently
+    var turning = false;
+
+    function folioNo(key, side) { return 2 + order.indexOf(key) * 2 + (side === 'r' ? 1 : 0); }
+    function islandOf(key) { return list[Number(key.split('-')[1]) - 1]; }
+    function label(key, back) {
+      if (key === 'contents') return 'back to contents';
+      if (key === 'new') return 'turn to a blank page';
+      return (back ? 'back to ' : 'turn to ') + esc(islandOf(key).name);
+    }
+
+    // ---------- page content ----------
+    function islandLeft(isl, key) {
+      var s = isl.stats, prev = order[order.indexOf(key) - 1];
+      var rows = [['Land', s.land, 'var(--moss)', 100], ['Forest', s.forest, '#2f6f86', 15], ['Mountain', s.mountain, 'var(--ink-soft)', 15],
+        ['Beach', s.beach, '#b8892f', 15], ['Fresh water', s.freshWater, 'var(--blue)', 15]];
+      return '<div class="leaf-body">' +
+        '<div class="entry-meta"><span>' + (n > 1 ? 'Island no. ' + (isl.index + 1) + ' of ' + n : 'Your island') + '</span><span>Last ashore: ' + isl.lastVisit + '</span></div>' +
+        '<p class="kicker isl-kicker">Charted ' + isl.charted + '</p>' +
+        '<h2 class="isl-name">' + esc(isl.name) + '</h2>' +
+        '<p class="isl-note">&ldquo;' + esc(isl.note) + '&rdquo;<span>&mdash; ' + UA.player.replace(/\.wam$/, '') + ', on landfall</span></p>' +
+        '<div class="record"><h3>Field record <span>share of the chart</span></h3><dl>' +
+        rows.map(function (r) {
+          var w = Math.min(100, r[1] / r[3] * 100);
+          return '<div class="row"><dt>' + r[0] + '</dt><span class="lead" aria-hidden="true"></span><dd>' + pct(r[1]) + '</dd>' +
+            '<span class="bar" aria-hidden="true" style="--w:' + w.toFixed(1) + '%;--c:' + r[2] + '"></span></div>';
+        }).join('') +
+        '<div class="row"><dt>Weather</dt><span class="lead" aria-hidden="true"></span><dd>' + WEATHER[isl.index % WEATHER.length] + '</dd></div>' +
+        '</dl></div>' +
+        '<div class="act"><a class="seal-btn" href="#enter-' + isl.id + '" aria-label="Enter island ' + esc(isl.name) + '">' + sealSvg() +
+        '<span class="ribbon">Enter island<small>' + esc(isl.name) + '</small></span></a>' +
+        '<span class="hint">everything is as you left it</span></div>' +
+        '</div>' +
+        '<div class="folio"><span>' + folioNo(key, 'l') + '</span>' +
+        (prev ? '<a class="turn-link" href="#' + prev + '" data-turn="' + prev + '">' + ARROW_L + ' ' + label(prev, true) + '</a>' : '') + '</div>';
+    }
+    function islandRight(isl, key) {
+      var next = order[order.indexOf(key) + 1];
+      return '<div class="leaf-body"><div class="chartwrap">' +
+        '<figure class="chartfig"><div class="sea">' +
+        UA.outline(isl, { sea: '#e4e6d6', land: '#f7f0dc', ink: '#2b2721', stroke: .55, grid: 'rgba(37,70,127,.22)', pad: 6, shoreColor: 'rgba(37,70,127,.22)', label: 'Chart of ' + isl.name + ': its coastline' }).replace('<svg ', '<svg class="map" ') +
+        '<span class="place" aria-hidden="true"><small>a chart of</small>' + esc(isl.name) + '</span>' + COMPASS + '</div>' +
+        '<figcaption><span>fig. ' + (isl.index + 1) + ' &mdash; the coast</span><span class="scale" aria-hidden="true"><i></i>one league</span></figcaption></figure>' +
+        '<p class="chart-aside" aria-hidden="true">painted from the ridge<svg viewBox="0 0 46 60" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M26 58C16 44 14 24 22 4M14 12c3-3 6-6 8-8 3 3 5 6 7 9"/></svg></p>' +
+        '<figure class="photo taped"><span class="tape a" aria-hidden="true"></span><span class="tape b" aria-hidden="true"></span><div class="frame">' +
+        '<img src="' + isl.render + '" width="1600" height="907" style="transform:' + isl.renderTransform + '" alt="' + esc(isl.name) + ' painted from above: green land, forest and beaches in a blue sea.">' +
+        '</div><figcaption>' + esc(isl.name) + ', from above</figcaption></figure>' +
+        '</div></div>' +
+        '<div class="folio">' + (next ? '<a class="turn-link" href="#' + next + '" data-turn="' + next + '">' + label(next) + ' ' + ARROW_R + '</a>' : '') + '<span>' + folioNo(key, 'r') + '</span></div>';
+    }
+    function tocItems(from, to) {
+      var out = '';
+      for (var i = from; i < to; i++) {
+        var isl = list[i], key = 'island-' + (i + 1);
+        out += '<li><a href="#' + key + '" data-turn="' + key + '"><span class="coast">' + UA.outline(isl, { size: 34, pad: 3, stroke: 2.6, shore: false, land: '#f3ead2' }) + '</span>' +
+          '<span class="t">' + esc(isl.name) + '<small>' + esc(isl.note) + '</small></span><span class="lead" aria-hidden="true"></span><span class="pg">p. ' + folioNo(key, 'l') + '</span></a></li>';
+      }
+      return out;
+    }
+    function contentsLeft() {
+      var half = Math.ceil(n / 2);
+      return '<div class="leaf-body"><div class="entry-meta"><span>Contents</span><span>' + n + ' islands charted</span></div>' +
+        '<h2 class="toc-h">Islands in this journal</h2><ol class="toc">' + tocItems(0, half) + '</ol></div>' +
+        '<div class="folio"><span>' + folioNo('contents', 'l') + '</span></div>';
+    }
+    function contentsRight() {
+      var half = Math.ceil(n / 2);
+      return '<div class="leaf-body"><div class="entry-meta"><span>Contents, continued</span><span>by date charted</span></div><ol class="toc" start="' + (half + 1) + '">' + tocItems(half, n) + '</ol>' +
+        (UA.canCreate ? '<p class="margin-note" style="margin-top:22px">room for more at the back: <a href="#new" data-turn="new">a blank page</a></p>' : '') + '</div>' +
+        '<div class="folio"><a class="turn-link" href="#island-1" data-turn="island-1">turn to ' + esc(list[0].name) + ' ' + ARROW_R + '</a><span>' + folioNo('contents', 'r') + '</span></div>';
+    }
+    function newLeft() {
+      var prev = order[order.indexOf('new') - 1];
+      return '<div class="leaf-body"><div class="entry-meta"><span>A blank page</span><span>Weather: fair</span></div>' +
+        '<p class="kicker">The next chart</p><h2 class="isl-name">A new island</h2>' +
+        '<p class="lede new-lede">Past the edge of your last chart there is still open sea. Chart a new island and it starts on this page: a coastline no one has drawn, waiting for a name.</p>' +
+        '<ul class="new-list"><li>pick a name</li><li>first landfall</li><li>draw the coast</li></ul>' +
+        '<button class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 7l3 3"/></svg> Chart a new island</button></div>' +
+        '<div class="folio"><span>' + folioNo('new', 'l') + '</span>' + (prev ? '<a class="turn-link" href="#' + prev + '" data-turn="' + prev + '">' + ARROW_L + ' ' + label(prev, true) + '</a>' : '') + '</div>';
+    }
+    function newRight() {
+      return '<div class="leaf-body"><div class="blank-chart"><svg class="q" viewBox="0 0 100 100" aria-hidden="true"><use href="#isle"/></svg>' + COMPASS +
+        '</div><p class="margin-note" style="margin-top:22px">leave room here for the coastline</p></div>' +
+        '<div class="folio"><span>' + folioNo('new', 'r') + '</span></div>';
+    }
+    function leafHtml(key, side) {
+      if (key === 'contents') return side === 'l' ? contentsLeft() : contentsRight();
+      if (key === 'new') return side === 'l' ? newLeft() : newRight();
+      return side === 'l' ? islandLeft(islandOf(key), key) : islandRight(islandOf(key), key);
+    }
+    function render(side, key) {
+      var leaf = document.createElement('div');
+      leaf.className = 'leaf';
+      leaf.setAttribute('role', 'tabpanel');
+      leaf.setAttribute('aria-labelledby', 'tab-' + key);
+      leaf.innerHTML = leafHtml(key, side);
+      sides[side].replaceChildren(leaf);
+    }
+
+    // ---------- the fore-edge tabs ----------
+    function windowOf(key) {
+      var all = list.map(function (x, i) { return i; });
+      if (!useContents) return all;
+      var ci = key.indexOf('island-') === 0 ? Number(key.split('-')[1]) - 1 : (key === 'new' ? n - 1 : 0);
+      var start = Math.max(0, Math.min(ci - 2, n - MAXTABS));
+      return all.slice(start, start + MAXTABS);
+    }
+    function tabs(key) {
+      var shown = windowOf(key), html = '';
+      if (useContents) html += '<a class="ftab contents" role="tab" id="tab-contents" href="#contents" data-turn="contents" aria-selected="' + (key === 'contents') + '">' +
+        '<span class="coast"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.5M4 12h.5M4 18h.5"/></svg></span>' +
+        '<span class="nm">Contents<small>all ' + n + ' islands</small></span></a>';
+      shown.forEach(function (i) {
+        var isl = list[i], k = 'island-' + (i + 1);
+        html += '<a class="ftab c' + (i % 6) + '" role="tab" id="tab-' + k + '" href="#' + k + '" data-turn="' + k + '" aria-selected="' + (key === k) + '">' +
+          '<span class="coast">' + UA.outline(isl, { size: 34, pad: 3, stroke: 2.6, shore: false, land: '#f3ead2' }) + '</span>' +
+          '<span class="nm">' + esc(isl.name) + '<small>' + (isl.lastVisit === 'today' ? 'visited today' : 'no. ' + (i + 1)) + '</small></span></a>';
+      });
+      if (useContents && shown.length < n) html += '<p class="fore-more">+ ' + (n - shown.length) + ' more in <a href="#contents" data-turn="contents">contents</a></p>';
+      if (UA.canCreate) html += '<a class="ftab newtab" role="tab" id="tab-new" href="#new" data-turn="new" aria-selected="' + (key === 'new') + '">' +
+        '<span class="coast"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span class="nm">new island</span></a>';
+      fore.innerHTML = html;
+      fore.querySelectorAll('[role="tab"]').forEach(function (t) { t.tabIndex = t.getAttribute('aria-selected') === 'true' ? 0 : -1; });
+    }
+
+    // ---------- turning ----------
+    function face(side, html, cls) {
+      var f = document.createElement('div');
+      f.className = 'face ' + cls + ' page sheet page-' + side;
+      var l = document.createElement('div');
+      l.className = 'leaf';
+      l.innerHTML = html;
+      f.appendChild(l);
+      return f;
+    }
+    function turnTo(key, fromUser, focusTab) {
+      if (key === current || turning || order.indexOf(key) < 0) return;
+      var forward = order.indexOf(key) > order.indexOf(current), from = current;
+      current = key; tabs(key);
+      if (focusTab) { var t = document.getElementById('tab-' + key); if (t) t.focus(); }
+      if (fromUser) history.replaceState(null, '', '#' + key);
+      if (narrow.matches || still.matches || document.hidden) {
+        render('l', key); render('r', key);
+        if (fromUser && narrow.matches) book.scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth', block: 'start' });
+        return;
+      }
+      turning = true;
+      // Forward: the right page lifts and swings over to the left. Backward: the left page swings right.
+      var leafEl = document.createElement('div');
+      leafEl.className = 'turn ' + (forward ? 'turn-fwd' : 'turn-back');
+      leafEl.appendChild(face(forward ? 'r' : 'l', leafHtml(from, forward ? 'r' : 'l'), 'front'));
+      leafEl.appendChild(face(forward ? 'l' : 'r', leafHtml(key, forward ? 'l' : 'r'), 'back'));
+      book.appendChild(leafEl);
+      render(forward ? 'r' : 'l', key);
+      var done = false;
+      function land() {
+        if (done) return; done = true;
+        render(forward ? 'l' : 'r', key);
+        leafEl.remove(); turning = false;
+      }
+      leafEl.addEventListener('animationend', function (e) { if (e.target === leafEl) land(); });
+      setTimeout(land, 1000);
+    }
+
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-turn]');
+      if (!a) return;
+      e.preventDefault();
+      turnTo(a.dataset.turn, true, a.classList.contains('ftab'));
+    });
+    fore.addEventListener('keydown', function (e) {
+      var d = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : (e.key === 'ArrowUp' || e.key === 'ArrowLeft') ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      turnTo(order[(order.indexOf(current) + d + order.length) % order.length], true, true);
+    });
+
+    var start = location.hash.slice(1);
+    if (order.indexOf(start) >= 0) current = start;
+    tabs(current); render('l', current); render('r', current);
+  });
+})();
+</script>
+</body>
+</html>

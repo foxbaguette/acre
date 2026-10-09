@@ -29,6 +29,7 @@
   .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
   button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--tile); color: var(--ink); cursor: pointer; }
   button[aria-pressed="true"] { border-color: var(--ink); }
+  select { font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--tile); color: var(--ink); max-width: 100%; min-width: 0; }
   .view { position: relative; height: min(72vh, 760px); min-height: 360px; border-radius: 8px; overflow: hidden; background: #4593CC; touch-action: none; cursor: grab; }
   .view.drag { cursor: grabbing; }
   .gen { margin: 0 0 12px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
@@ -52,6 +53,11 @@
   .view.w-storm canvas:not(#weather) { filter: saturate(.7) brightness(.82); }
   .view.w-rain canvas:not(#weather) { filter: saturate(.85) brightness(.93); }
   .wlabel { font-size: 13px; color: var(--muted); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 0 0 10px; font-size: 13px; }
+  .legend[hidden] { display: none; }
+  .legend .key { display: inline-flex; gap: 6px; align-items: center; }
+  .legend b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 4px; color: #fff; font-size: 12px; }
+  .legend .muted { color: var(--muted); }
   .view .fx { pointer-events: none; }
   .zoom { display: inline-flex; gap: 4px; margin-left: auto; }
   .zoom button { min-width: 34px; }
@@ -70,15 +76,22 @@
 <main>
   <section class="card">
     <h2>Field preview</h2>
-    <p>A random island farm built from the tiles below (every island gets its own coastline of peninsulas, bays and islets), with crops growing on the soil. "Natural edges" rounds and softens where soil, path and water meet the grass, worked out in code from the same square tiles. "Animation" adds small, cheap touches of life: glinting water, crops swaying in wind gusts, drifting cloud shadows and a few butterflies. "Creatures" lets the favourites live here: land creatures in the fenced paddocks and on open grass, sea creatures in the ponds, flyers in the sky. Pick the weather below the toggles. Scroll, pinch or double-click to zoom, drag to look around, Shuffle for another farm.</p>
+    <p>Islands saved on the WAX blockchain (contract unclaimedlnd). Pick one under Map: its ground, mountains, water and forests come straight from the tiles stored on the chain, and the small details, grass colour and life are added here, the same way on every visit. The last entry, Random island, builds a random farm here instead, with crops growing on the soil. "Natural edges" rounds and softens where soil, path and water meet the grass, worked out in code from the same square tiles. "Animation" adds small, cheap touches of life: glinting water, crops swaying in wind gusts, drifting cloud shadows and a few butterflies. "Creatures" lets the favourites live here: land creatures in the fenced paddocks and on open grass, sea creatures in the ponds, flyers in the sky. Pick the weather below the toggles. Scroll, pinch or double-click to zoom, drag to look around, Shuffle for another random farm.</p>
+    <div class="bar" role="group" aria-label="Map">
+      <label class="wlabel" for="chainMap">Map</label>
+      <select id="chainMap" disabled><option>Loading maps…</option></select>
+      <button id="chainRefresh" type="button">Refresh</button>
+      <span class="wlabel" id="chainStatus" aria-live="polite"></span>
+    </div>
     <div class="bar">
-      <button id="shuffle" type="button">Shuffle</button>
-      <button data-mode="mixed" aria-pressed="true" type="button">Mixed field</button>
-      <button data-mode="grass" aria-pressed="false" type="button">Only grass</button>
-      <button data-mode="water" aria-pressed="false" type="button">Only water</button>
+      <button class="rand-only" id="shuffle" type="button">Shuffle</button>
+      <button class="rand-only" data-mode="mixed" aria-pressed="true" type="button">Mixed field</button>
+      <button class="rand-only" data-mode="grass" aria-pressed="false" type="button">Only grass</button>
+      <button class="rand-only" data-mode="water" aria-pressed="false" type="button">Only water</button>
       <label class="toggle"><input type="checkbox" id="natural" checked> Natural edges</label>
       <label class="toggle"><input type="checkbox" id="animate" checked> Animation</label>
       <label class="toggle"><input type="checkbox" id="creatures" checked> Creatures</label>
+      <label class="toggle"><input type="checkbox" id="letters"> Tile letters</label>
     </div>
     <div class="bar" role="group" aria-label="Weather">
       <span class="wlabel">Weather</span>
@@ -87,8 +100,9 @@
       <button data-weather="rain" aria-pressed="false" type="button">Light rain</button>
       <span class="zoom"><button id="zout" type="button" aria-label="Zoom out">−</button><button id="zin" type="button" aria-label="Zoom in">+</button><button id="zfit" type="button">Fit</button></span>
     </div>
-    <details class="gen"><summary>Island generator settings</summary><p class="muted">Changes rebuild the island. Settings are remembered in this browser.</p><div id="genPanel"></div></details>
-    <div class="view" id="view"><canvas class="field" id="field" role="img" aria-label="A random farm made of tiles"></canvas><canvas class="fx" id="fx" aria-hidden="true"></canvas><canvas class="fx" id="live" aria-hidden="true"></canvas><canvas class="fx" id="weather" aria-hidden="true"></canvas></div>
+    <details class="gen"><summary>Island generator settings</summary><p class="muted">Changes rebuild the island. For a map from the chain only the details, look and life settings apply. Settings are remembered in this browser.</p><div id="genPanel"></div></details>
+    <div class="legend" id="legend" hidden></div>
+    <div class="view" id="view"><canvas class="field" id="field" role="img" aria-label="A random farm made of tiles"></canvas><canvas class="fx" id="fx" aria-hidden="true"></canvas><canvas class="fx" id="live" aria-hidden="true"></canvas><canvas class="fx" id="weather" aria-hidden="true"></canvas><canvas class="fx" id="labels" aria-hidden="true"></canvas></div>
   </section>
   <section class="card"><h2>Grass</h2><p>20 variants. Most are plain grass, some have a tuft, stone, clover, flowers, a twig or a leaf.</p><div class="grid" id="grass"></div></section>
   <section class="card"><h2>Fences</h2><p>Transparent overlays for grass tiles. Put fence-NESW on a tile, where each digit is 1 when the neighbour on that side (north, east, south, west) also has a fence. These 16 tiles build any enclosure.</p><div class="grid" id="fences"></div></section>
@@ -191,11 +205,19 @@ function buildPanel() {
   document.getElementById('cfgReset').addEventListener('click', () => { CFG = { ...CFG_DEFAULT }; cfgSave(); buildPanel(); applyLook(); build(); });
 }
 const COLS = 100, ROWS = 100;                                  // the world: 10,000 tiles
+const CHAIN = { contract: 'unclaimedlnd', nodes: ['https://wax.greymass.com', 'https://api.wax.alohaeos.com', 'https://wax.eosphere.io', 'https://api.waxsweden.org'], maps: [], map: null, raw: null, cache: new Map(), ask: 0 };
 let mode = 'mixed', MAP = null; let MAP_DECOR = { decor: [], tint: null }; let MAP_EXTRA = { forest: [], peaks: [], elev: [] }; let MAP_SHAPE = '';
 
 // ---------- world generation: roads, ponds and planted plots ----------
-function build() {
-  const cols = COLS, rows = ROWS, type = Array(cols * rows).fill('grass'), at = (x, y) => y * cols + x;
+// Chain maps look the same on every visit: the random numbers for their details are seeded from the map id.
+const seeded = s => () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+function build() {                                            // resolves when the island is drawn
+  const rng = CHAIN.raw && mode === 'mixed' ? seeded(CHAIN.map.map_id * 7919 + 17) : null;
+  const withRng = fn => { const random = Math.random; if (rng) Math.random = rng; try { return fn(); } finally { Math.random = random; } };
+  return withRng(() => buildMap(withRng));
+}
+function buildMap(withRng = fn => fn()) {
+  const cols = COLS, rows = ROWS, type = Array(cols * rows).fill('grass'), at = (x, y) => y * cols + x, chainRaw = mode === 'mixed' ? CHAIN.raw : null;
   const inside = (x, y) => x >= 0 && y >= 0 && x < cols && y < rows;
   const near = (x, y, t, d = 1) => { for (let j = -d; j <= d; j++) for (let i = -d; i <= d; i++) if (inside(x + i, y + j) && type[at(x + i, y + j)] === t) return true; return false; };
   MAP_DECOR = { decor: [], tint: null };
@@ -212,6 +234,16 @@ function build() {
       return (x, y) => { const fx = x / sc, fy = y / sc, ix = Math.floor(fx), iy = Math.floor(fy), tx = fx - ix, ty = fy - iy, sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty), n = (i, j) => g[(iy + j) * gw + ix + i];
         return (n(0, 0) * (1 - sx) + n(1, 0) * sx) * (1 - sy) + (n(0, 1) * (1 - sx) + n(1, 1) * sx) * sy; };
     };
+    if (chainRaw) {                                            // a map saved on the chain: ground, mountains, water and forests come from its tile bytes
+      const GROUND = ['water', 'water', 'sand', 'grass', 'rock', 'soil', 'path'];   // bits 0-2: 0 sea, 1 fresh water, 2 beach, 3 grass, 4 mountain, 5 field, 6 road
+      for (let i = 0; i < cols * rows; i++) { const b = chainRaw[i], g = b & 7;
+        type[i] = GROUND[g] || 'grass'; if (g <= 1) lake[i] = 1; if (g === 0) ocean[i] = 1;
+        if (g === 4) elev[i] = Math.min(5, (b >> 3) & 7);                                   // bits 3-5: mountain height
+        if (b & 64) forest[i] = g === 4 ? 2 : g === 3 ? 1 : 0; }                            // bit 6: trees
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { const i = at(x, y);   // a tree with no wooded neighbour is a lone tree at a forest edge
+        if (forest[i] === 1 && ![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => inside(x + dx, y + dy) && forest[at(x + dx, y + dy)])) forest[i] = 3; }
+      MAP_SHAPE = `map ${CHAIN.map.map_id} from the chain`;
+    } else {
     // The world is an island, built like a hand-drawn strategy-game map: a main body with peninsulas and headlands,
     // bays and coves bitten out of the coast, a rugged multi-scale coastline, and sometimes small offshore islets.
     {
@@ -324,6 +356,8 @@ function build() {
           if (f1(x, y) + 0.45 > 0 && Math.random() < keep[elev[i]]) forest[i] = 2; }
       }
     }
+    }
+    if (!chainRaw) {                                         // fields, enclosures and paths only on random islands; chain maps are just the island
     const free = (x0, y0, w, h, m = 1) => { for (let y = y0 - m; y < y0 + h + m; y++) for (let x = x0 - m; x < x0 + w + m; x++) if (!inside(x, y) || type[at(x, y)] !== 'grass' || taken[at(x, y)] || forest[at(x, y)]) return false; return true; };
     const kinds = ['grow', 'grow', 'ripe', 'mixed', 'fresh'];
     // enclosures first, so the big ones always find room
@@ -424,6 +458,7 @@ function build() {
         bridge[i] = on(-1, 0) || on(1, 0) ? 'h' : 'v';
       }
     }
+    }
     // forest edges, small details and lush/dry grass: placed last, on whatever ground is left free
     { const D = CFG.decorDensity / 100, decor = [], pond = i => type[i] === 'water' && !ocean[i];
       const nearF = (x, y, d) => { for (let j = -d; j <= d; j++) for (let k = -d; k <= d; k++) if (inside(x + k, y + j) && forest[at(x + k, y + j)]) return true; return false; };
@@ -432,7 +467,7 @@ function build() {
       const freeGrass = i => type[i] === 'grass' && !forest[i] && !taken[i] && !fence[i];
       if (CFG.forestEdges) for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { const i = at(x, y);
         if (!freeGrass(i) || !nearF(x, y, 2)) continue; const r = Math.random();
-        if (r < 0.13) forest[i] = 3; else if (r < 0.22) put(x, y, pick(['bush-1', 'bush-2']), 0.55 + Math.random() * 0.25); }
+        if (r < 0.13) { if (!chainRaw) forest[i] = 3; } else if (r < 0.22) put(x, y, pick(['bush-1', 'bush-2']), 0.55 + Math.random() * 0.25); }
       if (CFG.decor) for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { const i = at(x, y), t = type[i], r = Math.random();
         if (t === 'water' && pond(i) && r < 0.1 * D && near(x, y, 'grass', 1)) put(x, y, 'lily', 0.55);
         else if ((t === 'grass' || t === 'sand') && !taken[i] && !forest[i] && nearP(x, y, 1) && r < 0.4 * D) put(x, y, pick(['reeds-1', 'reeds-2']), 0.6 + Math.random() * 0.25);
@@ -495,8 +530,9 @@ function build() {
   const nw = cols * 2 + 3, nh = rows * 2 + 3;
   MAP = { cols, rows, cells, noise: Float32Array.from({ length: nw * nh }, () => Math.random() * 2 - 1), nw, masks: {}, pads };
   CHUNKS.clear(); CHUNK_PX = 0;
-  makeMasks(); setupWater(); setupLive(); setupCreatures(); buildOverview();
-  if (!CAM.z) fit(); else redraw();
+  return makeMasks().then(ok => { if (!ok) return;            // a newer island took over
+    withRng(() => { setupWater(); setupLive(); setupCreatures(); }); buildOverview();
+    if (!CAM.z) fit(); else redraw(); });
 }
 
 // ---------- soft masks for natural edges (computed once per map, in world space) ----------
@@ -548,30 +584,41 @@ function squareMask(type) {
   cells.forEach((cl, i) => { if (cl.type === type) g.fillRect((i % cols) * S, Math.floor(i / cols) * S, S, S); }); return c;
 }
 const EDGES = { rock: { edge: '#5E5850', inner: 0.53 }, sand: { edge: '#C2AE86', inner: 0.53 }, soil: { edge: '#3E2A1C', inner: 0.535 }, path: { edge: '#584E46', inner: 0.53 }, water: { edge: '#1D5677', inner: 0.56 } };
-function makeMasks() {
-  const natural = document.getElementById('natural').checked;
-  MAP.masks = {};
+// The masks take a while on a slow machine, so they are built in slices with a breath between them: the page keeps
+// answering clicks and the loading note keeps moving. Nothing is drawn until they are all there. Resolves to false
+// when a newer island replaced this one meanwhile.
+let MASKGEN = 0;
+async function makeMasks() {
+  const natural = document.getElementById('natural').checked, map = MAP, gen = ++MASKGEN;
+  const breathe = async () => { await new Promise(r => setTimeout(r, 0)); return MAP === map && gen === MASKGEN; };
+  map.building = true; map.masks = {}; nearMaps();
   for (const type of ['rock', 'sand', 'soil', 'path', 'water']) {
-    if (!MAP.cells.some(c => c.type === type)) continue;
-    if (!natural) { const m = squareMask(type); MAP.masks[type] = { edge: null, inner: m }; continue; }
-    const f = field(type); MAP.masks[type] = { edge: mask(f, 0.5), inner: mask(f, EDGES[type].inner), worn: CFG.wornEdges && (type === 'soil' || type === 'path') ? mask(f, 0.33, 0.08) : null };
+    if (!map.cells.some(c => c.type === type)) continue;
+    if (!natural) { const m = squareMask(type); map.masks[type] = { edge: null, inner: m }; continue; }
+    const f = field(type); map.masks[type] = { edge: mask(f, 0.5), inner: mask(f, EDGES[type].inner), worn: CFG.wornEdges && (type === 'soil' || type === 'path') ? mask(f, 0.33, 0.08) : null };
+    if (!await breathe()) return false;
   }
-  MAP.shallow = null; MAP.foam = null;
-  if (natural && MAP.cells.some(c => c.ocean)) {
-    const landF = field('x', i => !MAP.cells[i].ocean, 0.03, 1.3);
-    if (CFG.shallows) MAP.shallow = { near: mask(landF, 0.24, 0.07), far: mask(landF, 0.07, 0.06), sea: mask(field('x', i => MAP.cells[i].ocean), EDGES.water.inner) };
-    if (CFG.foam) { const fl = field('x', i => !MAP.cells[i].ocean, 0.03, 0.4); MAP.foam = [ring(fl, 0.38, 0.45), ring(fl, 0.27, 0.33)]; }
+  map.shallow = null; map.foam = null;
+  if (natural && map.cells.some(c => c.ocean)) {
+    const landF = field('x', i => map.cells[i].ocean ? 0 : 1, 0.03, 1.3);
+    if (CFG.shallows) map.shallow = { near: mask(landF, 0.24, 0.07), far: mask(landF, 0.07, 0.06), sea: mask(field('x', i => map.cells[i].ocean), EDGES.water.inner) };
+    if (!await breathe()) return false;
+    if (CFG.foam) { const fl = field('x', i => map.cells[i].ocean ? 0 : 1, 0.03, 0.4); map.foam = [ring(fl, 0.38, 0.45), ring(fl, 0.27, 0.33)]; }
+    if (!await breathe()) return false;
   }
   // mountain levels: each is a raised plateau; its cliff is the plateau outline smeared downward by one level's height
-  MAP.levels = [];
+  map.levels = [];
   const elev = MAP_EXTRA.elev;
   for (let L = 1; L <= 5; L++) {
     if (!elev.some(e => e >= L)) break;
-    const f = field('rock', i => elev[i] >= L && MAP.cells[i].type === 'rock', 0.16), rim = mask(f, 0.5), top = mask(f, 0.56), lift = Math.round(LIFT * S);
+    const f = field('rock', i => elev[i] >= L && map.cells[i].type === 'rock', 0.16), rim = mask(f, 0.5), top = mask(f, 0.56), lift = Math.round(LIFT * S);
     const wall = document.createElement('canvas'); wall.width = rim.width; wall.height = rim.height; const wg = wall.getContext('2d');
     for (let d = 0; d <= lift; d++) wg.drawImage(rim, 0, d);
-    MAP.levels.push({ L, rim, top, wall });
+    map.levels.push({ L, rim, top, wall });
+    if (!await breathe()) return false;
   }
+  map.building = false;
+  return true;
 }
 
 // ---------- camera: zoom with the wheel or buttons, drag to pan ----------
@@ -586,14 +633,15 @@ function clampCam() {
 }
 function zoomAt(f, px, py) {
   const z = Math.min(zMax, Math.max(zMin(), CAM.z * f)); if (z === CAM.z) return;
-  const wx = CAM.x + px / CAM.z, wy = CAM.y + py / CAM.z; CAM.z = z; CAM.x = wx - px / z; CAM.y = wy - py / z; clampCam(); redraw();
+  const wx = CAM.x + px / CAM.z, wy = CAM.y + py / CAM.z; CAM.z = z; CAM.x = wx - px / z; CAM.y = wy - py / z; clampCam(); queue();   // one redraw per frame, however many wheel or pinch events arrive
 }
 function fit() { CAM.z = zMin(); CAM.x = 0; CAM.y = 0; clampCam(); redraw(); }
 
 // ---------- drawing: only what the camera sees ----------
 const imgCache = {}, bmpCache = new Map();
 const load = u => imgCache[u] ??= new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = u; });
-const tileLevel = z => Math.min(512, 2 ** Math.ceil(Math.log2(Math.max(16, z * (window.devicePixelRatio || 1)))));
+const DPR = () => Math.min(window.devicePixelRatio || 1, 1.5);   // backing-store pixels per CSS pixel, capped to spare the GPU on very sharp screens
+const tileLevel = z => Math.min(512, 2 ** Math.ceil(Math.log2(Math.max(16, z * (DPR())))));
 function bitmap(u, L) {                                        // tiles rasterised once per size level, then reused
   const k = u + '@' + L; let b = bmpCache.get(k); if (b !== undefined) return b;
   bmpCache.set(k, null);
@@ -603,28 +651,56 @@ function bitmap(u, L) {                                        // tiles rasteris
 }
 let pending = false; const queue = () => { if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; redraw(); }); } };
 function sizeCanvases() {
-  const dpr = window.devicePixelRatio || 1, w = view().clientWidth, h = view().clientHeight;
-  for (const id of ['field', 'live', 'fx', 'weather']) { const c = document.getElementById(id); if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); } }
+  const dpr = DPR(), w = view().clientWidth, h = view().clientHeight;
+  for (const id of ['field', 'live', 'fx', 'weather', 'labels']) { const c = document.getElementById(id); if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); } }
   return dpr;
 }
 const visible = () => {                                        // tile range in view, plus the world-to-canvas transform
-  const dpr = window.devicePixelRatio || 1, k = CAM.z * dpr;
+  const dpr = DPR(), k = CAM.z * dpr;
   const x0 = Math.max(0, Math.floor(CAM.x)), y0 = Math.max(0, Math.floor(CAM.y));
   const x1 = Math.min(COLS - 1, Math.floor(CAM.x + view().clientWidth / CAM.z)), y1 = Math.min(ROWS - 1, Math.floor(CAM.y + view().clientHeight / CAM.z));
   return { k, x0, y0, x1, y1, sx: x => (x - CAM.x) * k, sy: y => (y - CAM.y) * k };
 };
 let scratch = null;
-function through(ctx, draw, m, V, W, H, dy = 0) {                      // paint something, keep only the part inside the mask
+// Paint something, keep only the part inside the mask. box (canvas pixels) limits the work to where the mask can
+// reach: the scratch is cleared, drawn, masked and copied only there.
+function through(ctx, draw, m, V, W, H, dy = 0, box = null) {
+  let bx = 0, by = 0, bw = W, bh = H;
+  if (box) { bx = Math.max(0, box[0]); by = Math.max(0, box[1]); bw = Math.min(W, box[2]) - bx; bh = Math.min(H, box[3]) - by; if (bw <= 0 || bh <= 0) return; }
   scratch ??= document.createElement('canvas'); if (scratch.width !== W || scratch.height !== H) { scratch.width = W; scratch.height = H; }
-  const g = scratch.getContext('2d'); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, W, H); draw(g);
+  const g = scratch.getContext('2d'); g.globalCompositeOperation = 'source-over'; g.clearRect(bx, by, bw, bh);
+  g.save(); g.beginPath(); g.rect(bx, by, bw, bh); g.clip(); draw(g);
   g.globalCompositeOperation = 'destination-in'; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-  g.drawImage(m, V.sx(0), V.sy(0) + dy, COLS * V.k, ROWS * V.k);
-  ctx.drawImage(scratch, 0, 0);
+  g.drawImage(m, V.sx(0), V.sy(0) + dy, COLS * V.k, ROWS * V.k); g.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.clip(); ctx.drawImage(scratch, 0, 0); ctx.restore();   // a clipped whole-image copy; a sub-rectangle copy rounds a little differently
 }
+// Which tiles each soft mask can touch: a ground type's or a mountain level's tiles, widened by two. The masks are
+// blurred by well under a tile, so passes and tiles outside these areas cannot change a pixel and are skipped.
+function nearMaps() {
+  const { cols, rows, cells } = MAP, elev = MAP_EXTRA.elev, near = { t: {}, l: {} };
+  const widen = (src, r) => { const out = new Uint8Array(cols * rows);
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { if (!src[y * cols + x]) continue;
+      for (let j = Math.max(0, y - r); j <= Math.min(rows - 1, y + r); j++) for (let i = Math.max(0, x - r); i <= Math.min(cols - 1, x + r); i++) out[j * cols + i] = 1; }
+    return out; };
+  const of = test => Uint8Array.from(cells, (c, i) => test(c, i) ? 1 : 0);
+  for (const t of ['rock', 'sand', 'soil', 'path', 'water']) near.t[t] = widen(of(c => c.type === t), 2);
+  for (let L = 1; L <= 5; L++) near.l[L] = widen(of((c, i) => c.type === 'rock' && elev[i] >= L), 2);
+  const shore = widen(of(c => !c.ocean), 1); near.coast = widen(of((c, i) => c.ocean && shore[i]), 2);
+  MAP.near = near;
+}
+// The tiles (x0, y0, x1, y1) a pass has to draw inside the view's loop range, or null when nothing there needs it.
+function tileBox(arr, V, yExtra = 1) {
+  let x0 = COLS, y0 = ROWS, x1 = -1, y1 = -1;
+  for (let y = Math.max(0, V.y0 - 1); y <= Math.min(ROWS - 1, V.y1 + yExtra); y++) for (let x = Math.max(0, V.x0 - 1); x <= Math.min(COLS - 1, V.x1 + 1); x++)
+    if (arr[y * COLS + x]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  return x1 < 0 ? null : [x0, y0, x1, y1];
+}
+// ...and that box in canvas pixels, a tile wider all round (more below for cliffs, which hang down), moved by dy.
+const pxBox = (tb, V, dy = 0, below = 0) => tb && [Math.floor(V.sx(tb[0] - 1)), Math.floor(V.sy(tb[1] - 1) + dy), Math.ceil(V.sx(tb[2] + 2)), Math.ceil(V.sy(tb[3] + 2 + below) + dy)];
 function paintGround(ctx, V, W, H, L) {                     // grass everywhere, then soil, path and water through their masks
   MISSING = false;
   const T = V.k; ctx.imageSmoothingQuality = 'high';
-  const { cells, cols } = MAP;
+  const { cells, cols, near } = MAP;
   const tile = (g, x, y, n) => { const b = bitmap(src(n), L); if (!b) MISSING = true; if (b) g.drawImage(b, Math.floor(V.sx(x)), Math.floor(V.sy(y)), Math.ceil(T) + 1, Math.ceil(T) + 1); };
   for (let y = V.y0; y <= V.y1; y++) for (let x = V.x0; x <= V.x1; x++) { const c = cells[y * cols + x]; tile(ctx, x, y, c.type === 'grass' ? c.tile : c.under); }
   if (CFG.grassTint && MAP_DECOR.tint) { ctx.imageSmoothingEnabled = true; ctx.drawImage(MAP_DECOR.tint, V.sx(0), V.sy(0), COLS * T, ROWS * T); }   // lush and dry patches
@@ -635,30 +711,33 @@ function paintGround(ctx, V, W, H, L) {                     // grass everywhere,
   decorAt(true);
   for (const type of ['rock', 'sand', 'soil', 'path', 'water']) {
     const m = MAP.masks[type]; if (!m) continue;
-    if (m.worn) through(ctx, g => { g.fillStyle = 'rgba(118,96,58,.32)'; g.fillRect(0, 0, W, H); }, m.worn, V, W, H);   // trodden grass
-    if (m.edge) through(ctx, g => { g.fillStyle = EDGES[type].edge; g.fillRect(0, 0, W, H); }, m.edge, V, W, H);
+    const nt = near.t[type], box = pxBox(tileBox(nt, V), V); if (!box) continue;       // none of this ground near the view
+    if (m.worn) through(ctx, g => { g.fillStyle = 'rgba(118,96,58,.32)'; g.fillRect(0, 0, W, H); }, m.worn, V, W, H, 0, box);   // trodden grass
+    if (m.edge) through(ctx, g => { g.fillStyle = EDGES[type].edge; g.fillRect(0, 0, W, H); }, m.edge, V, W, H, 0, box);
     through(ctx, g => { for (let y = Math.max(0, V.y0 - 1); y <= Math.min(ROWS - 1, V.y1 + 1); y++) for (let x = Math.max(0, V.x0 - 1); x <= Math.min(COLS - 1, V.x1 + 1); x++) {
-      const c = cells[y * cols + x]; tile(g, x, y, c.type === type ? c.tile : c.fill[type]); } }, m.inner, V, W, H);
+      if (!nt[y * cols + x]) continue; const c = cells[y * cols + x]; tile(g, x, y, c.type === type ? c.tile : c.fill[type]); } }, m.inner, V, W, H, 0, box);
   }
-  if (MAP.shallow) for (const [m, col] of [[MAP.shallow.far, 'rgba(40,140,150,.24)'], [MAP.shallow.near, 'rgba(95,180,175,.3)']])   // turquoise shallows, sea only
-    through(ctx, g => { g.fillStyle = col; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'destination-in'; g.drawImage(MAP.shallow.sea, V.sx(0), V.sy(0), COLS * T, ROWS * T); }, m, V, W, H);
+  if (MAP.shallow) { const box = pxBox(tileBox(near.coast, V), V);                   // turquoise shallows, sea only
+    if (box) for (const [m, col] of [[MAP.shallow.far, 'rgba(40,140,150,.24)'], [MAP.shallow.near, 'rgba(95,180,175,.3)']])
+      through(ctx, g => { g.fillStyle = col; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'destination-in'; g.drawImage(MAP.shallow.sea, V.sx(0), V.sy(0), COLS * T, ROWS * T); }, m, V, W, H, 0, box); }
   decorAt(false);                                            // small details, baked into the ground
   const stripes = STRIPES ??= (() => { const c = document.createElement('canvas'); c.width = 23; c.height = 8; const g = c.getContext('2d');
     for (const [x, w, a] of [[1, 2, .35], [7, 1, .22], [12, 3, .3], [18, 1, .18]]) { g.fillStyle = `rgba(30,24,18,${a})`; g.fillRect(x, 0, w, 8); } return c; })();
-  const rockAt = (g, dy, shade) => {                           // rock texture over the view, moved up by dy, then tinted
+  const rockAt = (g, dy, shade, nl) => {                     // rock texture where this level reaches, moved up by dy, then tinted
     for (let y = Math.max(0, V.y0 - 1); y <= Math.min(ROWS - 1, V.y1 + 4); y++) for (let x = Math.max(0, V.x0 - 1); x <= Math.min(COLS - 1, V.x1 + 1); x++) {
+      if (!nl[y * cols + x]) continue;
       const c = cells[y * cols + x], b = bitmap(src(c.fill.rock), L); if (!b) MISSING = true; if (b) g.drawImage(b, Math.floor(V.sx(x)), Math.floor(V.sy(y) + dy), Math.ceil(T) + 1, Math.ceil(T) + 1); }
     if (shade) { g.fillStyle = shade; g.fillRect(0, 0, W, H); }
   };
   for (const lv of MAP.levels || []) {
-    const up = -lv.L * LIFT * T;
-    through(ctx, g => { rockAt(g, up, 'rgba(40,33,26,.55)'); const p = g.createPattern(stripes, 'repeat'); p.setTransform(new DOMMatrix([T / 46, 0, 0, T / 8, V.sx(0), 0])); g.fillStyle = p; g.fillRect(0, 0, W, H); }, lv.wall, V, W, H, up);                                  // the cliff face
-    through(ctx, g => { g.fillStyle = lv.L === 5 ? '#F2F5F8' : '#C2BBB0'; g.fillRect(0, 0, W, H); }, lv.rim, V, W, H, up);   // sunlit rim
-    through(ctx, g => rockAt(g, up, lv.L === 5 ? 'rgba(236,241,246,.82)' : lv.L === 4 ? 'rgba(225,230,236,.3)' : `rgba(255,250,240,${0.04 * lv.L})`), lv.top, V, W, H, up);   // plateau, snow on the summit
+    const nl = near.l[lv.L], up = -lv.L * LIFT * T, box = pxBox(tileBox(nl, V, 4), V, up, 1); if (!box) continue;   // no such heights near the view
+    through(ctx, g => { rockAt(g, up, 'rgba(40,33,26,.55)', nl); const p = g.createPattern(stripes, 'repeat'); p.setTransform(new DOMMatrix([T / 46, 0, 0, T / 8, V.sx(0), 0])); g.fillStyle = p; g.fillRect(0, 0, W, H); }, lv.wall, V, W, H, up, box);                                  // the cliff face
+    through(ctx, g => { g.fillStyle = lv.L === 5 ? '#F2F5F8' : '#C2BBB0'; g.fillRect(0, 0, W, H); }, lv.rim, V, W, H, up, box);   // sunlit rim
+    through(ctx, g => rockAt(g, up, lv.L === 5 ? 'rgba(236,241,246,.82)' : lv.L === 4 ? 'rgba(225,230,236,.3)' : `rgba(255,250,240,${0.04 * lv.L})`, nl), lv.top, V, W, H, up, box);   // plateau, snow on the summit
   }
 }
 // Ground chunks: each 8x8-tile block is painted once per detail level and kept, so panning and animation never repaint it.
-const CH = 8, CHUNKS = new Map(); let MISSING = false, CHUNK_PX = 0;
+const CH = 8, CHUNKS = new Map(), CACHE_PX = 48e6; let MISSING = false, CHUNK_PX = 0;   // the cache holds this many pixels of painted ground
 function chunkCanvas(cx, cy, L) {
   const key = cx + ',' + cy + ',' + L; let c = CHUNKS.get(key);
   if (c) { CHUNKS.delete(key); CHUNKS.set(key, c); return c; }                       // most recently used goes last
@@ -671,14 +750,14 @@ function paintChunk(cx, cy, L) {
   paintGround(c.getContext('2d'), V, S0, S0, L);
   if (MISSING) return null;                                                          // a texture was still loading: try again later
   CHUNKS.set(cx + ',' + cy + ',' + L, c); CHUNK_PX += S0 * S0;
-  for (const [k, old] of CHUNKS) { if (CHUNK_PX < 48e6) break; CHUNKS.delete(k); CHUNK_PX -= old.width * old.height; }   // keep memory bounded
+  for (const [k, old] of CHUNKS) { if (CHUNK_PX < CACHE_PX) break; CHUNKS.delete(k); CHUNK_PX -= old.width * old.height; }   // keep memory bounded
   return c;
 }
 function drawChunks(ctx, V) {
   const L = Math.min(256, tileLevel(CAM.z)), T = V.k, t0 = performance.now(); let pending = false;
   for (let cy = Math.floor(V.y0 / CH); cy <= Math.floor(V.y1 / CH); cy++) for (let cx = Math.floor(V.x0 / CH); cx <= Math.floor(V.x1 / CH); cx++) {
     let c = chunkCanvas(cx, cy, L);
-    if (!c && performance.now() - t0 < 14) c = paintChunk(cx, cy, L);               // paint a few new chunks per frame
+    if (!c && performance.now() - t0 < 4) c = paintChunk(cx, cy, L);                // only a few new chunks per frame; the rest come from idle time
     const x = V.sx(cx * CH), y = V.sy(cy * CH), s = CH * T;
     if (c) { ctx.drawImage(c, Math.floor(x), Math.floor(y), Math.ceil(s) + 1, Math.ceil(s) + 1); continue; }
     pending = true;
@@ -687,6 +766,28 @@ function drawChunks(ctx, V) {
     if (OV.ready) ctx.drawImage(OV.canvas, cx * CH * OV.P, cy * CH * OV.P, CH * OV.P, CH * OV.P, x, y, s, s);
   }
   if (pending) queue();
+  warmSoon(V, L);
+}
+// Paint the chunks around the view while the browser is idle, nearest first, so panning finds them ready.
+let WARM = 0;
+function warmSoon(V, L) {
+  if (WARM) return;
+  const idle = window.requestIdleCallback || (fn => setTimeout(() => fn({ timeRemaining: () => 6 }), 30));
+  WARM = idle(deadline => {
+    WARM = 0;
+    const m = 2, cx0 = Math.floor(V.x0 / CH) - m, cx1 = Math.floor(V.x1 / CH) + m, cy0 = Math.floor(V.y0 / CH) - m, cy1 = Math.floor(V.y1 / CH) + m;
+    const mx = (cx0 + cx1) / 2, my = (cy0 + cy1) / 2, todo = [];
+    for (let cy = Math.max(0, cy0); cy <= Math.min(ROWS / CH, cy1); cy++) for (let cx = Math.max(0, cx0); cx <= Math.min(COLS / CH, cx1); cx++)
+      if (!CHUNKS.has(cx + ',' + cy + ',' + L)) todo.push([(cx - mx) ** 2 + (cy - my) ** 2, cx, cy]);
+    todo.sort((a, b) => a[0] - b[0]);
+    // only as many as fit beside what is on screen: close up, chunks are big and painting the whole margin would push
+    // the visible ones out of the cache, to be painted again on the next frame
+    const onScreen = (Math.floor(V.x1 / CH) - Math.floor(V.x0 / CH) + 1) * (Math.floor(V.y1 / CH) - Math.floor(V.y0 / CH) + 1);
+    todo.length = Math.max(0, Math.min(todo.length, Math.floor(CACHE_PX / (CH * L) ** 2) - onScreen));
+    let painted = 0;
+    for (const [, cx, cy] of todo) { if (deadline.timeRemaining() < 4 || L !== Math.min(256, tileLevel(CAM.z))) break; if (paintChunk(cx, cy, L)) painted++; else break; }
+    if (painted && painted < todo.length) warmSoon(visible(), Math.min(256, tileLevel(CAM.z)));
+  }, { timeout: 400 });
 }
 // Far out, the whole world comes from one pre-drawn overview image (ground plus crops, fences and bridges).
 const OV = { canvas: null, P: 16, ready: false, id: 0 };
@@ -699,13 +800,21 @@ async function buildOverview() {
   await Promise.all([...urls].map(u => { bitmap(u, P); return load(u).then(() => new Promise(r => setTimeout(r, 0))); }));
   if (id !== OV.id) return;
   const c = OV.canvas ?? document.createElement('canvas'); c.width = COLS * P; c.height = ROWS * P; OV.canvas = c;
-  const g = c.getContext('2d'), V0 = { k: P, x0: 0, y0: 0, x1: COLS - 1, y1: ROWS - 1, sx: x => x * P, sy: y => y * P };
-  g.clearRect(0, 0, c.width, c.height); paintGround(g, V0, c.width, c.height, P);
+  const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height);
+  const BAND = 10;                                            // a few rows at a time, between frames, so the page never freezes
+  for (let y0 = 0; y0 < ROWS; y0 += BAND) {
+    await new Promise(r => (window.requestIdleCallback || (fn => setTimeout(fn, 0)))(r, { timeout: 100 }));
+    if (id !== OV.id) return;
+    const y1 = Math.min(ROWS - 1, y0 + BAND - 1), V0 = { k: P, x0: 0, y0, x1: COLS - 1, y1, sx: x => x * P, sy: y => y * P };
+    g.save(); g.beginPath(); g.rect(0, y0 * P, c.width, (y1 - y0 + 1) * P); g.clip(); paintGround(g, V0, c.width, c.height, P); g.restore();
+  }
   for (const it of [...LIVE.crops].sort((a, b) => (a.y + (a.z || 0)) - (b.y + (b.z || 0)))) { const b = bitmap(it.url, P), sc = it.sc || 1; if (b) g.drawImage(b, (it.x + 0.5 - sc / 2) * P, (it.y + 1 - sc - (it.lift || 0)) * P, sc * P, sc * P); }
   OV.ready = true; redraw();
 }
+let LAST_REDRAW = 0;
 function redraw() {
-  if (!MAP || !CAM.z) return;
+  if (!MAP || !CAM.z || MAP.building) return;
+  LAST_REDRAW = performance.now();
   sizeCanvases();
   const cv = document.getElementById('field'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height, V = visible();
   ctx.clearRect(0, 0, W, H);
@@ -714,20 +823,24 @@ function redraw() {
   if (farOut(V)) { ctx.imageSmoothingQuality = 'high'; ctx.drawImage(OV.canvas, CAM.x * OV.P, CAM.y * OV.P, view().clientWidth / CAM.z * OV.P, view().clientHeight / CAM.z * OV.P, 0, 0, W, H); }
   else drawChunks(ctx, V);
   { const t = performance.now() / 1000, still = !animating(); drawLive(t, still); drawWater(t, V, still); if (still) drawWeather(0, 0, true); }   // live layers follow the camera in the same frame
+  drawLabels(V);
 }
 
 // ---------- living water ----------
-const FX = { glints: [], waves: [], rings: [], raf: 0, last: 0 };
+const FX = { glints: [], waves: [], rings: [], grid: new Map(), raf: 0, last: 0 };
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const animating = () => document.getElementById('animate').checked && !reduceMotion.matches;
+const fxCell = (x, y) => Math.floor(y / CH) * 64 + Math.floor(x / CH);
+function fxBucket(x, y) { const k = fxCell(x, y); let b = FX.grid.get(k); if (!b) FX.grid.set(k, b = { glints: [], waves: [], rings: [] }); return b; }
 function setupWater() {
-  const R = () => Math.random(); FX.glints = []; FX.waves = []; FX.rings = [];
+  const R = () => Math.random(); FX.glints = []; FX.waves = []; FX.rings = []; FX.grid = new Map();
   MAP.cells.forEach((c, i) => {
     if (c.type !== 'water') return;
     const tx = i % COLS, ty = Math.floor(i / COLS);
-    for (let k = 0; k < 4; k++) FX.glints.push({ x: tx + 0.1 + R() * 0.8, y: ty + 0.1 + R() * 0.8, len: 0.07 + R() * 0.08, phase: R() * 6.28, speed: 0.7 + R() * 0.9 });
-    for (let k = 0; k < 2; k++) FX.waves.push({ x: tx + R(), y: ty + 0.2 + k * 0.5 + R() * 0.15, len: 0.3 + R() * 0.25, phase: R() * 6.28 });
-    if (R() < 0.35) FX.rings.push({ x: tx + 0.2 + R() * 0.6, y: ty + 0.2 + R() * 0.6, phase: R() * 4, period: 3 + R() * 3 });
+    const bk = fxBucket(tx, ty);
+    for (let k = 0; k < 4; k++) bk.glints.push({ x: tx + 0.1 + R() * 0.8, y: ty + 0.1 + R() * 0.8, len: 0.07 + R() * 0.08, phase: R() * 6.28, speed: 0.7 + R() * 0.9 });
+    for (let k = 0; k < 2; k++) bk.waves.push({ x: tx + R(), y: ty + 0.2 + k * 0.5 + R() * 0.15, len: 0.3 + R() * 0.25, phase: R() * 6.28 });
+    if (R() < 0.35) bk.rings.push({ x: tx + 0.2 + R() * 0.6, y: ty + 0.2 + R() * 0.6, phase: R() * 4, period: 3 + R() * 3 });
   });
 }
 const inView = (x, y, V, m = 1) => x > V.x0 - m && y > V.y0 - m && x < V.x1 + 1 + m && y < V.y1 + 1 + m;
@@ -740,17 +853,28 @@ function drawWater(t, V, still) {
   g.clearRect(0, 0, W, H); if (!MAP.masks.water) return;
   if (showCreatures()) for (const cr of CRE.list) if (cr.home === 'water' && inView(cr.x, cr.y, V, 3)) drawCreature(g, cr, t, V, still);   // swimmers live inside the water's shape
   if (!still && V.k > 14) {                                   // far out, glints and rings are too small to see
+  const near = [];                                            // the sparkle in the chunks on screen
+  for (let cy = Math.floor(V.y0 / CH) - 1; cy <= Math.floor(V.y1 / CH) + 1; cy++) for (let cx = Math.floor(V.x0 / CH) - 1; cx <= Math.floor(V.x1 / CH) + 1; cx++) {
+    if (cx < 0 || cy < 0) continue; const b = FX.grid.get(cy * 64 + cx); if (b) near.push(b); }
   g.lineCap = 'round'; g.lineWidth = Math.max(1, T * 0.022);
-  for (const w of FX.waves) { if (!inView(w.x, w.y, V)) continue;
+  // Waves and glints are gathered into a few brightness steps and each step is drawn as one path: thousands
+  // of tiny shapes cost a handful of canvas calls instead of one each.
+  const WSTEPS = 4, waves = Array.from({ length: WSTEPS }, () => new Path2D());
+  const gStep = T >= 28 ? 1 : T >= 20 ? 2 : 4, wStep = T >= 20 ? 1 : 2;   // zoomed out, glints are a pixel or two: fewer of them look the same
+  for (const b of near) for (let wi = 0; wi < b.waves.length; wi += wStep) { const w = b.waves[wi]; if (!inView(w.x, w.y, V)) continue;
     const x = V.sx(w.x + Math.sin(t * 0.25 + w.phase) * 0.15), y = V.sy(w.y + Math.sin(t * 0.8 + w.phase) * 0.03), Lh = w.len * T / 2;
-    g.strokeStyle = `rgba(200,236,252,${0.35 + 0.15 * Math.sin(t * 0.9 + w.phase)})`;
-    g.beginPath(); g.moveTo(x - Lh, y); g.bezierCurveTo(x - Lh / 3, y - T * 0.045, x + Lh / 3, y + T * 0.045, x + Lh, y); g.stroke(); }
-  g.fillStyle = '#fff';
-  for (const p of FX.glints) { if (!inView(p.x, p.y, V)) continue;
+    const p = waves[Math.min(WSTEPS - 1, Math.floor((0.5 + 0.5 * Math.sin(t * 0.9 + w.phase)) * WSTEPS))];
+    p.moveTo(x - Lh, y); p.bezierCurveTo(x - Lh / 3, y - T * 0.045, x + Lh / 3, y + T * 0.045, x + Lh, y); }
+  waves.forEach((p, k) => { g.strokeStyle = `rgba(200,236,252,${0.2 + 0.3 * (k + 0.5) / WSTEPS})`; g.stroke(p); });
+  const GSTEPS = 5, glints = Array.from({ length: GSTEPS }, () => new Path2D());
+  for (const b of near) for (let gi = 0; gi < b.glints.length; gi += gStep) { const p = b.glints[gi]; if (!inView(p.x, p.y, V)) continue;
     const a = Math.max(0, Math.sin(t * p.speed + p.phase)) ** 4; if (a < 0.03) continue;
-    g.globalAlpha = a; lens(g, V.sx(p.x + Math.sin(t * 0.4 + p.phase) * 0.04), V.sy(p.y), p.len * T * (0.7 + 0.3 * a), T * 0.028); }
+    const x = V.sx(p.x + Math.sin(t * 0.4 + p.phase) * 0.04), y = V.sy(p.y), len = p.len * T * (0.7 + 0.3 * a), th = T * 0.028, q = glints[Math.min(GSTEPS - 1, Math.floor(a * GSTEPS))];
+    q.moveTo(x - len, y); q.quadraticCurveTo(x, y - th * 2.2, x + len, y); q.quadraticCurveTo(x, y - th * 0.4, x - len, y); q.closePath(); }
+  g.fillStyle = '#fff';
+  glints.forEach((p, k) => { g.globalAlpha = (k + 0.6) / GSTEPS; g.fill(p); });
   g.globalAlpha = 1;
-  for (const r of FX.rings) { if (!inView(r.x, r.y, V)) continue;
+  for (const b of near) for (const r of b.rings) { if (!inView(r.x, r.y, V)) continue;
     const k = WEATHER.kind === 'storm' ? ((t * 2.2 + r.phase) % 1.1) / 0.6 : WEATHER.kind === 'rain' ? ((t * 1.3 + r.phase) % 1.6) / 0.7 : ((t + r.phase) % r.period) / 1.6; if (k > 1) continue;   // rain makes rings often
     g.strokeStyle = `rgba(225,245,255,${(1 - k) * 0.7})`; g.lineWidth = Math.max(1, T * 0.018);
     for (const kk of [k, k - 0.25]) if (kk > 0) { g.beginPath(); g.ellipse(V.sx(r.x), V.sy(r.y), kk * T * 0.28, kk * T * 0.17, 0, 0, 6.2832); g.stroke(); } }
@@ -778,8 +902,11 @@ function setupLive() {
   MAP.cells.forEach((c, i) => { if (c.crop) LIVE.crops.push({ url: c.crop, x: i % COLS, y: Math.floor(i / COLS), phase: Math.random() * 6.28 }); });
   LIVE.crops.sort((a, b) => a.y - b.y);
   const colours = [['#FFFFFF', '#F3E9C8'], ['#F6D04D', '#E8A93A'], ['#F2A7C3', '#E07AA3'], ['#A9D4F5', '#6FAEE0']];
-  LIVE.flies = Array.from({ length: CFG.butterflies ? Math.round(COLS * ROWS / 30) : 0 }, () => ({ cx: Math.random() * COLS, cy: Math.random() * ROWS,
-    a: Math.random() * 6.28, b: Math.random() * 6.28, sp: 0.15 + Math.random() * 0.15, c: pick(colours) }));
+  const home = [];                                              // butterflies stay over the island: they circle grass at least 3 tiles from the sea
+  if (CFG.butterflies) for (let y = 3; y < ROWS - 3; y++) for (let x = 3; x < COLS - 3; x++) { if (MAP.cells[y * COLS + x].type !== 'grass') continue;
+    let sea = false; for (let j = -3; j <= 3 && !sea; j++) for (let k = -3; k <= 3 && !sea; k++) sea = !!MAP.cells[(y + j) * COLS + x + k].ocean; if (!sea) home.push([x, y]); }
+  LIVE.flies = Array.from({ length: Math.round(home.length / 35) }, () => { const [x, y] = pick(home); return { cx: x + Math.random(), cy: y + Math.random(),
+    a: Math.random() * 6.28, b: Math.random() * 6.28, sp: 0.15 + Math.random() * 0.15, c: pick(colours) }; });
   if (!LIVE.cloud) {                                            // one soft cloud-shadow sprite, drawn with even darkness
     const c = document.createElement('canvas'); c.width = 512; c.height = 360; const g = c.getContext('2d');
     g.filter = 'blur(30px)'; g.fillStyle = '#0d1d33';
@@ -819,9 +946,10 @@ function drawLive(t, still) {
     g.fillStyle = '#3A2A1E'; g.fillRect(x - s * 0.12, y - s * 0.6, s * 0.24, s * 1.3);
   }
   g.globalAlpha = wx().clouds * 1.3;                                // cloud shadows drift slowly across the whole world
+  const M = Math.max(10, (view().clientWidth / zMin() - COLS) / 2 + 6);   // clouds appear and vanish beyond the widest view, out of sight, then drift in
   for (let k = 0; k < 7; k++) {                               // the 7th is a rare giant that now and then covers most of the map
-    const w = [8, 14, 22, 10, 30, 12, 80][k], giant = k === 6, span = COLS + w + (giant ? 220 : 20);
-    const wx = ((t * (giant ? 0.2 : 0.3) + (giant ? 60 : k * span / 6)) % span) - w - 10, wy = ((k * 7.3) % ROWS) + Math.sin(t * 0.05 + k) * 0.8 - w * 0.3;   // sizes vary, some are big
+    const w = [8, 14, 22, 10, 30, 12, 80][k], giant = k === 6, span = COLS + w + 2 * M + (giant ? 200 : 0);
+    const wx = ((t * (giant ? 0.2 : 0.3) + (giant ? 60 : k * span / 6)) % span) - w - M, wy = ((k * 7.3) % ROWS) + Math.sin(t * 0.05 + k) * 0.8 - w * 0.3;   // sizes vary, some are big
     if (wx + w < CAM.x || wx > V.x1 + 2 || wy + w * 0.6 < CAM.y || wy > V.y1 + 2) continue;
     g.drawImage(LIVE.cloud, V.sx(wx), V.sy(wy), w * T, w * 0.7 * T);
   }
@@ -831,7 +959,8 @@ function drawLive(t, still) {
 function frame(now) {
   FX.raf = requestAnimationFrame(frame);
   if (now - FX.last < 33) return; FX.last = now;
-  if (!MAP || !CAM.z || !animating()) return;
+  if (!MAP || !CAM.z || MAP.building || !animating()) return;
+  if (performance.now() - LAST_REDRAW < 40) return;            // the camera just redrew everything; skip this tick
   const t = now / 1000, V = visible(), dt = Math.min(0.1, (now - (CRE.last || now)) / 1000); CRE.last = now;
   if (showCreatures()) stepCreatures(dt);
   drawLive(t, false); drawWater(t, V, false); drawWeather(t, Math.min(0.1, (now - (WEATHER.last || now)) / 1000), false); WEATHER.last = now;
@@ -1023,7 +1152,7 @@ function spawn(W, H, k, dpr, anywhere) {
   return { x: R() * W * 1.2, y: anywhere ? R() * H : -20 * dpr, len: (14 + R() * 16) * dpr, sp: (900 + R() * 500) * dpr };   // storm
 }
 function drawWeather(t, dt, still) {
-  const c = document.getElementById('weather'), g = c.getContext('2d'), W = c.width, H = c.height, dpr = window.devicePixelRatio || 1, k = WEATHER.kind;
+  const c = document.getElementById('weather'), g = c.getContext('2d'), W = c.width, H = c.height, dpr = DPR(), k = WEATHER.kind;
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
   if (k === 'sun') return;
   g.fillStyle = wx().tint; g.fillRect(0, 0, W, H);
@@ -1046,10 +1175,108 @@ function drawWeather(t, dt, still) {
 }
 document.querySelectorAll('[data-weather]').forEach(b => b.addEventListener('click', () => setWeather(b.dataset.weather)));
 
+
+// ---------- base layer letters: one letter per tile for the ground type the generator chose ----------
+// Only the base layer: trees, crops, fences, bridges, details and creatures sit on top of it and are not shown.
+const BASE = {
+  G: { label: 'Grass', col: '#4F7A34' }, B: { label: 'Beach (sand)', col: '#B79A5E' }, M: { label: 'Mountain (rock)', col: '#6B655C' },
+  F: { label: 'Field (prepared soil)', col: '#5A3A22' }, R: { label: 'Road (path)', col: '#7A6C5C' },
+  W: { label: 'Fresh water (pond, lake, river)', col: '#2F7FB5' }, S: { label: 'Sea', col: '#1D4E70' },
+};
+const letterOf = c => c.type === 'water' ? (c.ocean ? 'S' : 'W') : { grass: 'G', sand: 'B', rock: 'M', soil: 'F', path: 'R' }[c.type] || '?';
+const showLetters = () => document.getElementById('letters').checked;
+function mapAsText() { const out = []; for (let y = 0; y < ROWS; y++) { let r = ''; for (let x = 0; x < COLS; x++) r += letterOf(MAP.cells[y * COLS + x]); out.push(r); } return out.join('\n'); }
+function drawLabels(V) {
+  const c = document.getElementById('labels'), g = c.getContext('2d'), W = c.width, H = c.height;
+  g.clearRect(0, 0, W, H);
+  document.getElementById('legend').hidden = !showLetters();
+  if (!showLetters() || !MAP) return;
+  const T = V.k, dpr = DPR();
+  g.globalAlpha = T < 14 * dpr ? 0.85 : 0.62;                    // a coloured plate per tile; letters once there is room for them
+  for (let y = V.y0; y <= V.y1; y++) for (let x = V.x0; x <= V.x1; x++) {
+    const L = letterOf(MAP.cells[y * COLS + x]); g.fillStyle = BASE[L].col;
+    g.fillRect(Math.floor(V.sx(x)) + 1, Math.floor(V.sy(y)) + 1, Math.ceil(T) - 1, Math.ceil(T) - 1);
+  }
+  g.globalAlpha = 1;
+  if (T < 14 * dpr) return;
+  g.font = `600 ${Math.round(T * 0.5)}px system-ui, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
+  for (let y = V.y0; y <= V.y1; y++) for (let x = V.x0; x <= V.x1; x++) g.fillText(letterOf(MAP.cells[y * COLS + x]), V.sx(x + 0.5), V.sy(y + 0.53));
+}
+document.getElementById('legend').innerHTML = Object.entries(BASE).map(([k, b]) => `<span class="key"><b style="background:${b.col}">${k}</b>${b.label}</span>`).join('') +
+  '<button type="button" id="copyMap">Copy map as text</button><span class="muted" id="copied" aria-live="polite"></span>';
+document.getElementById('letters').addEventListener('change', redraw);
+document.getElementById('copyMap').addEventListener('click', async () => {
+  const msg = document.getElementById('copied');
+  try { await navigator.clipboard.writeText(mapAsText()); msg.textContent = `Copied ${COLS} x ${ROWS} letters.`; } catch (e) { msg.textContent = 'Copy failed: the browser blocked the clipboard.'; }
+});
+
+// ---------- maps saved on the WAX blockchain: table maps, plus one chunks table per map (scope = map id) ----------
+async function chainRows(table, scope, complete) {             // every row of a table; busy nodes sometimes answer with nothing, so then try the next one
+  const start = Math.floor(Math.random() * CHAIN.nodes.length); let error = null;
+  for (let n = 0; n < CHAIN.nodes.length; n++) {
+    const node = CHAIN.nodes[(start + n) % CHAIN.nodes.length];
+    try {
+      const rows = []; let lower = '';
+      for (let page = 0; page < 20; page++) {
+        const r = await fetch(`${node}/v1/chain/get_table_rows`, { method: 'POST', signal: AbortSignal.timeout(12000),
+          body: JSON.stringify({ json: true, code: CHAIN.contract, scope: String(scope), table, lower_bound: lower, limit: 1000 }) });
+        if (!r.ok) throw new Error(`${node} answered ${r.status}`);
+        const j = await r.json(); if (!Array.isArray(j.rows)) throw new Error(`${node} sent no rows`);
+        rows.push(...j.rows); if (!j.more || !j.next_key) break; lower = j.next_key;
+      }
+      if (complete(rows)) return rows;
+      error = new Error('every node sent an empty or incomplete table');
+    } catch (e) { error = e; }
+  }
+  throw error;
+}
+function chainTiles(rows) {                                    // chunk rows (10 x 10 tiles, id = cy * 10 + cx) to one byte per tile, or null if any are missing
+  const raw = new Uint8Array(COLS * ROWS), per = COLS / 10, got = new Set();
+  for (const r of rows) {
+    const b = typeof r.tiles === 'string' ? (r.tiles.match(/../g) || []).map(h => parseInt(h, 16)) : r.tiles || [];
+    const cx = r.id % per, cy = Math.floor(r.id / per); if (b.length !== 100 || cy >= ROWS / 10) continue;
+    for (let k = 0; k < 100; k++) raw[(cy * 10 + Math.floor(k / 10)) * COLS + cx * 10 + k % 10] = b[k];
+    got.add(r.id);
+  }
+  return got.size === per * ROWS / 10 ? raw : null;
+}
+const chainStatus = t => { document.getElementById('chainStatus').textContent = t; };
+function setHash(k, val) { const p = new URLSearchParams(location.hash.slice(1)); p.set(k, val); history.replaceState(null, '', '#' + p); }
+async function loadMaps() {
+  const sel = document.getElementById('chainMap'); sel.disabled = true; chainStatus('Loading maps from the WAX blockchain…');
+  try { CHAIN.maps = (await chainRows('maps', CHAIN.contract, rows => rows.length > 0)).sort((a, b) => a.map_id - b.map_id); chainStatus(''); }
+  catch (e) { CHAIN.maps = []; chainStatus(`Could not load maps from the chain: ${e.message}`); }
+  sel.replaceChildren(...CHAIN.maps.map(m => new Option(`Map ${m.map_id}${m.map_name ? ` · ${m.map_name}` : ''} · ${m.playertag || m.owner}`, String(m.map_id))),
+    new Option('Random island (made here)', 'random'));
+  sel.disabled = false;
+  const want = new URLSearchParams(location.hash.slice(1)).get('map');
+  sel.value = CHAIN.maps.some(m => String(m.map_id) === want) || want === 'random' ? want : CHAIN.maps.length ? String(CHAIN.maps[0].map_id) : 'random';
+  await showMap(sel.value);
+}
+async function showMap(id) {
+  const ask = ++CHAIN.ask, m = CHAIN.maps.find(q => String(q.map_id) === id);
+  setHash('map', id);
+  if (!m) { CHAIN.map = null; CHAIN.raw = null; }
+  else {
+    chainStatus(`Loading map ${id}…`);
+    try {
+      const raw = CHAIN.cache.get(id) ?? chainTiles(await chainRows('chunks', id, rows => !!chainTiles(rows)));
+      if (ask !== CHAIN.ask) return;                           // another map was picked in the meantime
+      CHAIN.cache.set(id, raw); CHAIN.map = m; CHAIN.raw = raw; chainStatus(`Owner ${m.owner}`);
+    } catch (e) { if (ask === CHAIN.ask) chainStatus(`Could not load map ${id}: ${e.message}`); return; }
+    mode = 'mixed'; document.querySelectorAll('[data-mode]').forEach(o => o.setAttribute('aria-pressed', o.dataset.mode === 'mixed'));
+  }
+  document.querySelectorAll('.rand-only').forEach(el => { el.hidden = !!m; });
+  document.getElementById('field').setAttribute('aria-label', m ? `Island map ${id} from the chain` : 'A random farm made of tiles');
+  CAM.z = 0; build();                                          // a new map starts fully in view
+}
+document.getElementById('chainMap').addEventListener('change', e => showMap(e.target.value));
+document.getElementById('chainRefresh').addEventListener('click', () => { CHAIN.cache.clear(); loadMaps(); });
+
 // ---------- controls ----------
 document.getElementById('creatures').addEventListener('change', () => { redraw(); if (!animating()) drawWater(0, visible(), true); });
 document.getElementById('shuffle').addEventListener('click', build);
-document.getElementById('natural').addEventListener('change', () => { makeMasks(); CHUNKS.clear(); CHUNK_PX = 0; OV.ready = false; redraw(); buildOverview(); });
+document.getElementById('natural').addEventListener('change', () => makeMasks().then(ok => { if (!ok) return; CHUNKS.clear(); CHUNK_PX = 0; OV.ready = false; redraw(); buildOverview(); }));
 document.getElementById('animate').addEventListener('change', () => { FX.last = 0; redraw(); startAnim(); });
 document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => {
   mode = b.dataset.mode; document.querySelectorAll('[data-mode]').forEach(o => o.setAttribute('aria-pressed', o === b)); build();
@@ -1079,7 +1306,7 @@ view().addEventListener('pointermove', e => {
 const up = e => { ptrs.delete(e.pointerId); pinch = 0; if (!ptrs.size) view().classList.remove('drag'); };
 view().addEventListener('pointerup', up); view().addEventListener('pointercancel', up);
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (CAM.z < zMin()) CAM.z = zMin(); clampCam(); redraw(); }, 150); });
-buildPanel(); applyLook(); build(); startAnim();
+buildPanel(); applyLook(); startAnim(); loadMaps();
 { const w = new URLSearchParams(location.hash.slice(1)).get('weather'); if (WX[w]) setWeather(w); }   // e.g. tiles.html#weather=storm
 </script>
 </body>

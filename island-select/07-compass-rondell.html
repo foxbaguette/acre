@@ -1,0 +1,365 @@
+<!--
+  Concept 07: The Compass Rondell
+  Idea: a brass-and-paper compass dial drawn on the journal page; the player's islands are round chart plates on
+        a ring that turns like a dial, the chosen island sits large in the centre and the log beside it says where to go.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your islands - Unclaimed Acres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="journal.css">
+<style>
+  @property --a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+  @property --s { syntax: '<number>'; inherits: false; initial-value: 1; }
+  :root { --brass: #b8892f; --brass-hi: #e8cf8c; --brass-lo: #7a5a1c; }
+  [hidden] { display: none !important; }
+  body { min-height: 100vh; }
+  .signout { white-space: nowrap; }
+  @media (max-width: 640px) {
+    .top .wrap { gap: 10px; }
+    .account { flex-direction: column; align-items: flex-end; gap: 0; }
+    .brand { gap: 10px; }
+    .brand-name { font-size: 1.3rem; white-space: nowrap; }
+    .brand-stamp { width: 42px; height: 42px; }
+  }
+
+  /* header account chip */
+  .account { display: flex; align-items: center; gap: 14px; }
+  .acct-chip { display: inline-flex; align-items: center; gap: .55em; font-family: var(--sc); letter-spacing: .08em; font-size: 1rem; color: var(--ink);
+    padding: .5em 1em .45em; border: 1px solid var(--rule); border-radius: 30px; background: rgba(253, 249, 239, .65); box-shadow: 0 2px 6px -3px rgba(60,45,20,.35); }
+  .acct-chip svg { width: 1.15em; height: 1.15em; color: var(--rust); }
+  .acct-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--moss); box-shadow: 0 0 0 3px rgba(95,109,59,.18); }
+  .signout { font-family: var(--hand); font-size: 1.35rem; color: var(--blue); text-decoration: none; }
+  .signout:hover { text-decoration: underline; text-underline-offset: 4px; }
+  main { padding: 0 0 80px; }
+
+  /* the page */
+  .rondell { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 1fr); gap: 0; padding: 30px 0 30px 30px; }
+  .rondell::before { content: ""; position: absolute; inset: 8px -6px -10px; z-index: -1; border-radius: 6px;
+    background: repeating-linear-gradient(0deg, #e8dcc0 0 2px, #d8c8a4 2px 3px); box-shadow: 0 30px 60px -30px rgba(50,35,10,.6); }
+  .dial-col { display: flex; flex-direction: column; align-items: center; }
+  .log { position: relative; padding: 18px 56px 10px 54px; border-left: 1px solid rgba(165,69,45,.35); display: flex; flex-direction: column; }
+  .log::before { content: ""; position: absolute; left: 4px; top: 0; bottom: 0; width: 1px; background: rgba(165,69,45,.2); }
+
+  /* ---------- the dial ---------- */
+  .dial { --D: min(560px, calc(100vw - 64px)); position: relative; width: var(--D); height: var(--D); flex: none; margin-top: 4px; }
+  .dial > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .bezel { transition: transform .7s cubic-bezier(.45,.05,.3,1); transform-box: view-box; transform-origin: 330px 330px; }
+  .bezel text { font-family: "IM Fell English SC", serif; font-size: 13px; fill: #3a2a10; letter-spacing: .5px; }
+  .cardinal text { font-family: "IM Fell English SC", serif; font-size: 22px; fill: var(--rust); }
+  .rose .pt-a { fill: var(--blue); opacity: .82; }
+  .rose .pt-b { fill: #f8f0d9; stroke: var(--blue); stroke-width: 1; }
+  .rose .pt-c { fill: var(--ink-soft); opacity: .55; }
+
+  .centre { position: absolute; left: 50%; top: 50%; width: calc(var(--D) * .41); height: calc(var(--D) * .41); transform: translate(-50%, -50%);
+    border-radius: 50%; padding: calc(var(--D) * .014);
+    background: conic-gradient(from 20deg, var(--brass-lo), var(--brass-hi), var(--brass), var(--brass-lo), var(--brass-hi), var(--brass), var(--brass-lo));
+    box-shadow: 0 2px 0 rgba(255,255,255,.4) inset, 0 12px 28px -10px rgba(50,30,5,.65), 0 2px 4px rgba(50,30,5,.35); z-index: 3; }
+  .dial.solo .centre { width: calc(var(--D) * .56); height: calc(var(--D) * .56); }
+  .centre .glass { position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: #24577a; box-shadow: inset 0 0 0 2px #5a4216, inset 0 0 22px rgba(0,0,0,.45); }
+  .centre img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .centre .glass::after { content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(70% 55% at 32% 22%, rgba(255,255,255,.28), transparent 60%), radial-gradient(circle, transparent 62%, rgba(20,15,5,.35)); }
+  .centre .graticule { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .centre.swap .glass > img { animation: plate-in .6s ease both; }
+  @keyframes plate-in { from { opacity: 0; transform: rotate(-14deg) scale(1.06); } to { opacity: 1; transform: none; } }
+
+  .ring { position: absolute; inset: 0; z-index: 4; list-style: none; margin: 0; padding: 0; }
+  .plate { --p: calc(var(--D) * .128); position: absolute; left: 50%; top: 50%; width: var(--p); height: var(--p); margin: calc(var(--p) / -2) 0 0 calc(var(--p) / -2);
+    padding: 0; border: 0; border-radius: 50%; cursor: pointer; background: #e9ece2;
+    transform: rotate(var(--a)) translateY(calc(var(--D) * -.318)) rotate(calc(var(--a) * -1)) scale(var(--s));
+    transition: --a .7s cubic-bezier(.45,.05,.3,1), --s .5s ease, opacity .45s ease, box-shadow .2s ease;
+    box-shadow: 0 0 0 3px var(--brass), 0 0 0 4px var(--brass-lo), 0 6px 12px -4px rgba(50,30,5,.55); }
+  .plate svg { width: 100%; height: 100%; border-radius: 50%; display: block; }
+  .plate .tag { position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%); font-family: var(--sc); font-size: 11px; letter-spacing: .06em; line-height: 1;
+    color: #3a2a10; background: linear-gradient(var(--brass-hi), var(--brass)); padding: 3px 6px 2px; border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,.3); white-space: nowrap; }
+  .plate:hover { box-shadow: 0 0 0 3px var(--brass-hi), 0 0 0 4px var(--brass-lo), 0 8px 16px -4px rgba(50,30,5,.6); }
+  .plate[aria-current="true"] { box-shadow: 0 0 0 3px var(--rust), 0 0 0 5px var(--brass-hi), 0 0 0 6px var(--brass-lo), 0 10px 18px -4px rgba(50,30,5,.6); }
+  .plate[aria-current="true"] .tag { background: var(--rust); color: #fbeedd; }
+  .plate.edge { opacity: .5; }
+  .plate.off { opacity: 0; pointer-events: none; }
+  .plate:focus-visible { outline-offset: 5px; border-radius: 50%; }
+
+  .turners { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 14px; }
+  .knob { width: 50px; height: 50px; border-radius: 50%; border: 0; cursor: pointer; display: grid; place-items: center; color: #3a2a10;
+    background: radial-gradient(circle at 35% 30%, var(--brass-hi), var(--brass) 55%, var(--brass-lo));
+    box-shadow: inset 0 0 0 2px rgba(90,66,22,.5), 0 3px 0 #5a4216, 0 8px 14px -6px rgba(40,25,5,.6); transition: transform .15s ease; }
+  .knob:hover { transform: translateY(-1px); }
+  .knob:active { transform: translateY(2px); box-shadow: inset 0 0 0 2px rgba(90,66,22,.5), 0 1px 0 #5a4216; }
+  .knob svg { width: 22px; height: 22px; }
+  .count { min-width: 120px; text-align: center; font-family: var(--display); font-size: 1.35rem; color: var(--ink); line-height: 1.1; }
+  .count small { display: block; font-family: var(--hand); color: var(--blue); font-size: 1.1rem; }
+
+  /* ---------- the log ---------- */
+  .log .meta { display: flex; justify-content: space-between; gap: 12px; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; border-bottom: 1px solid var(--rule); padding-bottom: 6px; margin-bottom: 26px; }
+  .log h1 { font-size: clamp(2.6rem, 1.6rem + 2.6vw, 4.1rem); margin: 0 0 6px; outline: none; }
+  .log .say { font-family: var(--hand); color: var(--blue); font-size: 1.9rem; line-height: 1.1; margin: 0 0 26px; transform: rotate(-1.2deg); transform-origin: left; }
+  .log.swap .fresh { animation: log-in .5s ease both; }
+  @keyframes log-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .soundings { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0 0 22px; border-top: 1.5px solid var(--ink-soft); border-bottom: 1px solid var(--rule); }
+  .soundings div { padding: 12px 8px 10px 12px; border-left: 1px dashed rgba(180,156,116,.8); }
+  .soundings div:first-child { border-left: 0; padding-left: 0; }
+  .soundings b { display: block; font-family: var(--display); font-weight: 400; font-size: 2.1rem; line-height: 1; font-variant-numeric: tabular-nums; }
+  .soundings b small { font-size: .55em; color: var(--ink-soft); }
+  .soundings span { display: block; margin-top: 6px; font-family: var(--sc); font-size: .74rem; letter-spacing: .12em; line-height: 1.25; color: var(--ink-soft); }
+  .when { font-family: var(--hand); color: var(--ink-soft); font-size: 1.3rem; margin: 0 0 28px; display: flex; flex-wrap: wrap; gap: 2px 18px; }
+  .when b { font-family: var(--sc); font-weight: 400; font-size: .8rem; letter-spacing: .12em; color: var(--rust); margin-right: 6px; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; }
+  .chart-new { display: inline-flex; align-items: center; gap: .5em; font-family: var(--hand); font-size: 1.5rem; color: var(--blue); background: none; border: 0; cursor: pointer; padding: 0; }
+  .chart-new i { width: 34px; height: 34px; border-radius: 50%; border: 1.5px dashed currentColor; display: grid; place-items: center; font-style: normal; font-family: var(--serif); font-size: 1.5rem; line-height: 1; }
+  .chart-new:hover span { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+  .solo-note { display: flex; gap: 12px; align-items: flex-start; max-width: 25em; font-family: var(--hand); color: var(--blue); font-size: 1.4rem; line-height: 1.15;
+    margin: 34px 0 0; padding-top: 18px; border-top: 1px solid rgba(180,156,116,.5); transform: rotate(-1deg); }
+  .solo-note svg { flex: none; width: 38px; height: 34px; margin-top: 2px; }
+  .keys { font-family: var(--hand); color: var(--ink-soft); font-size: 1.2rem; margin: 18px 0 0; }
+  .keys kbd { font-family: var(--sc); font-size: .8rem; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 3px; padding: 0 5px; background: rgba(253,249,239,.7); color: var(--ink); }
+
+  /* index (many islands) */
+  .index { margin-top: auto; padding-top: 22px; }
+  .index summary { cursor: pointer; list-style: none; font-family: var(--sc); letter-spacing: .12em; font-size: .9rem; color: var(--rust); display: inline-flex; align-items: center; gap: .6em; }
+  .index summary::-webkit-details-marker { display: none; }
+  .index summary::before { content: ""; width: 34px; height: 1px; background: currentColor; }
+  .index summary::after { content: "+"; font-family: var(--serif); font-size: 1.2rem; line-height: 1; }
+  .index[open] summary::after { content: "\2212"; }
+  .index ol { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 22px; max-height: 236px; overflow: auto; }
+  .index li button { width: 100%; display: flex; align-items: baseline; gap: 10px; text-align: left; background: none; border: 0; border-bottom: 1px dashed rgba(180,156,116,.7);
+    padding: 5px 2px; cursor: pointer; font-family: var(--serif); font-size: 1.05rem; color: var(--ink); }
+  .index li button i { font-family: var(--display); color: var(--rust); font-size: .95rem; min-width: 1.6em; }
+  .index li button:hover { color: var(--blue); }
+  .index li button[aria-current="true"] { color: var(--blue); font-weight: 600; }
+  .index li button[aria-current="true"]::after { content: "\2190 here"; margin-left: auto; font-family: var(--hand); font-weight: 600; font-size: 1.1rem; }
+
+  @media (max-width: 1180px) {
+    .rondell { grid-template-columns: 1fr; padding: 30px 20px 26px; }
+    .log { border-left: 0; border-top: 1px solid rgba(165,69,45,.35); padding: 26px 10px 0; margin-top: 26px; }
+    .log::before { display: none; }
+  }
+  @media (max-width: 640px) {
+    .acct-chip { font-size: .85rem; padding: .45em .8em .4em; }
+    .acct-chip svg { display: none; }
+    .signout { font-size: 1.15rem; }
+    .rondell { padding: 18px 16px 22px; }
+    .bezel text { font-size: 17px; }
+    .plate .tag { display: none; }
+    .soundings { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .soundings div:nth-child(4) { border-left: 0; padding-left: 0; }
+    .soundings b { font-size: 1.7rem; }
+    .index ol { grid-template-columns: 1fr; }
+    .log .say { font-size: 1.6rem; }
+    .keys { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#" aria-label="Unclaimed Acres, your islands">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <div class="account">
+      <span class="acct-chip"><i aria-hidden="true"></i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12.5h2M3 9h14a2 2 0 0 0 2-2V5"/></svg><span class="sr-only">Signed in as </span>fennel.wam</span>
+      <a class="signout" href="#sign-out">Sign out</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="sheet rondell" aria-label="Your islands">
+      <div class="dial-col">
+        <div class="dial" id="dial" role="group" aria-roledescription="compass dial" aria-label="Island dial">
+          <svg viewBox="-10 -10 680 680" aria-hidden="true" id="paper"></svg>
+          <svg viewBox="-10 -10 680 680" aria-hidden="true"><g class="bezel" id="bezel"></g></svg>
+          <div class="centre" id="centre"><div class="glass"><img id="centre-img" alt=""><svg class="graticule" viewBox="0 0 100 100" aria-hidden="true">
+            <g fill="none" stroke="rgba(255,248,225,.22)" stroke-width=".3"><circle cx="50" cy="50" r="20"/><circle cx="50" cy="50" r="36"/><path d="M50 0V100M0 50H100"/></g></svg></div></div>
+          <svg viewBox="-10 -10 680 680" aria-hidden="true" style="z-index:5;pointer-events:none" id="lubber"></svg>
+          <ul class="ring" id="ring" aria-label="Islands on the dial"></ul>
+        </div>
+        <div class="turners" id="turners">
+          <button class="knob" type="button" id="prev" aria-label="Turn the dial to the previous island"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 15a8 8 0 0 0-14.5-4.6M5 5v5.5h5.5"/></svg></button>
+          <p class="count" id="count" aria-live="polite"></p>
+          <button class="knob" type="button" id="next" aria-label="Turn the dial to the next island"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15a8 8 0 0 1 14.5-4.6M19 5v5.5h-5.5"/></svg></button>
+        </div>
+      </div>
+
+      <div class="log" id="log">
+        <div class="meta"><span id="meta-l">Compass rondell</span><span id="meta-r"></span></div>
+        <div class="fresh">
+          <p class="kicker" id="kicker"></p>
+          <h1 id="name" tabindex="-1"></h1>
+          <p class="say" id="say"></p>
+          <div class="soundings" id="soundings" role="list" aria-label="Field measurements, share of the whole chart"></div>
+          <p class="when" id="when"></p>
+        </div>
+        <div class="actions">
+          <a class="btn" id="enter" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg> Enter island</a>
+          <button class="chart-new" type="button" id="chart-new"><i aria-hidden="true">+</i><span>chart a new island</span></button>
+        </div>
+        <p class="solo-note" id="solo-note" hidden><svg viewBox="0 0 34 30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M31 4C29 14 22 22 5 24M12 18c-3 2-5 4-7 6 3 1 6 2 8 4"/></svg><span>set at true north &mdash; the only island on this dial, for now.<span id="solo-more"> There is room on the ring for more.</span></span></p>
+        <p class="keys" id="keys">turn the dial with <kbd>&larr;</kbd> <kbd>&rarr;</kbd> or pick a plate</p>
+        <details class="index" id="index"><summary id="index-sum">Index</summary><ol id="index-list"></ol></details>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="islands.js"></script>
+<script>
+(function () {
+  var C = 330, NS = 'http://www.w3.org/2000/svg';
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pol(r, deg) { var a = (deg - 90) * Math.PI / 180; return [(C + r * Math.cos(a)).toFixed(2), (C + r * Math.sin(a)).toFixed(2)]; }
+  function pct(v) { return v > 0 && v < 1 ? '&lt;1' : String(Math.round(v)); }
+
+  /* ---------- draw the paper rose (fixed) ---------- */
+  function drawPaper(solo) {
+    var s = '<defs><linearGradient id="brass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8cf8c"/><stop offset=".35" stop-color="#b8892f"/>' +
+      '<stop offset=".6" stop-color="#e3c47a"/><stop offset="1" stop-color="#7a5a1c"/></linearGradient></defs>';
+    s += '<g fill="none" stroke="rgba(37,70,127,.35)" stroke-width="1"><circle cx="330" cy="330" r="262"/><circle cx="330" cy="330" r="255" stroke-dasharray="2 5"/>' +
+      (solo ? '' : '<circle cx="330" cy="330" r="212" stroke-dasharray="1 7" stroke-width="2" stroke-linecap="round"/>') + '<circle cx="330" cy="330" r="160" stroke="rgba(37,70,127,.22)"/></g>';
+    var rh = '';
+    for (var k = 0; k < 32; k++) { var p = pol(255, k * 11.25); rh += 'M330 330L' + p[0] + ' ' + p[1]; }
+    s += '<path d="' + rh + '" stroke="rgba(37,70,127,.13)" stroke-width=".8"/>';
+    // star: intercardinals then cardinals, each split in a dark and a light half
+    var star = '';
+    [[45, 196, 16], [135, 196, 16], [225, 196, 16], [315, 196, 16], [0, 258, 24], [90, 258, 24], [180, 258, 24], [270, 258, 24]].forEach(function (d) {
+      var tip = pol(d[1], d[0]), l = pol(d[2], d[0] - 45), r = pol(d[2], d[0] + 45);
+      star += '<path class="pt-a" d="M330 330L' + l[0] + ' ' + l[1] + 'L' + tip[0] + ' ' + tip[1] + 'Z"/><path class="pt-b" d="M330 330L' + r[0] + ' ' + r[1] + 'L' + tip[0] + ' ' + tip[1] + 'Z"/>';
+    });
+    s += '<g class="rose">' + star + '</g>';
+    // outer brass rim + cardinal letters on the paper
+    s += '<circle cx="330" cy="330" r="300" fill="none" stroke="url(#brass)" stroke-width="3"/>';
+    s += '<g class="cardinal" text-anchor="middle">' + [['E', 90], ['S', 180], ['W', 270]].map(function (c) { var p = pol(318, c[1]); return '<text x="' + p[0] + '" y="' + (Number(p[1]) + 8) + '">' + c[0] + '</text>'; }).join('') + '</g>';
+    $('paper').innerHTML = s;
+    // lubber mark at north (above the plates)
+    $('lubber').innerHTML = '<g><path d="M330 58L320 37H340Z" fill="#a5452d" stroke="#6f2a18" stroke-width="1"/><text x="330" y="-0" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="24" fill="#a5452d">N</text></g>';
+  }
+  /* ---------- the bezel (turns) ---------- */
+  function drawBezel() {
+    var s = '<circle cx="330" cy="330" r="284" fill="none" stroke="url(#brass2)" stroke-width="26"/>' +
+      '<defs><linearGradient id="brass2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ead39a"/><stop offset=".3" stop-color="#c79a40"/><stop offset=".55" stop-color="#ecd396"/><stop offset=".8" stop-color="#a87b2a"/><stop offset="1" stop-color="#7a5a1c"/></linearGradient></defs>' +
+      '<circle cx="330" cy="330" r="297" fill="none" stroke="#6b4d17" stroke-width="1"/><circle cx="330" cy="330" r="271" fill="none" stroke="#6b4d17" stroke-width="1"/>';
+    var t = '';
+    for (var d = 0; d < 360; d += 5) {
+      var big = d % 30 === 0, a = pol(271, d), b = pol(big ? 281 : (d % 10 === 0 ? 278 : 276), d);
+      t += 'M' + a[0] + ' ' + a[1] + 'L' + b[0] + ' ' + b[1];
+    }
+    s += '<path d="' + t + '" stroke="#4a3510" stroke-width="1.1"/>';
+    for (var e = 0; e < 360; e += 30) {
+      var p = pol(289, e);
+      s += '<text x="' + p[0] + '" y="' + p[1] + '" text-anchor="middle" dominant-baseline="central" transform="rotate(' + e + ' ' + p[0] + ' ' + p[1] + ')">' + (e === 0 ? '360' : e) + '</text>';
+    }
+    $('bezel').innerHTML = s;
+  }
+
+  var list = [], n = 0, S = 0, windowed = false, step = 0, R = 4;
+  function cur() { return ((S % n) + n) % n; }
+
+  function plates() {
+    $('ring').innerHTML = list.map(function (isl) {
+      return '<li><button class="plate" type="button" data-i="' + isl.index + '" aria-label="' + esc(isl.name) + ', island ' + (isl.index + 1) + ' of ' + n + '">' +
+        UA.outline(isl, { sea: '#dfe6e1', land: '#f8f0d9', ink: '#2b2721', stroke: 1, pad: 9, grid: 'rgba(37,70,127,.14)' }) +
+        '<span class="tag" aria-hidden="true">' + (isl.index + 1) + '</span></button></li>';
+    }).join('');
+  }
+  function place() {
+    var c = cur();
+    $('bezel').style.transform = 'rotate(' + (-S * 360 / n) + 'deg)';
+    $('ring').querySelectorAll('.plate').forEach(function (b) {
+      var i = Number(b.getAttribute('data-i')), d, a, s = 1;
+      if (windowed) {
+        d = (((i - S) % n) + n) % n; if (d > n / 2) d -= n;
+        a = d * step;
+      } else { d = i - S; a = d * step; d = ((d % n) + n) % n; if (d > n / 2) d -= n; }
+      var off = windowed && Math.abs(d) > R, edge = windowed && Math.abs(d) === R;
+      if (d === 0) s = 1.32; else if (edge) s = .8;
+      b.style.setProperty('--a', a + 'deg');
+      b.style.setProperty('--s', s);
+      b.classList.toggle('off', off);
+      b.classList.toggle('edge', edge);
+      b.tabIndex = off ? -1 : 0;
+      b.parentNode.setAttribute('aria-hidden', off ? 'true' : 'false');
+      if (i === c) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+      b.style.zIndex = d === 0 ? 3 : (edge ? 1 : 2);
+    });
+  }
+  function info(first) {
+    var isl = list[cur()], st = isl.stats, bearing = Math.round(isl.index * 360 / Math.max(n, 1)) % 360;
+    var img = $('centre-img');
+    img.src = isl.render; img.style.transform = isl.renderTransform;
+    img.alt = 'A painted view of ' + isl.name + ' from above, framed in the centre of the compass.';
+    $('kicker').textContent = n === 1 ? 'Your island · true north' : 'Bearing ' + ('00' + bearing).slice(-3) + '° · No. ' + (isl.index + 1);
+    $('name').textContent = isl.name;
+    $('say').innerHTML = '&ldquo;' + esc(isl.note) + '&rdquo;';
+    $('soundings').innerHTML = [['land', st.land], ['forest', st.forest], ['mountain', st.mountain], ['beach', st.beach], ['fresh water', st.freshWater]].map(function (r) {
+      return '<div role="listitem"><b>' + pct(r[1]) + '<small>%</small></b><span>' + r[0] + '</span></div>';
+    }).join('');
+    $('when').innerHTML = '<span><b>charted</b>' + esc(isl.charted) + '</span><span><b>last visit</b>' + esc(isl.lastVisit) + '</span>';
+    $('enter').href = '#enter-' + isl.id;
+    $('enter').setAttribute('aria-label', 'Enter ' + isl.name);
+    $('meta-r').textContent = n === 1 ? 'one island, well charted' : n + ' islands on the dial';
+    $('count').innerHTML = (cur() + 1) + ' <span style="font-style:italic;color:var(--ink-soft)">of</span> ' + n + '<small>' + esc(isl.name) + '</small>';
+    $('index-list').querySelectorAll('button').forEach(function (b) {
+      if (Number(b.getAttribute('data-i')) === isl.index) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+    });
+    if (!first) {
+      ['centre', 'log'].forEach(function (id) { var el = $(id); el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap'); });
+    }
+  }
+  function go(target) {
+    var c = cur(), d = (((target - c) % n) + n) % n;
+    if (d > n / 2) d -= n;
+    if (!d) return;
+    var focused = document.activeElement && document.activeElement.classList.contains('plate');
+    S += d; place(); info(false);
+    if (focused) { var b = $('ring').querySelector('[data-i="' + cur() + '"]'); if (b) b.focus({ preventScroll: true }); }
+  }
+
+  UA.islands().then(function (l) {
+    list = l; n = l.length; windowed = n > 10; step = windowed ? 36 : 360 / n;
+    var solo = n === 1;
+    $('dial').classList.toggle('solo', solo);
+    drawPaper(solo); drawBezel();
+    if (!solo) plates();
+    $('turners').hidden = solo;
+    $('keys').hidden = solo;
+    $('solo-note').hidden = !solo;
+    $('solo-more').hidden = !UA.canCreate;
+    $('chart-new').hidden = !UA.canCreate;
+    $('index').hidden = !windowed;
+    if (windowed) {
+      $('index-sum').textContent = 'Index of all ' + n + ' islands';
+      $('index-list').innerHTML = list.map(function (x) { return '<li><button type="button" data-i="' + x.index + '"><i>' + (x.index + 1) + '</i>' + esc(x.name) + '</button></li>'; }).join('');
+    }
+    var m = /^#isle-(\d+)$/.exec(location.hash);
+    if (m && Number(m[1]) >= 1 && Number(m[1]) <= n) S = Number(m[1]) - 1;
+    if (!solo) place();
+    info(true);
+  });
+
+  $('ring').addEventListener('click', function (e) { var b = e.target.closest('.plate'); if (b) go(Number(b.getAttribute('data-i'))); });
+  $('index-list').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) go(Number(b.getAttribute('data-i'))); });
+  $('prev').addEventListener('click', function () { go(cur() - 1); });
+  $('next').addEventListener('click', function () { go(cur() + 1); });
+  $('chart-new').addEventListener('click', function () { location.hash = '#chart-new'; });
+  document.addEventListener('keydown', function (e) {
+    if (n < 2 || e.altKey || e.ctrlKey || e.metaKey || /input|textarea|select/i.test(e.target.tagName)) return;
+    // left/right turn the dial anywhere on the page; up/down/home/end only while a dial control has focus
+    var k = e.key, inDial = !!(e.target.closest && e.target.closest('.dial-col'));
+    if (k === 'ArrowRight' || (inDial && k === 'ArrowDown')) { e.preventDefault(); go(cur() + 1); }
+    else if (k === 'ArrowLeft' || (inDial && k === 'ArrowUp')) { e.preventDefault(); go(cur() - 1); }
+    else if (inDial && k === 'Home') { e.preventDefault(); go(0); }
+    else if (inDial && k === 'End') { e.preventDefault(); go(n - 1); }
+  });
+})();
+</script>
+</body>
+</html>

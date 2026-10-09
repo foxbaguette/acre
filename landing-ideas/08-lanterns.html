@@ -1,0 +1,446 @@
+<!--
+  Concept 08: Lanterns at Dusk
+  Idea: the game after the sun goes down. A calm, luxurious night page led by the glowing fantasy crops and the
+        luminous creatures, each floating in its own halo, with the island itself shown by lantern light.
+        "Play at your own pace" is the heart of it.
+  Palette: dusk #0b0d26 -> #131b48 -> #0f3346 -> #0a2229, starlight #ece8f7, mist #a7aecb,
+           lantern gold #f2cd8b, moon lilac #b8a8ff, glow teal #7fe6d6, ember #ff9a5a
+  Fonts: Fraunces (light, italic display), Jost (light sans body)
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unclaimed Acres: tend a quiet island by lantern light</title>
+<meta name="description" content="Unclaimed Acres is a calm island farming and creature game on the WAX blockchain. Play at your own pace.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night-0:#090b22; --night-1:#0d1030; --night-2:#131b48; --night-3:#0f3346; --night-4:#0a2229;
+    --star:#ece8f7; --mist:#a7aecb; --mist-2:#7d85a8; --line:rgba(236,232,247,.14);
+    --gold:#f2cd8b; --gold-2:#e2b062; --lilac:#b8a8ff; --teal:#7fe6d6; --ember:#ff9a5a;
+    --serif:"Fraunces", Georgia, serif; --sans:"Jost", system-ui, sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth;background:var(--night-0)}
+  body{margin:0;font-family:var(--sans);font-weight:300;font-size:18px;line-height:1.7;color:var(--star);overflow-x:hidden;
+    background:linear-gradient(180deg,var(--night-0) 0%, var(--night-1) 12%, var(--night-2) 34%, #12285a 46%, var(--night-3) 66%, var(--night-4) 86%, #071519 100%)}
+  /* faint star field, fixed so it feels like sky */
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.75;
+    background-image:
+      radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 27% 62%, #fff 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 41% 9%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 53% 41%, #dfe3ff 50%, transparent 51%),
+      radial-gradient(1px 1px at 68% 77%, #fff 50%, transparent 51%),
+      radial-gradient(1.6px 1.6px at 79% 23%, #fff4dc 50%, transparent 51%),
+      radial-gradient(1px 1px at 91% 55%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 6% 86%, #dfe3ff 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 35% 93%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 86% 91%, #fff 50%, transparent 51%);
+    background-size:420px 380px}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.45;
+    background-image:
+      radial-gradient(1px 1px at 18% 34%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 44% 71%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 72% 12%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 93% 66%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 61% 48%, #fff 50%, transparent 51%);
+    background-size:230px 260px;animation:twinkle 9s ease-in-out infinite alternate}
+  @keyframes twinkle{from{opacity:.25}to{opacity:.55}}
+  main,header,footer{position:relative;z-index:1}
+  img{display:block;max-width:100%;height:auto}
+  a{color:inherit}
+  h1,h2,h3{font-family:var(--serif);font-weight:300;margin:0;line-height:1.05;letter-spacing:-.015em;font-variation-settings:"opsz" 144;text-wrap:balance}
+  em{font-style:italic}
+  p{margin:0;text-wrap:pretty}
+  :focus-visible{outline:1.5px solid var(--gold);outline-offset:4px;border-radius:999px}
+  .wrap{width:min(1180px,100% - 32px);margin-inline:auto}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .eyebrow{font:400 13px/1 var(--sans);letter-spacing:.32em;text-transform:uppercase;color:var(--gold)}
+  .eyebrow::before,.eyebrow::after{content:"";display:inline-block;width:28px;height:1px;background:currentColor;opacity:.5;vertical-align:middle;margin:0 14px 3px}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:12px;font:400 16px/1 var(--sans);letter-spacing:.08em;color:#1a1530;cursor:pointer;
+    background:linear-gradient(180deg,#f8dca5,var(--gold) 60%,var(--gold-2));border:0;border-radius:999px;padding:17px 30px;
+    box-shadow:0 0 0 1px rgba(255,230,180,.4), 0 0 40px -6px rgba(242,205,139,.65), 0 10px 30px -10px rgba(0,0,0,.6);transition:box-shadow .4s ease, transform .4s ease}
+  .btn:hover{box-shadow:0 0 0 1px rgba(255,230,180,.6), 0 0 60px -2px rgba(242,205,139,.85), 0 10px 30px -10px rgba(0,0,0,.6);transform:translateY(-1px)}
+  .btn .dot{width:8px;height:8px;border-radius:50%;background:#fff6dc;box-shadow:0 0 10px 3px rgba(255,240,200,.9)}
+  .btn.line{color:var(--gold);background:transparent;box-shadow:inset 0 0 0 1px rgba(242,205,139,.55);padding:12px 22px;font-size:15px}
+  .btn.line:hover{box-shadow:inset 0 0 0 1px var(--gold), 0 0 30px -8px rgba(242,205,139,.6)}
+  .link{color:var(--mist);text-decoration:none;font-size:16px;letter-spacing:.04em;border-bottom:1px solid var(--line);padding-bottom:3px;transition:color .3s,border-color .3s}
+  .link:hover{color:var(--star);border-color:var(--mist)}
+
+  /* header */
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:26px 0}
+  .brand{display:flex;align-items:center;gap:14px;text-decoration:none}
+  .brand img{width:44px;height:44px;filter:drop-shadow(0 0 14px rgba(242,205,139,.35))}
+  .brand span{font:300 italic 26px/1 var(--serif);letter-spacing:-.01em}
+  .nav ul{display:flex;gap:34px;list-style:none;margin:0;padding:0}
+  .nav ul a{text-decoration:none;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--mist);transition:color .3s}
+  .nav ul a:hover{color:var(--star)}
+
+  /* halos */
+  .halo{position:relative;display:grid;place-items:center;aspect-ratio:1}
+  .halo::before{content:"";position:absolute;inset:-18%;border-radius:50%;
+    background:radial-gradient(closest-side, var(--hc) 0%, color-mix(in srgb, var(--hc) 40%, transparent) 38%, transparent 72%);
+    opacity:var(--ho,.55);filter:blur(6px);animation:breathe 8s ease-in-out infinite}
+  .halo::after{content:"";position:absolute;inset:6%;border-radius:50%;border:1px solid color-mix(in srgb, var(--hc) 40%, transparent);opacity:.45}
+  .halo img{position:relative;width:78%;filter:drop-shadow(0 0 18px color-mix(in srgb, var(--hc) 70%, transparent))}
+  @keyframes breathe{0%,100%{transform:scale(1);opacity:var(--ho,.55)}50%{transform:scale(1.05);opacity:calc(var(--ho,.55) + .12)}}
+
+  /* hero */
+  .hero{text-align:center;padding:44px 0 40px;position:relative}
+  .moon{position:absolute;right:9%;top:-10px;width:120px;height:120px;border-radius:50%;
+    box-shadow:inset -22px 8px 0 0 #f4ecd6, 0 0 60px -10px rgba(244,236,214,.35);transform:rotate(-18deg);opacity:.9}
+  .hero h1{font-size:clamp(46px,6.4vw,92px);margin:24px auto 24px;max-width:11em}
+  .hero h1 em{color:var(--gold);font-weight:300;text-shadow:0 0 40px rgba(242,205,139,.45)}
+  .hero .lede{font-size:clamp(17px,1.5vw,20px);color:var(--mist);max-width:34em;margin:0 auto}
+  .hero .cta{display:flex;gap:28px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:34px}
+  .trio{position:relative;display:grid;grid-template-columns:1fr 1.45fr 1fr;align-items:end;gap:2%;max-width:860px;margin:26px auto 0}
+  .trio figure{margin:0;display:flex;flex-direction:column;align-items:center}
+  .trio figcaption{font:300 italic 22px/1.2 var(--serif);margin-top:8px}
+  .trio figcaption small{display:block;font:400 12px/1.4 var(--sans);font-style:normal;letter-spacing:.28em;text-transform:uppercase;color:var(--mist-2);margin-top:8px}
+  .trio .halo{width:100%}
+  .trio figure:nth-child(1),.trio figure:nth-child(3){padding-bottom:40px}
+  .horizon{position:absolute;left:-10%;right:-10%;bottom:-6px;height:120px;pointer-events:none;
+    background:radial-gradient(50% 50% at 50% 100%, rgba(127,230,214,.18), transparent 70%)}
+  .fly{position:absolute;width:var(--w,64px);pointer-events:none;animation:drift var(--dur,16s) ease-in-out infinite;animation-delay:var(--del,0s)}
+  .fly img{width:100%;filter:drop-shadow(0 0 10px rgba(255,236,150,.7))}
+  .fly::after{content:"";position:absolute;left:4%;bottom:12%;width:30%;height:30%;border-radius:50%;background:radial-gradient(closest-side, rgba(255,240,170,.9), transparent);filter:blur(4px)}
+  @keyframes drift{0%,100%{transform:translate(0,0) rotate(-4deg)}33%{transform:translate(16px,-14px) rotate(2deg)}66%{transform:translate(-10px,-24px) rotate(-1deg)}}
+
+  /* interlude: pace */
+  .pace{padding:150px 0 140px;text-align:center}
+  .pace .glyph{width:1px;height:90px;margin:0 auto 46px;background:linear-gradient(transparent,var(--gold))}
+  .pace h2{font-size:clamp(40px,6vw,84px);font-style:italic}
+  .pace p{max-width:32em;margin:30px auto 0;color:var(--mist);font-size:clamp(18px,1.6vw,21px)}
+  .pace .three{display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:960px;margin:70px auto 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .pace .three div{padding:30px 26px;text-align:left}
+  .pace .three div + div{border-left:1px solid var(--line)}
+  .pace .three b{display:block;font:300 italic 24px/1.2 var(--serif);color:var(--star);margin-bottom:8px}
+  .pace .three span{font-size:16px;color:var(--mist);line-height:1.6;display:block}
+
+  /* section heading */
+  .shead{text-align:center;max-width:760px;margin:0 auto 70px}
+  .shead h2{font-size:clamp(38px,5vw,68px);margin:22px 0 22px}
+  .shead h2 em{color:var(--gold)}
+  .shead p{color:var(--mist);font-size:19px}
+  .sec{padding:110px 0}
+
+  /* crops: phases */
+  .phases{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(8,1fr);gap:14px;position:relative}
+  .phases::before{content:"";position:absolute;left:6%;right:6%;top:calc((100% - 70px) / 2);height:1px;background:linear-gradient(90deg,transparent,rgba(184,168,255,.45),transparent)}
+  .phases li{display:flex;flex-direction:column;align-items:center;text-align:center;position:relative}
+  .phase{width:100%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;
+    background:radial-gradient(circle at 50% 45%, rgba(184,168,255,calc(var(--g) * .34)), rgba(13,16,48,.9) 70%);
+    box-shadow:inset 0 0 0 1px rgba(184,168,255,.22), 0 0 calc(var(--g) * 50px) calc(var(--g) * -4px) rgba(184,168,255,.55)}
+  .phase img{width:88%;filter:drop-shadow(0 0 calc(var(--g) * 14px) rgba(200,190,255,.8))}
+  .phases .num{font:300 italic 20px/1 var(--serif);color:var(--gold);margin-top:18px}
+  .phases .lab{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--mist-2);margin-top:8px;line-height:1.4}
+  .phases li.dead .phase{filter:saturate(.4) brightness(.8)}
+
+  .glowcrops{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:110px}
+  .gc{position:relative;border-radius:200px 200px 24px 24px;padding:44px 34px 38px;text-align:center;
+    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.01));box-shadow:inset 0 0 0 1px var(--line)}
+  .gc .halo{width:72%;margin:0 auto 18px}
+  .gc h3{font-size:34px;font-style:italic}
+  .gc .kind{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--hc2);margin:10px 0 14px;display:block}
+  .gc p{color:var(--mist);font-size:16.5px}
+  .gc .stages{display:flex;justify-content:center;gap:6px;margin-top:22px}
+  .gc .stages img{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1px var(--line);padding:3px}
+  .more{text-align:center;margin-top:46px;color:var(--mist);font-size:17px}
+  .more em{font-family:var(--serif);color:var(--star);font-size:20px}
+
+  /* creatures */
+  .sky{position:relative;display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:auto;gap:10px 20px}
+  .cr{grid-column:span 3;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .cr .halo{width:100%;max-width:270px}
+  .cr .halo img{width:82%}
+  .cr h3{font:300 italic 26px/1.1 var(--serif);margin-top:6px}
+  .cr p{font-size:14px;letter-spacing:.06em;color:var(--mist-2);margin-top:6px;max-width:16em}
+  .cr.big{grid-column:span 4}
+  .cr.big .halo{max-width:360px}
+  .cr.up{margin-top:-40px}.cr.down{margin-top:60px}
+  .sky .lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.5}
+  .twoviews{display:flex;align-items:center;justify-content:center;gap:34px;margin-top:80px;flex-wrap:wrap;text-align:left}
+  .twoviews .pair{display:flex;gap:14px}
+  .twoviews .pair figure{margin:0;width:140px;text-align:center}
+  .twoviews .pair .halo{width:140px}
+  .twoviews figcaption{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--mist-2);margin-top:4px}
+  .twoviews p{max-width:26em;color:var(--mist);font-size:17px}
+  .twoviews p b{font:300 italic 26px/1.2 var(--serif);color:var(--star);display:block;margin-bottom:6px}
+
+  /* island at night */
+  .isle{position:relative;border-radius:28px;overflow:hidden;box-shadow:0 0 0 1px var(--line), 0 40px 100px -40px rgba(0,0,0,.8)}
+  .isle .frame{position:relative;aspect-ratio:1920/1090}
+  .isle .frame img{width:100%;height:100%;object-fit:cover;filter:brightness(.64) saturate(.8) contrast(1.05) hue-rotate(8deg)}
+  .isle .frame::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(28,30,110,.55),rgba(10,40,70,.35));mix-blend-mode:multiply}
+  .isle .frame::after{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,rgba(9,11,34,.92) 0%,rgba(9,11,34,.6) 34%,rgba(9,11,34,0) 52%)}
+  .glow{position:absolute;z-index:3;left:var(--x);top:var(--y);width:var(--s,90px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(closest-side, rgba(255,214,140,.95) 0 6%, rgba(255,190,110,.35) 22%, transparent 70%);mix-blend-mode:screen;
+    animation:flicker var(--fd,6s) ease-in-out infinite}
+  .glow.cool{background:radial-gradient(closest-side, rgba(200,240,255,.9) 0 5%, rgba(127,230,214,.3) 24%, transparent 70%)}
+  @keyframes flicker{0%,100%{opacity:.85}45%{opacity:1}60%{opacity:.7}}
+  .isle .copy{position:absolute;z-index:4;left:6%;top:50%;transform:translateY(-50%);max-width:400px}
+  .isle .copy h2{font-size:clamp(36px,4.4vw,60px);margin:20px 0 22px}
+  .isle .copy h2 em{color:var(--gold)}
+  .isle .copy p{color:var(--mist);font-size:17px}
+  .isle .copy .eyebrow::before{display:none}
+  .terrain{list-style:none;padding:0;margin:26px 0 0;display:flex;flex-wrap:wrap;gap:4px 22px}
+  .terrain li{font:300 italic 18px/1.6 var(--serif);color:var(--star)}
+  .terrain li::before{content:"";display:inline-block;width:5px;height:5px;background:var(--gold);transform:rotate(45deg);margin-right:10px;vertical-align:4px;box-shadow:0 0 8px var(--gold)}
+
+  /* final */
+  .final{padding:150px 0 130px;text-align:center}
+  .final .halo{width:min(300px,70vw);margin:0 auto 10px}
+  .final h2{font-size:clamp(44px,6.4vw,92px)}
+  .final h2 em{color:var(--gold)}
+  .final p{color:var(--mist);max-width:30em;margin:26px auto 40px;font-size:19px}
+  .final .wallets{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--mist-2);margin:28px auto 0;max-width:none}
+  .final .wallets b{font-weight:400;color:var(--mist)}
+
+  footer{border-top:1px solid var(--line);padding:40px 0 50px;color:var(--mist-2);font-size:15px}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  footer .brand span{font-size:22px;color:var(--star)}
+  footer .brand img{width:36px;height:36px}
+  footer nav{display:flex;gap:28px;flex-wrap:wrap}
+  footer nav a{text-decoration:none;letter-spacing:.1em;text-transform:uppercase;font-size:13px}
+  footer nav a:hover{color:var(--star)}
+
+  @media (max-width:1000px){
+    .nav ul{display:none}
+    .phases{grid-template-columns:repeat(4,1fr);row-gap:40px}
+    .phases::before{display:none}
+    .glowcrops{grid-template-columns:1fr;max-width:460px;margin-inline:auto}
+    .cr,.cr.big{grid-column:span 6}
+    .cr.up,.cr.down{margin-top:0}
+    .sky .lines{display:none}
+    .isle .frame{aspect-ratio:auto;min-height:640px}
+    .isle .frame img{position:absolute;inset:0;object-position:70% 50%}
+    .isle .frame::after{background:linear-gradient(180deg,rgba(9,11,34,.92) 0%,rgba(9,11,34,.55) 45%,rgba(9,11,34,.1) 75%)}
+    .isle .copy{top:40px;transform:none;left:24px;right:24px}
+    .glow{display:none}
+    .pace .three{grid-template-columns:1fr}
+    .pace .three div + div{border-left:0;border-top:1px solid var(--line)}
+  }
+  @media (max-width:600px){
+    body{font-size:16px}
+    .brand span{font-size:19px}
+    .brand{gap:10px}.brand img{width:36px;height:36px}
+    .nav .btn.line{padding:10px 14px;font-size:13px;gap:8px;letter-spacing:.04em}
+    .eyebrow{letter-spacing:.2em;font-size:12px}
+    .eyebrow::before,.eyebrow::after{display:none}
+    .moon{opacity:.55}
+    .moon{width:70px;height:70px;right:4%;top:0}
+    .trio{grid-template-columns:1fr 1.3fr 1fr}
+    .trio figcaption{font-size:16px}
+    .trio figcaption small{display:none}
+    .sec{padding:80px 0}
+    .pace{padding:100px 0}
+    .phases{gap:10px}
+    .phases .lab{font-size:10px;letter-spacing:.14em}
+    .cr h3{font-size:21px}
+    .cr p{font-size:13px}
+    .gc{padding:36px 22px 30px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Unclaimed Acres home">
+      <img src="assets/emblem.svg" alt="" width="44" height="44">
+      <span>Unclaimed Acres</span>
+    </a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="#garden">The garden</a></li>
+        <li><a href="#creatures">Creatures</a></li>
+        <li><a href="#island">Your island</a></li>
+        <li><a href="#pace">Your pace</a></li>
+      </ul>
+    </nav>
+    <button class="btn line" type="button"><span class="dot" aria-hidden="true"></span>Connect wallet</button>
+  </div>
+</header>
+
+<main id="top">
+  <!-- ================= HERO ================= -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="moon" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="eyebrow">An island game for quiet evenings</p>
+      <h1 id="hero-title">Tend a quiet island by <em>lantern light</em>.</h1>
+      <p class="lede">Unclaimed Acres is a calm farming and creature game on the WAX blockchain. Grow strange, glowing things. Meet gentle creatures. Play at your own pace.</p>
+      <div class="cta">
+        <button class="btn" type="button"><span class="dot" aria-hidden="true"></span>Connect wallet</button>
+        <a class="link" href="#garden">Walk through the night garden</a>
+      </div>
+
+      <div class="trio">
+        <span class="fly" style="left:6%;top:4%;--w:84px;--dur:17s" aria-hidden="true"><img src="../topdown/bugs__lantern-firefly/side.svg" alt=""></span>
+        <span class="fly" style="right:4%;top:-8%;--w:64px;--dur:21s;--del:-6s;transform:scaleX(-1)" aria-hidden="true"><img src="../topdown/bugs__lantern-firefly/side.svg" alt="" style="transform:scaleX(-1)"></span>
+        <figure>
+          <div class="halo" style="--hc:#7fe6d6;--ho:.45"><img src="../crops/glowcap/7-harvest-front.svg" alt="Glowcap: three purple mushrooms with glowing teal gills"></div>
+          <figcaption>Glowcap<small>Fantasy crop</small></figcaption>
+        </figure>
+        <figure>
+          <div class="halo" style="--hc:#b8a8ff;--ho:.6"><img src="../crops/moonbloom/7-harvest-front.svg" alt="Moonbloom: a bouquet of pale blue star-shaped flowers"></div>
+          <figcaption>Moonbloom<small>Fantasy crop</small></figcaption>
+        </figure>
+        <figure>
+          <div class="halo" style="--hc:#ff9a5a;--ho:.42"><img src="../crops/ember-pepper/7-harvest-front.svg" alt="Ember peppers: red peppers with flame-yellow tips"></div>
+          <figcaption>Ember pepper<small>Fantasy crop</small></figcaption>
+        </figure>
+        <div class="horizon" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PACE (the heart) ================= -->
+  <section class="pace" id="pace" aria-labelledby="pace-title">
+    <div class="wrap">
+      <div class="glyph" aria-hidden="true"></div>
+      <p class="eyebrow">The one rule</p>
+      <h2 id="pace-title" style="margin-top:24px">Play at your own pace.</h2>
+      <p>Unclaimed Acres is made to be played slowly. Visit for a minute before bed or stay for a whole evening. There is nothing to race and no one to keep up with; your island is simply there, and it is yours.</p>
+      <div class="three">
+        <div><b>An island of your own</b><span>Generated, stored on the WAX blockchain and owned by your wallet.</span></div>
+        <div><b>A garden that grows</b><span>64 crops, each drawn through eight stages from seed to harvest.</span></div>
+        <div><b>Quiet company</b><span>More than 50 creatures, from foxes and owls to kirin and phoenixes.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CROPS ================= -->
+  <section class="sec" id="garden" aria-labelledby="garden-title">
+    <div class="wrap">
+      <div class="shead">
+        <p class="eyebrow">The night garden</p>
+        <h2 id="garden-title">Eight phases, <em>like the moon</em>.</h2>
+        <p>Every one of the 64 crops is drawn through its whole life. Here is a moonbloom, from a handful of crescent seeds to a starry bouquet, and the quiet wilt that waits if it's left too long.</p>
+      </div>
+
+      <ol class="phases">
+        <li style="--g:.15"><div class="phase"><img src="../crops/moonbloom/1-seeds-front.svg" alt="Moonbloom seeds, shaped like little crescents"></div><span class="num">i</span><span class="lab">Seeds</span></li>
+        <li style="--g:.2"><div class="phase"><img src="../crops/moonbloom/2-sown.svg" alt="Moonbloom sown in soil"></div><span class="num">ii</span><span class="lab">Sown</span></li>
+        <li style="--g:.35"><div class="phase"><img src="../crops/moonbloom/3-first-growth.svg" alt="First moonbloom sprout"></div><span class="num">iii</span><span class="lab">First growth</span></li>
+        <li style="--g:.5"><div class="phase"><img src="../crops/moonbloom/4-second-growth.svg" alt="Moonbloom leaves spreading"></div><span class="num">iv</span><span class="lab">Second growth</span></li>
+        <li style="--g:.7"><div class="phase"><img src="../crops/moonbloom/5-third-growth.svg" alt="Moonbloom with buds"></div><span class="num">v</span><span class="lab">Third growth</span></li>
+        <li style="--g:1"><div class="phase"><img src="../crops/moonbloom/6-harvest.svg" alt="Moonbloom in full bloom, ready to harvest"></div><span class="num">vi</span><span class="lab">Harvest</span></li>
+        <li style="--g:.8"><div class="phase"><img src="../crops/moonbloom/7-harvest-front.svg" alt="A picked bouquet of moonbloom"></div><span class="num">vii</span><span class="lab">Gathered</span></li>
+        <li class="dead" style="--g:.05"><div class="phase"><img src="../crops/moonbloom/8-dead.svg" alt="Wilted moonbloom"></div><span class="num">viii</span><span class="lab">Wilted</span></li>
+      </ol>
+
+      <div class="glowcrops">
+        <article class="gc" style="--hc:#b8a8ff;--hc2:#cbbfff">
+          <div class="halo" style="--hc:#b8a8ff;--ho:.5"><img src="../crops/moonbloom/7-harvest-front.svg" alt="" loading="lazy"></div>
+          <h3>Moonbloom</h3><span class="kind">Starlit flower</span>
+          <p>Pale petals that look cut from the night sky itself.</p>
+          <div class="stages" aria-hidden="true"><img src="../crops/moonbloom/3-first-growth.svg" alt=""><img src="../crops/moonbloom/4-second-growth.svg" alt=""><img src="../crops/moonbloom/5-third-growth.svg" alt=""><img src="../crops/moonbloom/6-harvest.svg" alt=""></div>
+        </article>
+        <article class="gc" style="--hc2:#9ff0e3">
+          <div class="halo" style="--hc:#7fe6d6;--ho:.42"><img src="../crops/glowcap/7-harvest-front.svg" alt="" loading="lazy"></div>
+          <h3>Glowcap</h3><span class="kind">Luminous mushroom</span>
+          <p>Speckled caps with gills that shine a soft sea-glass teal.</p>
+          <div class="stages" aria-hidden="true"><img src="../crops/glowcap/3-first-growth.svg" alt=""><img src="../crops/glowcap/4-second-growth.svg" alt=""><img src="../crops/glowcap/5-third-growth.svg" alt=""><img src="../crops/glowcap/6-harvest.svg" alt=""></div>
+        </article>
+        <article class="gc" style="--hc2:#ffb98a">
+          <div class="halo" style="--hc:#ff9a5a;--ho:.38"><img src="../crops/ember-pepper/7-harvest-front.svg" alt="" loading="lazy"></div>
+          <h3>Ember pepper</h3><span class="kind">Smouldering fruit</span>
+          <p>Each pod ends in a little flame, warm as a hearth.</p>
+          <div class="stages" aria-hidden="true"><img src="../crops/ember-pepper/3-first-growth.svg" alt=""><img src="../crops/ember-pepper/4-second-growth.svg" alt=""><img src="../crops/ember-pepper/5-third-growth.svg" alt=""><img src="../crops/ember-pepper/6-harvest.svg" alt=""></div>
+        </article>
+      </div>
+      <p class="more">And <em>61 more</em>, from carrots and rice to dragon fruit and pineberries.</p>
+    </div>
+  </section>
+
+  <!-- ================= CREATURES ================= -->
+  <section class="sec" id="creatures" aria-labelledby="cr-title">
+    <div class="wrap">
+      <div class="shead">
+        <p class="eyebrow">Company after dark</p>
+        <h2 id="cr-title">Creatures that <em>carry their own light</em>.</h2>
+        <p>More than 50 creatures share the islands, the everyday and the mythical. A few of them are at their best once the sun has gone down.</p>
+      </div>
+
+      <div class="sky">
+        <svg class="lines" viewBox="0 0 1200 900" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points="150,170 450,120 750,200 1050,140" fill="none" stroke="rgba(242,205,139,.35)" stroke-width="1" stroke-dasharray="2 7"/>
+          <polyline points="200,640 600,560 1000,650" fill="none" stroke="rgba(184,168,255,.35)" stroke-width="1" stroke-dasharray="2 7"/>
+        </svg>
+        <div class="cr up"><div class="halo" style="--hc:#ffe08a;--ho:.4"><img src="../topdown/bugs__lantern-firefly/side.svg" alt="Lantern firefly: a dark firefly with a glowing yellow tail" loading="lazy"></div><h3>Lantern firefly</h3><p>Small, slow, and always lit.</p></div>
+        <div class="cr"><div class="halo" style="--hc:#8bf5c9;--ho:.4"><img src="../topdown/dinos__aurora-pterosaur/side.svg" alt="Aurora pterosaur: a purple flyer with green and violet aurora-coloured wings" loading="lazy"></div><h3>Aurora pterosaur</h3><p>Wings the colour of northern lights.</p></div>
+        <div class="cr down"><div class="halo" style="--hc:#9fb2ff;--ho:.5"><img src="../topdown/felines__moon-cat/side.svg" alt="Moon cat: a blue cat with stars and a crescent moon in its fur" loading="lazy"></div><h3>Moon cat</h3><p>Keeps the night sky in its coat.</p></div>
+        <div class="cr"><div class="halo" style="--hc:#d7a8ff;--ho:.45"><img src="../topdown/flyers__aether-jelly/side.svg" alt="Aether jelly: a floating violet jellyfish with crystal spots" loading="lazy"></div><h3>Aether jelly</h3><p>Drifts through air like water.</p></div>
+        <div class="cr big down"><div class="halo" style="--hc:#ffd27a;--ho:.38"><img src="../topdown/beasts__lantern-giraffe/side.svg" alt="Lantern giraffe: a golden giraffe with small lanterns on its horns" loading="lazy"></div><h3>Lantern giraffe</h3><p>Carries two little lamps to see by.</p></div>
+        <div class="cr big"><div class="halo" style="--hc:#8ff0f0;--ho:.4"><img src="../topdown/flyers__glass-dragonfly/side.svg" alt="Glass dragonfly: a teal dragonfly with clear glassy wings" loading="lazy"></div><h3>Glass dragonfly</h3><p>Wings like frosted window panes.</p></div>
+        <div class="cr big up"><div class="halo" style="--hc:#ff9a5a;--ho:.45"><img src="../topdown/creatures__phoenix/side.svg" alt="Phoenix: an orange and gold firebird with spread wings" loading="lazy"></div><h3>Phoenix</h3><p>A warm glow on the coldest night.</p></div>
+      </div>
+
+      <div class="twoviews">
+        <div class="pair">
+          <figure><div class="halo" style="--hc:#9fb2ff;--ho:.3"><img src="../topdown/felines__moon-cat/side.svg" alt="Moon cat from the side" loading="lazy"></div><figcaption>Side</figcaption></figure>
+          <figure><div class="halo" style="--hc:#9fb2ff;--ho:.3"><img src="../topdown/felines__moon-cat/top.svg" alt="Moon cat from above" loading="lazy"></div><figcaption>Above</figcaption></figure>
+        </div>
+        <p><b>Seen two ways</b>Every creature is drawn from the side, and again from above, the way you'll spot it wandering across your island map.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ISLAND AT NIGHT ================= -->
+  <section class="sec" id="island" aria-labelledby="isle-title">
+    <div class="wrap">
+      <div class="isle">
+        <div class="frame">
+          <img src="assets/island-hero.webp" alt="A generated island at night: a long green peninsula with beaches, pine forests and a terraced snowy mountain, lit by a few warm lights." width="1920" height="1090" loading="lazy">
+          <span class="glow" style="--x:66%;--y:55%;--s:110px" aria-hidden="true"></span>
+          <span class="glow" style="--x:57%;--y:83%;--s:90px;--fd:7s" aria-hidden="true"></span>
+          <span class="glow" style="--x:81%;--y:36%;--s:80px;--fd:5s" aria-hidden="true"></span>
+          <span class="glow" style="--x:70%;--y:12%;--s:70px;--fd:8s" aria-hidden="true"></span>
+          <span class="glow cool" style="--x:73.5%;--y:37%;--s:120px;--fd:9s" aria-hidden="true"></span>
+          <span class="glow" style="--x:84%;--y:66%;--s:70px;--fd:6.5s" aria-hidden="true"></span>
+          <span class="glow" style="--x:52%;--y:12%;--s:60px;--fd:7.5s" aria-hidden="true"></span>
+          <div class="copy">
+            <p class="eyebrow">Your island</p>
+            <h2 id="isle-title">No two islands <em>alike</em>.</h2>
+            <p>Each island is generated, stored on the WAX blockchain and owned by your wallet. Yours might have</p>
+            <ul class="terrain">
+              <li>peninsulas</li><li>bays</li><li>beaches</li><li>forests</li><li>lakes</li><li>terraced snowy mountains</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FINAL ================= -->
+  <section class="final" aria-labelledby="final-title">
+    <div class="wrap">
+      <div class="halo" style="--hc:#b8a8ff;--ho:.55"><img src="../crops/moonbloom/6-harvest.svg" alt="Moonbloom in full bloom, seen from above"></div>
+      <h2 id="final-title">Claim a <em>quiet acre</em>.</h2>
+      <p>Connect a wallet and follow Unclaimed Acres as it grows, one evening at a time.</p>
+      <button class="btn" type="button"><span class="dot" aria-hidden="true"></span>Connect wallet</button>
+      <p class="wallets">Works with <b>WAX Cloud Wallet</b> · <b>Wombat</b> · <b>Anchor</b></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="#top"><img src="assets/emblem.svg" alt="" width="36" height="36"><span>Unclaimed Acres</span></a>
+    <nav aria-label="Footer"><a href="#garden">Garden</a><a href="#creatures">Creatures</a><a href="#island">Island</a><a href="#pace">Pace</a></nav>
+    <p>A calm island game on the WAX blockchain, in development.</p>
+  </div>
+</footer>
+</body>
+</html>

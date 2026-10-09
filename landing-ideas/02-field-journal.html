@@ -1,0 +1,1057 @@
+<!--
+  Concept 02: Field Journal (interactive)
+  Idea: the landing page is one open expedition journal. Bookmarks on the right page turn the page to each
+        chapter (foreword, island, creatures, crops, pace, claim); the page swings over the spine in 3D.
+  Palette: paper #f7f0de / #ebe0c6, ink #2b2721, ink-blue #25467f, sepia rule #b49c74, rust stamp #a5452d,
+           moss #5f6d3b, tape #e8d9a8
+  Fonts: IM Fell English (display), EB Garamond (body), Caveat (handwritten notes)
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unclaimed Acres - Field Journal</title>
+<meta name="description" content="Unclaimed Acres: a calm island farming and creature game. Every island is generated for you and owned by your wallet.">
+<link rel="icon" href="assets/stamp.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f7f0de;
+    --paper-2: #ebe0c6;
+    --paper-3: #e2d4b4;
+    --card: #fdf9ef;
+    --ink: #2b2721;
+    --ink-soft: #5a5246;
+    --blue: #25467f;
+    --blue-soft: rgba(37, 70, 127, .55);
+    --rule: #b49c74;
+    --rust: #a5452d;
+    --moss: #5f6d3b;
+    --tape: rgba(232, 217, 168, .82);
+    --shadow: 0 1px 1px rgba(60, 45, 20, .10), 0 6px 14px -4px rgba(60, 45, 20, .22), 0 18px 40px -18px rgba(60, 45, 20, .35);
+    --hand: "Caveat", "Segoe Print", cursive;
+    --serif: "EB Garamond", Georgia, serif;
+    --display: "IM Fell English", "EB Garamond", Georgia, serif;
+    --sc: "IM Fell English SC", "EB Garamond", Georgia, serif;
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .15 0 0 0 .32 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+    --fibres: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.008 .05' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .38 0 0 0 0 .2 0 0 0 .12 -.04'/%3E%3C/filter%3E%3Crect width='600' height='600' filter='url(%23f)'/%3E%3C/svg%3E");
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 1.1875rem;
+    line-height: 1.6;
+    background-color: #d8c59c;
+    background-image:
+      var(--noise),
+      radial-gradient(120% 80% at 50% 0%, rgba(255, 250, 235, .55), transparent 60%);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: var(--blue); }
+  :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 4px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .wrap { width: min(1220px, 100% - 32px); margin-inline: auto; }
+
+  /* ---------- paper sheets ---------- */
+  .sheet {
+    position: relative;
+    background-color: var(--paper);
+    background-image: var(--noise), var(--fibres),
+      radial-gradient(140% 100% at 50% 50%, transparent 62%, rgba(150, 115, 60, .16) 100%);
+    box-shadow: var(--shadow);
+    border-radius: 3px;
+  }
+  .hand { font-family: var(--hand); color: var(--blue); font-weight: 600; line-height: 1.15; }
+  .kicker {
+    font-family: var(--sc);
+    letter-spacing: .14em;
+    font-size: .95rem;
+    color: var(--rust);
+    display: flex; align-items: center; gap: .7em;
+    margin: 0 0 .6rem;
+  }
+  .kicker::before { content: ""; width: 34px; height: 1px; background: currentColor; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 400; line-height: 1.08; margin: 0; letter-spacing: -.005em; }
+  h2 { font-size: clamp(2.2rem, 1.4rem + 2.6vw, 3.5rem); }
+  h3 { font-size: 1.6rem; }
+  p { margin: 0 0 1em; }
+  .lede { font-size: 1.28rem; color: var(--ink-soft); max-width: 36em; }
+
+  /* tape + pins */
+  .tape { position: absolute; width: 96px; height: 28px; background: var(--tape);
+    box-shadow: 0 1px 2px rgba(0,0,0,.08); z-index: 3;
+    -webkit-mask: linear-gradient(90deg, transparent 0 2px, #000 2px calc(100% - 2px), transparent 0),
+      repeating-linear-gradient(0deg, #000 0 3px, transparent 3px 4px);
+    mask: linear-gradient(90deg, #000, #000); }
+  .tape::after { content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 6px, transparent 6px 13px); }
+  .pin { position: absolute; top: 12px; left: 50%; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; z-index: 3;
+    background: radial-gradient(circle at 35% 30%, #f3a48c, var(--rust) 55%, #6f2a18);
+    box-shadow: 2px 5px 5px -1px rgba(40, 20, 10, .35); }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    --b: var(--ink);
+    display: inline-flex; align-items: center; gap: .6em;
+    font-family: var(--sc); font-size: 1.12rem; letter-spacing: .08em;
+    padding: .78em 1.5em .72em;
+    color: var(--paper); background: var(--b);
+    border: 0; border-radius: 3px; cursor: pointer; text-decoration: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 2px 0 #14110d, 0 10px 18px -8px rgba(30, 20, 5, .6);
+    transition: transform .15s ease, background .15s ease;
+  }
+  .btn svg { width: 1.1em; height: 1.1em; }
+  .btn:hover { background: #1b2f55; transform: translateY(-1px); }
+  .btn:active { transform: translateY(1px); }
+  .btn.small { font-size: .98rem; padding: .6em 1.15em .55em; }
+  .link-hand { font-family: var(--hand); font-size: 1.55rem; color: var(--blue); text-decoration: none; display: inline-flex; align-items: center; gap: .35em; }
+  .link-hand:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; }
+
+  /* ---------- header ---------- */
+  .top { position: relative; z-index: 10; padding: 20px 0 10px; }
+  .top .wrap { display: flex; align-items: center; gap: 28px; }
+  .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--ink); }
+  .brand img { width: 54px; height: 54px; filter: drop-shadow(0 3px 4px rgba(60,40,10,.3)); }
+  .brand b { font-family: var(--display); font-weight: 400; font-size: 1.85rem; letter-spacing: .005em; line-height: 1; }
+  .brand small { display: block; font-family: var(--hand); color: var(--blue); font-size: 1.1rem; margin-top: 3px; }
+  .nav { display: flex; gap: 6px; margin-left: auto; }
+  .nav a { font-family: var(--sc); letter-spacing: .1em; font-size: 1rem; color: var(--ink); text-decoration: none; padding: .4em .8em; border-radius: 3px; }
+  .nav a:hover { color: var(--blue); background: rgba(37,70,127,.07); }
+
+  /* ---------- hero spread ---------- */
+  .hero { padding: 26px 0 70px; }
+  .spread {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-radius: 4px 4px 6px 6px;
+    position: relative;
+  }
+  .spread::before { /* page edges under the book */
+    content: ""; position: absolute; inset: 8px -6px -10px; z-index: -1; border-radius: 6px;
+    background: repeating-linear-gradient(0deg, #e8dcc0 0 2px, #d8c8a4 2px 3px);
+    box-shadow: 0 30px 60px -30px rgba(50, 35, 10, .6);
+  }
+  .spread > .page { position: relative; }
+  .spread > .page:first-child { border-radius: 4px 0 0 6px; padding: 46px 52px 40px 60px;
+    background-image: var(--noise), var(--fibres), linear-gradient(90deg, transparent 88%, rgba(110, 80, 30, .16)); }
+  .spread > .page:last-child { border-radius: 0 4px 6px 0; padding: 48px 48px 40px;
+    background-image: var(--noise), var(--fibres), linear-gradient(270deg, transparent 88%, rgba(110, 80, 30, .2)),
+      linear-gradient(rgba(37,70,127,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(37,70,127,.07) 1px, transparent 1px);
+    background-size: auto, auto, auto, 28px 28px, 28px 28px; }
+  .hero h1 { font-size: clamp(2.7rem, 1.6rem + 3vw, 4.25rem); margin: 4px 0 20px; }
+  .hero h1 em { font-style: italic; color: var(--blue); }
+  .entry-meta { display: flex; justify-content: space-between; font-family: var(--hand); color: var(--blue); font-size: 1.35rem; border-bottom: 1px solid var(--rule); padding-bottom: 6px; margin-bottom: 22px; }
+  .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 28px; margin: 26px 0 18px; }
+  .wallet-note { font-family: var(--hand); color: var(--ink-soft); font-size: 1.3rem; display: flex; gap: 10px; align-items: flex-start; }
+  .wallet-note svg { flex: none; width: 34px; height: 30px; color: var(--blue); margin-top: -2px; }
+  .facts-mini { display: flex; gap: 0; margin-top: 26px; border-top: 1px solid var(--rule); }
+  .facts-mini div { flex: 1; padding: 14px 10px 0 0; }
+  .facts-mini b { font-family: var(--display); font-size: 2.4rem; font-weight: 400; display: block; line-height: 1; }
+  .facts-mini span { font-family: var(--sc); font-size: .85rem; letter-spacing: .1em; color: var(--ink-soft); }
+
+  .photo { position: relative; background: #fffaf0; padding: 12px 12px 46px; box-shadow: var(--shadow); }
+  .photo img { width: 100%; aspect-ratio: 1920 / 1089; object-fit: cover; }
+  .photo figcaption { position: absolute; left: 16px; right: 16px; bottom: 8px; text-align: right; font-family: var(--hand); color: var(--blue); font-size: 1.35rem; }
+  .hero .photo { transform: rotate(1.4deg); margin: 10px 0 0; }
+  .hero .photo .tape.a { top: -12px; left: 30px; transform: rotate(-8deg); }
+  .hero .photo .tape.b { top: -10px; right: 34px; transform: rotate(7deg); }
+  .hero-row { position: relative; z-index: 4; display: grid; grid-template-columns: 44% 1fr 34%; align-items: start; margin-top: -54px; }
+  .hero-fox { margin: 0; transform: rotate(-4deg); background: var(--card); padding: 30px 16px 12px; box-shadow: var(--shadow); position: relative; }
+  .hero-fox img { width: 100%; aspect-ratio: 1; }
+  .hero-fox span { display: block; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; text-align: center; margin-top: -8px; }
+  .hero-crop { grid-column: 3; margin: 74px 0 0; transform: rotate(5deg); background: #f8f1df; padding: 16px 14px 10px; box-shadow: var(--shadow); border: 1px solid rgba(180,156,116,.4); position: relative; }
+  .hero-crop img { width: 100%; aspect-ratio: 1; }
+  .hero-crop .tape { top: -12px; left: calc(50% - 40px); width: 80px; transform: rotate(-4deg); }
+  .hero-crop span { display: block; font-family: var(--sc); letter-spacing: .1em; font-size: .78rem; text-align: center; color: var(--ink-soft); border-top: 1px solid var(--rule); padding-top: 4px; }
+  .scribble { grid-column: 2; grid-row: 1; justify-self: center; position: relative; margin: 96px 0 0; font-family: var(--hand); color: var(--blue); font-size: 1.6rem; line-height: 1.05; text-align: center; transform: rotate(-4deg); }
+  .packing { list-style: none; margin: 34px 0 0; padding: 0; display: flex; justify-content: flex-end; gap: 22px; font-family: var(--hand); color: var(--blue); font-size: 1.35rem; }
+  .packing::before { content: "packing list:"; color: var(--ink-soft); }
+  .packing li { position: relative; padding-left: 22px; }
+  .packing li::before { content: ""; position: absolute; left: 2px; top: 6px; width: 7px; height: 13px; border: solid var(--blue); border-width: 0 2.5px 2.5px 0; transform: rotate(40deg); }
+  .scribble svg { display: block; width: 46px; height: 60px; margin: 0 auto 4px; }
+
+  /* ---------- sections ---------- */
+  section { padding: 80px 0; }
+  .section-head { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px 60px; align-items: end; margin-bottom: 46px; }
+  .section-head .lede { margin: 0; }
+  .roman { font-family: var(--display); color: var(--rust); font-size: 1.25rem; display: block; margin-bottom: 6px; font-style: italic; }
+
+  /* ---------- island chart ---------- */
+  .chart-sheet { padding: 36px; display: grid; grid-template-columns: minmax(0, 2.25fr) minmax(0, 1fr); gap: 40px; }
+  .chart { position: relative; border: 1px solid var(--rule); padding: 10px; background: #f8f1df; }
+  .chart-inner { position: relative; }
+  .chart-inner img { width: 100%; aspect-ratio: 1920 / 1089; object-fit: cover; filter: saturate(.86) sepia(.08); }
+  .chart-inner::after { /* graticule */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(rgba(250,240,215,.28) 1px, transparent 1px) 0 0 / 100% 12.5%,
+                linear-gradient(90deg, rgba(250,240,215,.28) 1px, transparent 1px) 0 0 / 10% 100%;
+    box-shadow: inset 0 0 0 1px rgba(43,39,33,.35);
+  }
+  .chart-ticks { position: absolute; inset: 10px; pointer-events: none; font-family: var(--hand); color: var(--ink-soft); font-size: .95rem; }
+  .chart-overlay { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 2; }
+  .chart-overlay path { fill: none; stroke: #fff6df; stroke-width: 3; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .chart-overlay path.ink { stroke: var(--blue); stroke-width: 1.8; }
+  .chart-overlay circle.ring { fill: none; stroke: #fff6df; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+  .chart-overlay circle.dot { fill: var(--blue); stroke: #fff6df; stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .chart-overlay text { font-family: var(--serif); font-weight: 600; font-size: 34px; fill: #fff6df; text-anchor: middle; dominant-baseline: central; }
+  .callout { position: absolute; z-index: 3; background: rgba(251, 246, 233, .96); padding: 6px 12px 7px; box-shadow: 0 4px 10px -3px rgba(40, 30, 10, .4);
+    font-family: var(--hand); font-size: 1.32rem; line-height: 1.05; color: var(--blue); max-width: 190px; border-radius: 2px; }
+  .callout b { font-family: var(--sc); font-weight: 400; color: var(--ink); font-size: .82rem; letter-spacing: .12em; display: block; margin-bottom: 2px; }
+  .callout i { font-style: normal; display: inline-grid; place-items: center; width: 1.25em; height: 1.25em; border-radius: 50%; background: var(--blue); color: #fff; font-family: var(--serif); font-size: .7em; margin-right: 6px; vertical-align: 2px; }
+  .compass { position: absolute; right: 22px; bottom: 20px; width: 92px; height: 92px; z-index: 3; color: #fff6df; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+  .chart-cap { display: flex; justify-content: space-between; gap: 12px; font-family: var(--hand); color: var(--ink-soft); font-size: 1.25rem; padding: 8px 4px 0; }
+  .legend { display: none; }
+  .notes h3 { margin-bottom: 14px; }
+  .checklist { list-style: none; padding: 0; margin: 0 0 22px; }
+  .checklist li { position: relative; padding: 9px 0 9px 36px; border-bottom: 1px dashed rgba(180,156,116,.7); font-size: 1.08rem; line-height: 1.45; }
+  .checklist li::before { content: ""; position: absolute; left: 2px; top: 13px; width: 18px; height: 18px; border: 1.5px solid var(--ink-soft); border-radius: 2px; }
+  .checklist li::after { content: ""; position: absolute; left: 6px; top: 9px; width: 9px; height: 17px; border: solid var(--blue); border-width: 0 3px 3px 0; transform: rotate(40deg); border-radius: 1px; }
+  .margin-note { font-family: var(--hand); color: var(--blue); font-size: 1.5rem; line-height: 1.15; transform: rotate(-2deg); margin-top: 18px; padding-left: 16px; border-left: 2px solid var(--blue-soft); }
+  .terrain { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
+  .terrain li { font-family: var(--sc); font-size: .82rem; letter-spacing: .1em; padding: 4px 10px 3px; border: 1px solid var(--rule); border-radius: 20px; color: var(--ink-soft); }
+  .thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: 34px; }
+  .thumbs .photo { padding: 10px 10px 40px; }
+  .thumbs .photo:first-child { transform: rotate(-1.4deg); }
+  .thumbs .photo:last-child { transform: rotate(1.2deg); }
+  .thumbs .photo .tape { top: -12px; left: calc(50% - 48px); transform: rotate(-3deg); }
+
+  /* ---------- specimens ---------- */
+  .specimens { padding-bottom: 40px; background: linear-gradient(transparent, rgba(95, 109, 59, .07) 30%, transparent); }
+  .board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 40px 34px; }
+  .specimen { position: relative; margin: 0; background: var(--card); padding: 34px 18px 16px; box-shadow: var(--shadow);
+    transform: rotate(var(--r, 0deg)); transition: transform .3s ease; background-image: var(--noise); }
+  .specimen:hover { transform: rotate(0deg) translateY(-4px); }
+  .specimen .art { position: relative; aspect-ratio: 1; margin-top: 8px; }
+  .specimen .art img.side { width: 100%; height: 100%; }
+  .specimen .above { position: absolute; right: -8px; top: -26px; width: 66px; height: 66px; border-radius: 50%; border: 1.5px dashed var(--blue-soft); background: rgba(251,246,233,.9); padding: 6px; }
+  .specimen .above img { width: 100%; height: 100%; }
+  .specimen .above span { position: absolute; top: 18px; right: 70px; white-space: nowrap; font-family: var(--hand); color: var(--blue); font-size: 1.05rem; transform: rotate(-4deg); }
+  .measure { position: relative; height: 14px; margin: 2px 6px 10px; }
+  .measure::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 1px; background: var(--blue-soft); }
+  .measure::after { content: ""; position: absolute; left: 0; right: 0; top: 2px; height: 9px;
+    background: linear-gradient(90deg, var(--blue-soft) 1px, transparent 1px) 0 0 / 10% 100%;
+    border-right: 1px solid var(--blue-soft); }
+  .measure span { position: absolute; left: 50%; top: -2px; transform: translateX(-50%); background: var(--card); padding: 0 6px; font-family: var(--hand); color: var(--blue); font-size: 1rem; line-height: 1; }
+  .specimen figcaption { border-top: 1px solid var(--rule); padding-top: 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .specimen figcaption b { font-family: var(--display); font-weight: 400; font-size: 1.32rem; }
+  .specimen figcaption small { font-family: var(--sc); font-size: .74rem; letter-spacing: .12em; color: var(--rust); }
+  .specimen .note { font-family: var(--hand); color: var(--blue); font-size: 1.2rem; line-height: 1.1; margin-top: 4px; }
+  .specimen .tape { top: -13px; left: calc(50% - 48px); transform: rotate(var(--t, -3deg)); }
+  .board-foot { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 54px; font-family: var(--hand); color: var(--blue); font-size: 1.6rem; text-align: center; }
+  .board-foot svg { width: 60px; height: 24px; flex: none; }
+
+  /* ---------- herbarium ---------- */
+  .plate { padding: 44px 48px 40px; }
+  .plate-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 18px; border-bottom: 1px solid var(--rule); padding-bottom: 18px; margin-bottom: 26px; }
+  .plate-title small { font-family: var(--sc); letter-spacing: .14em; color: var(--rust); font-size: .85rem; }
+  .plate-title h3 { font-size: 2.2rem; }
+  .plate-title h3 em { font-family: var(--hand); font-style: normal; color: var(--blue); font-size: 1.5rem; margin-left: 10px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tabs button { font-family: var(--hand); font-size: 1.3rem; color: var(--ink-soft); background: transparent; border: 1px solid transparent; border-radius: 20px; padding: 2px 14px 4px; cursor: pointer; }
+  .tabs button:hover { color: var(--blue); }
+  .tabs button[aria-selected="true"] { color: var(--blue); border-color: var(--blue-soft); background: rgba(37,70,127,.06); }
+  .stages { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; position: relative; }
+  .stages::before { content: ""; position: absolute; left: 5%; right: 5%; top: calc(50% - 22px); border-top: 1.5px dashed var(--blue-soft); }
+  .stages li { position: relative; text-align: center; }
+  .stages .slot { position: relative; aspect-ratio: 1; display: grid; place-items: center; }
+  .stages li:nth-child(n+2):nth-child(-n+6) .slot::before { content: ""; position: absolute; inset: 12%; border-radius: 50%; background: radial-gradient(circle, rgba(120, 85, 40, .14), transparent 70%); }
+  .stages img { position: relative; width: 100%; height: 100%; transition: opacity .25s ease; }
+  .stages .no { font-family: var(--display); font-style: italic; color: var(--rust); font-size: 1rem; display: block; margin-top: 6px; }
+  .stages .lbl { font-family: var(--hand); color: var(--blue); font-size: 1.3rem; line-height: 1; }
+  .stages li:last-child img { filter: saturate(.8); }
+  .plate-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--ink-soft); font-size: 1.05rem; }
+  .plate-foot .hand { font-size: 1.4rem; }
+
+  .pressed { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 26px; margin-top: 46px; }
+  .press { position: relative; margin: 0; background: #f8f1df; background-image: var(--noise); border: 1px solid rgba(180,156,116,.5); padding: 18px 14px 12px; box-shadow: var(--shadow); transform: rotate(var(--r, 0deg)); }
+  .press img { width: 100%; aspect-ratio: 1; }
+  .press .tape { width: 64px; height: 22px; top: -10px; left: calc(50% - 32px); transform: rotate(var(--t, 4deg)); }
+  .press figcaption { margin-top: 6px; border-top: 1px solid var(--rule); padding-top: 6px; display: flex; justify-content: space-between; align-items: baseline; }
+  .press figcaption b { font-family: var(--display); font-weight: 400; font-size: 1.08rem; }
+  .press figcaption span { font-family: var(--hand); color: var(--blue); font-size: 1.05rem; }
+
+  /* ---------- pace / journal entries ---------- */
+  .pace-grid { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.3fr); gap: 60px; align-items: start; }
+  .pace-art { position: relative; min-height: 520px; }
+  .pace-art .photo { position: absolute; width: 86%; left: 0; top: 0; transform: rotate(-2deg); }
+  .pace-art .photo .tape { top: -12px; left: 40px; transform: rotate(-6deg); }
+  .pace-art .specimen { position: absolute; width: 46%; right: 0; bottom: 0; --r: 4deg; }
+  .entries { padding: 40px 48px 32px; background-image: var(--noise), var(--fibres),
+      repeating-linear-gradient(transparent 0 31px, rgba(37,70,127,.16) 31px 32px);
+    background-position: 0 0, 0 0, 0 40px; }
+  .entries::before { content: ""; position: absolute; left: 34px; top: 0; bottom: 0; width: 1px; background: rgba(165,69,45,.35); }
+  .entry { padding-left: 22px; margin-bottom: 32px; }
+  .entry h3 { font-size: 1.5rem; line-height: 32px; display: flex; align-items: baseline; gap: 0 12px; flex-wrap: wrap; }
+  .entry h3 .hand { font-size: 1.4rem; line-height: 32px; }
+  .entry p { margin: 0; line-height: 32px; }
+  .entries .margin-note { line-height: 32px; transform: none; margin: 0 0 0 22px !important; }
+
+  /* ---------- final CTA ---------- */
+  .final { padding: 60px 0 110px; }
+  .letter { max-width: 860px; margin-inline: auto; text-align: center; padding: 70px 60px 60px; position: relative; }
+  .letter .tape.a { top: -12px; left: 60px; transform: rotate(-10deg); }
+  .letter .tape.b { top: -12px; right: 60px; transform: rotate(9deg); }
+  .letter h2 { margin: 6px 0 16px; }
+  .letter .lede { margin: 0 auto 30px; }
+  .stamp { position: absolute; right: 44px; bottom: 44px; width: 116px; height: 116px; border: 2px solid var(--rust); border-radius: 50%; color: var(--rust); display: grid; place-items: center; text-align: center; transform: rotate(-14deg); opacity: .75; font-family: var(--sc); font-size: .7rem; letter-spacing: .14em; line-height: 1.3; }
+  .stamp::before { content: ""; position: absolute; inset: 5px; border: 1px solid var(--rust); border-radius: 50%; }
+  .stamp b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.15rem; letter-spacing: .02em; }
+  .letter-critters { display: flex; justify-content: center; gap: 4px; margin-top: 36px; }
+  .letter-critters img { width: 88px; height: 88px; }
+  .letter .wallets { font-family: var(--hand); color: var(--ink-soft); font-size: 1.35rem; margin-top: 16px; }
+
+  footer { border-top: 1px solid var(--rule); padding: 34px 0 46px; color: var(--ink-soft); font-size: 1rem; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 18px 40px; align-items: center; justify-content: space-between; }
+  footer .brand img { width: 40px; height: 40px; }
+  footer .brand b { font-size: 1.4rem; }
+  footer nav { display: flex; gap: 22px; flex-wrap: wrap; }
+  footer nav a { color: var(--ink-soft); text-decoration: none; font-family: var(--sc); letter-spacing: .1em; font-size: .9rem; }
+  footer nav a:hover { color: var(--blue); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1180px) {
+    .board { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .pressed { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .chart-sheet { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 980px) {
+    .nav { display: none; }
+    .hero { padding-top: 14px; }
+    .brand.logo-plate svg { width: 200px; height: 46px; }
+    .claim > .page:first-child { padding: 40px 28px; }
+    .claim-right { padding-bottom: 170px !important; }
+    .top .btn { margin-left: auto; }
+    .spread { grid-template-columns: 1fr; }
+    .spread > .page:first-child { border-radius: 4px 4px 0 0; padding: 40px 30px; min-height: 0; }
+    .spread > .page:last-child { border-radius: 0 0 6px 6px; padding: 30px 24px 36px; min-height: 0; }
+    .section-head { grid-template-columns: 1fr; }
+    .pace-grid { grid-template-columns: 1fr; }
+    .pace-art { min-height: 0; aspect-ratio: 1.15; }
+    .stages { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 24px; }
+    .stages::before { display: none; }
+  }
+  @media (max-width: 760px) {
+    .callout, .chart-overlay .leads { display: none; }
+    .legend { display: grid; gap: 6px; list-style: none; padding: 12px 4px 0; margin: 0; font-family: var(--hand); color: var(--blue); font-size: 1.25rem; line-height: 1.15; }
+    .legend i { font-style: normal; display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; background: var(--blue); color: #fff; font-family: var(--serif); font-size: .7em; margin-right: 8px; vertical-align: 2px; }
+    .compass { width: 56px; height: 56px; right: 10px; bottom: 10px; }
+  }
+  @media (max-width: 640px) {
+    body { font-size: 1.08rem; }
+    section { padding: 64px 0; }
+    .brand b { font-size: 1.4rem; }
+    .brand small { display: none; }
+    .brand img { width: 44px; height: 44px; }
+    .top .btn { font-size: .85rem; padding: .55em .9em .5em; }
+    .top .btn svg { display: none; }
+    .board { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 16px; }
+    .specimen { padding: 28px 10px 12px; }
+    .specimen .above { width: 54px; height: 54px; top: -8px; }
+    .specimen .above span { display: none; }
+    .specimen figcaption { flex-direction: column; gap: 0; }
+    .pressed { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .chart-sheet, .plate, .entries { padding: 22px 16px; }
+    .entries::before { left: 10px; }
+    .entry { padding-left: 10px; }
+    .letter { padding: 54px 20px 150px; }
+    .stamp { right: 50%; margin-right: -58px; bottom: 22px; }
+    .hero-row { margin-top: -30px; }
+    .scribble { font-size: 1.25rem; margin-top: 60px; }
+    .hero-crop { margin-top: 40px; }
+    .packing { flex-wrap: wrap; justify-content: flex-start; gap: 6px 18px; font-size: 1.2rem; }
+    .packing::before { width: 100%; }
+    .thumbs { grid-template-columns: 1fr; }
+    .facts-mini b { font-size: 1.9rem; }
+    .stages .lbl { font-size: 1.15rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+
+  /* =================== the journal as one book =================== */
+  .top { padding: 22px 0 26px; }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .brand { display: inline-flex; align-items: center; gap: 14px; color: var(--ink); text-decoration: none; }
+  .brand-stamp { color: var(--rust); flex: none; transform: rotate(-8deg); }
+  .brand-name { font-family: var(--display); font-size: 1.9rem; line-height: 1; }
+  .brand-name small { display: block; font-family: var(--sc); font-size: .82rem; letter-spacing: .2em; color: var(--rust); margin-top: 6px; }
+
+  main { padding: 34px 0 90px; }
+  .book { --page-h: auto; position: relative; display: grid; grid-template-columns: 1fr 1fr; perspective: 2600px; margin-top: 30px; }
+  .book::before { /* page edges under the book */
+    content: ""; position: absolute; inset: 8px -6px -10px; z-index: -1; border-radius: 6px;
+    background: repeating-linear-gradient(0deg, #e8dcc0 0 2px, #d8c8a4 2px 3px);
+    box-shadow: 0 30px 60px -30px rgba(50, 35, 10, .6);
+  }
+  .book > .page { min-height: var(--page-h); }
+  .page { position: relative; display: flex; flex-direction: column; }
+  .page-l { border-radius: 4px 0 0 6px; padding: 46px 52px 26px 60px;
+    background-image: var(--noise), var(--fibres), linear-gradient(90deg, transparent 88%, rgba(110, 80, 30, .16)); }
+  .page-r { border-radius: 0 4px 6px 0; padding: 46px 52px 26px 48px;
+    background-image: var(--noise), var(--fibres), linear-gradient(270deg, transparent 88%, rgba(110, 80, 30, .2)),
+      linear-gradient(rgba(37,70,127,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(37,70,127,.07) 1px, transparent 1px);
+    background-size: auto, auto, auto, 28px 28px, 28px 28px; }
+  .leaf { flex: 1; display: flex; flex-direction: column; }
+  .leaf[hidden] { display: none; }
+  .leaf-body { flex: 1; }
+  .folio { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 26px; padding-top: 10px;
+    border-top: 1px solid rgba(180,156,116,.5); font-family: var(--display); font-style: italic; color: var(--ink-soft); }
+  .page-r .folio span:only-child { margin-left: auto; }
+  .turn-link { font-family: var(--hand); font-style: normal; font-size: 1.4rem; color: var(--blue); text-decoration: none; display: inline-flex; align-items: center; gap: .35em; }
+  .turn-link:hover { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+
+  /* bookmarks: index tabs on the right page's top edge */
+  .bookmarks { position: absolute; left: calc(50% + 26px); right: 18px; bottom: 100%; display: flex; gap: 3px; z-index: 6; }
+  .bookmark { flex: 1 1 auto; text-align: center; white-space: nowrap; font-family: var(--sc); letter-spacing: .08em; font-size: .95rem; color: var(--ink-soft); text-decoration: none;
+    padding: .55em .7em .45em; border-radius: 8px 8px 0 0; background-color: #ece2c8; background-image: var(--noise);
+    border-top: 3px solid var(--tab, var(--rule)); box-shadow: 0 -3px 8px -5px rgba(60, 45, 20, .45), inset 0 -7px 8px -8px rgba(60, 45, 20, .4);
+    transform: translateY(6px); transition: transform .18s ease, background-color .18s ease, color .18s ease; }
+  .bookmark:nth-child(1) { --tab: var(--rule); }
+  .bookmark:nth-child(2) { --tab: #2f6f86; }
+  .bookmark:nth-child(3) { --tab: var(--moss); }
+  .bookmark:nth-child(4) { --tab: var(--rust); }
+  .bookmark:nth-child(5) { --tab: var(--blue); }
+  .bookmark:nth-child(6) { --tab: #b8892f; }
+  .bookmark:hover { transform: translateY(2px); color: var(--ink); }
+  .bookmark[aria-selected="true"] { transform: translateY(1px); background-color: var(--paper); color: var(--ink); box-shadow: 0 -3px 8px -5px rgba(60, 45, 20, .45); }
+  .bookmark-hint { position: absolute; bottom: calc(100% + 6px); right: calc(50% - 6px); margin: 0; font-family: var(--hand); color: var(--blue); font-size: 1.35rem;
+    display: inline-flex; align-items: center; gap: .3em; transform: rotate(-3deg); white-space: nowrap; }
+
+  /* the turning leaf */
+  .turn { position: absolute; top: 0; bottom: 0; width: 50%; z-index: 5; transform-style: preserve-3d; pointer-events: none; }
+  .turn-fwd { left: 50%; transform-origin: left center; animation: turn-fwd .75s cubic-bezier(.45, .05, .3, 1) forwards; }
+  .turn-back { left: 0; transform-origin: right center; animation: turn-back .75s cubic-bezier(.45, .05, .3, 1) forwards; }
+  .turn .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
+  .turn .face.back { transform: rotateY(180deg); }
+  .turn .face::after { content: ""; position: absolute; inset: 0; pointer-events: none; animation: page-shade .75s ease forwards; }
+  .turn-fwd .face.front::after { background: linear-gradient(90deg, rgba(60,40,10,.28), transparent 40%); }
+  .turn-fwd .face.back::after, .turn-back .face.front::after { background: linear-gradient(270deg, rgba(60,40,10,.28), transparent 40%); }
+  .turn-back .face.back::after { background: linear-gradient(90deg, rgba(60,40,10,.28), transparent 40%); }
+  @keyframes turn-fwd { from { transform: rotateY(0); } to { transform: rotateY(-180deg); } }
+  @keyframes turn-back { from { transform: rotateY(0); } to { transform: rotateY(180deg); } }
+  @keyframes page-shade { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+
+  /* foreword */
+  .hero-photo { transform: rotate(1.4deg); margin: 10px 0 0; }
+  .hero-photo .tape.a { top: -12px; left: 30px; transform: rotate(-8deg); }
+  .hero-photo .tape.b { top: -10px; right: 34px; transform: rotate(7deg); }
+  .page h1 { font-size: clamp(2.6rem, 1.6rem + 2.6vw, 4rem); margin: 4px 0 20px; }
+  .page h1 em { font-style: italic; color: var(--blue); }
+  .page h2 { font-size: clamp(2rem, 1.3rem + 1.8vw, 2.9rem); margin-bottom: 14px; }
+  .page .lede { font-size: 1.15rem; }
+
+  /* island chapter */
+  .terrain-lbl { margin: 0 0 10px; color: var(--ink-soft); font-size: 1rem; }
+  .notes { margin-top: 18px; }
+  .chart-key { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; font-family: var(--hand); color: var(--blue); font-size: 1.2rem; line-height: 1.1; }
+  .chart-key b { font-family: var(--sc); font-weight: 400; color: var(--ink); font-size: .8rem; letter-spacing: .12em; margin-right: 4px; }
+  .chart-key i { font-style: normal; display: inline-grid; place-items: center; width: 1.35em; height: 1.35em; border-radius: 50%; background: var(--blue); color: #fff; font-family: var(--serif); font-size: .7em; margin-right: 8px; vertical-align: 2px; }
+  .page-r .margin-note { margin-top: 22px; }
+
+  /* creature chapter */
+  .board { gap: 30px 22px; }
+  .board-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 34px; }
+  .board-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 14px; }
+  .board-3 .specimen { padding: 28px 12px 12px; }
+  .board-3 .specimen .above { width: 50px; height: 50px; top: -18px; right: -6px; padding: 4px; }
+  .board-3 .specimen .above span { display: none; }
+  .board-3 .specimen figcaption { flex-direction: column; gap: 0; }
+  .board-3 .specimen figcaption b { font-size: 1.12rem; }
+  .board-3 .specimen .note { font-size: 1.05rem; }
+  .board-3 .specimen .measure { display: none; }
+  .board-3 .specimen .art { margin-top: 0; }
+  .board-3 .specimen figcaption { margin-top: 4px; }
+  .board-foot { margin-top: 22px; font-size: 1.35rem; }
+
+  /* crop chapter */
+  .plate-head { margin: 22px 0 12px; padding-bottom: 12px; }
+  .plate-title h3 { font-size: 1.8rem; }
+  .tabs { margin-bottom: 20px; }
+  .stages { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 18px; }
+  .stages::before { display: none; }
+  .pressed { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px 20px; margin-top: 14px; }
+  .page .press { padding: 14px 10px 8px; }
+  .page .press figcaption { flex-direction: column; align-items: flex-start; gap: 0; }
+  .page .press img { width: 80%; margin-inline: auto; }
+  .page h2 { font-size: clamp(2rem, 1.3rem + 1.6vw, 2.7rem); }
+
+  /* pace chapter */
+  .pace-art { min-height: 0; height: 100%; }
+  .pace-art .photo { width: 92%; top: 6px; }
+  .pace-art .photo figcaption { text-align: left; }
+  .pace-art .specimen { width: 50%; right: 2%; bottom: 4%; }
+  .entries { padding: 8px 0 0; background: repeating-linear-gradient(transparent 0 31px, rgba(37,70,127,.16) 31px 32px); background-position: 0 6px; }
+  .entries::before { display: none; }
+  .entry { padding-left: 0; margin-bottom: 26px; }
+  .entries .margin-note { margin: 10px 0 0 !important; }
+
+  /* claim chapter */
+  .claim-right { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: 100%; padding-right: 120px; }
+  .claim-right .lede { margin: 0 0 26px; }
+  .claim-right .wallets { font-family: var(--hand); color: var(--ink-soft); font-size: 1.35rem; margin: 14px 0 0; }
+  .page-stamp { position: absolute; right: 34px; bottom: 70px; width: 150px; height: 150px; color: var(--rust); opacity: .8; transform: rotate(-14deg); }
+  .belongs { margin: 0; font-family: var(--sc); letter-spacing: .14em; font-size: .95rem; color: var(--rust); }
+  .sign-line { margin: 6px 0 34px; border-bottom: 1.5px solid var(--ink-soft); padding: 4px 2px 6px; font-family: var(--hand); font-size: 1.6rem; color: rgba(37, 70, 127, .45); }
+  .claim-photo { transform: rotate(-1.6deg); margin: 0; }
+  .claim-photo .tape.a { top: -12px; left: calc(50% - 46px); transform: rotate(3deg); }
+  .claim-photo figcaption { text-align: left; font-size: 1.25rem; }
+
+  footer .wrap { justify-content: space-between; }
+
+  @media (max-width: 1180px) {
+    .board-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pressed { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .bookmark { font-size: .82rem; padding: .55em .45em .45em; letter-spacing: .04em; }
+  }
+  @media (max-width: 980px) {
+    main { padding-top: 0; }
+    .book { grid-template-columns: 1fr; margin-top: 64px; }
+    .book > .page { min-height: 0; }
+    .bookmarks { left: 0; right: 0; overflow-x: auto; scrollbar-width: none; padding-top: 6px; }
+    .bookmark { flex: none; }
+    .bookmark-hint { display: none; }
+    .page-l { border-radius: 4px 4px 0 0; padding: 36px 26px 20px; }
+    .page-r { border-radius: 0 0 6px 6px; padding: 30px 26px 20px; }
+    .page-l .folio { display: none; }
+    .pace-art { aspect-ratio: 1.1; }
+    .claim-right { padding-right: 0; padding-bottom: 150px; }
+    .page-stamp { right: 50%; margin-right: -65px; bottom: 60px; width: 130px; height: 130px; }
+    .top .wrap { gap: 12px; }
+  }
+  @media (max-width: 560px) { .top .btn { display: none; } }
+  @media (max-width: 640px) {
+    .brand-name { font-size: 1.45rem; }
+    .brand-name small { display: none; }
+    .brand-stamp { width: 48px; height: 48px; }
+    .top .btn svg { display: none; }
+    .board-2, .board-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 14px; }
+    .chart-key { grid-template-columns: 1fr; }
+    .stages { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .stages .lbl { font-size: 1rem; }
+    .pressed { gap: 20px 14px; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="worn" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 2.05" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in" result="w"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="2" seed="5" result="d"/>
+      <feDisplacementMap in="w" in2="d" scale="2.4"/>
+    </filter>
+    <symbol id="isle" viewBox="0 0 100 100">
+      <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke-width="2.3" d="M14 64L19 55L27 51L31 44L41 41L47 35L57 36L63 32L72 36L80 37L84 45L90 51L86 58L78 58L75 63L80 69L74 75L64 74L57 80L46 77L38 80L29 76L22 77L12 74L8 70Z"/>
+        <path stroke-width="1.1" stroke-dasharray="1 3.2" opacity=".7" transform="translate(5.9 6.8) scale(.88)" d="M14 64L19 55L27 51L31 44L41 41L47 35L57 36L63 32L72 36L80 37L84 45L90 51L86 58L78 58L75 63L80 69L74 75L64 74L57 80L46 77L38 80L29 76L22 77L12 74L8 70Z"/>
+        <path stroke-width="2.1" d="M42 64 54 43l13 21"/>
+        <path stroke-width="1.5" d="m50.2 50 3.8-7 4 7.1-2.1-1.3-1.9 2.2-1.9-2.2z" fill="currentColor" fill-opacity=".1"/>
+        <path stroke-width="1" d="M58.5 52l4 8M61 49.5l5 10M57 56.5l2.6 5"/>
+        <path stroke-width="1.7" d="M27 67l3-8 3 8zM33.5 71l2.8-7 2.8 7zM71 53l2.6-7 2.6 7z"/>
+        <path stroke-width="1.2" d="M59 68.5l10-2M60 71.5l9-1.9"/>
+        <path stroke-width="1.5" d="M5 87q4-3.4 8 0t8 0M74 89q4-3.4 8 0t8 0M82 22q3-2.6 6 0t6 0"/>
+      </g>
+    </symbol>
+    <!-- logo A: the field station stamp -->
+    <symbol id="stamp" viewBox="0 0 200 200">
+      <g filter="url(#worn)">
+        <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width="4"/>
+        <circle cx="100" cy="100" r="84" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <circle cx="100" cy="100" r="58" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <path id="stampTop" d="M30 100a70 70 0 0 1 140 0" fill="none"/>
+        <path id="stampBot" d="M24 100a76 76 0 0 0 152 0" fill="none"/>
+        <text font-family="IM Fell English SC, EB Garamond, serif" font-size="21" letter-spacing="3.2" fill="currentColor"><textPath href="#stampTop" startOffset="50%" text-anchor="middle">Unclaimed Acres</textPath></text>
+        <text font-family="IM Fell English SC, EB Garamond, serif" font-size="12.5" letter-spacing="3" fill="currentColor"><textPath href="#stampBot" startOffset="50%" text-anchor="middle">&#10022; field journal &#10022;</textPath></text>
+        <use href="#isle" x="52" y="52" width="96" height="96"/>
+      </g>
+    </symbol>
+    <!-- the stamp's small form: ring and island only -->
+    <symbol id="stamp-mark" viewBox="0 0 200 200">
+      <g filter="url(#worn)">
+        <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="8"/>
+        <circle cx="100" cy="100" r="75" fill="none" stroke="currentColor" stroke-width="3"/>
+        <use href="#isle" x="28" y="28" width="144" height="144"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#foreword" data-turn="foreword" aria-label="Unclaimed Acres, back to the first page">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <button class="btn small" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12.5h2M3 9h14a2 2 0 0 0 2-2V5"/></svg> Connect wallet</button>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+    <div class="book" id="book">
+      <nav class="bookmarks" role="tablist" aria-label="Chapters">
+        <a class="bookmark" id="tab-foreword" role="tab" href="#foreword" data-turn="foreword" aria-selected="true">Foreword</a>
+        <a class="bookmark" id="tab-island" role="tab" href="#island" data-turn="island" aria-selected="false">The Island</a>
+        <a class="bookmark" id="tab-creatures" role="tab" href="#creatures" data-turn="creatures" aria-selected="false">Creatures</a>
+        <a class="bookmark" id="tab-crops" role="tab" href="#crops" data-turn="crops" aria-selected="false">Crops</a>
+        <a class="bookmark" id="tab-pace" role="tab" href="#pace" data-turn="pace" aria-selected="false">Your pace</a>
+        <a class="bookmark" id="tab-claim" role="tab" href="#claim" data-turn="claim" aria-selected="false">Your page</a>
+      </nav>
+      <p class="bookmark-hint" aria-hidden="true">pick a bookmark <svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg></p>
+      <div class="page page-l sheet" id="page-l">
+        <div class="leaf" data-ch="foreword" role="tabpanel" aria-labelledby="tab-foreword">
+          <div class="leaf-body">
+          <div class="entry-meta"><span>Expedition notes, page 1</span><span>Weather: calm</span></div>
+          <p class="kicker">An island farming &amp; creature game</p>
+          <h1 id="hero-title">An island no one has <em>written down</em> yet.</h1>
+          <p class="lede">Unclaimed Acres gives you a generated island of your own: beaches, forests and terraced snowy mountains to wander, crops to raise from seed, and gentle creatures to get to know. Keep notes. Take your time.</p>
+          <div class="hero-actions">
+            <button class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12.5h2M3 9h14a2 2 0 0 0 2-2V5"/></svg> Connect wallet</button>
+            <a class="link-hand" href="#island" data-turn="island">read the field notes <svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg></a>
+          </div>
+          <p class="wallet-note">
+            <svg viewBox="0 0 34 30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 4c2 10 9 18 26 20M22 18c3 2 5 4 7 6-3 1-6 2-8 4"/></svg>
+            works with WAX Cloud Wallet, Wombat &amp; Anchor
+          </p>
+          <div class="facts-mini" role="list">
+            <div role="listitem"><b>50+</b><span>creatures to meet</span></div>
+            <div role="listitem"><b>60+</b><span>crops to grow</span></div>
+            <div role="listitem"><b>&infin;</b><span>islands to explore</span></div>
+          </div>
+          </div>
+          <div class="folio"><span>1</span></div>
+        </div>
+        <div class="leaf" data-ch="island" role="tabpanel" aria-labelledby="tab-island" hidden>
+          <div class="leaf-body">
+          <span class="roman">Chapter I</span>
+          <h2>A chart of your own island</h2>
+          <p class="lede">Every island is generated for you and owned by your wallet. No two are alike, so every chart in this journal is a first edition.</p>
+          <div class="notes">
+            <h3>What we know so far</h3>
+            <ul class="checklist">
+              <li>Every island is <strong>generated</strong> from scratch, never copied.</li>
+              <li>It is owned by <strong>your wallet</strong>: the record is yours, not a server&rsquo;s.</li>
+              <li>No two islands are alike. Coastlines, hills and forests all differ.</li>
+            </ul>
+            <p class="terrain-lbl">Landforms spotted so far:</p>
+            <ul class="terrain">
+              <li>Peninsulas</li><li>Bays</li><li>Beaches</li><li>Forests</li><li>Snowy mountains</li><li>Lakes</li>
+            </ul>
+          </div>
+          </div>
+          <div class="folio"><span>12</span><a class="turn-link" href="#foreword" data-turn="foreword"><svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M32 10C24 7 14 6 3 9M9 3C6.5 5 4.5 7 3 9c2.5 1.3 5 3 7 5"/></svg> back to foreword</a></div>
+        </div>
+        <div class="leaf" data-ch="creatures" role="tabpanel" aria-labelledby="tab-creatures" hidden>
+          <div class="leaf-body">
+          <span class="roman">Chapter II</span>
+          <h2>Specimens, gently pinned</h2>
+          <p class="lede">More than 50 creatures live on these islands, from foxes and red pandas to kitsune and crystal turtles. Some are shy, some are curious, and every one deserves a page in your journal.</p>
+          <div class="board board-2">
+          <figure class="specimen" style="--r:-1.6deg">
+            <span class="pin" aria-hidden="true"></span>
+            <div class="art">
+              <img class="side" src="../topdown/animals__redpanda/side.svg" alt="A red panda with a striped tail, walking, seen from the side." loading="lazy">
+              <div class="above"><img src="../topdown/animals__redpanda/top.svg" alt="" loading="lazy"><span>from above</span></div>
+            </div>
+            <div class="measure" aria-hidden="true"></div>
+            <figcaption><b>Red panda</b><small>No. 01</small></figcaption>
+            <p class="note">sleepy, mostly in trees</p>
+          </figure>
+          <figure class="specimen" style="--r:1.4deg;--t:4deg">
+            <span class="tape" aria-hidden="true"></span>
+            <div class="art">
+              <img class="side" src="../topdown/creatures__kitsune/side.svg" alt="A white kitsune with a fan of red-tipped tails, seated, seen from the side." loading="lazy">
+              <div class="above"><img src="../topdown/creatures__kitsune/top.svg" alt="" loading="lazy"><span>from above</span></div>
+            </div>
+            <div class="measure" aria-hidden="true"></div>
+            <figcaption><b>Kitsune</b><small>No. 02</small></figcaption>
+            <p class="note">counted the tails twice</p>
+          </figure>
+          </div>
+          </div>
+          <div class="folio"><span>24</span><a class="turn-link" href="#island" data-turn="island"><svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M32 10C24 7 14 6 3 9M9 3C6.5 5 4.5 7 3 9c2.5 1.3 5 3 7 5"/></svg> back to the island</a></div>
+        </div>
+        <div class="leaf" data-ch="crops" role="tabpanel" aria-labelledby="tab-crops" hidden>
+          <div class="leaf-body">
+          <span class="roman">Chapter III</span>
+          <h2>Pressed plates from the garden</h2>
+          <p class="lede">More than 60 crops, each drawn from seed to harvest: familiar ones like wheat and tomatoes, and stranger finds like moonbloom and the egg plant that grows actual eggs.</p>
+          <p class="kicker" style="margin-top:24px">From the drying press</p>
+          <div class="pressed">
+            <figure class="press" style="--r:-2deg"><span class="tape" aria-hidden="true"></span><img src="../crops/moonbloom/7-harvest-front.svg" alt="A bunch of pale blue moonbloom flowers" loading="lazy"><figcaption><b>Moonbloom</b><span>fantasy</span></figcaption></figure>
+            <figure class="press" style="--r:1.5deg;--t:-4deg"><span class="tape" aria-hidden="true"></span><img src="../crops/pumpkin/7-harvest-front.svg" alt="A ripe orange pumpkin" loading="lazy"><figcaption><b>Pumpkin</b><span>autumnal</span></figcaption></figure>
+            <figure class="press" style="--r:-1deg"><span class="tape" aria-hidden="true"></span><img src="../crops/glowcap/7-harvest-front.svg" alt="Purple glowcap mushrooms with cyan stems" loading="lazy"><figcaption><b>Glowcap</b><span>glows!</span></figcaption></figure>
+            <figure class="press" style="--r:2deg;--t:-2deg"><span class="tape" aria-hidden="true"></span><img src="../crops/milk-pouch/7-harvest-front.svg" alt="Three white milk pouches on a sprig" loading="lazy"><figcaption><b>Milk pouch</b><span>silly</span></figcaption></figure>
+            <figure class="press" style="--r:-1.6deg"><span class="tape" aria-hidden="true"></span><img src="../crops/dragon-fruit/7-harvest-front.svg" alt="A pink dragon fruit, one half cut open" loading="lazy"><figcaption><b>Dragon fruit</b><span>exotic</span></figcaption></figure>
+            <figure class="press" style="--r:1deg;--t:5deg"><span class="tape" aria-hidden="true"></span><img src="../crops/coffee/7-harvest-front.svg" alt="Roasted coffee beans and red coffee cherries" loading="lazy"><figcaption><b>Coffee</b><span>for mornings</span></figcaption></figure>
+          </div>
+          </div>
+          <div class="folio"><span>38</span><a class="turn-link" href="#creatures" data-turn="creatures"><svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M32 10C24 7 14 6 3 9M9 3C6.5 5 4.5 7 3 9c2.5 1.3 5 3 7 5"/></svg> back to creatures</a></div>
+        </div>
+        <div class="leaf" data-ch="pace" role="tabpanel" aria-labelledby="tab-pace" hidden>
+          <div class="leaf-body">
+          <div class="pace-art">
+            <figure class="photo">
+              <span class="tape" aria-hidden="true"></span>
+              <img src="assets/island-map1.webp" width="1600" height="907" loading="lazy" alt="An island in a wide, calm sea, with a long curved sandbar and a small rocky islet to the north.">
+              <figcaption>fig. 5 &mdash; no rush</figcaption>
+            </figure>
+            <figure class="specimen">
+              <span class="pin" aria-hidden="true"></span>
+              <div class="art"><img class="side" src="../topdown/yokai__baku/side.svg" alt="A lavender baku, a gentle tapir-like dream-eater, seen from the side." loading="lazy"></div>
+              <figcaption><b>Baku</b><small>No. 09</small></figcaption>
+            </figure>
+          </div>
+          </div>
+          <div class="folio"><span>52</span><a class="turn-link" href="#crops" data-turn="crops"><svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M32 10C24 7 14 6 3 9M9 3C6.5 5 4.5 7 3 9c2.5 1.3 5 3 7 5"/></svg> back to crops</a></div>
+        </div>
+        <div class="leaf" data-ch="claim" role="tabpanel" aria-labelledby="tab-claim" hidden>
+          <div class="leaf-body">
+          <p class="belongs">This journal belongs to</p>
+          <p class="sign-line"><span>your name goes here, once you connect</span></p>
+          <figure class="photo claim-photo">
+            <span class="tape a" aria-hidden="true"></span>
+            <img src="assets/island-map2.webp" width="1600" height="907" loading="lazy" alt="A broad green island with a large blue lake, pine woods and long sandy shores.">
+            <figcaption>fig. 6 &mdash; an island already charted. Yours will look different.</figcaption>
+          </figure>
+          </div>
+          <div class="folio"><span>60</span><a class="turn-link" href="#pace" data-turn="pace"><svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M32 10C24 7 14 6 3 9M9 3C6.5 5 4.5 7 3 9c2.5 1.3 5 3 7 5"/></svg> back to your pace</a></div>
+        </div>
+      </div>
+      <div class="page page-r sheet" id="page-r">
+        <div class="leaf" data-ch="foreword" role="tabpanel" aria-labelledby="tab-foreword">
+          <div class="leaf-body">
+          <figure class="photo hero-photo">
+            <span class="tape a" aria-hidden="true"></span><span class="tape b" aria-hidden="true"></span>
+            <img src="assets/island-map3.webp" width="1600" height="907" alt="A generated island seen from above: green meadows and pine woods ringed by sandy beaches, with a snow-capped grey mountain beside a small blue lake.">
+            <figcaption>fig. 1 &mdash; the island, from above</figcaption>
+          </figure>
+          <div class="hero-row">
+            <figure class="hero-fox">
+              <span class="pin" aria-hidden="true"></span>
+              <img src="../topdown/animals__fox/side.svg" alt="A low-poly orange fox, leaping, drawn from the side.">
+              <span>fox, mid-leap</span>
+            </figure>
+            <p class="scribble" aria-hidden="true">
+              <svg viewBox="0 0 46 60" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M26 58C16 44 14 24 22 4M14 12c3-3 6-6 8-8 3 3 5 6 7 9"/></svg>
+              still<br>unclaimed!
+            </p>
+            <figure class="hero-crop">
+              <span class="tape" aria-hidden="true"></span>
+              <img src="../crops/tomatoes/7-harvest-front.svg" alt="A vine of three ripe red tomatoes.">
+              <span>Tomatoes &middot; stage vii</span>
+            </figure>
+          </div>
+          </div>
+          <div class="folio"><a class="turn-link" href="#island" data-turn="island">turn to the island <svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg></a><span>2</span></div>
+        </div>
+        <div class="leaf" data-ch="island" role="tabpanel" aria-labelledby="tab-island" hidden>
+          <div class="leaf-body">
+          <div class="chart">
+            <div class="chart-inner">
+              <img src="assets/island-close.webp" width="1920" height="1089" loading="lazy" alt="Close view of an island: a terraced mountain with a snowfield at its summit, pine forests on its slopes and a sandy western shore.">
+              <svg class="chart-overlay" viewBox="0 0 1920 1089" preserveAspectRatio="none" aria-hidden="true">
+                <g>
+                  <circle class="ring" cx="190" cy="400" r="26"/><circle class="dot" cx="190" cy="400" r="21"/><text x="190" y="401">1</text>
+                  <circle class="ring" cx="425" cy="690" r="26"/><circle class="dot" cx="425" cy="690" r="21"/><text x="425" y="691">2</text>
+                  <circle class="ring" cx="975" cy="440" r="26"/><circle class="dot" cx="975" cy="440" r="21"/><text x="975" y="441">3</text>
+                  <circle class="ring" cx="835" cy="745" r="26"/><circle class="dot" cx="835" cy="745" r="21"/><text x="835" y="746">4</text>
+                  <circle class="ring" cx="1245" cy="365" r="26"/><circle class="dot" cx="1245" cy="365" r="21"/><text x="1245" y="366">5</text>
+                </g>
+              </svg>
+              <svg class="compass" viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true">
+                <circle cx="50" cy="50" r="30" stroke-width="1.5"/><circle cx="50" cy="50" r="24" stroke-width=".8" stroke-dasharray="2 3"/>
+                <path d="M50 8 56 50 50 92 44 50Z" fill="currentColor" fill-opacity=".25" stroke-width="1.4"/>
+                <path d="M50 8 56 50H44Z" fill="currentColor" stroke-width="1"/>
+                <path d="M8 50 50 45 92 50 50 55Z" stroke-width="1.2"/>
+                <text x="50" y="6" font-family="IM Fell English SC, serif" font-size="12" fill="currentColor" stroke="none" text-anchor="middle">N</text>
+              </svg>
+            </div>
+          </div>
+          <div class="chart-cap"><span>fig. 2 &mdash; field chart, west shore to east forest</span><span>not to scale</span></div>
+          <ol class="chart-key">
+            <li><i>1</i><b>Open sea</b> deep water all round, calm today</li>
+            <li><i>2</i><b>Beach</b> a long sandy western shore</li>
+            <li><i>3</i><b>Summit</b> snow up here, even in summer?</li>
+            <li><i>4</i><b>Terraces</b> the mountain climbs in steps</li>
+            <li><i>5</i><b>Pine forest</b> dense on the east slope</li>
+          </ol>
+          <p class="margin-note">Each new island means a fresh chart. Better bring more paper.</p>
+          </div>
+          <div class="folio"><a class="turn-link" href="#creatures" data-turn="creatures">turn to creatures <svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg></a><span>13</span></div>
+        </div>
+        <div class="leaf" data-ch="creatures" role="tabpanel" aria-labelledby="tab-creatures" hidden>
+          <div class="leaf-body">
+          <div class="board board-3">
+          <figure class="specimen" style="--r:-0.8deg">
+            <span class="pin" aria-hidden="true"></span>
+            <div class="art">
+              <img class="side" src="../topdown/turtles__crystal-turtle/side.svg" alt="A purple turtle with tall cyan crystals growing from its shell." loading="lazy">
+              <div class="above"><img src="../topdown/turtles__crystal-turtle/top.svg" alt="" loading="lazy"><span>from above</span></div>
+            </div>
+            <div class="measure" aria-hidden="true"></div>
+            <figcaption><b>Crystal turtle</b><small>No. 03</small></figcaption>
+            <p class="note">slow, sparkly, unbothered</p>
+          </figure>
+          <figure class="specimen" style="--r:2deg;--t:-5deg">
+            <span class="tape" aria-hidden="true"></span>
+            <div class="art">
+              <img class="side" src="../topdown/felines__moon-cat/side.svg" alt="A blue moon-cat with star markings, sitting." loading="lazy">
+              <div class="above"><img src="../topdown/felines__moon-cat/top.svg" alt="" loading="lazy"><span>from above</span></div>
+            </div>
+            <div class="measure" aria-hidden="true"></div>
+            <figcaption><b>Moon-cat</b><small>No. 04</small></figcaption>
+            <p class="note">only notice it at dusk</p>
+          </figure>
+          <figure class="specimen" style="--r:1deg;--t:3deg">
+            <span class="tape" aria-hidden="true"></span>
+            <div class="art">
+              <img class="side" src="../topdown/story__wind-hare/side.svg" alt="A pale blue wind-hare in full stride with wisps of wind behind it." loading="lazy">
+              <div class="above"><img src="../topdown/story__wind-hare/top.svg" alt="" loading="lazy"><span>from above</span></div>
+            </div>
+            <div class="measure" aria-hidden="true"></div>
+            <figcaption><b>Wind-hare</b><small>No. 05</small></figcaption>
+            <p class="note">gone before the sketch dried</p>
+          </figure>
+          <figure class="specimen" style="--r:-2deg">
+            <span class="pin" aria-hidden="true"></span>
+            <div class="art">
+              <img class="side" src="../topdown/beasts__blossom-stag/side.svg" alt="A spotted stag with pink blossoms growing from its antlers." loading="lazy">
+              <div class="above"><img src="../topdown/beasts__blossom-stag/top.svg" alt="" loading="lazy"><span>from above</span></div>
+            </div>
+            <div class="measure" aria-hidden="true"></div>
+            <figcaption><b>Blossom stag</b><small>No. 06</small></figcaption>
+            <p class="note">antlers in flower</p>
+          </figure>
+          <figure class="specimen" style="--r:1.8deg;--t:-2deg">
+            <span class="tape" aria-hidden="true"></span>
+            <div class="art">
+              <img class="side" src="../topdown/animals__owl/side.svg" alt="A brown owl in flight, wings swept back." loading="lazy">
+              <div class="above"><img src="../topdown/animals__owl/top.svg" alt="" loading="lazy"><span>from above</span></div>
+            </div>
+            <div class="measure" aria-hidden="true"></div>
+            <figcaption><b>Owl</b><small>No. 07</small></figcaption>
+            <p class="note">watching me back</p>
+          </figure>
+          <figure class="specimen" style="--r:-1.2deg">
+            <span class="pin" aria-hidden="true"></span>
+            <div class="art">
+              <img class="side" src="../topdown/beasts__lantern-giraffe/side.svg" alt="A yellow giraffe with lantern-like spots." loading="lazy">
+              <div class="above"><img src="../topdown/beasts__lantern-giraffe/top.svg" alt="" loading="lazy"><span>from above</span></div>
+            </div>
+            <div class="measure" aria-hidden="true"></div>
+            <figcaption><b>Lantern giraffe</b><small>No. 08</small></figcaption>
+            <p class="note">lights the path home</p>
+          </figure>
+          </div>
+          <p class="board-foot">eight pinned, more than forty still to find</p>
+          </div>
+          <div class="folio"><a class="turn-link" href="#crops" data-turn="crops">turn to crops <svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg></a><span>25</span></div>
+        </div>
+        <div class="leaf" data-ch="crops" role="tabpanel" aria-labelledby="tab-crops" hidden>
+          <div class="leaf-body">
+          <div class="plate-head" style="margin-top:0">
+            <div class="plate-title">
+              <small>Plate IX &middot; growth study</small>
+              <h3 id="plate-name">Tomatoes <em id="plate-note">a dependable first crop</em></h3>
+            </div>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Choose a crop to study">
+            <button role="tab" aria-selected="true" aria-controls="stage-list" data-crop="tomatoes" data-name="Tomatoes" data-note="a dependable first crop">tomatoes</button>
+            <button role="tab" aria-selected="false" aria-controls="stage-list" data-crop="sunflower" data-name="Sunflower" data-note="follows the sun, apparently">sunflower</button>
+            <button role="tab" aria-selected="false" aria-controls="stage-list" data-crop="moonbloom" data-name="Moonbloom" data-note="a fantasy bloom, glows faintly">moonbloom</button>
+            <button role="tab" aria-selected="false" aria-controls="stage-list" data-crop="egg-plant" data-name="Egg plant" data-note="yes, it grows eggs">egg plant</button>
+            <button role="tab" aria-selected="false" aria-controls="stage-list" data-crop="strawberries" data-name="Strawberries" data-note="sweet, low to the ground">strawberries</button>
+          </div>
+          <ol class="stages" id="stage-list" role="tabpanel" aria-live="polite">
+            <li><div class="slot"><img src="../crops/tomatoes/1-seeds-front.svg" alt="Tomatoes: seeds" data-stage="1-seeds-front" loading="lazy"></div><span class="no">i.</span><span class="lbl">seeds</span></li>
+            <li><div class="slot"><img src="../crops/tomatoes/2-sown.svg" alt="Tomatoes: sown" data-stage="2-sown" loading="lazy"></div><span class="no">ii.</span><span class="lbl">sown</span></li>
+            <li><div class="slot"><img src="../crops/tomatoes/3-first-growth.svg" alt="Tomatoes: first growth" data-stage="3-first-growth" loading="lazy"></div><span class="no">iii.</span><span class="lbl">first growth</span></li>
+            <li><div class="slot"><img src="../crops/tomatoes/4-second-growth.svg" alt="Tomatoes: second growth" data-stage="4-second-growth" loading="lazy"></div><span class="no">iv.</span><span class="lbl">second growth</span></li>
+            <li><div class="slot"><img src="../crops/tomatoes/5-third-growth.svg" alt="Tomatoes: third growth" data-stage="5-third-growth" loading="lazy"></div><span class="no">v.</span><span class="lbl">third growth</span></li>
+            <li><div class="slot"><img src="../crops/tomatoes/6-harvest.svg" alt="Tomatoes: ready" data-stage="6-harvest" loading="lazy"></div><span class="no">vi.</span><span class="lbl">ready</span></li>
+            <li><div class="slot"><img src="../crops/tomatoes/7-harvest-front.svg" alt="Tomatoes: harvested" data-stage="7-harvest-front" loading="lazy"></div><span class="no">vii.</span><span class="lbl">harvested</span></li>
+            <li><div class="slot"><img src="../crops/tomatoes/8-dead.svg" alt="Tomatoes: wilted" data-stage="8-dead" loading="lazy"></div><span class="no">viii.</span><span class="lbl">wilted</span></li>
+          </ol>
+          <p class="margin-note">One of 60 and more. The rest are still growing somewhere.</p>
+          </div>
+          <div class="folio"><a class="turn-link" href="#pace" data-turn="pace">turn to your pace <svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg></a><span>39</span></div>
+        </div>
+        <div class="leaf" data-ch="pace" role="tabpanel" aria-labelledby="tab-pace" hidden>
+          <div class="leaf-body">
+          <span class="roman">Chapter IV</span>
+          <h2>Written at your own pace</h2>
+          <div class="entries">
+            <article class="entry">
+              <h3>The island is yours <span class="hand">first entry</span></h3>
+              <p>It is generated for you and owned by your wallet, not by a server.</p>
+            </article>
+            <article class="entry">
+              <h3>Sow, then wait <span class="hand">a later page</span></h3>
+              <p>Crops move through their stages from seed to harvest. Check in when it suits you.</p>
+            </article>
+            <article class="entry">
+              <h3>Meet the neighbours <span class="hand">and the next</span></h3>
+              <p>More than 50 creatures, from foxes to kitsune and lantern giraffes. Get to know them slowly. Nothing here is a race.</p>
+            </article>
+            <p class="margin-note">Unclaimed Acres is still in development. These are early pages; more are being written.</p>
+          </div>
+          </div>
+          <div class="folio"><a class="turn-link" href="#claim" data-turn="claim">turn to your page <svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg></a><span>53</span></div>
+        </div>
+        <div class="leaf" data-ch="claim" role="tabpanel" aria-labelledby="tab-claim" hidden>
+          <div class="leaf-body">
+          <div class="claim-right">
+            <p class="kicker">The next page</p>
+            <h2>Your island is still unclaimed.</h2>
+            <p class="lede">Connect a wallet and start a journal of your own: one island, a field of seeds and a few curious neighbours.</p>
+            <button class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12.5h2M3 9h14a2 2 0 0 0 2-2V5"/></svg> Connect wallet</button>
+            <p class="wallets">WAX Cloud Wallet &middot; Wombat &middot; Anchor</p>
+          </div>
+          <svg class="page-stamp" viewBox="0 0 200 200" aria-hidden="true"><use href="#stamp"/></svg>
+          </div>
+          <div class="folio"><span>61</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#foreword" data-turn="foreword" aria-label="Unclaimed Acres, back to the first page">
+      <svg class="brand-stamp" width="44" height="44" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres</span>
+    </a>
+    <p style="margin:0">An island farming &amp; creature game. In development; artwork shown is from the game.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var book = document.getElementById('book');
+  var sides = { l: document.getElementById('page-l'), r: document.getElementById('page-r') };
+  var order = Array.prototype.map.call(document.querySelectorAll('.bookmark'), function (b) { return b.dataset.turn; });
+  var current = 'foreword', turning = false;
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var narrow = window.matchMedia('(max-width: 980px)');
+
+  function leaf(side, id) { return sides[side].querySelector('.leaf[data-ch="' + id + '"]'); }
+  function reveal(side, id) {
+    sides[side].querySelectorAll('.leaf').forEach(function (l) { l.hidden = l.dataset.ch !== id; });
+  }
+  function mark(id) {
+    document.querySelectorAll('.bookmark').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.turn === id ? 'true' : 'false'); });
+  }
+
+  // Every chapter gets the height of the tallest one, so the book keeps its size as the pages turn.
+  function sizeBook() {
+    book.style.removeProperty('--page-h');
+    if (narrow.matches) return;
+    var h = 0;
+    ['l', 'r'].forEach(function (s) {
+      sides[s].querySelectorAll('.leaf').forEach(function (l) {
+        reveal(s, l.dataset.ch); h = Math.max(h, sides[s].offsetHeight);
+      });
+      reveal(s, current);
+    });
+    book.style.setProperty('--page-h', h + 'px');
+  }
+
+  // A copy of one page side, used as a face of the turning leaf.
+  function face(side, id, cls) {
+    var f = document.createElement('div');
+    f.className = 'face ' + cls + ' page sheet page-' + side;
+    var copy = leaf(side, id).cloneNode(true);
+    copy.hidden = false;
+    copy.querySelectorAll('[id]').forEach(function (n) { n.removeAttribute('id'); });
+    copy.removeAttribute('role'); copy.removeAttribute('aria-labelledby');
+    f.appendChild(copy);
+    return f;
+  }
+
+  function turnTo(id, fromUser) {
+    if (id === current || turning || order.indexOf(id) < 0) return;
+    var forward = order.indexOf(id) > order.indexOf(current), from = current;
+    current = id; mark(id);
+    if (fromUser) history.replaceState(null, '', '#' + id);
+    if (narrow.matches || still.matches || document.hidden) {
+      reveal('l', id); reveal('r', id);
+      if (fromUser) book.scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth', block: 'start' });
+      return;
+    }
+    turning = true;
+    // Forward: the right page lifts and swings over to the left. Backward: the left page swings right.
+    var t = document.createElement('div');
+    t.className = 'turn ' + (forward ? 'turn-fwd' : 'turn-back');
+    t.appendChild(face(forward ? 'r' : 'l', from, 'front'));
+    t.appendChild(face(forward ? 'l' : 'r', id, 'back'));
+    book.appendChild(t);
+    reveal(forward ? 'r' : 'l', id);
+    // Finish when the leaf lands, or after a moment anyway (a hidden tab never runs the animation).
+    var done = false;
+    function land() {
+      if (done) return; done = true;
+      reveal(forward ? 'l' : 'r', id);
+      t.remove(); turning = false;
+    }
+    t.addEventListener('animationend', function (e) { if (e.target === t) land(); });
+    setTimeout(land, 1000);
+  }
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-turn]');
+    if (!a) return;
+    e.preventDefault();
+    turnTo(a.dataset.turn, true);
+  });
+  document.querySelector('.bookmarks').addEventListener('keydown', function (e) {
+    var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!d) return;
+    var next = order[(order.indexOf(current) + d + order.length) % order.length];
+    turnTo(next, true); document.getElementById('tab-' + next).focus(); e.preventDefault();
+  });
+
+  var start = location.hash.slice(1);
+  if (order.indexOf(start) > 0) { current = start; mark(start); reveal('l', start); reveal('r', start); }
+  window.addEventListener('load', sizeBook);
+  window.addEventListener('resize', function () { clearTimeout(sizeBook.t); sizeBook.t = setTimeout(sizeBook, 150); });
+  narrow.addEventListener('change', sizeBook);
+  sizeBook();
+
+  // crop growth plate: switch crops
+  var tabs = document.querySelectorAll('#page-r .tabs [role="tab"]');
+  var imgs = document.querySelectorAll('#stage-list img');
+  var name = document.getElementById('plate-name');
+  var note = document.getElementById('plate-note');
+  var words = { '1-seeds-front': 'seeds', '2-sown': 'sown', '3-first-growth': 'first growth', '4-second-growth': 'second growth',
+    '5-third-growth': 'third growth', '6-harvest': 'ready', '7-harvest-front': 'harvested', '8-dead': 'wilted' };
+  function select(btn) {
+    tabs.forEach(function (t) { t.setAttribute('aria-selected', t === btn ? 'true' : 'false'); t.tabIndex = t === btn ? 0 : -1; });
+    name.firstChild.nodeValue = btn.dataset.name + ' ';
+    note.textContent = btn.dataset.note;
+    imgs.forEach(function (img) { img.src = '../crops/' + btn.dataset.crop + '/' + img.dataset.stage + '.svg'; img.alt = btn.dataset.name + ': ' + words[img.dataset.stage]; });
+  }
+  tabs.forEach(function (t, i) {
+    t.tabIndex = i === 0 ? 0 : -1;
+    t.addEventListener('click', function () { select(t); });
+    t.addEventListener('keydown', function (e) {
+      var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!d) return;
+      var n = tabs[(i + d + tabs.length) % tabs.length]; n.focus(); select(n); e.preventDefault(); e.stopPropagation();
+    });
+  });
+})();
+</script>
+</body>
+</html>

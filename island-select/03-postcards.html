@@ -1,0 +1,465 @@
+<!doctype html>
+<!-- Concept 03: Postcards. The open journal greets the player on the left; each island is a postcard on the right,
+     fanned like a hand of cards: pick one to lift it to the front, turn it over for the note, stats and "Enter island". -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your islands · Unclaimed Acres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="journal.css">
+<style>
+  main { padding: 0 0 90px; }
+  .book { margin-top: 4px; }
+  .entry-meta { display: flex; justify-content: space-between; font-family: var(--hand); color: var(--blue); font-size: 1.35rem; border-bottom: 1px solid var(--rule); padding-bottom: 6px; margin-bottom: 22px; }
+  .margin-note { font-family: var(--hand); color: var(--blue); font-size: 1.45rem; line-height: 1.15; transform: rotate(-2deg); margin: 20px 0 0; padding-left: 16px; border-left: 2px solid var(--blue-soft); }
+
+  /* ---------- header account chip ---------- */
+  .account { display: flex; align-items: center; gap: 16px; }
+  .acct-chip { display: inline-flex; align-items: center; gap: 10px; padding: 6px 16px 6px 8px; background: var(--card); background-image: var(--noise);
+    border: 1px solid rgba(180,156,116,.7); border-radius: 999px; box-shadow: 0 2px 6px -3px rgba(60,45,20,.4); font-family: var(--sc); letter-spacing: .08em; font-size: 1rem; }
+  .acct-chip svg { width: 30px; height: 30px; color: var(--rust); }
+  .signout { font-family: var(--hand); font-size: 1.35rem; color: var(--blue); text-decoration: none; white-space: nowrap; }
+  .signout:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+  .book { --page-h: 690px; }
+
+  /* ---------- left page: the greeting ---------- */
+  .welcome { font-family: var(--hand); color: var(--blue); font-weight: 600; font-size: clamp(3.4rem, 2.4rem + 3vw, 5.2rem); line-height: .9; margin: 0; transform: rotate(-3deg); transform-origin: left bottom; }
+  .welcome::after { content: ""; display: block; width: 62%; height: 12px; margin: 2px 0 0 6px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 12'%3E%3Cpath d='M2 8C60 2 140 3 298 6' fill='none' stroke='%2325467f' stroke-width='2.2' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E") no-repeat 0 0 / 100% 100%; }
+  .who { font-family: var(--display); font-size: clamp(2.2rem, 1.6rem + 1.6vw, 3rem); margin: 18px 0 14px; line-height: 1; }
+  .who small { display: block; font-family: var(--sc); font-size: .85rem; letter-spacing: .16em; color: var(--rust); margin-bottom: 6px; }
+  .greet-lede { font-size: 1.18rem; color: var(--ink-soft); max-width: 30em; margin: 0 0 6px; }
+  .tally { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 24px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--rule); }
+  .tally li { padding: 14px 10px 0 0; }
+  .tally li + li { padding-left: 16px; border-left: 1px dashed rgba(180,156,116,.7); }
+  .tally b { font-family: var(--display); font-weight: 400; font-size: 2.5rem; display: block; line-height: 1; }
+  .tally b sup { font-size: .45em; vertical-align: .9em; margin-left: 1px; }
+  .tally span { font-family: var(--sc); font-size: .82rem; letter-spacing: .1em; color: var(--ink-soft); }
+
+  /* the blank card (chart a new island) */
+  .left-foot { display: flex; align-items: flex-start; gap: 26px 34px; flex-wrap: wrap; margin-top: 26px; }
+  .ledger-wrap { flex: 1 1 200px; min-width: 0; }
+  .ledger { margin: 0; padding: 0; list-style: none; }
+  .ledger-h { font-family: var(--sc); letter-spacing: .14em; font-size: .78rem; color: var(--rust); margin: 0 0 4px; }
+  .ledger li { border-bottom: 1px solid rgba(37,70,127,.18); }
+  .ledger button { display: flex; width: 100%; justify-content: space-between; gap: 10px; align-items: baseline; background: none; border: 0; padding: 5px 2px 3px; cursor: pointer; text-align: left; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; line-height: 1.1; }
+  .ledger button span { font-size: 1.05rem; color: var(--ink-soft); white-space: nowrap; }
+  .ledger button:hover b { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .ledger b { font-weight: 600; }
+  .sketch { position: relative; margin: 8px 0 0 6px; width: 200px; padding: 12px 12px 8px; background: var(--card); background-image: var(--noise); box-shadow: var(--shadow); transform: rotate(2.5deg); }
+  .sketch .tape { top: -12px; left: calc(50% - 40px); width: 80px; transform: rotate(-4deg); }
+  .sketch svg { display: block; }
+  .sketch figcaption { font-family: var(--hand); color: var(--blue); font-size: 1.15rem; text-align: center; line-height: 1.1; margin-top: 4px; }
+  .blank-card { position: relative; display: grid; grid-template-columns: 1fr 1fr; width: 260px; max-width: 100%; aspect-ratio: 3 / 2; margin: 8px 0 0 4px; padding: 14px; flex: none;
+    background: var(--card); background-image: var(--noise); box-shadow: var(--shadow); transform: rotate(-2.5deg); border: 0; cursor: pointer; text-align: left; color: inherit; font: inherit;
+    transition: transform .25s ease, box-shadow .25s ease; }
+  .blank-card:hover { transform: rotate(-1deg) translateY(-4px); }
+  .blank-card::before { content: ""; position: absolute; top: 16px; bottom: 16px; left: 50%; border-left: 1px solid rgba(180,156,116,.6); }
+  .blank-card .bc-l { padding-right: 14px; display: flex; flex-direction: column; justify-content: center; }
+  .blank-card .bc-l b { font-family: var(--hand); color: var(--blue); font-size: 1.65rem; line-height: 1; font-weight: 600; }
+  .blank-card .bc-l small { font-family: var(--sc); letter-spacing: .1em; font-size: .72rem; color: var(--ink-soft); margin-top: 8px; line-height: 1.3; }
+  .blank-card .bc-r { padding-left: 14px; display: flex; flex-direction: column; justify-content: flex-end; gap: 14px; }
+  .blank-card .bc-r i { display: block; height: 1px; background: rgba(90,82,70,.4); }
+  .blank-card .bc-stamp { position: absolute; top: 12px; right: 12px; width: 40px; height: 48px; border: 1.5px dashed rgba(90,82,70,.5); display: grid; place-items: center; font-family: var(--hand); color: var(--ink-soft); font-size: 1.5rem; }
+  .blank-card .tape { top: -12px; left: 24px; width: 70px; transform: rotate(-6deg); }
+  .page-stamp { position: absolute; right: 40px; bottom: 74px; width: 132px; height: 132px; color: var(--rust); opacity: .55; transform: rotate(-14deg); pointer-events: none; }
+
+  /* ---------- right page: the postcards ---------- */
+  .page-r .leaf-body { display: flex; flex-direction: column; }
+  .pr-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .pr-head h2 { font-size: clamp(1.8rem, 1.2rem + 1.4vw, 2.4rem); margin: 0; }
+  .pr-head .hand { font-size: 1.3rem; }
+  .is-one .pr-head .hand { flex-basis: 100%; text-align: right; font-size: 1.4rem; transform: rotate(-2deg); margin-top: 18px; padding-right: 30px; display: flex; justify-content: flex-end; align-items: flex-start; gap: 4px; }
+  .is-one .pr-head .hand svg { margin-top: 12px; flex: none; }
+  .page-stamp[hidden] { display: none; }
+  .stage { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 22px; }
+  .is-one .stage { padding-top: 8px; }
+
+  .postcard { --w: 440px; position: relative; width: min(var(--w), 100%); aspect-ratio: 3 / 2; perspective: 1800px; transform: rotate(var(--tilt, -2.2deg)); z-index: 2; }
+  .is-one .postcard { --w: 510px; --tilt: -3deg; }
+  .postcard.arrive { animation: arrive .55s cubic-bezier(.2, .8, .25, 1); }
+  @keyframes arrive { from { transform: translateY(150px) rotate(8deg) scale(.42); opacity: .4; } to { transform: rotate(var(--tilt, -2.2deg)); opacity: 1; } }
+  .pc-inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.45, .05, .3, 1); }
+  .postcard.flipped .pc-inner { transform: rotateY(180deg); }
+  .pc-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: #fffaf0; background-image: var(--noise);
+    box-shadow: 0 1px 1px rgba(60,45,20,.12), 0 10px 22px -6px rgba(60,45,20,.35), 0 28px 50px -24px rgba(60,45,20,.5); border-radius: 3px; }
+  .pc-back { transform: rotateY(180deg); }
+
+  /* front */
+  .pc-front { padding: 11px; }
+  .pc-pic { position: relative; width: 100%; height: 100%; overflow: hidden; background: #2e6a82; border-radius: 1px; }
+  .pc-pic img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.85) sepia(.12) contrast(.98); }
+  .pc-pic::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 1px rgba(43,39,33,.3), inset 0 0 60px rgba(60,40,10,.28); pointer-events: none; }
+  .pc-greet { position: absolute; left: 24px; bottom: 20px; z-index: 2; color: #fff6df; text-shadow: 0 2px 8px rgba(20,25,30,.55), 0 0 2px rgba(20,25,30,.5); line-height: 1; }
+  .pc-greet span { font-family: var(--hand); font-size: 1.55rem; display: block; transform: rotate(-4deg); transform-origin: left; margin: 0 0 2px 4px; }
+  .pc-greet b { font-family: var(--display); font-weight: 400; font-size: 2.7rem; letter-spacing: .01em; }
+  .pc-hit { position: absolute; inset: 0; z-index: 4; border: 0; background: none; cursor: pointer; border-radius: 3px; }
+  .pc-hit:focus-visible { outline-offset: 6px; }
+  .flip-hint { position: absolute; right: 20px; bottom: 20px; z-index: 3; font-family: var(--hand); font-size: 1.2rem; color: #fff6df; background: rgba(30, 36, 44, .45); padding: 1px 10px 2px; border-radius: 99px; display: inline-flex; gap: 6px; align-items: center; }
+  .flip-hint svg { width: 18px; height: 18px; }
+
+  /* stamp + postmark */
+  .stamp { position: absolute; top: 20px; right: 20px; width: 70px; height: 84px; z-index: 3; padding: 5px; background: #fbf4e2;
+    -webkit-mask: radial-gradient(circle 3px at 4px 4px, transparent 96%, #000) -4px -4px / 8px 8px, linear-gradient(#000 0 0) content-box;
+    mask: radial-gradient(circle 3px at 4px 4px, transparent 96%, #000) -4px -4px / 8px 8px, linear-gradient(#000 0 0) content-box;
+    transform: rotate(3deg); }
+  .stamp-in { height: 100%; background: var(--sc-tint, #2f6f86); color: #fbf4e2; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 4px 2px 3px; }
+  .stamp-in svg { width: 46px; height: 46px; }
+  .stamp-in small { font-family: var(--sc); font-size: .55rem; letter-spacing: .12em; line-height: 1; white-space: nowrap; }
+  .postmark { position: absolute; top: 44px; right: 58px; width: 112px; height: 112px; z-index: 3; color: rgba(43, 39, 33, .72); transform: rotate(-12deg); pointer-events: none; overflow: visible; }
+  .pc-front .postmark { color: rgba(250, 240, 220, .9); filter: drop-shadow(0 0 2px rgba(0,0,0,.45)); }
+
+  /* back */
+  .pc-back { display: grid; grid-template-columns: 1.08fr 1fr; padding: 20px 20px 18px 24px; }
+  .pc-back::before { content: ""; position: absolute; top: 22px; bottom: 22px; left: 52%; border-left: 1px solid rgba(180,156,116,.75); }
+  .pc-back .pb-l { padding-right: 22px; display: flex; flex-direction: column; min-width: 0; }
+  .pc-back .pb-r { padding-left: 22px; display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; position: relative; }
+  .pb-head { font-family: var(--sc); font-size: .7rem; letter-spacing: .18em; color: var(--rust); margin: 0 0 8px; }
+  .pb-note { font-family: var(--hand); color: var(--blue); font-size: 1.42rem; line-height: 1.12; margin: 0; flex: 1; font-weight: 500; }
+  .pb-note em { font-style: normal; display: block; margin-top: 6px; color: var(--ink-soft); font-size: 1.15rem; }
+  .pb-sign { font-family: var(--hand); color: var(--blue); font-size: 1.3rem; margin: 6px 0 10px; }
+  .pb-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .pb-actions .btn { font-size: .92rem; padding: .58em 1em .52em; }
+  .turn-back-btn { font-family: var(--hand); font-size: 1.15rem; color: var(--blue); background: none; border: 0; padding: 2px 4px; cursor: pointer; }
+  .turn-back-btn:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .pb-r .stamp { top: -2px; right: -2px; width: 58px; height: 70px; }
+  .pb-r .stamp-in svg { width: 38px; height: 38px; }
+  .pb-r .postmark { top: 8px; right: 42px; width: 76px; height: 76px; }
+  .addr { list-style: none; margin: 0; padding: 0; }
+  .addr li { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; border-bottom: 1px solid rgba(90,82,70,.35); padding: 3px 0 1px; font-family: var(--hand); color: var(--blue); font-size: 1.2rem; line-height: 1.1; }
+  .addr li span { font-family: var(--sc); color: var(--ink-soft); font-size: .68rem; letter-spacing: .12em; }
+  .addr li.to { font-family: var(--display); color: var(--ink); font-size: 1.4rem; }
+
+  /* below the big card */
+  .card-actions { position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; gap: 12px 26px; flex-wrap: wrap; margin-top: 26px; }
+  .card-actions .link-hand { font-size: 1.4rem; background: none; border: 0; cursor: pointer; padding: 0; }
+
+  /* the fan of the other cards */
+  .fan-wrap { position: relative; width: 100%; margin-top: 14px; }
+  .fan-label { font-family: var(--hand); color: var(--ink-soft); font-size: 1.25rem; text-align: center; margin: 0 0 4px; }
+  .fan { position: relative; height: 136px; }
+  .is-one .card-actions { margin-top: 34px; }
+  .mini { --rot: 0deg; position: absolute; bottom: 0; left: calc(50% + var(--x, 0%)); width: 132px; aspect-ratio: 3 / 2.05; margin-left: -66px; padding: 6px 6px 24px;
+    background: #fffaf0; background-image: var(--noise); border: 0; cursor: pointer; text-align: left; color: inherit; font: inherit;
+    box-shadow: 0 1px 1px rgba(60,45,20,.12), 0 6px 14px -4px rgba(60,45,20,.35); border-radius: 2px;
+    transform-origin: 50% 300%; transform: rotate(var(--rot)); transition: transform .22s ease, box-shadow .22s ease; }
+  .mini:hover, .mini:focus-visible { transform: rotate(var(--rot)) translateY(-16px); z-index: 10 !important; box-shadow: 0 1px 1px rgba(60,45,20,.12), 0 16px 24px -8px rgba(60,45,20,.45); }
+  .mini .m-map { display: block; width: 100%; height: 100%; background: #dfe7e4; background-image: linear-gradient(rgba(37,70,127,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(37,70,127,.10) 1px, transparent 1px); background-size: 12px 12px; overflow: hidden; }
+  .mini .m-map svg { display: block; width: 100%; height: 100%; }
+  .mini .m-name { position: absolute; left: 7px; right: 7px; bottom: 3px; font-family: var(--hand); color: var(--blue); font-size: 1.12rem; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .mini .m-stamp { position: absolute; top: 9px; right: 9px; width: 18px; height: 22px; background: var(--sc-tint, #2f6f86); outline: 2px dotted #fbf4e2; outline-offset: -1px; }
+  .mini.more { display: grid; place-items: center; text-align: center; padding: 8px; background-color: #efe5cc; }
+  .mini.more span { font-family: var(--hand); color: var(--blue); font-size: 1.5rem; line-height: 1; font-weight: 600; }
+  .mini.more small { display: block; font-family: var(--sc); letter-spacing: .1em; color: var(--ink-soft); font-size: .7rem; margin-top: 6px; }
+  .mini.more::before, .mini.more::after { content: ""; position: absolute; inset: 0; background: #f4ebd4; z-index: -1; box-shadow: 0 2px 6px -2px rgba(60,45,20,.35); border-radius: 2px; }
+  .mini.more::before { transform: rotate(-5deg) translate(-4px, 2px); }
+  .mini.more::after { transform: rotate(4deg) translate(5px, 1px); }
+
+  /* ---------- the postcard rack (all islands) ---------- */
+  dialog.rack { width: min(1080px, 100% - 24px); max-height: calc(100vh - 40px); padding: 0; border: 0; border-radius: 4px; color: var(--ink);
+    background: var(--paper); background-image: var(--noise), var(--fibres); box-shadow: 0 40px 90px -30px rgba(30,20,5,.7); }
+  dialog.rack::backdrop { background: rgba(43, 33, 18, .55); }
+  .rack-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 28px 34px 16px;
+    background: var(--paper); background-image: var(--noise); border-bottom: 1px solid var(--rule); }
+  .rack-head h2 { font-size: 2.3rem; }
+  .rack-tools { display: flex; align-items: center; gap: 14px; }
+  .rack-search { font-family: var(--hand); font-size: 1.35rem; color: var(--blue); background: transparent; border: 0; border-bottom: 1.5px solid var(--ink-soft); padding: 2px 4px; width: 200px; }
+  .rack-search::placeholder { color: rgba(37,70,127,.45); }
+  .rack-close { font-family: var(--sc); letter-spacing: .08em; font-size: .95rem; background: none; border: 1px solid var(--rule); border-radius: 3px; padding: .45em .9em .4em; cursor: pointer; color: var(--ink); }
+  .rack-grid { list-style: none; margin: 0; padding: 30px 34px 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 30px 24px; }
+  .rack-grid li { position: relative; }
+  .rack-grid li::after { content: ""; position: absolute; left: -12px; right: -12px; bottom: -14px; height: 5px; background: linear-gradient(#a78a5e, #7d6340); border-radius: 2px; box-shadow: 0 3px 4px -2px rgba(40,25,5,.5); }
+  .rack-grid .mini { position: relative; left: auto; bottom: auto; margin: 0; width: 100%; --rot: var(--r, 0deg); transform-origin: 50% 50%; }
+  .rack-grid .mini.current { outline: 2px solid var(--rust); outline-offset: 4px; }
+  .rack-empty { font-family: var(--hand); color: var(--ink-soft); font-size: 1.4rem; padding: 0 34px 30px; }
+
+  @media (max-width: 1180px) { .postcard { --w: 420px; } .is-one .postcard { --w: 450px; } }
+  @media (max-width: 980px) {
+    .book { --page-h: auto; }
+    .page-stamp { display: none; }
+  }
+  @media (max-width: 560px) {
+    .acct-chip #acct-name { display: none; }
+    .acct-chip { padding: 4px; }
+    .tally b { font-size: 2rem; }
+    .pc-front { padding: 8px; }
+    .pc-greet { left: 14px; bottom: 12px; }
+    .pc-greet b { font-size: 1.8rem; }
+    .pc-greet span { font-size: 1.2rem; }
+    .flip-hint { display: none; }
+    .stamp { width: 50px; height: 60px; top: 12px; right: 12px; padding: 4px; }
+    .stamp-in svg { width: 30px; height: 30px; }
+    .postmark { width: 64px; height: 64px; right: 44px; top: 26px; }
+    .pc-back { grid-template-columns: 1fr; padding: 14px 16px; }
+    .pc-back::before, .pc-back .pb-r { display: none; }
+    .pb-note { font-size: 1.25rem; }
+    .fan { height: 124px; }
+    .mini { width: 100px; margin-left: -50px; padding-bottom: 20px; }
+    .mini .m-name { font-size: 1rem; }
+    .rack-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 22px 16px 30px; gap: 26px 14px; }
+    .rack-head { padding: 20px 16px 12px; }
+    .rack-search { width: 140px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .pc-inner { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../landing-ideas/02-field-journal.html" aria-label="Unclaimed Acres, back to the field journal">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <div class="account">
+      <span class="acct-chip"><svg aria-hidden="true"><use href="#stamp-mark"/></svg><span class="sr-only">Signed in as </span><span id="acct-name">fennel.wam</span></span>
+      <a class="signout" href="#sign-out">Sign out</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="book" id="book">
+      <div class="page page-l sheet">
+        <div class="leaf">
+          <div class="leaf-body">
+            <div class="entry-meta"><span>Correspondence</span><span id="meta-date">post: arrived</span></div>
+            <p class="welcome">Welcome back,</p>
+            <h1 class="who"><small>this journal belongs to</small><span id="who">fennel.wam</span></h1>
+            <p class="greet-lede" id="lede">Your post has arrived.</p>
+            <ul class="tally" id="tally" aria-label="Your islands at a glance"></ul>
+            <p class="margin-note" id="last-note"></p>
+            <div id="blank-slot"></div>
+          </div>
+          <div class="folio"><span>Letters home</span><span>i</span></div>
+        </div>
+        <svg class="page-stamp" id="page-stamp" aria-hidden="true" hidden><use href="#stamp"/></svg>
+      </div>
+
+      <div class="page page-r sheet" id="page-r">
+        <div class="leaf">
+          <div class="leaf-body">
+            <div class="pr-head">
+              <h2 id="pr-title">Postcards from your islands</h2>
+              <span class="hand" id="pr-hint"></span>
+            </div>
+            <div class="stage" id="stage"></div>
+          </div>
+          <div class="folio"><span id="folio-r">ii</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<dialog class="rack" id="rack" aria-labelledby="rack-title">
+  <div class="rack-head">
+    <div><p class="kicker">Every card you have</p><h2 id="rack-title">The postcard rack</h2></div>
+    <div class="rack-tools">
+      <label class="sr-only" for="rack-q">Find an island by name</label>
+      <input class="rack-search" id="rack-q" type="search" placeholder="find by name" autocomplete="off">
+      <button class="rack-close" type="button" id="rack-close">Close</button>
+    </div>
+  </div>
+  <ul class="rack-grid" id="rack-grid"></ul>
+  <p class="rack-empty" id="rack-empty" hidden>No card with that name in the rack.</p>
+</dialog>
+
+<script src="islands.js"></script>
+<script>
+(function () {
+  var TINTS = ['#2f6f86', '#a5452d', '#5f6d3b', '#25467f', '#b8892f'];
+  var FAN = 4;                            // other cards shown in the fan
+  var list = [], current = 0, recent = [], flipped = false;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var pct = function (v) { return (Math.round(v * 10) / 10).toString(); };
+  var no = function (i) { return 'No. ' + String(i + 1).padStart(2, '0'); };
+  var ARROW = '<svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg>';
+  var TURN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 4v4h-4M20 12a8 8 0 0 1-14 5.3M4 20v-4h4"/></svg>';
+  var DOOR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h11M11 7l5 5-5 5M15 4h4v16h-4"/></svg>';
+  var uid = 0;
+
+  function postmark(isle) {
+    var k = ++uid, when = isle.lastVisit.toUpperCase(), parts = when.split(' ');
+    var lines = parts.length > 2 ? [parts.slice(0, 2).join(' '), parts.slice(2).join(' ')] : [when];
+    return '<svg class="postmark" viewBox="0 0 120 120" aria-hidden="true"><g fill="none" stroke="currentColor">' +
+      '<circle cx="60" cy="60" r="44" stroke-width="2.4"/><circle cx="60" cy="60" r="29" stroke-width="1.2"/>' +
+      '<path id="pm-t-' + k + '" d="M26 60a34 34 0 0 1 68 0" stroke="none"/><path id="pm-b-' + k + '" d="M21 60a39 39 0 0 0 78 0" stroke="none"/></g>' +
+      '<g fill="currentColor" font-family="IM Fell English SC, serif" text-anchor="middle">' +
+      '<text font-size="' + (isle.name.length > 11 ? 9 : 11) + '" letter-spacing="1.6"><textPath href="#pm-t-' + k + '" startOffset="50%">' + esc(isle.name.toUpperCase()) + '</textPath></text>' +
+      '<text font-size="8.5" letter-spacing="2.4"><textPath href="#pm-b-' + k + '" startOffset="50%">LAST VISIT</textPath></text>' +
+      (lines.length === 1 ? '<text x="60" y="64.5" font-size="' + (when.length > 6 ? 10.5 : 13) + '" letter-spacing="1">' + esc(lines[0]) + '</text>'
+        : '<text x="60" y="58" font-size="11" letter-spacing="1">' + esc(lines[0]) + '</text><text x="60" y="70" font-size="9.5" letter-spacing="1">' + esc(lines[1]) + '</text>') + '</g>' +
+      '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M-62 46q7-5 14 0t14 0t14 0t14 0"/><path d="M-62 60q7-5 14 0t14 0t14 0t14 0"/><path d="M-62 74q7-5 14 0t14 0t14 0t14 0"/></g></svg>';
+  }
+  function stamp(isle) {
+    return '<span class="stamp" aria-hidden="true" style="--sc-tint:' + TINTS[isle.index % TINTS.length] + '"><span class="stamp-in">' +
+      UA.outline(isle, { size: '46', land: 'rgba(251,244,226,.92)', ink: '#fbf4e2', shore: false, stroke: 1.4, pad: 8 }) +
+      '<small>' + no(isle.index) + '</small></span></span>';
+  }
+
+  function cardHTML(isle) {
+    var s = isle.stats;
+    return '<div class="pc-inner">' +
+      '<div class="pc-face pc-front">' +
+        '<div class="pc-pic"><img src="' + isle.render + '" style="transform:' + isle.renderTransform + '" alt="Painted view of ' + esc(isle.name) + ' from above: coastline, beaches, forest and hills."></div>' +
+        '<div class="pc-greet"><span>Greetings from</span><b>' + esc(isle.name) + '</b></div>' +
+        stamp(isle) + postmark(isle) +
+        '<span class="flip-hint" aria-hidden="true">' + TURN + 'turn over</span>' +
+        '<button class="pc-hit" type="button" data-flip aria-label="Turn over the postcard from ' + esc(isle.name) + '"></button>' +
+      '</div>' +
+      '<div class="pc-face pc-back">' +
+        '<div class="pb-l">' +
+          '<p class="pb-head">' + no(isle.index) + ' &middot; charted ' + esc(isle.charted) + '</p>' +
+          '<p class="pb-note">Dear journal, ' + esc(isle.note) + '.<em>last visit: ' + esc(isle.lastVisit) + '</em></p>' +
+          '<p class="pb-sign">&mdash; F.</p>' +
+          '<div class="pb-actions"><a class="btn small" href="#enter-' + isle.id + '" aria-label="Enter ' + esc(isle.name) + '">' + DOOR + ' Enter island</a>' +
+          '<button class="turn-back-btn" type="button" data-flip>turn back</button></div>' +
+        '</div>' +
+        '<div class="pb-r">' + stamp(isle) + postmark(isle) +
+          '<ul class="addr" aria-label="Survey of ' + esc(isle.name) + '">' +
+            '<li class="to">' + esc(isle.name) + '</li>' +
+            '<li><span>land</span>' + pct(s.land) + '%</li>' +
+            '<li><span>forest</span>' + pct(s.forest) + '%</li>' +
+            '<li><span>mountain</span>' + pct(s.mountain) + '%</li>' +
+            '<li><span>beach</span>' + pct(s.beach) + '%</li>' +
+            '<li><span>fresh water</span>' + pct(s.freshWater) + '%</li>' +
+          '</ul>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function miniHTML(isle, style, cls) {
+    return '<button class="mini' + (cls || '') + '" type="button" data-pick="' + isle.index + '" style="--sc-tint:' + TINTS[isle.index % TINTS.length] + ';' + (style || '') + '" aria-label="Postcard from ' + esc(isle.name) + ', last visit ' + esc(isle.lastVisit) + '">' +
+      '<span class="m-map">' + UA.outline(isle, { land: '#f3ead2', ink: '#2b2721', stroke: .8, pad: 6 }) + '</span>' +
+      '<span class="m-stamp" aria-hidden="true"></span><span class="m-name">' + esc(isle.name) + '</span></button>';
+  }
+
+  function renderLeft() {
+    var n = list.length, last = list[n - 1];
+    var avg = function (k) { return list.reduce(function (a, i) { return a + i.stats[k]; }, 0) / n; };
+    var lakes = list.filter(function (i) { return i.stats.freshWater >= 0.5; }).length;
+    if (n === 1) {
+      $('lede').innerHTML = 'A postcard from <strong>' + esc(last.name) + '</strong> is waiting on the next page. Turn it over for your notes, then step ashore.';
+      $('tally').innerHTML =
+        '<li><b>' + pct(last.stats.land) + '<sup>%</sup></b><span>land</span></li>' +
+        '<li><b>' + pct(last.stats.forest) + '<sup>%</sup></b><span>forest</span></li>' +
+        '<li><b>' + pct(last.stats.beach) + '<sup>%</sup></b><span>beach</span></li>';
+      $('last-note').textContent = 'one island so far, charted ' + last.charted;
+    } else {
+      $('lede').innerHTML = 'Postcards from <strong>' + n + ' islands</strong> have come in. Pick one from the pile to read the back, then step ashore.';
+      $('tally').innerHTML =
+        '<li><b>' + n + '</b><span>islands</span></li>' +
+        '<li><b>' + Math.round(avg('land')) + '<sup>%</sup></b><span>land, on average</span></li>' +
+        '<li><b>' + lakes + '</b><span>with a lake</span></li>';
+      $('last-note').textContent = 'latest post: ' + last.name + ', ' + last.lastVisit;
+    }
+    $('meta-date').textContent = n === 1 ? '1 card waiting' : n + ' cards waiting';
+    var foot = '';
+    if (n === 1) {
+      foot = '<figure class="sketch"><span class="tape" aria-hidden="true"></span>' + UA.outline(last, { size: 176, sea: '#e3e9e2', grid: 'rgba(37,70,127,.16)', pad: 6, label: 'Pen sketch of the coastline of ' + last.name }) +
+        '<figcaption>' + esc(last.name) + ', from the deck</figcaption></figure>';
+    } else {
+      var latest = list.slice().reverse().slice(0, UA.canCreate ? 3 : 4);
+      foot = '<div class="ledger-wrap"><p class="ledger-h">Post book</p><ul class="ledger">' + latest.map(function (i) {
+        return '<li><button type="button" data-pick="' + i.index + '"><b>' + esc(i.name) + '</b><span>' + esc(i.lastVisit) + '</span></button></li>'; }).join('') + '</ul></div>';
+    }
+    $('blank-slot').innerHTML = '<div class="left-foot">' + foot + (UA.canCreate ? '<button class="blank-card" type="button" id="new-island" aria-label="Chart a new island">' +
+      '<span class="tape" aria-hidden="true"></span><span class="bc-stamp" aria-hidden="true">+</span>' +
+      '<span class="bc-l"><b>Chart a new island</b><small>a blank card, still unwritten</small></span>' +
+      '<span class="bc-r" aria-hidden="true"><i></i><i></i><i></i></span></button>' : '') + '</div>';
+  }
+
+  function renderStage(animate) {
+    var isle = list[current], n = list.length, stage = $('stage');
+    var html = '<div class="postcard' + (animate && !reduce ? ' arrive' : '') + '" id="card" role="group" aria-label="Postcard from ' + esc(isle.name) + '">' + cardHTML(isle) + '</div>';
+    html += '<div class="card-actions"><a class="btn" href="#enter-' + isle.id + '">' + DOOR + ' Enter ' + esc(isle.name) + '</a>' +
+      '<button class="link-hand" type="button" data-flip id="flip-link"></button></div>';
+    if (n > 1) {
+      var others = recent.filter(function (i) { return i !== current; }).slice(0, FAN);
+      var more = n - 1 - others.length;
+      var slots = others.length + (more > 0 ? 1 : 0);
+      var fan = '', place = function (k) { var off = k - (slots - 1) / 2; return '--rot:' + (off * 8) + 'deg;--x:' + (off * 17) + '%;z-index:' + (k + 1); };
+      others.forEach(function (idx, k) { fan += miniHTML(list[idx], place(k)); });
+      if (more > 0) {
+        fan += '<button class="mini more" type="button" id="open-rack" style="' + place(slots - 1) + '" aria-haspopup="dialog">' +
+          '<span>and ' + more + ' more<small>open the rack</small></span></button>';
+      }
+      html += '<div class="fan-wrap"><p class="fan-label">' + (more > 0 ? 'recent post, or open the rack for all ' + n : 'the rest of the pile') + '</p><div class="fan">' + fan + '</div></div>';
+    }
+    stage.innerHTML = html;
+    syncFaces();
+  }
+
+  function syncFaces() {
+    var card = $('card'); if (!card) return;
+    card.classList.toggle('flipped', flipped);
+    card.querySelector('.pc-front').inert = flipped;
+    card.querySelector('.pc-back').inert = !flipped;
+    $('flip-link').innerHTML = (flipped ? 'see the picture' : 'read the back') + ' ' + ARROW;
+  }
+
+  function pick(idx) {
+    if (idx === current) return;
+    current = idx; flipped = false;
+    recent = [idx].concat(recent.filter(function (i) { return i !== idx; }));
+    renderStage(true);
+    $('card').querySelector('.pc-hit').focus({ preventScroll: true });
+  }
+
+  function renderRack(q) {
+    q = (q || '').trim().toLowerCase();
+    var items = list.filter(function (i) { return !q || i.name.toLowerCase().indexOf(q) >= 0; });
+    $('rack-grid').innerHTML = items.map(function (i) {
+      return '<li>' + miniHTML(i, '--r:' + (((i.index * 37) % 7) - 3) * .6 + 'deg', i.index === current ? ' current' : '') + '</li>';
+    }).join('');
+    $('rack-empty').hidden = items.length > 0;
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-flip],[data-pick],#open-rack,#rack-close,#new-island');
+    if (!t) return;
+    if (t.hasAttribute('data-flip')) {
+      flipped = !flipped; syncFaces();
+      if (t.closest('.postcard')) { var f = $('card').querySelector(flipped ? '.pc-back a.btn' : '.pc-hit'); if (f) f.focus({ preventScroll: true }); }
+    } else if (t.hasAttribute('data-pick')) {
+      if ($('rack').open) $('rack').close();
+      pick(Number(t.getAttribute('data-pick')));
+    } else if (t.id === 'open-rack') {
+      $('rack-q').value = ''; renderRack(''); $('rack').showModal();
+    } else if (t.id === 'rack-close') {
+      $('rack').close();
+    } else if (t.id === 'new-island') {
+      t.querySelector('.bc-l small').textContent = 'the chart table opens soon';
+    }
+  });
+  $('rack-q').addEventListener('input', function () { renderRack(this.value); });
+  $('rack').addEventListener('click', function (e) { if (e.target === this) this.close(); });
+
+  UA.islands().then(function (l) {
+    list = l;
+    current = l.length - 1;                  // the most recent island leads
+    recent = l.map(function (i) { return i.index; }).reverse();
+    $('who').textContent = UA.player; $('acct-name').textContent = UA.player;
+    $('pr-title').textContent = l.length === 1 ? 'A postcard from ' + l[0].name : 'Postcards from your islands';
+    $('pr-hint').innerHTML = l.length === 1 ? 'the only card in the pile so far, arrived ' + esc(l[0].lastVisit) +
+      ' <svg width="40" height="44" viewBox="0 0 40 44" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4c18 2 30 14 28 34M24 32c3 3 6 5 8 8 2-3 4-6 6-8"/></svg>' : l.length + ' in the pile';
+    if (!UA.canCreate) $('page-stamp').hidden = false;
+    $('folio-r').textContent = l.length === 1 ? 'ii' : 'ii · ' + l.length + ' cards';
+    document.body.classList.toggle('is-one', l.length === 1);
+    flipped = location.hash === '#back';     // deep link straight to the back of the card
+    renderLeft(); renderStage(false);
+    if (location.hash === '#rack' && l.length > FAN + 1) { renderRack(''); $('rack').showModal(); }
+  });
+})();
+</script>
+</body>
+</html>

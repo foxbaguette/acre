@@ -1,0 +1,677 @@
+<!--
+  Concept 05: Bestiary Codex
+  Idea: Unclaimed Acres as a premium collectible codex. Creatures are framed collector cards, crops sit in a
+        glass "seed vault", the island is a gilded atlas plate. Dark, calm, jewel-toned, gold-foil details.
+  Palette: near-black charcoal #0e0e11 / #16161b / #1d1d24, gold foil #f3dc94 > #d9b45a > #9c7430,
+           parchment text #ece6d8, jewels: emerald #34b98a, sapphire #5b86ec, amethyst #a27bf2, ruby #e45d68,
+           topaz #e9a840, aquamarine #45cfc6
+  Fonts: Marcellus SC (display), Marcellus (titles), Manrope (body)
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unclaimed Acres · The Bestiary Codex</title>
+<meta name="description" content="Unclaimed Acres: a calm island farming and creature game on the WAX blockchain. Collect more than 50 creatures and 64 crops on an island that is yours alone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Marcellus+SC&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0e0e11; --char:#16161b; --panel:#1d1d24; --line:rgba(236,230,216,.10);
+    --text:#ece6d8; --muted:#a8a296; --dim:#7d786f;
+    --gold-hi:#f6e3a1; --gold:#d9b45a; --gold-lo:#9c7430;
+    --foil:linear-gradient(105deg,#9c7430 0%,#e8c977 22%,#fff1c2 38%,#d9b45a 55%,#a67c2e 75%,#f0d58a 100%);
+    --emerald:#34b98a; --sapphire:#5b86ec; --amethyst:#a27bf2; --ruby:#e45d68; --topaz:#e9a840; --aqua:#45cfc6;
+    --display:"Marcellus SC","Marcellus",Georgia,serif;
+    --title:"Marcellus",Georgia,serif;
+    --body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --wrap:min(1200px,calc(100% - 48px));
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--ink);color:var(--text);font:400 17px/1.65 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  img{display:block;max-width:100%;height:auto}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px;border-radius:4px}
+  .wrap{width:var(--wrap);margin-inline:auto}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .skip{position:absolute;left:12px;top:-60px;background:var(--gold);color:var(--ink);padding:8px 14px;border-radius:6px;z-index:50;font-weight:700}
+  .skip:focus{top:12px}
+
+  /* ---------- shared bits ---------- */
+  .foil{background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .eyebrow{display:inline-flex;align-items:center;gap:12px;font:600 12px/1 var(--body);letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+  .eyebrow::before,.eyebrow::after{content:"";width:28px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+  .eyebrow::after{background:linear-gradient(90deg,var(--gold),transparent)}
+  h1,h2,h3{font-weight:400;margin:0}
+  h2{font:400 clamp(34px,4.2vw,54px)/1.08 var(--display);letter-spacing:.02em}
+  .lede{color:var(--muted);font-size:18px;max-width:58ch}
+  .sec-head{text-align:center;display:grid;justify-items:center;gap:18px;margin-bottom:56px}
+  .sec-head .lede{margin:0}
+  .rule{display:flex;align-items:center;gap:14px;justify-content:center;color:var(--gold)}
+  .rule::before,.rule::after{content:"";height:1px;width:min(160px,22vw);background:linear-gradient(90deg,transparent,rgba(217,180,90,.7),transparent)}
+  .rule svg{width:14px;height:14px}
+
+  .btn{--b:var(--gold);display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 26px;border-radius:999px;font:700 15px/1 var(--body);letter-spacing:.04em;text-decoration:none;cursor:pointer;border:0;transition:transform .2s ease,box-shadow .2s ease,background-color .2s}
+  .btn-gold{color:#1b1509;background:var(--foil);background-size:160% 100%;background-position:0 0;box-shadow:0 0 0 1px rgba(255,241,194,.35) inset,0 10px 30px -10px rgba(217,180,90,.55);transition:background-position .6s ease,transform .2s,box-shadow .2s}
+  .btn-gold:hover{background-position:100% 0;transform:translateY(-1px);box-shadow:0 0 0 1px rgba(255,241,194,.5) inset,0 14px 34px -10px rgba(217,180,90,.7)}
+  .btn-ghost{color:var(--text);background:transparent;box-shadow:0 0 0 1px rgba(217,180,90,.45) inset}
+  .btn-ghost:hover{background:rgba(217,180,90,.08)}
+  .btn svg{width:18px;height:18px}
+
+  /* ---------- header ---------- */
+  .top{position:absolute;inset:0 0 auto;z-index:20}
+  .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:88px}
+  .brand{display:flex;align-items:center;gap:14px;text-decoration:none}
+  .brand img{width:46px;height:46px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
+  .brand span{font:400 22px/1 var(--display);letter-spacing:.08em}
+  .nav{display:flex;align-items:center;gap:34px}
+  .nav ul{display:flex;gap:30px;list-style:none;margin:0;padding:0}
+  .nav ul a{text-decoration:none;font:500 14px/1 var(--body);letter-spacing:.08em;color:var(--muted);transition:color .2s}
+  .nav ul a:hover{color:var(--gold-hi)}
+  .nav .btn{min-height:42px;padding:0 20px;font-size:14px}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;min-height:clamp(760px,100vh,940px);display:flex;align-items:center;overflow:hidden;isolation:isolate}
+  .hero-bg{position:absolute;inset:0;z-index:-2}
+  .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:70% 50%;filter:saturate(.95) brightness(.95)}
+  .hero::before{content:"";position:absolute;inset:0;z-index:-1;background:
+      radial-gradient(70% 80% at 74% 50%,rgba(14,14,17,0) 0%,rgba(14,14,17,.2) 60%,rgba(14,14,17,.7) 100%),
+      linear-gradient(90deg,#0e0e11 0%,rgba(14,14,17,.9) 32%,rgba(14,14,17,.2) 60%,rgba(14,14,17,.1) 100%),
+      linear-gradient(0deg,#0e0e11 0%,rgba(14,14,17,0) 22%),
+      linear-gradient(180deg,rgba(14,14,17,.8) 0%,rgba(14,14,17,0) 18%)}
+  .hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:40px;align-items:center;padding:120px 0 80px}
+  .hero h1{font:400 clamp(40px,4.7vw,68px)/1.04 var(--display);letter-spacing:.01em;margin:22px 0 22px}
+  .hero h1 em{font-style:normal}
+  .hero .lede{margin:0 0 34px}
+  .cta-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .dev-note{margin-top:26px;font-size:13px;color:var(--dim);letter-spacing:.04em;display:flex;align-items:center;gap:10px}
+  .dev-note i{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 0 4px rgba(52,185,138,.18)}
+
+  .fan{position:relative;height:560px;perspective:1400px}
+  .fan .card{position:absolute;left:50%;top:50%;width:260px}
+  .fan .c1{transform:translate(-50%,-50%) translate(-196px,40px) rotate(-12deg) scale(.86);z-index:1}
+  .fan .c3{transform:translate(-50%,-50%) translate(196px,40px) rotate(12deg) scale(.86);z-index:1}
+  .fan .c2{transform:translate(-50%,-50%) translateY(-6px);z-index:2;width:290px}
+  .fan .c1 .card-in,.fan .c3 .card-in{filter:brightness(.82)}
+  .of-day{position:absolute;left:50%;top:calc(50% - 262px);transform:translate(-50%,-100%);z-index:3;white-space:nowrap;
+    font:700 11px/1 var(--body);letter-spacing:.3em;text-transform:uppercase;color:#1b1509;background:var(--foil);padding:9px 16px 8px;border-radius:999px;box-shadow:0 8px 24px -8px rgba(0,0,0,.7)}
+  .fan-glow{position:absolute;left:50%;top:52%;width:620px;height:420px;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(162,123,242,.28),rgba(162,123,242,0));z-index:0;pointer-events:none}
+
+  /* ---------- collectible card ---------- */
+  .card{--fam:var(--emerald);--rx:0deg;--ry:0deg;--mx:50%;--my:50%;
+    position:relative;aspect-ratio:5/7.2;border-radius:18px;padding:2px;
+    background:linear-gradient(150deg,var(--gold-hi),var(--gold-lo) 18%,var(--fam) 45%,var(--gold-lo) 78%,var(--gold-hi));
+    box-shadow:0 30px 60px -24px rgba(0,0,0,.9),0 0 0 1px rgba(0,0,0,.5);
+    transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.7,.2,1),box-shadow .4s}
+  .card-in{position:relative;height:100%;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;
+    background:
+      radial-gradient(120% 70% at 50% 34%,color-mix(in srgb,var(--fam) 30%,transparent) 0%,transparent 62%),
+      linear-gradient(180deg,#1b1b22 0%,#121216 100%)}
+  .card-in::before{content:"";position:absolute;inset:7px;border-radius:11px;border:1px solid rgba(217,180,90,.38);pointer-events:none;z-index:2}
+  .card-in::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .35s;mix-blend-mode:screen;
+    background:
+      radial-gradient(circle at var(--mx) var(--my),rgba(255,248,220,.28),rgba(255,248,220,0) 42%),
+      linear-gradient(115deg,transparent 30%,rgba(255,255,255,.10) 45%,rgba(160,220,255,.10) 52%,transparent 66%)}
+  .card:hover .card-in::after,.card:focus-within .card-in::after{opacity:1}
+  .card-top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:18px 20px 0;
+    font:700 10.5px/1 var(--body);letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+  .card-top .fam{display:inline-flex;align-items:center;gap:7px;color:var(--text);opacity:.85}
+  .card-top .fam::before{content:"";width:8px;height:8px;transform:rotate(45deg);background:var(--fam);box-shadow:0 0 10px var(--fam)}
+  .art{position:relative;flex:1;min-height:0;margin:4px 14px 6px}
+  .art::after{content:"";position:absolute;left:18%;right:18%;bottom:8%;height:10%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent)}
+  .art .side{position:absolute;z-index:1;inset:6% 4% 0;width:92%;height:94%;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(0,0,0,.45))}
+  .badge{position:absolute;right:0;top:4px;z-index:2;width:25%;aspect-ratio:1;border-radius:50%;padding:3px;
+    background:conic-gradient(from 210deg,var(--gold-lo),var(--gold-hi),var(--gold),var(--gold-lo),var(--gold-hi),var(--gold-lo))}
+  .badge span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 40%,#2a2a33,#121216)}
+  .badge img{width:84%;height:84%;object-fit:contain}
+  .card-foot{position:relative;z-index:2;padding:0 20px 22px;text-align:center}
+  .card-foot h3{font:400 23px/1.15 var(--title);letter-spacing:.02em;margin:0 0 6px}
+  .card-foot p{margin:0 auto;font-size:13.5px;line-height:1.5;color:var(--muted);max-width:26ch}
+  .card-foot::before{content:"";display:block;width:56px;height:1px;margin:0 auto 14px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+
+  .fam-woodland{--fam:var(--emerald)} .fam-sky{--fam:var(--sapphire)} .fam-mythic{--fam:var(--amethyst)}
+  .fam-ember{--fam:var(--ruby)} .fam-grove{--fam:var(--topaz)} .fam-tide{--fam:var(--aqua)}
+
+  /* ---------- stats strip ---------- */
+  .stats{position:relative;border-block:1px solid var(--line);background:linear-gradient(180deg,#121216,#0e0e11)}
+  .stats ul{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(4,1fr)}
+  .stats li{padding:34px 20px;text-align:center;position:relative}
+  .stats li+li::before{content:"";position:absolute;left:0;top:28%;bottom:28%;width:1px;background:linear-gradient(transparent,rgba(217,180,90,.5),transparent)}
+  .stats b{display:block;font:400 44px/1 var(--display)}
+  .stats span{display:block;margin-top:10px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+  section{position:relative}
+  .pad{padding:112px 0}
+
+  /* ---------- bestiary ---------- */
+  .bestiary{background:
+      radial-gradient(50% 40% at 15% 20%,rgba(91,134,236,.08),transparent 70%),
+      radial-gradient(45% 35% at 85% 70%,rgba(52,185,138,.07),transparent 70%)}
+  .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 26px;margin:-26px 0 54px;padding:0;list-style:none;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .legend li{display:flex;align-items:center;gap:9px}
+  .legend li::before{content:"";width:9px;height:9px;transform:rotate(45deg);background:var(--fam);box-shadow:0 0 10px var(--fam)}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:30px}
+  .grid .card:hover{box-shadow:0 40px 70px -26px rgba(0,0,0,.95),0 0 40px -10px color-mix(in srgb,var(--fam) 60%,transparent)}
+  .views{margin-top:76px;display:grid;grid-template-columns:auto 1fr;gap:44px;align-items:center;padding:34px 44px;border-radius:20px;
+    background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));border:1px solid var(--line)}
+  .views-pair{display:flex;align-items:center;gap:18px}
+  .views-pair figure{margin:0;text-align:center}
+  .views-pair .disc{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,rgba(52,185,138,.22),rgba(255,255,255,.02) 70%);border:1px solid rgba(217,180,90,.35)}
+  .views-pair img{width:82%;height:82%;object-fit:contain}
+  .views-pair figcaption{margin-top:12px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+  .views-pair .arrow{color:var(--gold);opacity:.7;margin-bottom:28px}
+  .views h3{font:400 28px/1.2 var(--title);margin:0 0 10px}
+  .views p{margin:0;color:var(--muted);max-width:62ch}
+
+  /* ---------- seed vault ---------- */
+  .vault{background:linear-gradient(180deg,#0e0e11 0%,#121318 50%,#0e0e11 100%)}
+  .cabinet{position:relative;border-radius:26px;padding:40px 40px 30px;
+    background:linear-gradient(180deg,#1a1b21,#131419);
+    box-shadow:0 0 0 1px rgba(217,180,90,.25),0 0 0 8px #101014,0 0 0 9px rgba(217,180,90,.18),0 50px 90px -40px rgba(0,0,0,.9)}
+  .shelf-label{display:flex;justify-content:space-between;align-items:baseline;margin:0 4px 16px;font:400 18px/1 var(--title);color:var(--text)}
+  .shelf-label small{font:600 11px/1 var(--body);letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+  .shelf{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:14px;position:relative;padding-bottom:22px;margin-bottom:28px}
+  .shelf::after{content:"";position:absolute;left:-12px;right:-12px;bottom:0;height:6px;border-radius:3px;background:linear-gradient(180deg,#e8c977,#8d6829);box-shadow:0 6px 14px rgba(0,0,0,.6)}
+  .cell{position:relative;aspect-ratio:1;border-radius:14px;display:grid;place-items:center;overflow:hidden;
+    background:
+      radial-gradient(70% 45% at 50% 100%,color-mix(in srgb,var(--glow,#d9b45a) 26%,transparent),transparent 70%),
+      linear-gradient(160deg,rgba(255,255,255,.09) 0%,rgba(255,255,255,.025) 40%,rgba(255,255,255,.04) 100%);
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -20px 30px -20px rgba(0,0,0,.6)}
+  .cell::before{content:"";position:absolute;inset:0;background:linear-gradient(125deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 28%);pointer-events:none}
+  .cell img{width:78%;height:78%;object-fit:contain;filter:drop-shadow(0 8px 10px rgba(0,0,0,.45));transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+  .cell:hover img{transform:translateY(-4px) scale(1.04)}
+  .shelf.seeds .cell img{width:96%;height:96%;transform:scale(1.3)}
+  .shelf.seeds .cell:hover img{transform:translateY(-4px) scale(1.36)}
+  .plates{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:14px;margin-top:-6px}
+  .plates span{text-align:center;font:600 11px/1.3 var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:9px 4px;border-radius:6px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+
+  .specimen{margin-top:80px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.9fr);gap:50px;align-items:center}
+  .specimen h3{font:400 32px/1.15 var(--title);margin:16px 0 14px}
+  .specimen p{color:var(--muted);margin:0}
+  .stages{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;counter-reset:st}
+  .stages li{text-align:center}
+  .stages .cell{border-radius:50%;--glow:#34b98a}
+  .stages li:nth-child(1) .cell,.stages li:nth-child(7) .cell{--glow:#e45d68}
+  .stages li:nth-child(8) .cell{--glow:#7d786f}
+  .stages .cell img{width:96%;height:96%}
+  .stages b{display:block;margin-top:12px;font:400 15px/1 var(--display);color:var(--gold)}
+  .stages small{display:block;margin-top:6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+
+  /* ---------- atlas ---------- */
+  .atlas .wrap{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:70px;align-items:center}
+  .plate{position:relative;margin:0;padding:12px;border-radius:6px;background:linear-gradient(135deg,#f0d58a,#8d6829 35%,#e8c977 60%,#7a5a22);box-shadow:0 50px 90px -40px rgba(0,0,0,.95)}
+  .plate::before{content:"";position:absolute;inset:5px;border:1px solid rgba(20,15,5,.4);border-radius:3px;pointer-events:none}
+  .plate img{width:100%;aspect-ratio:1920/1090;object-fit:cover;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+  .plate figcaption{position:absolute;left:32px;bottom:-18px;white-space:nowrap;background:#16161b;color:var(--gold-hi);border:1px solid rgba(217,180,90,.6);padding:9px 20px;border-radius:999px;font:400 14px/1 var(--display);letter-spacing:.12em}
+  .plate.small{position:absolute;width:44%;right:-6%;bottom:-16%;padding:7px;transform:rotate(3deg)}
+  .plate-wrap{position:relative;margin-bottom:60px}
+  .terrain{list-style:none;padding:0;margin:30px 0 34px;display:grid;grid-template-columns:1fr 1fr;gap:12px 24px}
+  .terrain li{display:flex;align-items:center;gap:12px;font-size:16px;color:var(--text)}
+  .terrain li::before{content:"";flex:none;width:10px;height:10px;transform:rotate(45deg);border:1px solid var(--gold);background:color-mix(in srgb,var(--c) 70%,transparent)}
+  .atlas .lede{margin:18px 0 0}
+
+  /* ---------- pace ---------- */
+  .pace{border-top:1px solid var(--line)}
+  .tenets{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+  .tenet{padding:40px 34px 38px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));border:1px solid var(--line);position:relative;overflow:hidden}
+  .tenet .num{font:400 15px/1 var(--display);letter-spacing:.2em;color:var(--gold)}
+  .tenet h3{font:400 25px/1.2 var(--title);margin:18px 0 10px}
+  .tenet p{margin:0;color:var(--muted);font-size:16px}
+  .tenet img{position:absolute;right:-18px;top:-18px;width:120px;opacity:.16;filter:grayscale(.2)}
+
+  /* ---------- final cta ---------- */
+  .final{overflow:hidden;isolation:isolate;text-align:center}
+  .final-bg{position:absolute;inset:0;z-index:-2}
+  .final-bg img{width:100%;height:100%;object-fit:cover;filter:saturate(.8) brightness(.8)}
+  .final::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(60% 80% at 50% 50%,rgba(14,14,17,.55),#0e0e11 85%),linear-gradient(#0e0e11,transparent 25%,transparent 75%,#0e0e11)}
+  .final .wrap{padding:150px 0 140px;display:grid;justify-items:center;gap:22px}
+  .final .seal{width:96px;height:96px;filter:drop-shadow(0 10px 30px rgba(217,180,90,.25))}
+  .final h2{font-size:clamp(36px,5vw,64px);max-width:16ch}
+  .wallets{font-size:14px;color:var(--muted);letter-spacing:.04em;margin:6px 0 0}
+  .wallets strong{color:var(--text);font-weight:600}
+  .final .flank{position:absolute;bottom:70px;width:300px;height:300px;object-fit:contain;filter:drop-shadow(0 20px 30px rgba(0,0,0,.6));pointer-events:none}
+  .final .flank.l{left:max(2%,calc(50% - 680px))}
+  .final .flank.r{right:max(2%,calc(50% - 680px));transform:scaleX(-1)}
+  @media (max-width:1100px){.final .flank{display:none}}
+
+  footer{border-top:1px solid var(--line);background:#0b0b0d}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:20px 40px;justify-content:space-between;align-items:center;padding:36px 0;font-size:14px;color:var(--dim)}
+  footer .brand span{font-size:17px}
+  footer .brand img{width:36px;height:36px}
+  footer nav{display:flex;gap:26px;flex-wrap:wrap}
+  footer nav a{text-decoration:none;color:var(--muted)}
+  footer nav a:hover{color:var(--gold-hi)}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:1100px){
+    .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid .card:nth-child(n+7){display:none}
+    .hero .wrap{grid-template-columns:1fr;padding-top:130px}
+    .hero .copy{text-align:center;display:grid;justify-items:center}
+    .hero::before{background:linear-gradient(180deg,rgba(14,14,17,.9) 0%,rgba(14,14,17,.86) 50%,rgba(14,14,17,.45) 75%,#0e0e11 100%)}
+    .cta-row{justify-content:center}
+    .fan{height:520px}
+    .atlas .wrap{grid-template-columns:1fr}
+    .specimen{grid-template-columns:1fr}
+    .shelf,.plates{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .shelf .cell:nth-child(n+5),.plates span:nth-child(n+5){display:none}
+  }
+  @media (max-width:860px){
+    .nav ul{display:none}
+    .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+    .grid .card:nth-child(n+7){display:block}
+    .stats ul{grid-template-columns:repeat(2,1fr)}
+    .stats li:nth-child(3)::before{display:none}
+    .tenets{grid-template-columns:1fr}
+    .views{grid-template-columns:1fr;justify-items:center;text-align:center;padding:30px 22px}
+    .stages{grid-template-columns:repeat(4,minmax(0,1fr));row-gap:22px}
+    .pad{padding:96px 0}
+  }
+  @media (max-width:560px){
+    :root{--wrap:calc(100% - 32px)}
+    body{font-size:16px}
+    .brand span{font-size:17px}
+    .brand img{width:38px;height:38px}
+    .nav .btn{padding:0 14px;min-height:38px;font-size:13px}
+    .top .wrap{height:74px}
+    .fan{height:400px}
+    .fan .card{width:180px}
+    .fan .c2{width:200px}
+    .fan .c1{transform:translate(-50%,-50%) translate(-92px,30px) rotate(-11deg) scale(.82)}
+    .fan .c3{transform:translate(-50%,-50%) translate(92px,30px) rotate(11deg) scale(.82)}
+    .of-day{top:calc(50% - 184px)}
+    .card-foot h3{font-size:18px}
+    .card-foot p{font-size:12px}
+    .card-top{padding:14px 14px 0;font-size:9px;letter-spacing:.14em}
+    .card-foot{padding:0 12px 16px}
+    .grid{gap:14px}
+    .grid .card .card-foot p{display:none}
+    .cabinet{padding:24px 18px 18px}
+    .shelf,.plates{gap:8px}
+    .plates span{font-size:9px;letter-spacing:.08em}
+    .terrain{grid-template-columns:1fr}
+    .views-pair .disc{width:110px;height:110px}
+    .plate.small{display:none}
+    .stats b{font-size:34px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#" aria-label="Unclaimed Acres, home">
+      <img src="assets/emblem.svg" alt="" width="46" height="46">
+      <span class="foil">Unclaimed Acres</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <ul>
+        <li><a href="#bestiary">Bestiary</a></li>
+        <li><a href="#vault">Seed Vault</a></li>
+        <li><a href="#atlas">Atlas</a></li>
+        <li><a href="#pace">Your Pace</a></li>
+      </ul>
+      <button class="btn btn-gold" type="button">Connect wallet</button>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <!-- HERO -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-bg"><img src="assets/island-hero.webp" alt="" width="1920" height="1090" fetchpriority="high"></div>
+    <div class="wrap">
+      <div class="copy">
+        <span class="eyebrow">The Bestiary Codex</span>
+        <h1 id="hero-title">Every island keeps <em class="foil">its own codex.</em></h1>
+        <p class="lede">Unclaimed Acres is a calm island farming and creature game on the WAX blockchain. Your island is generated, stored on-chain and owned by your wallet. Fill it slowly with more than 50 creatures and 64 crops.</p>
+        <div class="cta-row">
+          <button class="btn btn-gold" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12.5h2M3 9h15a3 3 0 0 0-3-3"/></svg>
+            Connect wallet
+          </button>
+          <a class="btn btn-ghost" href="#bestiary">Open the codex</a>
+        </div>
+        <p class="dev-note"><i aria-hidden="true"></i>Currently in development · play at your own pace</p>
+      </div>
+
+      <div class="fan" aria-label="Featured creature cards">
+        <div class="fan-glow" aria-hidden="true"></div>
+        <span class="of-day">Card of the day</span>
+        <article class="card fam-woodland c1">
+          <div class="card-in">
+            <div class="card-top"><span>No. 02</span><span class="fam">Woodland</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/animals__redpanda/side.svg" alt="Red panda, seen from the side" width="400" height="400">
+              <span class="badge"><span><img src="../topdown/animals__redpanda/top.svg" alt="" width="400" height="400"></span></span>
+            </div>
+            <div class="card-foot"><h3>Red Panda</h3><p>Naps in the canopy, wakes for the harvest.</p></div>
+          </div>
+        </article>
+        <article class="card fam-mythic c2">
+          <div class="card-in">
+            <div class="card-top"><span>No. 17</span><span class="fam">Mythic</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/felines__moon-cat/side.svg" alt="Moon cat, seen from the side" width="400" height="400">
+              <span class="badge"><span><img src="../topdown/felines__moon-cat/top.svg" alt="" width="400" height="400"></span></span>
+            </div>
+            <div class="card-foot"><h3>Moon Cat</h3><p>Carries a crescent on its brow and the night sky in its fur.</p></div>
+          </div>
+        </article>
+        <article class="card fam-tide c3">
+          <div class="card-in">
+            <div class="card-top"><span>No. 31</span><span class="fam">Tide</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/turtles__crystal-turtle/side.svg" alt="Crystal turtle, seen from the side" width="400" height="400">
+              <span class="badge"><span><img src="../topdown/turtles__crystal-turtle/top.svg" alt="" width="400" height="400"></span></span>
+            </div>
+            <div class="card-foot"><h3>Crystal Turtle</h3><p>Grows a quiet garden of quartz along its shell.</p></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats">
+    <ul class="wrap">
+      <li><b class="foil">50+</b><span>Creatures</span></li>
+      <li><b class="foil">64</b><span>Crops</span></li>
+      <li><b class="foil">8</b><span>Stages per crop</span></li>
+      <li><b class="foil">1 of 1</b><span>Your island</span></li>
+    </ul>
+  </div>
+
+  <!-- BESTIARY -->
+  <section class="bestiary pad" id="bestiary" aria-labelledby="bestiary-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Chapter I</span>
+        <h2 id="bestiary-title">The <span class="foil">Bestiary</span></h2>
+        <p class="lede">More than fifty creatures, from familiar woodland friends to quiet legends. Each one is drawn twice: from the side for your codex, and from above as it wanders your map.</p>
+      </div>
+      <ul class="legend" aria-label="Card families">
+        <li style="--fam:var(--emerald)">Woodland</li>
+        <li style="--fam:var(--amethyst)">Mythic</li>
+        <li style="--fam:var(--sapphire)">Sky</li>
+        <li style="--fam:var(--topaz)">Grove</li>
+        <li style="--fam:var(--ruby)">Ember</li>
+        <li style="--fam:var(--aqua)">Tide</li>
+      </ul>
+
+      <div class="grid">
+        <article class="card fam-woodland" tabindex="0">
+          <div class="card-in">
+            <div class="card-top"><span>No. 01</span><span class="fam">Woodland</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/animals__fox/side.svg" alt="Fox, mid-leap, seen from the side" width="400" height="400" loading="lazy">
+              <span class="badge"><span><img src="../topdown/animals__fox/top.svg" alt="" width="400" height="400" loading="lazy"></span></span>
+            </div>
+            <div class="card-foot"><h3>Fox</h3><p>First to find the newly sown rows, every single morning.</p></div>
+          </div>
+        </article>
+        <article class="card fam-mythic" tabindex="0">
+          <div class="card-in">
+            <div class="card-top"><span>No. 14</span><span class="fam">Mythic</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/creatures__kitsune/side.svg" alt="Kitsune with a fan of red-tipped tails" width="400" height="400" loading="lazy">
+              <span class="badge"><span><img src="../topdown/creatures__kitsune/top.svg" alt="" width="400" height="400" loading="lazy"></span></span>
+            </div>
+            <div class="card-foot"><h3>Kitsune</h3><p>Nine tails, each one a story it has not told you yet.</p></div>
+          </div>
+        </article>
+        <article class="card fam-grove" tabindex="0">
+          <div class="card-in">
+            <div class="card-top"><span>No. 09</span><span class="fam">Grove</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/beasts__blossom-stag/side.svg" alt="Blossom stag with cherry blossoms in its antlers" width="400" height="400" loading="lazy">
+              <span class="badge"><span><img src="../topdown/beasts__blossom-stag/top.svg" alt="" width="400" height="400" loading="lazy"></span></span>
+            </div>
+            <div class="card-foot"><h3>Blossom Stag</h3><p>Its antlers flower a little earlier than the orchard.</p></div>
+          </div>
+        </article>
+        <article class="card fam-sky" tabindex="0">
+          <div class="card-in">
+            <div class="card-top"><span>No. 22</span><span class="fam">Sky</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/flyers__pegasus/side.svg" alt="Pegasus in flight with white wings" width="400" height="400" loading="lazy">
+              <span class="badge"><span><img src="../topdown/flyers__pegasus/top.svg" alt="" width="400" height="400" loading="lazy"></span></span>
+            </div>
+            <div class="card-foot"><h3>Pegasus</h3><p>Lands only on the softest meadow on the island.</p></div>
+          </div>
+        </article>
+        <article class="card fam-ember" tabindex="0">
+          <div class="card-in">
+            <div class="card-top"><span>No. 27</span><span class="fam">Ember</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/creatures__phoenix/side.svg" alt="Phoenix with flame-coloured wings spread" width="400" height="400" loading="lazy">
+              <span class="badge"><span><img src="../topdown/creatures__phoenix/top.svg" alt="" width="400" height="400" loading="lazy"></span></span>
+            </div>
+            <div class="card-foot"><h3>Phoenix</h3><p>A warm glow over the fields long after sundown.</p></div>
+          </div>
+        </article>
+        <article class="card fam-tide" tabindex="0">
+          <div class="card-in">
+            <div class="card-top"><span>No. 33</span><span class="fam">Tide</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/deepsea__crystal-crab-polished/side.svg" alt="Blue crystal crab with raised claws" width="400" height="400" loading="lazy">
+              <span class="badge"><span><img src="../topdown/deepsea__crystal-crab-polished/top.svg" alt="" width="400" height="400" loading="lazy"></span></span>
+            </div>
+            <div class="card-foot"><h3>Crystal Crab</h3><p>Polishes its claws on the beach at low tide.</p></div>
+          </div>
+        </article>
+        <article class="card fam-mythic" tabindex="0">
+          <div class="card-in">
+            <div class="card-top"><span>No. 41</span><span class="fam">Mythic</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/yokai__kirin/side.svg" alt="Golden kirin with flames at its hooves" width="400" height="400" loading="lazy">
+              <span class="badge"><span><img src="../topdown/yokai__kirin/top.svg" alt="" width="400" height="400" loading="lazy"></span></span>
+            </div>
+            <div class="card-foot"><h3>Kirin</h3><p>Walks so lightly the grass never bends.</p></div>
+          </div>
+        </article>
+        <article class="card fam-sky" tabindex="0">
+          <div class="card-in">
+            <div class="card-top"><span>No. 24</span><span class="fam">Sky</span></div>
+            <div class="art">
+              <img class="side" src="../topdown/flyers__glass-dragonfly/side.svg" alt="Glass dragonfly with translucent wings" width="400" height="400" loading="lazy">
+              <span class="badge"><span><img src="../topdown/flyers__glass-dragonfly/top.svg" alt="" width="400" height="400" loading="lazy"></span></span>
+            </div>
+            <div class="card-foot"><h3>Glass Dragonfly</h3><p>Hovers over the lake, wings like window panes.</p></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="views">
+        <div class="views-pair" aria-hidden="true">
+          <figure><div class="disc"><img src="../topdown/animals__owl/side.svg" alt="" loading="lazy"></div><figcaption>Side</figcaption></figure>
+          <svg class="arrow" width="26" height="12" viewBox="0 0 26 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M0 6h24M19 1l5 5-5 5"/></svg>
+          <figure><div class="disc"><img src="../topdown/animals__owl/top.svg" alt="" loading="lazy"></div><figcaption>Above</figcaption></figure>
+        </div>
+        <div>
+          <h3>Two views of every creature</h3>
+          <p>Side views fill the pages of your codex; the top-down sprite is how the same creature appears on your island map, wandering the forests, beaches and bays. Same faceted, outline-free style, from fox to phoenix.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEED VAULT -->
+  <section class="vault pad" id="vault" aria-labelledby="vault-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Chapter II</span>
+        <h2 id="vault-title">The <span class="foil">Seed Vault</span></h2>
+        <p class="lede">Sixty-four crops, kept under glass. Everyday staples, rare fruit and a few things that should not grow at all, like eggs on a vine and pouches of milk.</p>
+      </div>
+
+      <div class="cabinet">
+        <div class="shelf-label"><span>Seeds</span><small>Upper shelf</small></div>
+        <div class="shelf seeds">
+          <div class="cell" style="--glow:#e45d68"><img src="../crops/strawberries/1-seeds-front.svg" alt="Strawberry seedlings" loading="lazy"></div>
+          <div class="cell" style="--glow:#e9a840"><img src="../crops/sunflower/1-seeds-front.svg" alt="Sunflower seeds" loading="lazy"></div>
+          <div class="cell" style="--glow:#a27bf2"><img src="../crops/moonbloom/1-seeds-front.svg" alt="Moonbloom seeds" loading="lazy"></div>
+          <div class="cell" style="--glow:#45cfc6"><img src="../crops/glowcap/1-seeds-front.svg" alt="Glowcap spores" loading="lazy"></div>
+          <div class="cell" style="--glow:#e9a840"><img src="../crops/corn/1-seeds-front.svg" alt="Corn kernels" loading="lazy"></div>
+          <div class="cell" style="--glow:#e45d68"><img src="../crops/ember-pepper/1-seeds-front.svg" alt="Ember pepper seeds" loading="lazy"></div>
+          <div class="cell" style="--glow:#34b98a"><img src="../crops/pineapple/1-seeds-front.svg" alt="Pineapple crown" loading="lazy"></div>
+          <div class="cell" style="--glow:#e9a840"><img src="../crops/coffee/1-seeds-front.svg" alt="Coffee beans" loading="lazy"></div>
+        </div>
+        <div class="shelf-label"><span>Harvest</span><small>Lower shelf</small></div>
+        <div class="shelf">
+          <div class="cell" style="--glow:#e45d68"><img src="../crops/strawberries/7-harvest-front.svg" alt="Harvested strawberries" loading="lazy"></div>
+          <div class="cell" style="--glow:#e9a840"><img src="../crops/sunflower/7-harvest-front.svg" alt="Sunflower head" loading="lazy"></div>
+          <div class="cell" style="--glow:#a27bf2"><img src="../crops/moonbloom/7-harvest-front.svg" alt="Moonbloom bouquet" loading="lazy"></div>
+          <div class="cell" style="--glow:#45cfc6"><img src="../crops/glowcap/7-harvest-front.svg" alt="Glowing glowcap mushrooms" loading="lazy"></div>
+          <div class="cell" style="--glow:#e9a840"><img src="../crops/corn/7-harvest-front.svg" alt="Ears of corn" loading="lazy"></div>
+          <div class="cell" style="--glow:#e45d68"><img src="../crops/ember-pepper/7-harvest-front.svg" alt="Ember peppers" loading="lazy"></div>
+          <div class="cell" style="--glow:#34b98a"><img src="../crops/pineapple/7-harvest-front.svg" alt="Pineapple" loading="lazy"></div>
+          <div class="cell" style="--glow:#e9a840"><img src="../crops/coffee/7-harvest-front.svg" alt="Coffee cherries" loading="lazy"></div>
+        </div>
+        <div class="plates" aria-hidden="true">
+          <span>Strawberry</span><span>Sunflower</span><span>Moonbloom</span><span>Glowcap</span><span>Corn</span><span>Ember Pepper</span><span>Pineapple</span><span>Coffee</span>
+        </div>
+      </div>
+
+      <div class="specimen">
+        <div>
+          <span class="eyebrow">Specimen: Strawberries</span>
+          <h3>Eight stages, seed to harvest</h3>
+          <p>Every crop is drawn through eight stages: the seed, its sowing, three rounds of growth, the harvest in the field, the produce in your hands, and the wilted plant if you wander off for too long.</p>
+        </div>
+        <ol class="stages">
+          <li><div class="cell"><img src="../crops/strawberries/1-seeds-front.svg" alt="Stage 1: seedlings" loading="lazy"></div><b>I</b><small>Seed</small></li>
+          <li><div class="cell"><img src="../crops/strawberries/2-sown.svg" alt="Stage 2: sown, from above" loading="lazy"></div><b>II</b><small>Sown</small></li>
+          <li><div class="cell"><img src="../crops/strawberries/3-first-growth.svg" alt="Stage 3: first growth" loading="lazy"></div><b>III</b><small>Sprout</small></li>
+          <li><div class="cell"><img src="../crops/strawberries/4-second-growth.svg" alt="Stage 4: second growth" loading="lazy"></div><b>IV</b><small>Leaf</small></li>
+          <li><div class="cell"><img src="../crops/strawberries/5-third-growth.svg" alt="Stage 5: third growth, flowering" loading="lazy"></div><b>V</b><small>Bloom</small></li>
+          <li><div class="cell"><img src="../crops/strawberries/6-harvest.svg" alt="Stage 6: ready to harvest" loading="lazy"></div><b>VI</b><small>Ripe</small></li>
+          <li><div class="cell"><img src="../crops/strawberries/7-harvest-front.svg" alt="Stage 7: harvested berries" loading="lazy"></div><b>VII</b><small>Harvest</small></li>
+          <li><div class="cell"><img src="../crops/strawberries/8-dead.svg" alt="Stage 8: wilted plant" loading="lazy"></div><b>VIII</b><small>Wilted</small></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ATLAS -->
+  <section class="atlas pad" id="atlas" aria-labelledby="atlas-title">
+    <div class="wrap">
+      <div class="plate-wrap">
+        <figure class="plate">
+          <img src="assets/island-close.webp" alt="Close view of an island: a terraced, snow-capped mountain ringed by forests and sandy beaches" width="1920" height="1090" loading="lazy">
+          <figcaption>Plate III · The Terraces</figcaption>
+        </figure>
+        <figure class="plate small" aria-hidden="true">
+          <img src="assets/island-overview.webp" alt="" width="1920" height="1090" loading="lazy">
+        </figure>
+      </div>
+      <div>
+        <span class="eyebrow">Chapter III</span>
+        <h2 id="atlas-title" style="margin-top:18px">The <span class="foil">Atlas</span></h2>
+        <p class="lede">Every island is generated and stored on the WAX blockchain, and owned by your wallet. No two are alike: each draws its own coastline and its own interior.</p>
+        <ul class="terrain">
+          <li style="--c:#34b98a">Forests</li>
+          <li style="--c:#e9d8a6">Beaches</li>
+          <li style="--c:#5b86ec">Bays</li>
+          <li style="--c:#45cfc6">Lakes</li>
+          <li style="--c:#a8a296">Peninsulas</li>
+          <li style="--c:#ffffff">Terraced snowy peaks</li>
+        </ul>
+        <button class="btn btn-gold" type="button">Connect wallet</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PACE -->
+  <section class="pace pad" id="pace" aria-labelledby="pace-title">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Chapter IV</span>
+        <h2 id="pace-title">Kept at <span class="foil">your own pace</span></h2>
+        <p class="lede">A codex is not a race. Unclaimed Acres is built for slow evenings and short visits.</p>
+      </div>
+      <div class="tenets">
+        <article class="tenet">
+          <img src="../topdown/story__wind-hare/side.svg" alt="" loading="lazy">
+          <span class="num">I</span>
+          <h3>No clock to beat</h3>
+          <p>Plant when you have a minute, harvest when you come back. Your island waits for you.</p>
+        </article>
+        <article class="tenet">
+          <img src="../crops/sunflower/7-harvest-front.svg" alt="" loading="lazy">
+          <span class="num">II</span>
+          <h3>Grow your collection</h3>
+          <p>Fill the vault crop by crop and the codex page by page, in whatever order suits you.</p>
+        </article>
+        <article class="tenet">
+          <img src="../topdown/animals__owl/side.svg" alt="" loading="lazy">
+          <span class="num">III</span>
+          <h3>Truly yours</h3>
+          <p>The island lives on the WAX blockchain and belongs to your wallet. It is one of a kind.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final" aria-labelledby="final-title">
+    <div class="final-bg"><img src="assets/island-overview.webp" alt="" width="1920" height="1090" loading="lazy"></div>
+    <img class="flank l" src="../topdown/animals__fox/side.svg" alt="" width="400" height="400" loading="lazy">
+    <img class="flank r" src="../topdown/beasts__blossom-stag/side.svg" alt="" width="400" height="400" loading="lazy">
+    <div class="wrap">
+      <img class="seal" src="assets/emblem.svg" alt="" width="96" height="96">
+      <span class="eyebrow">Begin your codex</span>
+      <h2 id="final-title">An island <span class="foil">no one has claimed</span> yet.</h2>
+      <p class="lede" style="margin:0">Connect a WAX wallet to take your place. Works with <strong style="color:var(--text)">WAX Cloud Wallet</strong>, <strong style="color:var(--text)">Wombat</strong> and <strong style="color:var(--text)">Anchor</strong>.</p>
+      <button class="btn btn-gold" type="button" style="margin-top:10px">Connect wallet</button>
+
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#" aria-label="Unclaimed Acres, back to top">
+      <img src="assets/emblem.svg" alt="" width="36" height="36">
+      <span class="foil">Unclaimed Acres</span>
+    </a>
+    <nav aria-label="Footer">
+      <a href="#bestiary">Bestiary</a><a href="#vault">Seed Vault</a><a href="#atlas">Atlas</a><a href="#pace">Your Pace</a>
+    </nav>
+    <p style="margin:0">An island game on the WAX blockchain · in development</p>
+  </div>
+</footer>
+
+<script>
+  // Gentle card tilt + foil shine that follows the pointer. Skipped entirely for reduced motion / touch.
+  (function(){
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!window.matchMedia('(hover: hover)').matches) return;
+    document.querySelectorAll('.grid .card, .fan .c2').forEach(function(card){
+      var base = getComputedStyle(card).transform;
+      base = (base === 'none') ? '' : base;
+      card.addEventListener('pointermove', function(e){
+        var r = card.getBoundingClientRect();
+        var x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        card.style.setProperty('--mx', (x*100).toFixed(1)+'%');
+        card.style.setProperty('--my', (y*100).toFixed(1)+'%');
+        card.style.transition = 'transform .12s ease-out, box-shadow .4s';
+        card.style.transform = base + ' perspective(900px) rotateX(' + ((.5-y)*8).toFixed(2) + 'deg) rotateY(' + ((x-.5)*10).toFixed(2) + 'deg)';
+      });
+      card.addEventListener('pointerleave', function(){
+        card.style.transition = '';
+        card.style.transform = '';
+      });
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,450 @@
+<!doctype html>
+<!-- Concept 08: Messages in Bottles. Each island is a corked glass bottle with its chart rolled up inside, standing on the
+     field station's windowsill; uncork one and its chart unrolls on the page below, with the stats and "Enter island". -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your islands · Unclaimed Acres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="journal.css">
+<style>
+  main { padding: 0 0 90px; }
+
+  /* ---------- header account chip ---------- */
+  .account { display: flex; align-items: center; gap: 16px; }
+  .acct-chip { display: inline-flex; align-items: center; gap: 10px; padding: 6px 16px 6px 8px; background: var(--card); background-image: var(--noise);
+    border: 1px solid rgba(180,156,116,.7); border-radius: 999px; box-shadow: 0 2px 6px -3px rgba(60,45,20,.4); font-family: var(--sc); letter-spacing: .08em; font-size: 1rem; }
+  .acct-chip svg { width: 30px; height: 30px; color: var(--rust); }
+  .signout { font-family: var(--hand); font-size: 1.35rem; color: var(--blue); text-decoration: none; white-space: nowrap; }
+  .signout:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+  /* ---------- the journal page ---------- */
+  .leafpage { padding: 34px 44px 30px; border-radius: 4px; }
+  .leafpage::before { /* page edges under the sheet */
+    content: ""; position: absolute; inset: 8px -6px -10px; z-index: -1; border-radius: 6px;
+    background: repeating-linear-gradient(0deg, #e8dcc0 0 2px, #d8c8a4 2px 3px); box-shadow: 0 30px 60px -30px rgba(50, 35, 10, .6); }
+  .top-row { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 36px; align-items: stretch; }
+  .intro { display: flex; flex-direction: column; padding-top: 4px; }
+  .intro h1 { font-size: clamp(2.3rem, 1.6rem + 1.6vw, 3.1rem); margin: 2px 0 14px; }
+  .intro h1 em { font-style: italic; color: var(--blue); }
+  .intro .hello { font-family: var(--hand); color: var(--blue); font-size: 1.75rem; margin: 0 0 4px; transform: rotate(-2deg); transform-origin: left; font-weight: 600; }
+  .intro .lede { font-size: 1.1rem; margin: 0 0 16px; }
+  .tally { list-style: none; margin: auto 0 0; padding: 12px 0 0; border-top: 1px solid var(--rule); display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 10px 14px; }
+  .tally b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.75rem; line-height: 1; }
+  .tally span { font-family: var(--sc); font-size: .76rem; letter-spacing: .1em; color: var(--ink-soft); }
+
+  .find { margin: 6px 0 18px; }
+  .find[hidden] { display: none; }
+  .find label { display: block; font-family: var(--sc); letter-spacing: .14em; font-size: .8rem; color: var(--rust); margin-bottom: 2px; }
+  .find input { width: 100%; font-family: var(--hand); font-size: 1.5rem; color: var(--blue); background: transparent; border: 0; border-bottom: 1.5px solid var(--ink-soft); padding: 2px 4px; border-radius: 0; }
+  .find input::placeholder { color: rgba(37,70,127,.4); }
+  .find p { margin: 4px 0 0; font-family: var(--hand); font-size: 1.1rem; color: var(--ink-soft); }
+  .bottle.dim { opacity: .28; filter: grayscale(.6); }
+  .bottle { transition: opacity .2s ease; }
+
+  /* ---------- the window and its shelves ---------- */
+  .window { --frame: #e9dcbc; position: relative; display: flex; flex-direction: column; border-radius: 3px; padding: 14px 14px 0; background: var(--frame); background-image: var(--noise);
+    box-shadow: inset 0 0 0 1px rgba(120, 95, 55, .35), 0 2px 0 rgba(120,95,55,.25), 0 12px 24px -14px rgba(60,45,20,.5); }
+  .pane { position: relative; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; border-radius: 2px; padding: 34px 18px 0;
+    background:
+      radial-gradient(60% 40% at 72% 18%, rgba(255, 250, 232, .9), transparent 70%),
+      linear-gradient(180deg, #dfe6e0 0%, #e9ecdf 40%, #c9d8d6 41.5%, #a9c3c7 58%, #b9cfcc 100%);
+    box-shadow: inset 0 0 0 1px rgba(80, 70, 50, .35), inset 0 10px 18px -10px rgba(40, 40, 30, .35); }
+  .pane::before { /* the sea's horizon, distant island and a few gull ticks, in ink */
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .75;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 300' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%2325467f' stroke-linecap='round' stroke-width='1.2' opacity='.55'%3E%3Cpath d='M0 124.5H800'/%3E%3Cpath d='M560 124c10-10 24-14 38-12 10-8 26-8 36 2 12-2 22 2 30 10' fill='%2398b2b8' fill-opacity='.6'/%3E%3Cpath d='M120 60q6-5 12 0q6-5 12 0M180 44q5-4 10 0q5-4 10 0M90 150q20-4 40 0M300 170q30-5 60 0M480 158q24-4 48 0M650 186q26-4 52 0M210 210q30-5 60 0'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat; }
+  .pane::after { /* the mullions: drawn behind the bottles */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(90deg, transparent calc(33.3% - 5px), var(--frame) calc(33.3% - 5px) calc(33.3% + 5px), transparent calc(33.3% + 5px) calc(66.6% - 5px), var(--frame) calc(66.6% - 5px) calc(66.6% + 5px), transparent calc(66.6% + 5px));
+    box-shadow: inset 0 0 0 1px rgba(80,70,50,.2); opacity: .95; }
+  .pane[data-mullions="1"]::after { background: linear-gradient(90deg, transparent calc(50% - 5px), var(--frame) calc(50% - 5px) calc(50% + 5px), transparent calc(50% + 5px)); }
+  .pane[data-mullions="0"]::after { background: none; }
+  .shelf { position: relative; z-index: 2; }
+  .shelf + .shelf { margin-top: 20px; }
+  .row { display: flex; justify-content: center; align-items: flex-end; gap: 0; padding: 0 6px; min-height: 40px; }
+  .plank { position: relative; height: 16px; margin: 0 -18px; border-radius: 2px;
+    background: linear-gradient(180deg, #c7a777 0, #b28d5c 30%, #9b774a 100%); box-shadow: 0 1px 0 rgba(255,240,210,.5) inset, 0 6px 10px -4px rgba(40, 25, 5, .45); }
+  .plank::after { content: ""; position: absolute; inset: 0; border-radius: 2px; opacity: .35;
+    background: repeating-linear-gradient(90deg, transparent 0 60px, rgba(60,35,10,.35) 60px 61px, transparent 61px 170px), var(--fibres); }
+  .sill { position: relative; z-index: 2; height: 30px; margin: 0 -14px; border-radius: 0 0 3px 3px;
+    background: linear-gradient(180deg, #e9d9b0 0, #ddc797 40%, #c9b07c 100%); box-shadow: inset 0 1px 0 rgba(255,250,230,.6), 0 8px 14px -8px rgba(40,25,5,.5); }
+  .sill::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 12px; opacity: .55;
+    background: radial-gradient(circle at 20% 40%, #9b8257 0 1px, transparent 1.5px) 0 0 / 11px 9px, radial-gradient(circle at 60% 70%, #fff6dc 0 1px, transparent 1.5px) 0 0 / 7px 8px; }
+  .window.has-sill .shelf:last-of-type .plank { display: none; }
+
+  /* ---------- a bottle ---------- */
+  .bottle { --bw: 96px; position: relative; flex: none; width: max(calc(var(--bw) + 34px), 92px); padding: 0; margin: 0; border: 0; background: none; cursor: pointer; color: inherit; font: inherit;
+    display: flex; justify-content: center; align-items: flex-end; border-radius: 6px; }
+  .bottle .glass { width: var(--bw); height: calc(var(--bw) * 2.2); overflow: visible; display: block; transform: rotate(var(--lean, 0deg)); transform-origin: 50% 100%;
+    transition: transform .3s ease; filter: drop-shadow(0 2px 1px rgba(40, 30, 10, .18)); }
+  .bottle:hover .glass, .bottle:focus-visible .glass { transform: rotate(var(--lean, 0deg)) translateY(-5px); }
+  .bottle:focus-visible { outline-offset: 2px; }
+  .bottle .cork { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .55s cubic-bezier(.3, 1.6, .5, 1); }
+  .bottle .paper { transition: opacity .35s ease .15s, transform .5s ease; transform-box: fill-box; transform-origin: 50% 0; }
+  .bottle[aria-pressed="true"] .cork { transform: translate(16px, -20px) rotate(32deg); }
+  .bottle[aria-pressed="true"] .paper { opacity: 0; transform: translateY(-30px) scaleY(.6); }
+  .bottle[aria-pressed="true"] .glass { transform: rotate(var(--lean, 0deg)) translateY(-3px); }
+  .bottle[aria-pressed="true"]::after { /* a pool of light under the chosen bottle */
+    content: ""; position: absolute; left: 50%; bottom: -6px; width: calc(var(--bw) * 1.1); height: 12px; margin-left: calc(var(--bw) * -.55); border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255, 246, 214, .95), transparent); z-index: -1; }
+
+  /* the paper tag, tied on with string */
+  .tag { position: absolute; left: calc(50% + 3px); top: 64%; z-index: 3; width: max(calc(var(--bw) * .9 + 14px), 86px); padding: 11px 4px 4px;
+    transform: translateX(-50%) rotate(var(--tr, 5deg)); transform-origin: 50% 5px;
+    font-family: var(--hand); font-weight: 600; color: var(--blue); font-size: var(--tag-fs, 1.2rem); line-height: 1; text-align: center;
+    background: #f6ecd2; background-image: var(--noise); clip-path: polygon(0 9px, 9px 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
+    transition: background-color .2s ease; }
+  .tag::before { content: ""; position: absolute; left: 50%; top: 4px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #9d8a66; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+  .tag-wrap { position: absolute; inset: 0; pointer-events: none; filter: drop-shadow(0 2px 2px rgba(40, 30, 10, .3)); }
+  .bottle[aria-pressed="true"] .tag { background-color: #fffaf0; box-shadow: inset 0 -2px 0 var(--rust); }
+  .bottle.new .tag { color: var(--ink-soft); background-color: #fbf7ea; font-weight: 500; }
+  .bottle.new .tag::after { content: ""; position: absolute; inset: 3px; border: 1.2px dashed rgba(90,82,70,.45); clip-path: polygon(0 7px, 7px 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 0 100%); pointer-events: none; }
+
+  /* sill curios (only when the sill has room) */
+  .curio { position: absolute; bottom: 2px; z-index: 2; pointer-events: none; color: var(--ink); }
+  .curio.shell { right: 7%; width: 68px; }
+  .curio.star { right: calc(7% + 84px); width: 44px; }
+  .curio.glass-float { left: 6%; width: 58px; }
+
+  .shelf-note { position: absolute; z-index: 3; top: 10px; left: 20px; font-family: var(--hand); color: var(--blue); font-size: 1.35rem; transform: rotate(-3deg); margin: 0; }
+
+  /* ---------- the unrolled chart ---------- */
+  .scroll { position: relative; margin: 26px auto 0; max-width: 1100px; }
+  .roll { position: relative; z-index: 2; height: 24px; border-radius: 12px; margin: 0 -2px;
+    background: linear-gradient(180deg, #cdb98e 0, #f4e9cc 35%, #eadcb8 55%, #b9a172 100%); box-shadow: 0 4px 8px -4px rgba(40, 25, 5, .5); }
+  .roll::before, .roll::after { content: ""; position: absolute; top: 3px; width: 16px; height: 18px; border-radius: 4px;
+    background: linear-gradient(180deg, #8a6338, #6a4a26 60%, #4f361b); }
+  .roll::before { left: -14px; } .roll::after { right: -14px; }
+  .scroll-body { display: grid; grid-template-rows: 1fr; margin: -12px 12px; transition: grid-template-rows .95s cubic-bezier(.4, .1, .25, 1); }
+  .scroll-body.closed { grid-template-rows: 0fr; }
+  .scroll-clip { overflow: hidden; min-height: 0; }
+  .scroll-paper { position: relative; padding: 34px 34px 30px; background-color: #f8f1df; background-image: var(--noise), var(--fibres),
+      linear-gradient(90deg, rgba(110,80,30,.12), transparent 4%, transparent 96%, rgba(110,80,30,.12));
+    box-shadow: inset 0 14px 14px -14px rgba(60,40,10,.4), inset 0 -14px 14px -14px rgba(60,40,10,.4); }
+  .chart-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 34px; align-items: start; }
+
+  .chart { position: relative; border: 1px solid var(--rule); padding: 9px; background: #f8f1df; margin: 0; }
+  .chart-inner { position: relative; overflow: hidden; aspect-ratio: 1600 / 907; background: #2e6a82; }
+  .chart-inner img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.82) sepia(.1); }
+  .chart-inner::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(rgba(250,240,215,.26) 1px, transparent 1px) 0 0 / 100% 12.5%, linear-gradient(90deg, rgba(250,240,215,.26) 1px, transparent 1px) 0 0 / 10% 100%;
+    box-shadow: inset 0 0 0 1px rgba(43,39,33,.35), inset 0 0 50px rgba(60,40,10,.25); }
+  .compass { position: absolute; right: 18px; top: 16px; width: 74px; height: 74px; z-index: 2; color: #fff6df; filter: drop-shadow(0 2px 3px rgba(0,0,0,.35)); }
+  .inset { position: absolute; left: -18px; bottom: -26px; z-index: 3; width: 150px; padding: 8px 8px 4px; background: var(--card); background-image: var(--noise); box-shadow: var(--shadow); transform: rotate(-3deg); }
+  .inset .tape { top: -12px; left: calc(50% - 36px); width: 72px; transform: rotate(4deg); }
+  .inset svg { display: block; }
+  .inset figcaption { font-family: var(--hand); color: var(--blue); font-size: 1.05rem; text-align: center; line-height: 1.1; }
+  .chart-cap { display: flex; justify-content: flex-end; gap: 12px; font-family: var(--hand); color: var(--ink-soft); font-size: 1.2rem; padding: 6px 4px 0; }
+
+  .info .kicker { margin-bottom: 4px; }
+  .info h2 { font-size: clamp(2.2rem, 1.5rem + 1.8vw, 3.2rem); margin: 0 0 6px; }
+  .info .note { font-family: var(--hand); color: var(--blue); font-size: 1.55rem; line-height: 1.12; margin: 0 0 16px; }
+  .landsea { margin: 0 0 14px; }
+  .landsea .bar { position: relative; height: 14px; border: 1px solid var(--ink-soft); border-radius: 2px; overflow: hidden;
+    background: repeating-linear-gradient(-45deg, rgba(37,70,127,.18) 0 2px, transparent 2px 6px); }
+  .landsea .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: var(--v); background: #e6d9b5; border-right: 1px solid var(--ink-soft); }
+  .landsea p { display: flex; justify-content: space-between; margin: 4px 0 0; font-family: var(--sc); font-size: .74rem; letter-spacing: .1em; color: var(--ink-soft); }
+  .survey { list-style: none; margin: 0 0 18px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+  .survey li { display: flex; align-items: baseline; gap: 6px; padding: 5px 0 3px; border-bottom: 1px dashed rgba(180,156,116,.75); }
+  .survey li span { font-family: var(--sc); font-size: .76rem; letter-spacing: .1em; color: var(--ink-soft); }
+  .survey li span::after { content: ""; }
+  .survey li b { margin-left: auto; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; font-weight: 600; line-height: 1; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
+  .actions .hand { font-size: 1.25rem; color: var(--ink-soft); font-weight: 500; }
+
+  /* the blank chart (from the empty bottle) */
+  .blank-chart .chart-inner { background: #f3ead2; display: grid; place-items: center; }
+  .blank-chart .chart-inner::after { background: linear-gradient(rgba(37,70,127,.12) 1px, transparent 1px) 0 0 / 100% 12.5%, linear-gradient(90deg, rgba(37,70,127,.12) 1px, transparent 1px) 0 0 / 10% 100%; box-shadow: inset 0 0 0 1px rgba(43,39,33,.3); }
+  .blank-chart .chart-inner p { position: relative; z-index: 2; font-family: var(--hand); color: rgba(37,70,127,.55); font-size: 2rem; margin: 0; transform: rotate(-4deg); }
+
+  @media (max-width: 1100px) { .top-row { grid-template-columns: 1fr; } .tally { grid-template-columns: repeat(4, auto); justify-content: start; gap: 10px 34px; } }
+  @media (max-width: 860px) {
+    .chart-grid { grid-template-columns: 1fr; gap: 40px; }
+    .inset { width: 120px; left: -8px; }
+  }
+  @media (max-width: 640px) {
+    .leafpage { padding: 22px 14px 20px; }
+    .acct-chip #acct-name { display: none; }
+    .acct-chip { padding: 4px; }
+    .window { padding: 8px 8px 0; }
+    .pane { padding: 18px 6px 0; }
+    .plank { margin: 0 -6px; }
+    .sill { margin: 0 -8px; }
+    .scroll-paper { padding: 22px 16px 24px; }
+    .scroll-body { margin: -12px 6px; }
+    .survey { grid-template-columns: 1fr; }
+    .tally { grid-template-columns: repeat(3, auto); justify-content: space-between; }
+    .compass { width: 50px; height: 50px; }
+    .inset { width: 92px; left: -6px; bottom: -18px; padding: 5px 5px 2px; }
+    .inset figcaption { display: none; }
+    .pane::after { background: linear-gradient(90deg, transparent calc(50% - 4px), var(--frame) calc(50% - 4px) calc(50% + 4px), transparent calc(50% + 4px)); }
+    .signout { font-size: 1.2rem; }
+    .curio { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .scroll-body { transition: none; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="glass-shade" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#1d2a2a" stop-opacity=".30"/>
+      <stop offset=".14" stop-color="#ffffff" stop-opacity=".30"/>
+      <stop offset=".34" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset=".78" stop-color="#1d2a2a" stop-opacity="0"/>
+      <stop offset="1" stop-color="#1d2a2a" stop-opacity=".34"/>
+    </linearGradient>
+    <linearGradient id="cork-shade" x1="0" x2="1">
+      <stop offset="0" stop-color="#9c7444"/><stop offset=".4" stop-color="#cfa671"/><stop offset="1" stop-color="#8f6a3d"/>
+    </linearGradient>
+    <symbol id="compass" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-linecap="round">
+      <circle cx="50" cy="50" r="30" stroke-width="1.6"/><circle cx="50" cy="50" r="24" stroke-width=".8" stroke-dasharray="1 3"/>
+      <path d="M50 8 56 44 92 50 56 56 50 92 44 56 8 50 44 44Z" stroke-width="1.6" fill="currentColor" fill-opacity=".15"/>
+      <path d="M50 8 50 92M8 50 92 50" stroke-width=".8"/></g>
+      <text x="50" y="6" fill="currentColor" font-family="IM Fell English SC, serif" font-size="11" text-anchor="middle">N</text></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../landing-ideas/02-field-journal.html" aria-label="Unclaimed Acres, back to the field journal">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <div class="account">
+      <span class="acct-chip"><svg aria-hidden="true"><use href="#stamp-mark"/></svg><span class="sr-only">Signed in as </span><span id="acct-name">fennel.wam</span></span>
+      <a class="signout" href="#sign-out">Sign out</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <article class="sheet leafpage">
+      <div class="top-row">
+        <div class="intro">
+          <p class="hello">Welcome back, <span id="who">fennel.wam</span></p>
+          <h1>Your charts, <em>bottled</em>.</h1>
+          <p class="lede" id="lede">Every island you have charted is rolled up and corked on the windowsill. Uncork one to unroll its chart.</p>
+          <div class="find" id="find" hidden>
+            <label for="find-q">Looking for one?</label>
+            <input id="find-q" type="search" placeholder="a name on a tag" autocomplete="off" aria-describedby="find-help">
+            <p id="find-help">press Enter to uncork the first match</p>
+          </div>
+          <ul class="tally" id="tally" aria-label="Your islands at a glance"></ul>
+        </div>
+        <div class="window" id="window">
+          <div class="pane" id="pane" role="group" aria-label="Bottles on the windowsill, one per island"></div>
+          <div class="sill" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <section class="scroll" id="scroll" aria-live="polite" aria-label="The unrolled chart">
+        <div class="roll" aria-hidden="true"></div>
+        <div class="scroll-body" id="scroll-body"><div class="scroll-clip"><div class="scroll-paper" id="paper"></div></div></div>
+        <div class="roll" aria-hidden="true"></div>
+      </section>
+    </article>
+  </div>
+</main>
+
+<script src="islands.js"></script>
+<script>
+(function () {
+  // glass tints: [fill, edge]
+  var TINTS = [['#6f9c83', '#3e6550'], ['#b98a3e', '#7a5520'], ['#4f78a3', '#2c4c70'], ['#79a9a6', '#456f6c'], ['#8a6a3e', '#55401f'], ['#7f9a6a', '#4c623a']];
+  var SHAPES = [
+    { d: 'M42 30L42 66C42 80 20 82 20 104L20 198Q20 210 32 210L68 210Q80 210 80 198L80 104C80 82 58 80 58 66L58 30Z', p: [34, 98, 30, 102, 6], hl: 'M26 110C25 140 25 170 27 198' },
+    { d: 'M43 30L43 80C43 92 14 100 14 142C14 184 30 210 50 210C70 210 86 184 86 142C86 100 57 92 57 80L57 30Z', p: [35, 104, 30, 92, -9], hl: 'M22 128C18 152 22 178 31 194' },
+    { d: 'M43 30L43 60C43 70 24 70 22 84L22 202Q22 210 30 210L70 210Q78 210 78 202L78 84C76 70 57 70 57 60L57 30Z', p: [36, 86, 28, 116, 4], hl: 'M28 92L28 200' }
+  ];
+  var list = [], sel = -1, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var pct = function (v) { return (Math.round(v * 10) / 10).toString(); };
+  var DOOR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h11M11 7l5 5-5 5M15 4h4v16h-4"/></svg>';
+
+  function glassSVG(isle, k, empty) {
+    var sh = SHAPES[k % SHAPES.length], t = empty ? ['#a9b4ad', '#6f7a74'] : TINTS[(k * 2 + (k > 5 ? 1 : 0)) % TINTS.length], id = 'b' + k + (empty ? 'n' : '');
+    var p = sh.p, cx = p[0] + p[2] / 2, cy = p[1] + p[3] / 2;
+    var paper = '';
+    if (!empty) {
+      var s = (p[2] - 8) / 100;
+      paper = '<g class="paper"><g transform="rotate(' + p[4] + ' ' + cx + ' ' + cy + ')">' +
+        '<rect x="' + p[0] + '" y="' + p[1] + '" width="' + p[2] + '" height="' + p[3] + '" rx="3" fill="#efe2c0" stroke="#a88f63" stroke-width=".8"/>' +
+        '<path d="M' + (p[0] + 6) + ' ' + (p[1] + 1) + 'V' + (p[1] + p[3] - 1) + '" stroke="#c7b285" stroke-width="1.4"/>' +
+        '<ellipse cx="' + cx + '" cy="' + p[1] + '" rx="' + (p[2] / 2) + '" ry="3.4" fill="#e3d2a6" stroke="#a88f63" stroke-width=".8"/>' +
+        '<ellipse cx="' + cx + '" cy="' + p[1] + '" rx="' + (p[2] / 4) + '" ry="1.4" fill="#c9b386"/>' +
+        '<g transform="translate(' + (p[0] + 4) + ' ' + (p[1] + p[3] * .14) + ') scale(' + s + ')"><g transform="' + isle.svgTransform + '"><path d="' + isle.coast + '" fill="none" stroke="#25467f" stroke-width="' + (1.2 / s) + '" opacity=".55"/></g></g>' +
+        '<rect x="' + (p[0] - .5) + '" y="' + (cy + 10) + '" width="' + (p[2] + 1) + '" height="4" fill="#a5452d" opacity=".85"/>' +
+        '</g></g>';
+    }
+    return '<svg class="glass" viewBox="0 0 100 220" aria-hidden="true">' +
+      '<defs><clipPath id="c' + id + '"><path d="' + sh.d + '"/></clipPath></defs>' +
+      '<path d="' + sh.d + '" fill="' + t[0] + '" fill-opacity=".16"/>' +
+      paper +
+      '<g clip-path="url(#c' + id + ')"><path d="M10 204Q32 194 50 199T92 200V220H10Z" fill="#dcc48d" opacity=".95"/><path d="M10 200Q32 192 50 196T92 197" fill="none" stroke="#b79b62" stroke-width=".8"/></g>' +
+      '<path d="' + sh.d + '" fill="' + t[0] + '" fill-opacity="' + (empty ? .12 : .26) + '"/>' +
+      '<path d="' + sh.d + '" fill="url(#glass-shade)"/>' +
+      '<path d="' + sh.d + '" fill="none" stroke="' + t[1] + '" stroke-width="1.6" stroke-opacity=".85"/>' +
+      '<path d="' + sh.hl + '" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3.6" stroke-linecap="round"/>' +
+      '<path d="M46 36V62" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2" stroke-linecap="round"/>' +
+      '<path d="M70 112V128" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="2" stroke-linecap="round"/>' +
+      '<ellipse cx="50" cy="206" rx="22" ry="3" fill="' + t[1] + '" fill-opacity=".25"/>' +
+      '<rect x="38" y="26" width="24" height="8" rx="3" fill="' + t[0] + '" fill-opacity=".45" stroke="' + t[1] + '" stroke-width="1.4"/>' +
+      '<path d="M58 40C68 60 66 110 53 141" fill="none" stroke="#8a6a44" stroke-width="1.1"/>' +
+      '<path d="M41 39Q50 43 59 39" fill="none" stroke="#8a6a44" stroke-width="1.4"/>' +
+      (empty
+        ? '<g class="cork"><g transform="translate(78 196) rotate(-78)"><rect x="0" y="0" width="13" height="22" rx="2.5" fill="url(#cork-shade)" stroke="#6d4d28" stroke-width="1"/><path d="M3 6h7M3 12h7M3 18h6" stroke="#7d5a33" stroke-width=".7" opacity=".6"/></g></g>'
+        : '<g class="cork"><rect x="42.5" y="5" width="15" height="27" rx="2.5" fill="url(#cork-shade)" stroke="#6d4d28" stroke-width="1"/><ellipse cx="50" cy="5.5" rx="7.5" ry="2" fill="#d9b483" stroke="#6d4d28" stroke-width=".8"/><path d="M45 12h4M51 17h4M45 22h5M52 26h3" stroke="#7d5a33" stroke-width=".8" opacity=".6"/></g>') +
+      '</svg>';
+  }
+
+  function bottleHTML(isle, k, bw) {
+    var lean = ((k * 53) % 5 - 2) * .9, tr = ((k * 31) % 9) - 4;
+    if (!isle) {
+      return '<button class="bottle new" type="button" data-new style="--bw:' + bw + 'px;--lean:-1deg" aria-pressed="' + (sel === 'new') + '" aria-label="An empty bottle: chart a new island">' +
+        glassSVG({ svgTransform: '', coast: '' }, k, true) +
+        '<span class="tag-wrap"><span class="tag" style="--tr:4deg">chart a new island</span></span></button>';
+    }
+    return '<button class="bottle" type="button" data-i="' + isle.index + '" style="--bw:' + bw + 'px;--lean:' + lean + 'deg" aria-pressed="' + (sel === isle.index) + '" aria-label="' + esc(isle.name) + ', last visit ' + esc(isle.lastVisit) + '. Uncork to unroll its chart">' +
+      glassSVG(isle, isle.index, false) +
+      '<span class="tag-wrap"><span class="tag" style="--tr:' + tr + 'deg">' + esc(isle.name) + '</span></span></button>';
+  }
+
+  var CURIOS = '<svg class="curio shell" viewBox="0 0 80 50" aria-hidden="true"><g fill="#f1e2c4" stroke="#6b5a40" stroke-width="1.3" stroke-linejoin="round">' +
+      '<path d="M6 44C4 24 22 6 40 6s36 18 34 38z"/><path d="M40 44V8M40 44L22 12M40 44L58 12M40 44L10 26M40 44L70 26" fill="none" stroke-width=".9"/><path d="M30 44h20v4H30z" fill="#e4cfa6"/></g></svg>' +
+    '<svg class="curio star" viewBox="0 0 50 30" aria-hidden="true"><path d="M25 3 30 13 44 12 33 19 38 28 25 22 12 28 17 19 6 12 20 13Z" fill="#d08a5e" stroke="#7a3f22" stroke-width="1.1" stroke-linejoin="round"/></svg>' +
+    '<svg class="curio glass-float" viewBox="0 0 60 40" aria-hidden="true"><circle cx="30" cy="20" r="17" fill="#79a9a6" fill-opacity=".35" stroke="#456f6c" stroke-width="1.3"/><path d="M18 14a14 14 0 0 1 9-7" stroke="#fff" stroke-opacity=".8" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+    '<path d="M13 20h34M30 3v34M16 10l28 20M44 10 16 30" stroke="#8a6a44" stroke-width=".8" fill="none" opacity=".7"/></svg>';
+
+  function renderShelves() {
+    var pane = $('pane'), items = list.slice();
+    if (UA.canCreate) items.push(null);
+    var n = items.length;
+    var bw = list.length >= 12 ? 58 : list.length >= 4 ? 80 : 118;
+    if (innerWidth < 640) bw = Math.min(bw, list.length >= 4 ? 54 : 84);
+    pane.style.setProperty('--tag-fs', bw < 70 ? '1.02rem' : bw < 100 ? '1.15rem' : '1.3rem');
+    var slot = Math.max(bw + 34, 92), avail = pane.clientWidth - 36;
+    var per = Math.max(1, Math.floor(avail / slot));
+    var rows = Math.ceil(n / per); per = Math.ceil(n / rows);
+    var html = '';
+    if (list.length === 1) html += '<p class="shelf-note" aria-hidden="true">one bottle on the sill</p>';
+    for (var r = 0; r < rows; r++) {
+      html += '<div class="shelf"><div class="row">' + items.slice(r * per, r * per + per).map(function (isle, j) { return bottleHTML(isle, r * per + j, bw); }).join('') + '</div><div class="plank" aria-hidden="true"></div></div>';
+    }
+    if (n <= 3) html += CURIOS;
+    pane.innerHTML = html;
+    pane.setAttribute('data-mullions', n === 1 ? '0' : n === 2 ? '1' : '2');   // keep the window bars off a lone bottle
+    $('window').classList.add('has-sill');
+  }
+
+  function renderChart(animate) {
+    var body = $('scroll-body'), paper = $('paper');
+    if (sel === 'new') {
+      paper.innerHTML = '<div class="chart-grid blank-chart"><figure class="chart"><div class="chart-inner"><p>a blank chart</p></div>' +
+        '<svg class="compass" style="color:var(--blue)" aria-hidden="true"><use href="#compass"/></svg></figure>' +
+        '<div class="info"><p class="kicker">The empty bottle</p><h2>Chart a new island</h2>' +
+        '<p class="note">somewhere out there is an island no one has written down yet</p>' +
+        '<p class="lede" style="font-size:1.08rem">A new island is generated for you, with its own coastline, hills and forests. It goes in this bottle once it is charted.</p>' +
+        '<div class="actions"><button class="btn" type="button" id="chart-new">Chart a new island</button></div></div></div>';
+    } else {
+      var isle = list[sel], s = isle.stats;
+      paper.innerHTML = '<div class="chart-grid">' +
+        '<div><figure class="chart"><div class="chart-inner"><img src="' + isle.render + '" style="transform:' + isle.renderTransform + '" alt="Painted chart of ' + esc(isle.name) + ' seen from above: coastline, beaches, forest and hills."></div>' +
+          '<svg class="compass" aria-hidden="true"><use href="#compass"/></svg>' +
+          '<figure class="inset"><span class="tape" aria-hidden="true"></span>' + UA.outline(isle, { size: 134, sea: '#e3e9e2', grid: 'rgba(37,70,127,.16)', pad: 5, label: 'Coastline of ' + isle.name }) + '<figcaption>the coastline, inked</figcaption></figure>' +
+        '</figure><p class="chart-cap"><span>charted ' + esc(isle.charted) + '</span></p></div>' +
+        '<div class="info">' +
+          '<p class="kicker">Chart No. ' + String(isle.index + 1).padStart(2, '0') + '</p>' +
+          '<h2>' + esc(isle.name) + '</h2>' +
+          '<p class="note">&ldquo;' + esc(isle.note) + '&rdquo;</p>' +
+          '<div class="landsea" style="--v:' + s.land + '%"><div class="bar" role="img" aria-label="' + pct(s.land) + ' percent land, the rest sea"><i></i></div><p><span>land ' + pct(s.land) + '%</span><span>sea ' + pct(100 - s.land) + '%</span></p></div>' +
+          '<ul class="survey" aria-label="Survey">' +
+            '<li><span>Forest</span><b>' + pct(s.forest) + '%</b></li><li><span>Mountain</span><b>' + pct(s.mountain) + '%</b></li>' +
+            '<li><span>Beach</span><b>' + pct(s.beach) + '%</b></li><li><span>Fresh water</span><b>' + pct(s.freshWater) + '%</b></li>' +
+          '</ul>' +
+          '<div class="actions"><a class="btn" href="#enter-' + isle.id + '">' + DOOR + ' Enter island</a><span class="hand">last visit: ' + esc(isle.lastVisit) + '</span></div>' +
+        '</div></div>';
+    }
+    if (animate && !reduce) {
+      body.classList.add('closed'); void body.offsetHeight;
+      requestAnimationFrame(function () { body.classList.remove('closed'); });
+    }
+  }
+
+  function renderTally() {
+    var n = list.length, last = list[n - 1];
+    var avg = function (k) { return list.reduce(function (a, i) { return a + i.stats[k]; }, 0) / n; };
+    if (n === 1) {
+      $('lede').innerHTML = 'The chart of <strong>' + esc(last.name) + '</strong> is uncorked and unrolled below. Step ashore when you are ready.';
+      $('tally').innerHTML = '<li><b>1</b><span>island</span></li><li><b>' + pct(last.stats.land) + '%</b><span>land</span></li>' +
+        '<li><b>' + esc(last.lastVisit) + '</b><span>last visit</span></li>';
+    } else {
+      $('lede').innerHTML = '<strong>' + n + ' charts</strong> are rolled up and corked on the windowsill. Uncork one to unroll it below.';
+      $('tally').innerHTML = '<li><b>' + n + '</b><span>islands</span></li><li><b>' + Math.round(avg('land')) + '%</b><span>land, avg.</span></li>' +
+        '<li><b>' + list.filter(function (i) { return i.stats.freshWater >= .5; }).length + '</b><span>with a lake</span></li>';
+    }
+  }
+
+  function select(v, fromUser) {
+    if (v === sel) return;
+    sel = v;
+    document.querySelectorAll('.bottle').forEach(function (b) {
+      var me = b.hasAttribute('data-new') ? 'new' : Number(b.getAttribute('data-i'));
+      b.setAttribute('aria-pressed', String(me === sel));
+    });
+    renderChart(true);
+    if (fromUser) {
+      var r = $('scroll').getBoundingClientRect();
+      if (r.top > innerHeight - 220) $('scroll').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.bottle'); if (b) { select(b.hasAttribute('data-new') ? 'new' : Number(b.getAttribute('data-i')), true); return; }
+    if (e.target.id === 'chart-new') e.target.textContent = 'The chart table opens soon';
+  });
+  // arrow keys move along the sill
+  $('pane').addEventListener('keydown', function (e) {
+    if (['ArrowLeft', 'ArrowRight'].indexOf(e.key) < 0) return;
+    var all = [].slice.call(document.querySelectorAll('.bottle')), i = all.indexOf(document.activeElement);
+    if (i < 0) return;
+    var next = all[(i + (e.key === 'ArrowRight' ? 1 : -1) + all.length) % all.length];
+    next.focus(); e.preventDefault();
+  });
+  var rt; addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { renderShelves(); filter(); }, 150); });
+
+  // find a bottle by the name on its tag (shown from 6 islands up)
+  function matches() {
+    var q = $('find-q').value.trim().toLowerCase();
+    return list.filter(function (i) { return q && i.name.toLowerCase().indexOf(q) >= 0; });
+  }
+  function filter() {
+    var q = $('find-q').value.trim(), hit = matches().map(function (i) { return i.index; });
+    document.querySelectorAll('.bottle').forEach(function (b) {
+      var i = b.hasAttribute('data-new') ? -1 : Number(b.getAttribute('data-i'));
+      b.classList.toggle('dim', !!q && hit.indexOf(i) < 0);
+    });
+    $('find-help').textContent = !q ? 'press Enter to uncork the first match' : hit.length ? hit.length + (hit.length === 1 ? ' bottle' : ' bottles') + ' with that name, Enter uncorks the first' : 'no tag with that name';
+  }
+  $('find-q').addEventListener('input', filter);
+  $('find-q').addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    var m = matches(); if (m.length) { select(m[0].index, true); e.preventDefault(); }
+  });
+
+  UA.islands().then(function (l) {
+    list = l; sel = l.length - 1;          // the most recent island starts uncorked
+    $('who').textContent = UA.player; $('acct-name').textContent = UA.player;
+    $('find').hidden = l.length <= 5;
+    renderTally(); renderShelves(); renderChart(false);
+    if (location.hash === '#new' && UA.canCreate) select('new', false);   // deep link to the empty bottle
+  });
+})();
+</script>
+</body>
+</html>

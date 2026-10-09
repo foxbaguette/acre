@@ -1,0 +1,358 @@
+<!--
+  Concept 09: The Cartographer's Cabinet
+  Idea: your islands are filed in a wooden plan chest, one wide shallow drawer each (brass label holder, name and
+        charted date); pull a drawer and it slides open to show the island's chart lying inside, ready to enter.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unclaimed Acres - Your islands (Cartographer's Cabinet)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="journal.css">
+<style>
+  :root {
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0035 .16' numOctaves='3' seed='8'/%3E%3CfeColorMatrix values='0 0 0 0 .18 0 0 0 0 .09 0 0 0 0 .03 0 0 0 .9 -.28'/%3E%3C/filter%3E%3Crect width='900' height='300' filter='url(%23g)'/%3E%3C/svg%3E");
+    --grain-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='900'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.16 .0035' numOctaves='3' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .18 0 0 0 0 .09 0 0 0 0 .03 0 0 0 .9 -.28'/%3E%3C/filter%3E%3Crect width='300' height='900' filter='url(%23g)'/%3E%3C/svg%3E");
+    --wood: #92603a;
+    --wood-dark: #5b3519;
+    --wood-deep: #2e1a0c;
+    --brass: linear-gradient(160deg, #f4dc98 0%, #d3a94f 28%, #a77a2a 58%, #e2c272 78%, #8c6320 100%);
+  }
+  /* ---------- header: account chip ---------- */
+  .top { padding: 14px 0 6px; }
+  .account { display: flex; align-items: center; gap: 14px; }
+  .acct-chip { display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px 7px 8px; border-radius: 999px;
+    background: var(--card); background-image: var(--noise); box-shadow: var(--shadow); font-size: 1.02rem; color: var(--ink); }
+  .acct-chip i { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-style: normal;
+    background: radial-gradient(circle at 35% 30%, #d77b5f, var(--rust) 60%, #6f2a18); color: #fbeee0; font-family: var(--display); font-size: 1rem; }
+  .acct-chip small { display: block; font-family: var(--sc); font-size: .66rem; letter-spacing: .16em; color: var(--rust); line-height: 1; }
+  .acct-chip b { font-weight: 500; display: block; line-height: 1.15; }
+  .signout { font-family: var(--hand); font-size: 1.35rem; color: var(--blue); text-decoration: none; }
+  .signout:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+  main { padding: 18px 0 90px; }
+  .room { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 44px; align-items: start; }
+
+  /* ---------- the note sheet beside the cabinet ---------- */
+  .notes { position: sticky; top: 18px; padding: 30px 30px 26px; transform: rotate(-.6deg); }
+  .notes .pin { left: 50%; top: 10px; }
+  .entry-meta { display: flex; justify-content: space-between; gap: 12px; font-family: var(--hand); color: var(--blue); font-size: 1.25rem;
+    border-bottom: 1px solid var(--rule); padding-bottom: 5px; margin-bottom: 18px; }
+  .notes h1 { font-size: 2.7rem; margin: 2px 0 12px; }
+  .notes h1 em { font-style: italic; color: var(--blue); }
+  .notes .lede { font-size: 1.06rem; margin-bottom: 14px; }
+  .tally { display: flex; gap: 16px; border-top: 1px solid rgba(180,156,116,.6); border-bottom: 1px solid rgba(180,156,116,.6); padding: 10px 0; margin: 0 0 14px; }
+  .tally div { flex: 1; }
+  .tally b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.9rem; line-height: 1; }
+  .tally span { font-family: var(--sc); font-size: .74rem; letter-spacing: .12em; color: var(--rust); }
+  .point { font-family: var(--hand); color: var(--blue); font-size: 1.4rem; line-height: 1.15; display: flex; gap: 8px; align-items: center; margin: 0; transform: rotate(-2deg); }
+  .point svg { flex: none; width: 40px; height: 20px; }
+  .dindex h2 { font-family: var(--sc); font-size: .9rem; letter-spacing: .14em; color: var(--rust); margin: 4px 0 8px; display: flex; align-items: center; gap: .7em; }
+  .dindex h2::after { content: ""; flex: 1; height: 1px; background: var(--rule); opacity: .6; }
+  .dindex ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(var(--rows, 10), auto); grid-auto-flow: column; gap: 0 14px; }
+  .dindex button { width: 100%; display: flex; gap: 6px; align-items: baseline; text-align: left; background: none; border: 0; padding: 3px 4px; border-radius: 3px;
+    font-family: var(--serif); font-size: .98rem; color: var(--ink); cursor: pointer; border-bottom: 1px dashed rgba(180,156,116,.45); }
+  .dindex button i { font-style: normal; font-family: var(--sc); font-size: .74rem; color: var(--rust); min-width: 1.6em; }
+  .dindex button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dindex button:hover, .dindex button[aria-current="true"] { background: rgba(37,70,127,.08); }
+  .dindex button[aria-current="true"] span { color: var(--blue); }
+  .exlib { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+  .exlib svg { width: 88px; height: 88px; color: var(--rust); opacity: .75; transform: rotate(-12deg); flex: none; mix-blend-mode: multiply; }
+  .exlib p { margin: 0; font-family: var(--hand); color: var(--ink-soft); font-size: 1.2rem; line-height: 1.15; }
+
+  /* ---------- the plan chest ---------- */
+  .cabinet { position: relative; margin-top: 4px; filter: drop-shadow(0 26px 30px rgba(50, 30, 10, .35)); }
+  .cab-top { position: relative; height: 46px; margin: 0 -14px; border-radius: 5px 5px 2px 2px;
+    background-color: var(--wood); background-image: var(--grain), linear-gradient(180deg, rgba(255,220,170,.28), transparent 40%, rgba(0,0,0,.28));
+    box-shadow: inset 0 1px 0 rgba(255,225,180,.45), inset 0 -3px 0 rgba(30,15,5,.45), 0 3px 0 #3b2210; display: flex; align-items: center; justify-content: center; }
+  .cab-top::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -9px; height: 9px; background: linear-gradient(#3b2210, #5b3519); }
+  .maker { font-family: var(--sc); font-size: .78rem; letter-spacing: .22em; color: #3a220f; padding: 3px 16px 2px; border-radius: 2px;
+    background: var(--brass); box-shadow: inset 0 0 0 1px rgba(80,50,10,.45), 0 1px 1px rgba(0,0,0,.4); text-shadow: 0 1px 0 rgba(255,240,200,.5); }
+  .carcass { position: relative; padding: 16px 16px 10px; border-radius: 0 0 2px 2px;
+    background-color: var(--wood-dark); background-image: var(--grain-v), linear-gradient(90deg, rgba(0,0,0,.25), transparent 4%, transparent 96%, rgba(0,0,0,.3));
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.4); }
+  .stack { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .stack > li { position: relative; }
+  .cab-base { position: relative; height: 26px; margin: 0 -8px; border-radius: 0 0 4px 4px;
+    background-color: var(--wood); background-image: var(--grain), linear-gradient(180deg, rgba(0,0,0,.35), transparent 30%, rgba(0,0,0,.25));
+    box-shadow: inset 0 2px 0 rgba(255,225,180,.25); }
+  .cab-base::before, .cab-base::after { content: ""; position: absolute; bottom: -16px; width: 70px; height: 18px; background: var(--wood-deep); border-radius: 0 0 6px 6px; }
+  .cab-base::before { left: 26px; } .cab-base::after { right: 26px; }
+
+  /* a drawer front */
+  .front { position: relative; display: grid; grid-template-columns: 70px 1fr auto 1fr 70px; align-items: center; width: 100%; height: 72px; padding: 0 20px;
+    border: 0; border-radius: 3px; cursor: pointer; color: inherit; font: inherit; text-align: center;
+    background-color: var(--wood); background-image: var(--grain), linear-gradient(180deg, rgba(255,225,180,.22), transparent 30%, transparent 70%, rgba(20,10,0,.28));
+    box-shadow: inset 0 1px 0 rgba(255,228,185,.5), inset 0 -2px 0 rgba(25,12,3,.45), inset 2px 0 0 rgba(255,228,185,.18), inset -2px 0 0 rgba(25,12,3,.3), 0 2px 3px rgba(0,0,0,.35);
+    transition: transform .35s ease, box-shadow .35s ease; z-index: 2; }
+  .front::before { /* the bead moulding inset */
+    content: ""; position: absolute; inset: 7px 9px; border-radius: 2px; pointer-events: none;
+    box-shadow: inset 1px 1px 0 rgba(25,12,3,.38), inset -1px -1px 0 rgba(255,228,185,.25), 1px 1px 0 rgba(255,228,185,.2); }
+  .front:hover { filter: brightness(1.05); }
+  .front:focus-visible { outline: 3px solid #f2dfa6; outline-offset: 2px; }
+  .no { grid-column: 1; justify-self: start; font-family: var(--sc); font-size: .78rem; letter-spacing: .12em; color: rgba(255, 232, 196, .72);
+    text-shadow: 0 -1px 0 rgba(0,0,0,.5); }
+  .handle { position: relative; width: 84px; height: 26px; justify-self: center; }
+  .handle::before { /* brass backplate */ content: ""; position: absolute; inset: 0 0 8px; border-radius: 13px 13px 3px 3px; background: var(--brass);
+    box-shadow: inset 0 0 0 1px rgba(80,50,10,.5), 0 1px 1px rgba(0,0,0,.45); }
+  .handle::after { /* the cup */ content: ""; position: absolute; left: 8px; right: 8px; top: 7px; height: 19px; border-radius: 2px 2px 40px 40px / 2px 2px 19px 19px;
+    background: linear-gradient(180deg, #4b300d 0 20%, #a77a2a 21%, #f3d78f 55%, #b4852f 80%, #7d5718);
+    box-shadow: 0 3px 4px rgba(0,0,0,.45); }
+  .h-l { grid-column: 2; } .h-r { grid-column: 4; }
+  .holder { grid-column: 3; position: relative; min-width: 270px; padding: 5px; border-radius: 3px; background: var(--brass);
+    box-shadow: inset 0 0 0 1px rgba(80,50,10,.55), 0 2px 2px rgba(0,0,0,.45); }
+  .holder::before, .holder::after { /* screws */ content: ""; position: absolute; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff2c8, #8c6320); box-shadow: inset 0 0 0 .5px rgba(60,40,10,.6); }
+  .holder::before { left: -1px; transform: translateX(-100%); } .holder::after { right: -1px; transform: translateX(100%); }
+  .card { display: block; padding: 4px 18px 3px; background: var(--card); background-image: var(--noise); box-shadow: inset 0 1px 3px rgba(60,40,10,.45); border-radius: 1px; }
+  .card b { display: block; font-family: var(--sc); font-weight: 400; font-size: 1.22rem; letter-spacing: .1em; line-height: 1.15; color: var(--ink); white-space: nowrap; }
+  .card small { display: block; font-family: var(--hand); font-size: 1.02rem; color: var(--blue); line-height: 1.1; }
+  .new .card b { font-family: var(--hand); font-weight: 600; letter-spacing: 0; font-size: 1.32rem; color: var(--blue); }
+  .new .card small { font-family: var(--sc); font-size: .7rem; letter-spacing: .14em; color: var(--rust); }
+  .many .front { height: 60px; }
+  .many .card { padding: 2px 18px 1px; }
+  .many .card b { font-size: 1.08rem; }
+  .many .card small { font-size: .95rem; }
+  .many .stack { gap: 6px; }
+  .blank .front { cursor: default; }
+  .blank .card { height: 40px; }
+  .blank .front:hover { filter: none; }
+  .is-open > .front { transform: translateY(3px) scaleX(1.012); box-shadow: inset 0 1px 0 rgba(255,228,185,.5), inset 0 -2px 0 rgba(25,12,3,.45), 0 10px 14px -6px rgba(0,0,0,.6); }
+
+  /* the open drawer: the interior shows above the front */
+  .tray { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .55s cubic-bezier(.3, .7, .3, 1); }
+  .is-open > .tray { grid-template-rows: 1fr; }
+  .tray > .clip { overflow: hidden; min-height: 0; }
+  .box { position: relative; margin: 0 6px; padding: 20px 30px 0; background-color: #c8a67a;
+    background-image: var(--grain), linear-gradient(180deg, rgba(20,10,0,.65), rgba(20,10,0,.18) 34px, transparent 90px);
+    box-shadow: inset 16px 0 14px -10px rgba(20,10,0,.55), inset -16px 0 14px -10px rgba(20,10,0,.55); }
+  .box::before, .box::after { /* drawer side walls, seen from above */ content: ""; position: absolute; top: 0; bottom: 0; width: 14px; background-color: #a37548; background-image: var(--grain-v); }
+  .box::before { left: -6px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); box-shadow: inset -2px 0 0 rgba(0,0,0,.25); }
+  .box::after { right: -6px; }
+  .sheet.chart-sheet { position: relative; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 26px; padding: 20px 26px 20px;
+    transform: rotate(-.5deg); box-shadow: 0 2px 2px rgba(40,20,5,.25), 0 10px 18px -8px rgba(40,20,5,.55); border-radius: 2px 2px 0 0; }
+  .chart-sheet .pin { top: 10px; left: 22px; }
+  .plate { position: relative; }
+  .plate .outline { position: relative; width: 100%; max-width: 330px; aspect-ratio: 1; border: 1px solid rgba(180,156,116,.75);
+    background: linear-gradient(rgba(37,70,127,.06) 1px, transparent 1px) 0 0 / 10% 10%, linear-gradient(90deg, rgba(37,70,127,.06) 1px, transparent 1px) 0 0 / 10% 10%; }
+  .plate .outline svg { display: block; }
+  .plate .compass { position: absolute; left: 10px; top: 10px; width: 46px; height: 46px; color: var(--blue); opacity: .7; }
+  .plate .photo { position: absolute; right: -6px; bottom: -14px; width: 62%; padding: 7px 7px 26px; transform: rotate(3deg); }
+  .plate .photo .ph { overflow: hidden; aspect-ratio: 1600 / 907; background: #2a5a78; }
+  .plate .photo img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; }
+  .plate .photo figcaption { font-size: 1.05rem; bottom: 3px; }
+  .plate .photo .tape { width: 70px; height: 22px; top: -10px; left: calc(50% - 35px); transform: rotate(-4deg); }
+  .facts .kicker { font-size: .82rem; margin-bottom: 4px; }
+  .facts h2 { font-size: clamp(2rem, 1.5rem + 1.3vw, 2.7rem); margin: 0 0 2px; }
+  .facts .hand { font-size: 1.4rem; margin: 0 0 12px; }
+  .strip { display: flex; height: 16px; border: 1px solid var(--ink-soft); border-radius: 2px; overflow: hidden; margin: 4px 0 8px; background: repeating-linear-gradient(-45deg, rgba(37,70,127,.18) 0 2px, transparent 2px 5px); }
+  .strip i { display: block; height: 100%; border-right: 1px solid rgba(43,39,33,.5); }
+  .legend { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1px 18px; }
+  .legend li { display: flex; align-items: center; gap: 7px; font-size: .98rem; line-height: 1.35; border-bottom: 1px dotted rgba(180,156,116,.7); }
+  .legend li::before { content: ""; width: 10px; height: 10px; border: 1px solid rgba(43,39,33,.6); background: var(--c); flex: none; }
+  .legend span { flex: 1; font-family: var(--sc); font-size: .8rem; letter-spacing: .1em; color: var(--ink-soft); }
+  .legend b { font-weight: 500; font-variant-numeric: tabular-nums; }
+  .go { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .go .visit { font-family: var(--hand); color: var(--ink-soft); font-size: 1.2rem; line-height: 1.1; margin: 0; }
+  .lip { height: 14px; margin: 0 6px; background: linear-gradient(#7a4f2c, #a37548); box-shadow: inset 0 1px 0 rgba(255,228,185,.35); }
+  .newsheet { grid-template-columns: 1fr; text-align: center; padding: 34px 26px; }
+  .newsheet .ghost { width: 150px; height: 120px; margin: 0 auto 6px; border: 1.5px dashed var(--blue-soft); border-radius: 48% 52% 44% 56% / 55% 45% 55% 45%;
+    display: grid; place-items: center; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; }
+  .newsheet p { margin: 0 auto 12px; max-width: 30em; color: var(--ink-soft); font-size: 1.05rem; }
+
+  @media (max-width: 1100px) {
+    .room { grid-template-columns: 1fr; gap: 30px; }
+    .notes { position: relative; top: 0; transform: none; }
+    .dindex ol { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); grid-template-rows: none; grid-auto-flow: row; }
+  }
+  @media (max-width: 720px) {
+    .front, .many .front { grid-template-columns: auto 1fr auto; height: auto; min-height: 64px; padding: 9px 12px; gap: 8px; }
+    .no { display: none; }
+    .h-l { grid-column: 1; } .holder { grid-column: 2; } .h-r { grid-column: 3; }
+    .handle { width: 48px; height: 22px; }
+    .holder { min-width: 0; }
+    .card { padding: 3px 8px; }
+    .card b { font-size: 1.02rem; white-space: normal; overflow-wrap: anywhere; }
+    .card small { font-size: .9rem; }
+    .card small .cw { display: none; }
+    .carcass { padding: 10px 10px 8px; }
+    .cab-top { margin: 0 -6px; }
+    .box { padding: 16px 12px 0; margin: 0 2px; }
+    .sheet.chart-sheet { grid-template-columns: 1fr; padding: 18px 16px; gap: 34px; }
+    .plate .outline { max-width: none; }
+    .legend { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .top .wrap { flex-wrap: wrap; gap: 8px; }
+    .account { margin-left: auto; }
+    .acct-chip small { display: none; }
+    .acct-chip { font-size: .92rem; padding-right: 12px; }
+    .notes { padding: 26px 20px 20px; }
+    .notes h1 { font-size: 2.2rem; }
+    .maker { font-size: .64rem; letter-spacing: .14em; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../landing-ideas/02-field-journal.html" aria-label="Unclaimed Acres, back to the field journal">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <div class="account">
+      <span class="acct-chip"><i aria-hidden="true">f</i><span><small>signed in</small><b>fennel.wam</b></span></span>
+      <a class="signout" href="../landing-ideas/02-field-journal.html">Sign out</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap room">
+    <aside class="notes sheet" id="notes" aria-label="About your cabinet"></aside>
+    <section class="cabinet" aria-labelledby="cab-title">
+      <h2 class="sr-only" id="cab-title">Plan chest: one drawer per island</h2>
+      <div class="cab-top"><span class="maker" id="maker">Plan chest</span></div>
+      <div class="carcass"><ol class="stack" id="stack"></ol></div>
+      <div class="cab-base" aria-hidden="true"></div>
+    </section>
+  </div>
+</main>
+
+<script src="islands.js"></script>
+<script>
+(function () {
+  var ARROW = '<svg width="40" height="20" viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2 10c8-3 18-4 29-1M25 3c2.5 2 4.5 4 6 6-2.5 1.3-5 3-7 5"/></svg>';
+  var DOOR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12M12 7l5 5-5 5M20 4v16"/></svg>';
+  var COMPASS = '<svg class="compass" viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="50" cy="50" r="30" stroke-width="1.5"/>' +
+    '<path d="M50 8 56 50 50 92 44 50Z" fill="currentColor" fill-opacity=".25" stroke-width="1.4"/><path d="M50 8 56 50H44Z" fill="currentColor" stroke-width="1"/><path d="M8 50 50 45 92 50 50 55Z" stroke-width="1.2"/>' +
+    '<text x="50" y="6" font-family="IM Fell English SC, serif" font-size="12" fill="currentColor" stroke="none" text-anchor="middle">N</text></svg>';
+  var stack = document.getElementById('stack'), notes = document.getElementById('notes');
+  var list = [], openId = null;
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function islandTray(isl) {
+    var s = isl.stats, other = Math.max(0, s.land - s.forest - s.mountain - s.beach - s.freshWater);
+    var parts = [['forest', s.forest, '#5f7a45'], ['mountain', s.mountain, '#9b958a'], ['beach', s.beach, '#e2c98f'], ['fresh water', s.freshWater, '#6fa3c0'], ['open land', other, '#c9d29a']];
+    var strip = parts.map(function (p) { return p[1] > 0 ? '<i style="width:' + p[1] + '%;background:' + p[2] + '"></i>' : ''; }).join('');
+    var legend = parts.map(function (p) { return '<li style="--c:' + p[2] + '"><span>' + p[0] + '</span><b>' + p[1].toFixed(1).replace('.0', '') + '%</b></li>'; }).join('') +
+      '<li style="--c:rgba(37,70,127,.25)"><span>sea</span><b>' + (100 - s.land).toFixed(1).replace('.0', '') + '%</b></li>';
+    return '<div class="sheet chart-sheet"><span class="pin" aria-hidden="true"></span>' +
+      '<div class="plate"><div class="outline">' + UA.outline(isl, { land: '#f5ecd3', stroke: .6, pad: 3, label: 'Chart of ' + isl.name + ', coastline only' }) + COMPASS + '</div>' +
+      '<figure class="photo"><span class="tape" aria-hidden="true"></span><div class="ph"><img src="' + isl.render + '" width="1600" height="907" loading="lazy" style="transform:' + isl.renderTransform + '"' +
+      ' alt="' + esc(isl.name) + ' painted from above"></div><figcaption>from above</figcaption></figure></div>' +
+      '<div class="facts"><p class="kicker">Drawer No. ' + (isl.index + 1) + '</p>' +
+      '<h2>' + esc(isl.name) + '</h2><p class="hand">&ldquo;' + esc(isl.note) + '&rdquo;</p>' +
+      '<div class="strip" role="img" aria-label="Land ' + s.land + '% of the chart, the rest is sea">' + strip + '</div>' +
+      '<ul class="legend" aria-label="Share of the chart">' + legend + '</ul>' +
+      '<div class="go"><a class="btn" href="#enter-' + isl.id + '">' + DOOR + ' Enter island</a><p class="visit">last visit<br>' + esc(isl.lastVisit) + '</p></div></div></div>';
+  }
+
+  function drawer(o) {
+    var id = o.key, tray = 'tray-' + id;
+    return '<li class="drawer' + (o.cls ? ' ' + o.cls : '') + '" data-key="' + id + '">' +
+      '<div class="tray" id="' + tray + '" role="region" aria-label="' + esc(o.region) + '"><div class="clip"><div class="box">' + o.inside + '</div><div class="lip" aria-hidden="true"></div></div></div>' +
+      '<button type="button" class="front" aria-expanded="false" aria-controls="' + tray + '" aria-label="' + esc(o.aria) + '">' +
+      '<span class="no" aria-hidden="true">No. ' + o.no + '</span><span class="handle h-l" aria-hidden="true"></span>' +
+      '<span class="holder" aria-hidden="true"><span class="card"><b>' + o.title + '</b><small>' + o.sub + '</small></span></span>' +
+      '<span class="handle h-r" aria-hidden="true"></span></button></li>';
+  }
+  function blank() {
+    return '<li class="drawer blank" aria-hidden="true"><div class="front"><span class="no"></span><span class="handle h-l"></span><span class="holder"><span class="card"></span></span><span class="handle h-r"></span></div></li>';
+  }
+
+  function build() {
+    var n = list.length, html = '';
+    // filed newest on top, so the island you charted last is in the top drawer
+    for (var i = n - 1; i >= 0; i--) {
+      var isl = list[i];
+      html += drawer({ key: 'd' + i, no: i + 1, title: esc(isl.name), sub: '<span class="cw">charted </span>' + esc(isl.charted),
+        aria: isl.name + ', drawer ' + (i + 1) + ', charted ' + isl.charted + ', last visit ' + isl.lastVisit, region: isl.name, inside: islandTray(isl) });
+    }
+    var total = n;
+    if (UA.canCreate) {
+      total++;
+      html += drawer({ key: 'new', no: n + 1, cls: 'new', title: 'for your next island', sub: 'empty drawer', aria: 'Empty drawer, for your next island', region: 'Chart a new island',
+        inside: '<div class="sheet chart-sheet newsheet"><div class="ghost" aria-hidden="true">?</div><h2 style="font-size:2rem;margin-bottom:6px">A clean sheet</h2>' +
+          '<p>This drawer is kept for the next island you chart. It will be generated for you, coastline and all.</p>' +
+          '<button type="button" class="btn small" id="chart-new">' + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Chart a new island</button></div>' });
+    }
+    for (var b = total; b < 3; b++) html += blank();
+    stack.innerHTML = html;
+    document.querySelector('.cabinet').classList.toggle('many', n > 6);
+    document.getElementById('maker').textContent = 'Plan chest · ' + UA.player;
+
+    // the note sheet
+    var newest = list[n - 1];
+    var idx = '';
+    if (n > 3) {
+      idx = '<nav class="dindex" aria-label="Drawer index"><h2>Drawer index</h2><ol style="--rows:' + Math.ceil(n / 2) + '">' + list.slice().reverse().map(function (isl) {
+        return '<li><button type="button" data-open="d' + isl.index + '"><i>' + (isl.index + 1) + '</i><span>' + esc(isl.name) + '</span></button></li>';
+      }).join('') + '</ol></nav>';
+    }
+    notes.innerHTML = '<span class="pin" aria-hidden="true"></span>' +
+      '<div class="entry-meta"><span>the chart room</span><span>' + esc(UA.player) + '</span></div>' +
+      '<p class="kicker">Your islands</p>' +
+      '<h1>Charts, <em>filed flat</em></h1>' +
+      '<p class="lede">' + (n === 1 ? 'Your island lies in the top drawer, chart and all. Look it over, then step ashore.' :
+        'Every island you have charted lies flat in a drawer of its own, newest on top. Pull one out to look it over.') + '</p>' +
+      '<div class="tally"><div><b>' + n + '</b><span>' + (n === 1 ? 'island filed' : 'islands filed') + '</span></div><div><b>' + esc(newest.lastVisit) + '</b><span>last visit</span></div></div>' +
+      (n > 3 ? idx : '<p class="point">' + (n === 1 ? 'already pulled out for you' : 'pick a drawer') + ' ' + ARROW + '</p>' +
+        '<div class="exlib"><svg aria-hidden="true"><use href="#stamp"/></svg><p>Unclaimed Acres<br>chart room, kept by ' + esc(UA.player) + '</p></div>');
+  }
+
+  function setOpen(key, opts) {
+    opts = opts || {};
+    stack.querySelectorAll('.drawer[data-key]').forEach(function (d) {
+      var on = d.dataset.key === key;
+      d.classList.toggle('is-open', on);
+      d.querySelector('.front').setAttribute('aria-expanded', on ? 'true' : 'false');
+      d.querySelector('.tray').hidden = false;
+      d.querySelector('.tray').inert = !on;
+    });
+    notes.querySelectorAll('[data-open]').forEach(function (b) { b.setAttribute('aria-current', b.dataset.open === key ? 'true' : 'false'); });
+    openId = key;
+    if (opts.scroll) {
+      var d = stack.querySelector('.drawer[data-key="' + key + '"]');
+      var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(function () { d.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'nearest' }); }, still ? 0 : 380);
+    }
+  }
+
+  stack.addEventListener('click', function (e) {
+    if (e.target.closest('#chart-new')) { e.target.closest('#chart-new').insertAdjacentHTML('afterend', '<p class="hand" role="status" style="margin:10px 0 0">Charting opens soon. The drawer will be waiting.</p>'); e.target.closest('#chart-new').disabled = true; return; }
+    var f = e.target.closest('.front');
+    if (!f || !f.matches('button')) return;
+    var key = f.closest('.drawer').dataset.key;
+    setOpen(key === openId ? null : key, { scroll: key !== openId });
+  });
+  stack.addEventListener('keydown', function (e) {
+    if (!e.target.matches('button.front')) return;
+    var all = Array.prototype.slice.call(stack.querySelectorAll('button.front')), k = all.indexOf(e.target), to = -1;
+    if (e.key === 'ArrowDown') to = Math.min(all.length - 1, k + 1);
+    else if (e.key === 'ArrowUp') to = Math.max(0, k - 1);
+    else if (e.key === 'Home') to = 0;
+    else if (e.key === 'End') to = all.length - 1;
+    if (to >= 0) { all[to].focus(); e.preventDefault(); }
+  });
+  notes.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-open]');
+    if (!b) return;
+    setOpen(b.dataset.open, { scroll: true });
+    stack.querySelector('.drawer[data-key="' + b.dataset.open + '"] .front').focus({ preventScroll: true });
+  });
+
+  UA.islands().then(function (l) {
+    list = l;
+    build();
+    setOpen('d' + (list.length - 1));
+  });
+})();
+</script>
+</body>
+</html>

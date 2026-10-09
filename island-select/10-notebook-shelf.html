@@ -1,0 +1,368 @@
+<!--
+  Concept 10: One Journal per Island
+  Idea: every island keeps its own cloth-bound notebook. One island = one journal lying closed on the desk; open
+        it and the cover swings over to show the island's chart, painting, notes and "Enter island". Many islands
+        = spines on a small bookshelf; the chosen one is pulled out and lies open on the desk. A blank, unlabelled
+        journal stands for charting a new island.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your island journals - Unclaimed Acres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="journal.css">
+<style>
+  :root { --cloth-tex:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, .045) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, .06) 0 1px, transparent 1px 3px); }
+
+  html { background-color: #d8c59c; }
+  body { min-height: 100vh; }
+
+  /* ---------- header: account tag ---------- */
+  .acct { display: flex; align-items: center; gap: 12px; padding: 7px 10px 7px 12px; background: var(--card); background-image: var(--noise);
+    box-shadow: var(--shadow); border-radius: 3px; transform: rotate(1deg); position: relative; }
+  .acct::before { content: ""; position: absolute; left: -7px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%;
+    background: #d8c59c; box-shadow: inset 0 1px 2px rgba(60, 45, 20, .45); }
+  .acct-mark { width: 34px; height: 34px; color: var(--moss); flex: none; }
+  .acct-who { line-height: 1.05; }
+  .acct-who small { display: block; font-family: var(--hand); color: var(--blue); font-size: 1rem; }
+  .acct-who b { font-family: var(--sc); font-weight: 400; letter-spacing: .08em; font-size: 1.08rem; }
+  .acct-out { font-family: var(--sc); font-size: .86rem; letter-spacing: .1em; color: var(--rust); text-decoration: none; border-left: 1px solid var(--rule); padding: 4px 4px 4px 12px; }
+  .acct-out:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+  /* ---------- the desk ---------- */
+  .desk { display: grid; grid-template-columns: 390px 1fr; gap: 44px; align-items: start; padding: 6px 0 70px; }
+  .side h1 { font-size: clamp(2.4rem, 1.6rem + 2vw, 3.4rem); margin: 0 0 14px; }
+  .side h1 em { color: var(--blue); }
+  .side .lede { font-size: 1.15rem; margin-bottom: 18px; }
+  .count { font-family: var(--hand); color: var(--blue); font-size: 1.4rem; margin: -6px 0 10px; transform: rotate(-1.5deg); display: inline-block; }
+
+  /* ---------- the shelf (many islands) ---------- */
+  .shelf { position: relative; margin-top: 8px; }
+  .shelf-rows { --row: 196px; position: relative; display: flex; flex-wrap: wrap; align-content: flex-start; padding: 0 16px; max-height: calc(var(--row) * 3);
+    overflow-y: auto; scrollbar-width: thin; overscroll-behavior: contain;
+    background-image: linear-gradient(to bottom, transparent calc(var(--row) - 16px), #a98b5c calc(var(--row) - 16px), #b99c6b calc(var(--row) - 11px), #8c6f44 calc(var(--row) - 2px), rgba(60, 40, 15, .35) calc(var(--row) - 2px), transparent var(--row));
+    background-size: 100% var(--row); background-attachment: local; }
+  .shelf.many .shelf-rows { --row: 168px; padding: 0 12px; }
+  .shelf.many .spine .plate { top: 20px; bottom: 28px; }
+  .shelf.many .spine .plate span { font-size: 13px; }
+  .shelf.many .spine::before { top: 8px; } .shelf.many .spine::after { bottom: 14px; }
+  .many-title h1 { font-size: clamp(2.2rem, 1.6rem + 1.2vw, 2.65rem); }
+  .bookend { width: 44px; height: 64px; align-self: flex-end; margin: 0 0 16px 14px; color: var(--ink-soft); flex: none; }
+  .shelf::before { /* ink brackets under each end of the planks are drawn by .bracket */ content: none; }
+  .slot { height: var(--row); display: flex; align-items: flex-end; padding: 0 1.5px 16px; }
+  .spine { --cloth: #5f6d3b; position: relative; display: block; width: var(--w, 44px); height: var(--h, 160px); padding: 0; border: 0; cursor: pointer; border-radius: 2px 2px 1px 1px;
+    background-color: var(--cloth);
+    background-image: linear-gradient(90deg, rgba(0, 0, 0, .32), rgba(255, 255, 255, .14) 22%, rgba(255, 255, 255, .04) 45%, rgba(0, 0, 0, .1) 75%, rgba(0, 0, 0, .34)), var(--cloth-tex), var(--noise);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .25), 2px 0 3px -1px rgba(30, 20, 5, .35);
+    transition: transform .25s ease, box-shadow .25s ease; }
+  .spine::before, .spine::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: rgba(232, 214, 160, .55); box-shadow: 0 4px 0 rgba(232, 214, 160, .35); }
+  .spine::before { top: 12px; } .spine::after { bottom: 18px; }
+  .spine .plate { position: absolute; left: 50%; top: 24px; bottom: 32px; width: 62%; transform: translateX(-50%); background: #efe5cb; background-image: var(--noise);
+    box-shadow: inset 0 0 0 1px rgba(43, 39, 33, .35), 0 1px 1px rgba(0, 0, 0, .3); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .spine .plate span { writing-mode: vertical-rl; font-family: var(--display); font-size: 15px; line-height: 1; color: var(--ink); white-space: nowrap; letter-spacing: .02em; }
+  .spine .no { position: absolute; left: 0; right: 0; bottom: 3px; text-align: center; font-family: var(--display); font-style: italic; font-size: 11px; color: rgba(240, 225, 185, .85); }
+  .spine:hover { transform: translateY(-5px); }
+  .spine:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+  .spine[aria-pressed="true"] { transform: translateY(-18px); box-shadow: 0 1px 0 rgba(0, 0, 0, .25), 0 14px 16px -6px rgba(30, 20, 5, .55); z-index: 2; }
+  .spine[aria-pressed="true"] .ribbon { opacity: 1; }
+  .spine .ribbon { position: absolute; left: 30%; bottom: -24px; width: 7px; height: 26px; background: var(--rust); opacity: 0; transition: opacity .2s ease;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); }
+  .spine.blank { --cloth: #d6ccb2; }
+  .spine.blank::before, .spine.blank::after { background: rgba(90, 80, 60, .25); box-shadow: 0 4px 0 rgba(90, 80, 60, .15); }
+  .shelf-note { display: flex; align-items: flex-start; gap: 8px; margin: 8px 16px 0 auto; justify-content: flex-end; font-family: var(--hand); color: var(--blue); font-size: 1.3rem; line-height: 1.1; text-align: right; }
+  .shelf-note svg { width: 34px; height: 26px; flex: none; transform: scaleY(-1); }
+  .bracket { position: absolute; top: 0; width: 22px; height: 22px; color: var(--ink-soft); pointer-events: none; }
+
+  /* ---------- the blank journal (one island) ---------- */
+  .blank-desk { display: flex; align-items: center; gap: 18px; margin-top: 30px; }
+  .blank-book { --cloth: #d6ccb2; position: relative; flex: none; width: 118px; height: 156px; border: 0; padding: 0; cursor: pointer; border-radius: 2px 5px 5px 2px; transform: rotate(-7deg);
+    background-color: var(--cloth); background-image: linear-gradient(90deg, rgba(0,0,0,.2) 0 9px, rgba(255,255,255,.1) 9px 12px, transparent 12px), var(--cloth-tex), var(--noise);
+    box-shadow: 3px 3px 0 -1px #efe5cb, 4px 4px 0 -1px #d8c8a4, 6px 6px 0 -1px #efe5cb, 0 18px 24px -12px rgba(50, 35, 10, .6); transition: transform .25s ease; }
+  .blank-book::after { content: ""; position: absolute; inset: 14px 12px 14px 22px; border: 1px solid rgba(90, 80, 60, .28); }
+  .blank-book:hover { transform: rotate(-3deg) translateY(-3px); }
+  .quill-note { font-family: var(--hand); color: var(--blue); font-size: 1.45rem; line-height: 1.1; }
+  .quill-note b { display: block; font-weight: 700; font-size: 1.7rem; }
+  .quill-note small { display: block; font-family: var(--sc); font-size: .8rem; letter-spacing: .12em; color: var(--rust); margin-top: 4px; }
+
+  /* ---------- the journal on the desk (closed or open) ---------- */
+  .stage { position: relative; display: flex; justify-content: center; padding-top: 6px; }
+  .tome { --W: 390px; --H: 540px; --cloth: #5f6d3b; position: relative; width: calc(var(--W) * 2); height: var(--H); perspective: 2400px;
+    transition: transform .9s cubic-bezier(.45, .05, .3, 1); }
+  .tome.solo.closed { transform: translateX(calc(var(--W) / -2)); }
+  .tome .board { position: absolute; left: calc(var(--W) - 2px); top: -8px; width: calc(var(--W) + 10px); height: calc(var(--H) + 16px); border-radius: 2px 6px 6px 2px;
+    background-color: var(--cloth); background-image: var(--cloth-tex), var(--noise); box-shadow: 0 30px 50px -26px rgba(50, 35, 10, .7), 0 2px 4px rgba(50, 35, 10, .3); }
+  .tome .leafR { position: absolute; left: var(--W); top: 0; width: var(--W); height: var(--H); padding: 34px 34px 24px 36px; border-radius: 0 3px 3px 0;
+    background-color: var(--paper); background-image: var(--noise), var(--fibres), linear-gradient(90deg, rgba(110, 80, 30, .22), transparent 9%);
+    box-shadow: 1px 0 0 #e8dcc0, 2px 0 0 #d4c39e, 3px 0 0 #ebe0c6, 4px 0 0 #cdbb94, 5px 0 0 #e6d9bc; display: flex; flex-direction: column; }
+  .cover { position: absolute; left: calc(var(--W) - 2px); top: -8px; width: calc(var(--W) + 10px); height: calc(var(--H) + 16px); transform-origin: left center; transform-style: preserve-3d;
+    transition: transform .9s cubic-bezier(.45, .05, .3, 1); z-index: 3; }
+  .tome.open .cover { transform: rotateY(-180deg); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 2px 6px 6px 2px; }
+  .face.back { transform: rotateY(180deg); border-radius: 6px 2px 2px 6px; }
+
+  /* front: cloth, blind-stamped frame, gilt coastline, paper label, elastic */
+  .front { display: block; width: 100%; height: 100%; padding: 0; border: 0; cursor: pointer; text-align: left; color: inherit;
+    background-color: var(--cloth); background-image: linear-gradient(90deg, rgba(0, 0, 0, .3) 0 14px, rgba(255, 255, 255, .12) 14px 17px, rgba(0, 0, 0, .06) 17px 30px, transparent 30px), var(--cloth-tex), var(--noise);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18), inset 0 0 40px rgba(0, 0, 0, .18), 0 2px 3px rgba(40, 25, 5, .35), 0 24px 40px -22px rgba(40, 25, 5, .8); }
+  .front:focus-visible { outline: 3px solid var(--blue); outline-offset: 6px; }
+  .front .frame { position: absolute; inset: 22px 22px 22px 42px; border: 1.5px solid rgba(0, 0, 0, .28); box-shadow: 0 1px 0 rgba(255, 255, 255, .12), inset 0 1px 0 rgba(255, 255, 255, .1); }
+  .front .label { position: absolute; left: 76px; right: 52px; top: 52px; padding: 16px 14px 12px; text-align: center; background: #f3ead2; background-image: var(--noise);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .35), inset 0 0 0 4px #f3ead2, inset 0 0 0 5px rgba(43, 39, 33, .55), inset 0 0 0 7px #f3ead2, inset 0 0 0 7.6px rgba(43, 39, 33, .35);
+    border-radius: 3px; transform: rotate(-.6deg); }
+  .front .label small { display: block; font-family: var(--sc); font-size: .74rem; letter-spacing: .16em; color: var(--rust); }
+  .front .label strong { display: block; font-family: var(--display); font-weight: 400; font-size: 2rem; line-height: 1.05; margin: 4px 0 2px; color: var(--ink); }
+  .front .label i { font-family: var(--hand); font-style: normal; font-weight: 600; color: var(--blue); font-size: 1.15rem; }
+  .front .coast { position: absolute; left: 86px; right: 62px; bottom: 50px; aspect-ratio: 1; opacity: .9; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .35)); }
+  .front .coast svg { width: 100%; height: 100%; }
+  .front .band { position: absolute; right: 30px; top: -1px; bottom: -1px; width: 9px; background: linear-gradient(90deg, #1d1a16, #3b352c 45%, #1d1a16); box-shadow: 2px 0 3px rgba(0, 0, 0, .35); }
+  .front .corner { position: absolute; right: 0; width: 34px; height: 34px; background: rgba(30, 22, 12, .55); }
+  .front .corner.t { top: 0; clip-path: polygon(0 0, 100% 0, 100% 100%); border-top-right-radius: 6px; }
+  .front .corner.b { bottom: 0; clip-path: polygon(100% 0, 100% 100%, 0 100%); border-bottom-right-radius: 6px; }
+  .pencil { position: absolute; left: calc(var(--W) * .5); bottom: 18px; width: 210px; height: 30px; transform: rotate(-24deg); z-index: 0; filter: drop-shadow(0 6px 5px rgba(50, 35, 10, .3)); }
+  .tome:not(.solo) .pencil { display: none; }
+  .tome .ribbon-r { position: absolute; left: calc(var(--W) + 54px); top: calc(var(--H) - 4px); width: 12px; height: 54px; background: var(--rust); z-index: 0;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 84%, 0 100%); box-shadow: inset -3px 0 0 rgba(0,0,0,.15); }
+  .open-hint { position: absolute; left: calc(100% + 18px); top: 46%; width: 150px; font-family: var(--hand); color: var(--blue); font-size: 1.45rem; line-height: 1.05; transform: rotate(-4deg); transition: opacity .3s ease; }
+  .open-hint svg { display: block; width: 44px; height: 30px; margin-bottom: 4px; }
+  .tome.open .open-hint, .tome:not(.solo) .open-hint { opacity: 0; pointer-events: none; }
+
+  /* back of the cover = the left page: cloth turn-ins round a pasted-down chart */
+  .back { background-color: var(--cloth); background-image: var(--cloth-tex), var(--noise); padding: 10px 12px 10px 10px; }
+  .back .paste { position: relative; height: 100%; padding: 30px 34px 22px; border-radius: 2px;
+    background-color: var(--paper); background-image: var(--noise), var(--fibres), linear-gradient(270deg, rgba(110, 80, 30, .24), transparent 9%),
+      linear-gradient(rgba(37, 70, 127, .07) 1px, transparent 1px), linear-gradient(90deg, rgba(37, 70, 127, .07) 1px, transparent 1px);
+    background-size: auto, auto, auto, 24px 24px, 24px 24px; display: flex; flex-direction: column; }
+  .kick { font-family: var(--sc); letter-spacing: .14em; font-size: .8rem; color: var(--rust); margin: 0; }
+  .paste h2 { font-size: 2.1rem; margin: 2px 0 6px; }
+  .chartbox { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
+  .chartbox svg.map { width: 100%; height: 100%; max-height: 100%; }
+  .chartbox .north { position: absolute; right: 2px; top: 4px; width: 30px; height: 46px; color: var(--ink); }
+  .paste .foot { display: flex; justify-content: space-between; gap: 10px; font-family: var(--hand); color: var(--blue); font-size: 1.15rem; line-height: 1.1; margin-top: 6px; }
+
+  /* right page */
+  .leafR .photo { padding: 8px 8px 30px; transform: rotate(1.2deg); margin: 4px 4px 16px; }
+  .leafR .photo > div { overflow: hidden; aspect-ratio: 1600 / 907; background: #285a75; }
+  .leafR .photo img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: auto; }
+  .leafR .photo figcaption { font-size: 1.15rem; bottom: 4px; }
+  .leafR .photo .tape { top: -12px; left: calc(50% - 48px); transform: rotate(-3deg); }
+  .leafR .note { font-family: var(--hand); color: var(--blue); font-weight: 600; font-size: 1.5rem; line-height: 1.1; margin: 0 0 10px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; margin: 0; }
+  .stats div { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px dotted var(--rule); padding: 2px 0 1px; }
+  .stats dt { font-family: var(--sc); font-size: .82rem; letter-spacing: .1em; color: var(--ink-soft); }
+  .stats dd { margin: 0; font-family: var(--hand); font-weight: 600; color: var(--blue); font-size: 1.25rem; line-height: 1.1; }
+  .leafR .actions { margin-top: auto; padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .leafR .link-hand { font-size: 1.3rem; background: none; border: 0; padding: 0; cursor: pointer; }
+
+  /* the blank journal opened (chart a new island) */
+  .tome.is-new .front .label, .tome.is-new .front .coast { display: none; }
+  .empty-chart { width: 100%; height: 100%; border: 2px dashed var(--blue-soft); border-radius: 50% 44% 52% 46% / 46% 52% 44% 50%; display: grid; place-items: center; text-align: center;
+    font-family: var(--hand); color: var(--blue); font-size: 1.6rem; line-height: 1.1; padding: 20px; }
+
+  .sr-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  @media (max-width: 1240px) { .desk { grid-template-columns: 340px 1fr; gap: 30px; } .tome { --W: 345px; --H: 500px; } .open-hint { display: none; } }
+  @media (max-width: 1000px) {
+    .desk { grid-template-columns: 1fr; }
+    .stage { justify-content: center; }
+  }
+  @media (max-width: 760px) {
+    .tome { --W: 100%; width: 100%; height: auto; perspective: none; transform: none !important; display: flex; flex-direction: column; gap: 14px; }
+    .tome .board, .pencil, .ribbon-r { display: none; }
+    .cover { order: 0; } .tome .leafR { order: 1; }
+    .cover { position: relative; left: 0; top: 0; width: 100%; height: auto; transform: none !important; transform-style: flat; display: flex; flex-direction: column; gap: 14px; }
+    .face, .face.back { position: relative; inset: auto; transform: none; backface-visibility: visible; }
+    .front { aspect-ratio: 375 / 500; max-width: 340px; margin: 0 auto; }
+    .tome.closed .back, .tome.closed .leafR { display: none; }
+    .tome.open .front { display: none; }
+    .back .paste { min-height: 440px; }
+    .tome .leafR { position: relative; left: 0; width: 100%; height: auto; box-shadow: var(--shadow); padding: 26px 22px 20px; }
+    .shelf-rows { --row: 168px; max-height: calc(var(--row) * 2); padding: 0 8px; }
+    .acct { gap: 8px; padding: 6px 8px; } .acct-mark, .acct-who small { display: none; }
+    .front .label { left: 58px; right: 44px; top: 40px; }
+    .front .coast { left: 70px; right: 54px; bottom: 34px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .tome, .cover { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../landing-ideas/02-field-journal.html" aria-label="Unclaimed Acres, back to the front page">
+      <svg class="brand-stamp" width="64" height="64" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="brand-name">Unclaimed Acres<small>a field journal</small></span>
+    </a>
+    <div class="acct">
+      <svg class="acct-mark" aria-hidden="true"><use href="#stamp-mark"/></svg>
+      <span class="acct-who"><small>signed in as</small><b class="who">fennel.wam</b></span>
+      <a class="acct-out" href="#sign-out">Sign out</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="desk">
+    <section class="side" aria-labelledby="title">
+      <p class="kicker"><span><span class="who">fennel.wam</span>&rsquo;s desk</span></p>
+      <h1 id="title">Your island <em>journal</em></h1>
+      <p class="lede" id="lede">&nbsp;</p>
+      <div id="shelf-slot"></div>
+    </section>
+    <section class="stage" aria-label="The journal on the desk">
+      <div class="tome closed" id="tome">
+        <svg class="pencil" viewBox="0 0 210 30" aria-hidden="true"><path d="M8 9h150v12H8z" fill="#c9a24a"/><path d="M8 9h150v4H8z" fill="#dcb860"/><path d="M158 9l34 6-34 6z" fill="#e9d6ad"/><path d="M184 13.6 192 15l-8 1.4z" fill="#2b2721"/><path d="M2 9h10v12H2z" fill="#a5452d"/><path d="M12 9h8v12h-8z" fill="#b8a27a"/><path d="M8 9h150v12H8zM158 9l34 6-34 6" fill="none" stroke="#2b2721" stroke-width=".8"/></svg>
+        <span class="ribbon-r" aria-hidden="true"></span>
+        <div class="board" aria-hidden="true"></div>
+        <div class="leafR" id="leafR"></div>
+        <div class="cover" id="cover">
+          <button class="face front" id="front" type="button" aria-expanded="false" aria-controls="leafR">
+            <span class="frame" aria-hidden="true"></span>
+            <span class="label" id="label"></span>
+            <span class="coast" id="stamp-coast" aria-hidden="true"></span>
+            <span class="band" aria-hidden="true"></span>
+            <span class="corner t" aria-hidden="true"></span><span class="corner b" aria-hidden="true"></span>
+          </button>
+          <div class="face back" id="back"><div class="paste" id="paste"></div></div>
+        </div>
+        <p class="open-hint" aria-hidden="true"><svg viewBox="0 0 44 30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M42 26C30 26 16 20 6 6M6 6l1 9M6 6l9 2"/></svg>open it to step ashore</p>
+      </div>
+    </section>
+  </div>
+  <p class="sr-live" id="live" aria-live="polite"></p>
+</main>
+
+<script src="islands.js"></script>
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var CLOTHS = ['#5f6d3b', '#7a3a2c', '#2f4a6b', '#6b5536', '#3d5f5b', '#8a6a2c', '#584763', '#4b5a3c', '#7c5548', '#3b4752'];
+  var GILT = '#e2cf98';
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var tome = $('#tome'), front = $('#front'), list = [], current = -1, busy = false;
+  var arrow = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>';
+  var north = '<svg class="north" viewBox="0 0 30 46" aria-hidden="true"><path d="M15 12 21 40 15 34 9 40z" fill="currentColor" fill-opacity=".85"/><path d="M15 12 15 34 9 40z" fill="#f7f0de" stroke="currentColor" stroke-width=".8"/><text x="15" y="10" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="11" fill="#a5452d">N</text></svg>';
+
+  function clothOf(i) { return CLOTHS[(i * 3 + Math.floor(i / 10)) % CLOTHS.length]; }
+  function pc(x) { return (Math.round(x * 10) / 10) + '%'; }
+  function pcLand(isl) { return pc(isl.stats.land) + ' land'; }
+  function stat(l, v) { return '<div><dt>' + l + '</dt><dd>' + v + '</dd></div>'; }
+
+  /* fill the journal with one island (or the blank one) */
+  function fill(i) {
+    var blank = i === 'new';
+    tome.classList.toggle('is-new', blank);
+    if (blank) {
+      tome.style.setProperty('--cloth', '#d6ccb2');
+      front.setAttribute('aria-label', 'A blank journal for a new island. Open it.');
+      $('#label').innerHTML = ''; $('#stamp-coast').innerHTML = '';
+      $('#paste').innerHTML = '<p class="kick">A blank journal</p><h2>Not yet charted</h2><div class="chartbox"><div class="empty-chart">a fresh coast<br>will be drawn here</div></div><div class="foot"><span>no name yet</span><span>no soundings</span></div>';
+      $('#leafR').innerHTML = '<p class="kicker">Chart a new island</p><h2 style="font-size:2.3rem;margin-bottom:12px">Every island begins as an empty page.</h2>' +
+        '<p class="lede" style="font-size:1.1rem">A new island is generated just for you: its own coast, forests, beaches and mountains. It gets its own journal on the shelf.</p>' +
+        '<div class="actions"><button class="btn" type="button" id="do-new">Chart a new island ' + arrow + '</button>' + (list.length > 1 ? '' : '<button class="link-hand" type="button" data-close>close it</button>') + '</div>';
+      return;
+    }
+    var isl = list[i], st = isl.stats, solo = list.length === 1;
+    tome.style.setProperty('--cloth', clothOf(i));
+    front.setAttribute('aria-label', 'The journal of ' + isl.name + '. Open it.');
+    $('#label').innerHTML = '<small>Field journal' + (solo ? '' : ' &middot; no. ' + (i + 1)) + '</small><strong>' + esc(isl.name) + '</strong><i>' + esc(isl.note) + '</i>';
+    $('#stamp-coast').innerHTML = UA.outline(isl, { land: 'rgba(0,0,0,.1)', ink: GILT, stroke: 1.1, shore: true, shoreColor: 'rgba(226,207,152,.35)', pad: 4 });
+    $('#paste').innerHTML = '<p class="kick">Chart of</p><h2>' + esc(isl.name) + '</h2>' +
+      '<div class="chartbox">' + UA.outline(isl, { land: '#f2e6c6', sea: 'rgba(37,70,127,.07)', grid: 'rgba(37,70,127,.22)', stroke: .7, pad: 3, label: 'Coastline of ' + isl.name }).replace('<svg ', '<svg class="map" ') + north + '</div>' +
+      '<div class="foot"><span>charted ' + esc(isl.charted) + '</span><span>' + pcLand(isl) + '</span></div>';
+    $('#leafR').innerHTML = '<figure class="photo"><span class="tape" aria-hidden="true"></span><div><img src="' + isl.render + '" alt="Painted view of ' + esc(isl.name) + ' from above" width="1600" height="907" style="transform:' + isl.renderTransform + '"></div><figcaption>' + esc(isl.name) + ', from above</figcaption></figure>' +
+      '<p class="note">&ldquo;' + esc(isl.note) + '&rdquo;</p>' +
+      '<dl class="stats">' + stat('Land', pc(st.land)) + stat('Forest', pc(st.forest)) + stat('Mountain', pc(st.mountain)) + stat('Beach', pc(st.beach)) + stat('Fresh water', pc(st.freshWater)) + stat('Last ashore', esc(isl.lastVisit)) + '</dl>' +
+      '<div class="actions"><a class="btn" href="#enter-' + isl.id + '">Enter island ' + arrow + '</a>' + (solo ? '<button class="link-hand" type="button" data-close>close the journal</button>' : '') + '</div>';
+  }
+
+  function setOpen(open) {
+    tome.classList.toggle('open', open); tome.classList.toggle('closed', !open);
+    front.setAttribute('aria-expanded', String(open));
+    front.tabIndex = open ? -1 : 0;
+    $('#leafR').toggleAttribute('inert', !open); $('#back').toggleAttribute('inert', !open);
+  }
+
+  /* take a journal off the shelf: close the one on the desk, swap, open again */
+  function choose(i, focusInside) {
+    if (busy || i === current) return;
+    var was = tome.classList.contains('open') && current !== -1;
+    current = i;
+    document.querySelectorAll('.spine').forEach(function (b) {
+      var on = b.dataset.i === String(i);
+      b.setAttribute('aria-pressed', String(on)); b.tabIndex = on ? 0 : -1;
+    });
+    var name = i === 'new' ? 'the blank journal' : list[i].name;
+    $('#live').textContent = 'Opened ' + name + '.';
+    var go = function () {
+      fill(i); setOpen(true);
+      if (focusInside) setTimeout(function () { var t = $('#leafR .btn'); if (t) t.focus({ preventScroll: true }); }, reduce.matches ? 0 : 900);
+    };
+    if (was && !reduce.matches) { busy = true; setOpen(false); setTimeout(function () { busy = false; go(); }, 650); }
+    else go();
+  }
+
+  function spine(i, isl) {
+    var many = list.length > 8, h = (many ? 124 : 150) + ((i * 37 + 11) % 5) * (many ? 5 : 6), w = Math.round(many ? 27 + isl.stats.land * .16 : 34 + isl.stats.land * .22);
+    return '<div class="slot"><button class="spine" type="button" data-i="' + i + '" aria-pressed="false" tabindex="-1" style="--cloth:' + clothOf(i) + ';--w:' + w + 'px;--h:' + h + 'px"' +
+      ' aria-label="' + esc(isl.name) + ' journal, ' + esc(isl.note) + ', last ashore ' + esc(isl.lastVisit) + '">' +
+      '<span class="plate" aria-hidden="true"><span style="font-size:' + (many ? (isl.name.length > 11 ? 11 : 13) : (isl.name.length > 11 ? 13 : 15)) + 'px">' + esc(isl.name) + '</span></span><span class="no" aria-hidden="true">' + (i + 1) + '</span><span class="ribbon" aria-hidden="true"></span></button></div>';
+  }
+
+  UA.islands().then(function (data) {
+    list = data;
+    var n = list.length;
+    document.querySelectorAll('.who').forEach(function (e) { e.textContent = UA.player; });
+    if (n === 1) {
+      tome.classList.add('solo');
+      $('#title').innerHTML = 'Your island <em>journal</em>';
+      $('#lede').textContent = 'One island, one notebook. Open it to read what you wrote down, then step ashore.';
+      if (UA.canCreate) {
+        $('#shelf-slot').innerHTML = '<div class="blank-desk"><button class="blank-book" type="button" id="blank" aria-label="A blank, unlabelled journal: chart a new island"></button>' +
+          '<p class="quill-note"><b>a blank journal</b>for when you chart a new island<small>a fresh coast, drawn for you</small></p></div>';
+        $('#blank').addEventListener('click', function () { $('.quill-note').innerHTML = '<b>the quill is ready</b>charting a new island opens soon<small>this journal will be yours</small>'; });
+      }
+      fill(0); current = 0; setOpen(location.hash.indexOf('#open') === 0);
+      front.addEventListener('click', function () { setOpen(true); setTimeout(function () { var t = $('#leafR .btn'); if (t) t.focus({ preventScroll: true }); }, reduce.matches ? 0 : 900); });
+    } else {
+      $('#title').innerHTML = 'Your island <em>journals</em>'; if (n > 8) document.querySelector('.side').classList.add('many-title');
+      $('#lede').textContent = n > 8 ? 'Every island keeps its own notebook. Take one down and it opens on the desk.' : 'Every island keeps its own notebook. Take one down from the shelf and it opens on the desk.';
+      var rows = list.map(function (isl, i) { return spine(i, isl); }).join('');
+      if (UA.canCreate) rows += (n <= 8 ? '' : '') + '<div class="slot"><button class="spine blank" type="button" data-i="new" aria-pressed="false" tabindex="-1" style="--w:' + (n > 8 ? 34 : 40) + 'px;--h:' + (n > 8 ? 140 : 166) + 'px" aria-label="A blank, unlabelled journal: chart a new island"><span class="ribbon" aria-hidden="true"></span></button></div>';
+      $('#shelf-slot').innerHTML = '<p class="count">' + n + ' journals on the shelf</p><div class="shelf' + (n > 8 ? ' many' : '') + '"><div class="shelf-rows" id="rows" role="group" aria-label="Island journals on the shelf">' + rows + '</div>' +
+        (n <= 8 ? '' : '') + (UA.canCreate ? '<p class="shelf-note"><span>the plain one at the end<br>is for a new island</span><svg viewBox="0 0 34 26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 22C14 22 24 16 30 4M30 4l-8 3M30 4l1 8"/></svg></p>' : '') + '</div>';
+      if (n <= 8) $('#rows').insertAdjacentHTML('beforeend', '<svg class="bookend" viewBox="0 0 44 64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M15 6h14v8H15z" fill="#2b2721"/><path d="M17 14h10v6c8 2 13 7 13 14v24c0 3-2 5-5 5H9c-3 0-5-2-5-5V34c0-7 5-12 13-14z" fill="#25467f" fill-opacity=".55"/><path d="M9 36h26v14H9z" fill="#f3ead2" stroke-width="1"/><path d="M13 41h18M13 45h12" stroke-width=".9" opacity=".6"/><path d="M30 6c6-8 12-6 13-5" stroke-width="1.2"/></svg>');
+      var rowsEl = $('#rows');
+      rowsEl.addEventListener('click', function (e) {
+        var b = e.target.closest('.spine'); if (!b) return;
+        choose(b.dataset.i === 'new' ? 'new' : Number(b.dataset.i), e.detail === 0);
+      });
+      rowsEl.addEventListener('keydown', function (e) {
+        var keys = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+        var all = Array.prototype.slice.call(rowsEl.querySelectorAll('.spine'));
+        var at = all.indexOf(document.activeElement); if (at < 0) return;
+        var to = e.key === 'Home' ? 0 : e.key === 'End' ? all.length - 1 : keys[e.key] ? Math.max(0, Math.min(all.length - 1, at + keys[e.key])) : -1;
+        if (to < 0) return;
+        e.preventDefault(); all.forEach(function (b, k) { b.tabIndex = k === to ? 0 : -1; }); all[to].focus();
+      });
+      // start with the journal you used last, already pulled out and open
+      var last = n - 1; list.forEach(function (isl, i) { if (isl.lastVisit === 'today') last = i; });
+      choose(last, false);
+      var sel = rowsEl.querySelector('[aria-pressed="true"]');
+      if (sel) rowsEl.scrollTop = Math.max(0, sel.parentNode.offsetTop - rowsEl.clientHeight + sel.parentNode.offsetHeight);
+      front.addEventListener('click', function () { setOpen(true); });
+    }
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-close]')) { setOpen(false); front.focus({ preventScroll: true }); }
+      if (e.target.closest('#do-new')) { e.target.closest('#do-new').innerHTML = 'The quill is ready: opening soon'; }
+    });
+  });
+})();
+</script>
+</body>
+</html>

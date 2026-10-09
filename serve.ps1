@@ -12,7 +12,7 @@ Write-Host "Cute Fox at http://localhost:$Port/  (serving $root)  Ctrl+C to stop
 $types = @{
   ".html" = "text/html; charset=utf-8"; ".js" = "application/javascript; charset=utf-8"
   ".css" = "text/css; charset=utf-8"; ".json" = "application/json"; ".png" = "image/png"
-  ".svg" = "image/svg+xml"; ".ico" = "image/x-icon"
+  ".svg" = "image/svg+xml"; ".ico" = "image/x-icon"; ".webp" = "image/webp"; ".jpg" = "image/jpeg"; ".woff2" = "font/woff2"
 }
 
 while ($listener.IsListening) {
