@@ -5,14 +5,14 @@
 /* ---------- the island view (styles from topdown/tiles.html) ---------- */
 .game .view { position: absolute; inset: 0; overflow: hidden; background: #1d4e70; touch-action: none; cursor: grab; user-select: none; }
 .game .view.drag { cursor: grabbing; }
-.game .view canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.game .view .scene, .game .view canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .game .view .fx { pointer-events: none; }
-.game .view #live { filter: saturate(.88) contrast(1.06); }
-.game .view::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s; }
-.game .view.vignette::after { opacity: 1; background: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(18,22,28,.4) 100%), linear-gradient(to bottom, rgba(214,226,236,.16), transparent 14%, transparent 86%, rgba(214,226,236,.12)); }
-.game .view.warm::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: linear-gradient(160deg, rgba(255,214,160,.10), rgba(40,64,96,.10)); mix-blend-mode: soft-light; }
-.game .view.w-storm canvas:not(#weather) { filter: saturate(.7) brightness(.82); }
-.game .view.w-rain canvas:not(#weather) { filter: saturate(.85) brightness(.93); }
+.game .view #live { filter: saturate(.88) contrast(1.06); }   /* baked into the sprites where the canvas can filter; this is the fallback */
+/* vignette and warm tint share one overlay with plain blending: a blend mode would cost a full-screen pass per frame */
+.game .view::after { content: ''; position: absolute; inset: 0; pointer-events: none; --vig: none; --warm: none; background-image: var(--vig), var(--warm); }
+.game .view.vignette::after { --vig: radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(18,22,28,.4) 100%), linear-gradient(to bottom, rgba(214,226,236,.16), transparent 14%, transparent 86%, rgba(214,226,236,.12)); }
+.game .view.warm::after { --warm: linear-gradient(160deg, rgba(255,222,180,.04), rgba(40,64,96,.05)); }
+/* the weather and daytime grade is set on .scene by the renderer */
 
 /* ---------- loading veil ---------- */
 .game-veil { position: absolute; inset: 0; z-index: 30; display: grid; place-content: center; justify-items: center; gap: 10px; text-align: center;
@@ -27,7 +27,8 @@
 .hud-tl { left: 18px; top: 16px; display: grid; gap: 8px; justify-items: start; }
 .hud-tr { right: 20px; top: 18px; }
 .hud-r { right: 18px; top: 50%; transform: translateY(-50%); display: grid; gap: 10px; }
-.hud-bl { left: 18px; bottom: 18px; display: flex; align-items: flex-end; gap: 6px; }
+.hud-bl { left: 18px; bottom: 18px; display: grid; gap: 10px; }
+.hud-row { display: flex; align-items: flex-end; gap: 6px; }
 .hud-br { right: 18px; bottom: 18px; }
 .hud-hint { left: 50%; bottom: 22px; transform: translateX(-50%); }
 
@@ -38,6 +39,7 @@
 .isle-tag b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.7rem; line-height: 1.05; color: var(--ink); }
 .back-link { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 5px 8px; border: 0; border-radius: 999px; cursor: pointer;
   background: rgba(247, 240, 222, .86); color: var(--blue); font-family: var(--hand); font-size: 1.3rem; line-height: 1; box-shadow: 0 4px 12px -4px rgba(10, 8, 2, .45); }
+.hud-fps { min-height: 1em; padding-left: 8px; font-family: var(--sc); font-size: .74rem; letter-spacing: .14em; color: #fdf6e3; text-shadow: 0 1px 3px rgba(0, 0, 0, .55); font-variant-numeric: tabular-nums; }
 .back-link:hover { background: var(--paper); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
 
 .game .acct { box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); }
@@ -58,6 +60,7 @@
 .wx-tag:nth-of-type(1) { --r: -2deg; }
 .wx-tag:nth-of-type(2) { --r: 1.5deg; }
 .wx-tag:nth-of-type(3) { --r: -1deg; }
+.wx-tag:nth-of-type(4) { --r: 1deg; }
 .wx-tag svg { width: 18px; height: 18px; color: var(--blue); }
 .wx-tag:hover { transform: translateY(1px) rotate(var(--r, 0deg)); }
 .wx-tag[aria-pressed="true"] { background-color: var(--card); color: var(--ink); transform: translateY(-2px) rotate(var(--r, 0deg)); box-shadow: 0 8px 18px -6px rgba(10, 8, 2, .6), inset 0 -3px 0 var(--rust); }
@@ -81,7 +84,8 @@
   .notes-card { width: min(78vw, 280px); }
   .isle-tag b { font-size: 1.35rem; }
   .isle-tag-mark { width: 36px; height: 36px; }
-  .hud-bl { left: 12px; bottom: 76px; flex-wrap: wrap; }
+  .hud-bl { left: 12px; bottom: 76px; gap: 6px; }
+  .hud-row { flex-wrap: wrap; }
   .hud-label { display: none; }
   .hud-r { right: 12px; }
   .knob { width: 42px; height: 42px; }

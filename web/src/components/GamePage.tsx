@@ -19,7 +19,7 @@ const pct = (v: number) => `${Math.round(v * 1000) / 10}%`
 
 /**
  * The island itself, full screen. The journal only shows up in small pieces around the edges: the island's
- * name tag, who is signed in, zoom, the weather and a field-notes card.
+ * name tag, who is signed in, zoom, the time of day, the weather and a field-notes card.
  */
 export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
   mapId: string
@@ -78,11 +78,13 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
     <div className="game">
       <h1 className="sr-only">{name}</h1>
       <div className="view" id="view" aria-label={`${name}, seen from above. Drag to look around, scroll or pinch to zoom.`} role="img">
-        <canvas className="field" id="field" />
-        <canvas className="fx" id="fx" aria-hidden="true" />
-        <canvas className="fx" id="live" aria-hidden="true" />
+        {/* the scene canvases form one group, so a weather grade is a single filter pass; the weather layer sits above */}
+        <div className="scene">
+          <canvas className="field" id="field" />
+          <canvas className="fx" id="fx" aria-hidden="true" />
+          <canvas className="fx" id="live" aria-hidden="true" />
+        </div>
         <canvas className="fx" id="weather" aria-hidden="true" />
-        <canvas className="fx" id="labels" aria-hidden="true" />
       </div>
 
       {/* switches the renderer reads; the game keeps them at these settings */}
@@ -136,6 +138,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
           </svg>
           back to the journal
         </button>
+        <span className="hud-fps" id="fps" aria-live="off" />
       </div>
 
       {/* ---------- who is signed in, top right ---------- */}
@@ -160,8 +163,38 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
         </button>
       </div>
 
-      {/* ---------- weather, bottom left ---------- */}
-      <div className="hud hud-bl" role="group" aria-label="Weather">
+      {/* ---------- time of day and weather, bottom left ---------- */}
+      <div className="hud hud-bl">
+        <div className="hud-row" role="group" aria-label="Time of day">
+          <span className="hud-label">daytime</span>
+          <button type="button" className="wx-tag" data-daytime="morning" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 16h16M7 16a5 5 0 0 1 10 0M12 4v3M5.5 8.5l2 2M18.5 8.5l-2 2M2 20h20" />
+            </svg>
+            morning
+          </button>
+          <button type="button" className="wx-tag" data-daytime="day" aria-pressed="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" />
+            </svg>
+            day
+          </button>
+          <button type="button" className="wx-tag" data-daytime="evening" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 16h16M8 16a4 4 0 0 1 8 0M2 20h20M12 7v3M6 10l1.5 1.5M18 10l-1.5 1.5" />
+            </svg>
+            evening
+          </button>
+          <button type="button" className="wx-tag" data-daytime="night" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z" />
+              <path d="M17 3l.6 1.4L19 5l-1.4.6L17 7l-.6-1.4L15 5l1.4-.6z" />
+            </svg>
+            night
+          </button>
+        </div>
+        <div className="hud-row" role="group" aria-label="Weather">
         <span className="hud-label">weather</span>
         <button type="button" className="wx-tag" data-weather="sun" aria-pressed="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
@@ -169,6 +202,13 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
             <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" />
           </svg>
           sunny
+        </button>
+        <button type="button" className="wx-tag" data-weather="cloudy" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M7 18a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.4 1.6A3.5 3.5 0 0 1 17.5 18z" />
+            <path d="M3.5 13.5a3 3 0 0 1 2-5" />
+          </svg>
+          cloudy
         </button>
         <button type="button" className="wx-tag" data-weather="rain" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
@@ -184,6 +224,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
           </svg>
           storm
         </button>
+        </div>
       </div>
 
       {/* ---------- field notes, bottom right ---------- */}

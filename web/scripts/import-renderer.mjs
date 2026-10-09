@@ -27,7 +27,8 @@ rep("try { Object.assign(CFG, JSON.parse(localStorage.getItem('island-cfg') || '
 // start with the given map instead of the art sheet's map picker, framed on the island
 rep('buildPanel(); applyLook(); startAnim(); loadMaps();', `applyLook();
 CHAIN.map = { map_id: Number(opts.mapId) }; CHAIN.raw = opts.tiles; mode = 'mixed'; CAM.z = 0;
-const ready = build();                                        // the island shows once its masks are built
+const ready = build().then(() => new Promise(r => {           // the island shows once its masks are built and the first view is fully painted
+  const t0 = performance.now(), chk = () => (VIEW_PENDING && performance.now() - t0 < 3000 ? requestAnimationFrame(chk) : r()); requestAnimationFrame(chk); }));
 { // frame the land, with a little sea around it
   let x0 = COLS, y0 = ROWS, x1 = 0, y1 = 0;
   MAP.cells.forEach((c, i) => { if (c.ocean) return; const x = i % COLS, y = (i - x) / COLS; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); });
@@ -36,8 +37,9 @@ const ready = build();                                        // the island show
 }
 startAnim();
 if (WX[opts.weather]) setWeather(opts.weather);
-return { setWeather, fit, zoomAt, redraw, ready };`)
-rep("{ const w = new URLSearchParams(location.hash.slice(1)).get('weather'); if (WX[w]) setWeather(w); }   // e.g. tiles.html#weather=storm", '')
+if (DAYS[opts.daytime]) setDaytime(opts.daytime);
+return { setWeather, setDaytime, fit, zoomAt, redraw, ready, debug: { CAM, FX, PAINT, PERF, RASTER, LOW, CHUNKS, SKIP, LIVE, setLowTier, DPR, visible, paintChunk, paintGround, bmpCache, MAP: () => MAP, CH, tileLevel, boxPaths, loopsInBox, BOXPATHS, chunkTiles } };`)
+rep("{ const h = new URLSearchParams(location.hash.slice(1)); if (WX[h.get('weather')]) setWeather(h.get('weather')); if (DAYS[h.get('daytime')]) setDaytime(h.get('daytime')); }   // e.g. tiles.html#weather=storm&daytime=night", '')
 
 mkdirSync('src/game', { recursive: true })
 writeFileSync('src/game/renderer.js', `// Imported from topdown/tiles.html by scripts/import-renderer.mjs. Do not edit here.

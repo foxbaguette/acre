@@ -44,14 +44,14 @@
   #genPanel .opt.num span { display: flex; gap: 8px; align-items: center; }
   #genPanel .opt.num input { flex: 1; min-width: 0; }
   #genPanel output { font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; color: var(--muted); }
-  .view::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s; }
-  .view #live { filter: saturate(.88) contrast(1.06); }
-  .view.vignette::after { opacity: 1; background: radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(18,22,28,.42) 100%), linear-gradient(to bottom, rgba(214,226,236,.2), transparent 16%, transparent 84%, rgba(214,226,236,.14)); }
-  .view.warm::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: linear-gradient(160deg, rgba(255,214,160,.10), rgba(40,64,96,.10)); mix-blend-mode: soft-light; }
+  /* vignette and warm tint share one overlay with plain blending: a blend mode would cost a full-screen pass per frame */
+  .view::after { content: ''; position: absolute; inset: 0; pointer-events: none; --vig: none; --warm: none; background-image: var(--vig), var(--warm); }
+  .view.vignette::after { --vig: radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(18,22,28,.42) 100%), linear-gradient(to bottom, rgba(214,226,236,.2), transparent 16%, transparent 84%, rgba(214,226,236,.14)); }
+  .view.warm::after { --warm: linear-gradient(160deg, rgba(255,222,180,.04), rgba(40,64,96,.05)); }
+  .view #live { filter: saturate(.88) contrast(1.06); }   /* baked into the sprites where the canvas can filter; this is the fallback */
   .view { user-select: none; }
-  .view canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  .view.w-storm canvas:not(#weather) { filter: saturate(.7) brightness(.82); }
-  .view.w-rain canvas:not(#weather) { filter: saturate(.85) brightness(.93); }
+  .view .scene, .view canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  /* the weather and daytime grade is set on .scene by the script */
   .wlabel { font-size: 13px; color: var(--muted); }
   .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 0 0 10px; font-size: 13px; }
   .legend[hidden] { display: none; }
@@ -96,13 +96,19 @@
     <div class="bar" role="group" aria-label="Weather">
       <span class="wlabel">Weather</span>
       <button data-weather="sun" aria-pressed="true" type="button">Sunny</button>
+      <button data-weather="cloudy" aria-pressed="false" type="button">Cloudy</button>
       <button data-weather="storm" aria-pressed="false" type="button">Thunderstorm</button>
       <button data-weather="rain" aria-pressed="false" type="button">Light rain</button>
-      <span class="zoom"><button id="zout" type="button" aria-label="Zoom out">−</button><button id="zin" type="button" aria-label="Zoom in">+</button><button id="zfit" type="button">Fit</button></span>
+      <span class="wlabel">Daytime</span>
+      <button data-daytime="morning" aria-pressed="false" type="button">Morning</button>
+      <button data-daytime="day" aria-pressed="true" type="button">Day</button>
+      <button data-daytime="evening" aria-pressed="false" type="button">Evening</button>
+      <button data-daytime="night" aria-pressed="false" type="button">Night</button>
+      <span class="wlabel" id="fps"></span><span class="zoom"><button id="zout" type="button" aria-label="Zoom out">−</button><button id="zin" type="button" aria-label="Zoom in">+</button><button id="zfit" type="button">Fit</button></span>
     </div>
     <details class="gen"><summary>Island generator settings</summary><p class="muted">Changes rebuild the island. For a map from the chain only the details, look and life settings apply. Settings are remembered in this browser.</p><div id="genPanel"></div></details>
     <div class="legend" id="legend" hidden></div>
-    <div class="view" id="view"><canvas class="field" id="field" role="img" aria-label="A random farm made of tiles"></canvas><canvas class="fx" id="fx" aria-hidden="true"></canvas><canvas class="fx" id="live" aria-hidden="true"></canvas><canvas class="fx" id="weather" aria-hidden="true"></canvas><canvas class="fx" id="labels" aria-hidden="true"></canvas></div>
+    <div class="view" id="view"><div class="scene"><canvas class="field" id="field" role="img" aria-label="A random farm made of tiles"></canvas><canvas class="fx" id="fx" aria-hidden="true"></canvas><canvas class="fx" id="live" aria-hidden="true"></canvas></div><canvas class="fx" id="weather" aria-hidden="true"></canvas><canvas class="fx" id="labels" aria-hidden="true"></canvas></div>
   </section>
   <section class="card"><h2>Grass</h2><p>20 variants. Most are plain grass, some have a tuft, stone, clover, flowers, a twig or a leaf.</p><div class="grid" id="grass"></div></section>
   <section class="card"><h2>Fences</h2><p>Transparent overlays for grass tiles. Put fence-NESW on a tile, where each digit is 1 when the neighbour on that side (north, east, south, west) also has a fence. These 16 tiles build any enclosure.</p><div class="grid" id="fences"></div></section>
@@ -536,12 +542,12 @@ function buildMap(withRng = fn => fn()) {
 }
 
 // ---------- soft masks for natural edges (computed once per map, in world space) ----------
-const S = 16;                                                  // mask pixels per tile
+let S = 16;                                                    // mask pixels per tile (8 on the low tier: a quarter of the memory and work)
 const LIFT = 0.42;                                              // height of one mountain level, in tiles
 let STRIPES = null; let WINDC = null;
 // The edge wobble noise at mask resolution, made once per island by letting the canvas scale a tiny noise image.
 function noiseField() {
-  if (MAP.nf) return MAP.nf;
+  if (MAP.nf && MAP.nfS === S) return MAP.nf;
   const { cols, rows, noise, nw } = MAP, nh = noise.length / nw, sc = document.createElement('canvas'); sc.width = nw; sc.height = nh;
   const sg = sc.getContext('2d'), im = sg.createImageData(nw, nh);
   for (let i = 0; i < noise.length; i++) { const v = Math.round((noise[i] + 1) * 127.5); im.data[i * 4] = v; im.data[i * 4 + 3] = 255; }
@@ -550,7 +556,7 @@ function noiseField() {
   g.imageSmoothingEnabled = true; g.drawImage(sc, -S / 2, -S / 2, nw * S / 2, nh * S / 2);
   const d = g.getImageData(0, 0, c.width, c.height).data, out = new Float32Array(c.width * c.height);
   for (let i = 0; i < out.length; i++) out[i] = d[i * 4] / 127.5 - 1;
-  return (MAP.nf = out);
+  MAP.nfS = S; return (MAP.nf = out);
 }
 function field(type, pick, amp = 0.035, blurMul) {                                  // pick(i): optional test instead of the ground type
   const { cols, rows, cells } = MAP, P = 2;
@@ -578,12 +584,121 @@ function mask(f, th, soft = 0.012) {
   for (let i = 0; i < f.length; i++) im.data[i * 4 + 3] = Math.max(0, Math.min(255, ((f[i] - th) / soft + 0.5) * 255));
   g.putImageData(im, 0, 0); return c;
 }
-function squareMask(type) {
-  const { cols, rows, cells } = MAP, c = document.createElement('canvas'); c.width = cols * S; c.height = rows * S;
-  const g = c.getContext('2d'); g.fillStyle = '#000';
-  cells.forEach((cl, i) => { if (cl.type === type) g.fillRect((i % cols) * S, Math.floor(i / cols) * S, S, S); }); return c;
+// The outline of everything where a field is at least th, as a path in tile units: marching squares over the
+// field's pixels, each loop run with the inside on its left so a nonzero fill (or several copies of it) is the area
+// itself, the points thinned, and the corners rounded through the midpoints like the atlas coastlines. A path stays
+// sharp at any zoom, where a magnified mask pixel turned into a 16-pixel blur next to crisp tiles.
+let EDGE_NEXT = null;
+function contourLoops(f0, th) {
+  const { cols, rows } = MAP, w = cols * S + 2, h = rows * S + 2, N = w * h;
+  const fld = new Float32Array(N).fill(-1);                   // a ring of "outside" around the field, so every loop closes, the sea's included
+  for (let y = 0; y < h - 2; y++) fld.set(f0.subarray(y * (w - 2), (y + 1) * (w - 2)), (y + 1) * w + 1);
+  const next = EDGE_NEXT && EDGE_NEXT.length === 2 * N ? EDGE_NEXT : (EDGE_NEXT = new Int32Array(2 * N)); next.fill(-1);
+  const H = (x, y) => y * w + x, Vt = (x, y) => N + y * w + x;         // edge ids: between (x,y)-(x+1,y) and (x,y)-(x,y+1)
+  for (let y = 0; y < h - 1; y++) for (let x = 0; x < w - 1; x++) {
+    const i = y * w + x, tl = fld[i] >= th, tr = fld[i + 1] >= th, br = fld[i + w + 1] >= th, bl = fld[i + w] >= th;
+    const c = (tl ? 8 : 0) | (tr ? 4 : 0) | (br ? 2 : 0) | (bl ? 1 : 0); if (c === 0 || c === 15) continue;
+    const top = H(x, y), bottom = H(x, y + 1), left = Vt(x, y), right = Vt(x + 1, y);
+    switch (c) {                                                          // directed so the inside is on the left
+      case 1: next[bottom] = left; break; case 14: next[left] = bottom; break;
+      case 2: next[right] = bottom; break; case 13: next[bottom] = right; break;
+      case 4: next[top] = right; break; case 11: next[right] = top; break;
+      case 8: next[left] = top; break; case 7: next[top] = left; break;
+      case 3: next[right] = left; break; case 12: next[left] = right; break;
+      case 6: next[top] = bottom; break; case 9: next[bottom] = top; break;
+      case 5: if ((fld[i] + fld[i + 1] + fld[i + w + 1] + fld[i + w]) / 4 >= th) { next[top] = left; next[bottom] = right; } else { next[top] = right; next[bottom] = left; } break;
+      case 10: if ((fld[i] + fld[i + 1] + fld[i + w + 1] + fld[i + w]) / 4 >= th) { next[right] = top; next[left] = bottom; } else { next[left] = top; next[right] = bottom; } break;
+    }
+  }
+  const pt = e => {                                                     // where the contour crosses an edge, in tile units
+    if (e < N) { const x = e % w, y = (e - x) / w, a = fld[y * w + x], b = fld[y * w + x + 1], t = (th - a) / (b - a || 1e-9); return [(x - 1 + t + 0.5) / S, (y - 1 + 0.5) / S]; }
+    const k = e - N, x = k % w, y = (k - x) / w, a = fld[y * w + x], b = fld[(y + 1) * w + x], t = (th - a) / (b - a || 1e-9); return [(x - 1 + 0.5) / S, (y - 1 + t + 0.5) / S];
+  };
+  const loops = [], tol = 0.3 / S;
+  for (let start = 0; start < 2 * N; start++) {
+    if (next[start] < 0) continue;
+    const loop = []; let e = start;
+    while (e >= 0 && next[e] >= 0) { loop.push(pt(e)); const n = next[e]; next[e] = -1; e = n; if (e === start) break; }
+    if (loop.length < 4) continue;
+    const p = thin(loop, tol), n = p.length; if (n < 3) continue;
+    // corners rounded through the midpoints (like the atlas coastlines), then sampled back to a polyline
+    const pts = new Float32Array(n * 4); let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    // a corner is rounded over at most 0.2 tiles each way: along the map border the segments are very long, and
+    // rounding by half of them would cut the sea's corners off
+    const towards = (b, a) => { const dx = a[0] - b[0], dy = a[1] - b[1], len = Math.hypot(dx, dy) || 1e-9, t = Math.min(0.5, 0.2 / len); return [b[0] + dx * t, b[1] + dy * t]; };
+    for (let i = 0; i < n; i++) { const a = p[i], b = p[(i + 1) % n], c = p[(i + 2) % n], [m0x, m0y] = towards(b, a), [m1x, m1y] = towards(b, c);
+      const qx = 0.25 * m0x + 0.5 * b[0] + 0.25 * m1x, qy = 0.25 * m0y + 0.5 * b[1] + 0.25 * m1y;   // the curve's midpoint
+      pts[i * 4] = m0x; pts[i * 4 + 1] = m0y; pts[i * 4 + 2] = qx; pts[i * 4 + 3] = qy;
+      x0 = Math.min(x0, m0x, qx); y0 = Math.min(y0, m0y, qy); x1 = Math.max(x1, m0x, qx); y1 = Math.max(y1, m0y, qy); }
+    loops.push({ pts, x0, y0, x1, y1 });
+  }
+  return loops;
 }
-const EDGES = { rock: { edge: '#5E5850', inner: 0.53 }, sand: { edge: '#C2AE86', inner: 0.53 }, soil: { edge: '#3E2A1C', inner: 0.535 }, path: { edge: '#584E46', inner: 0.53 }, water: { edge: '#1D5677', inner: 0.56 } };
+function thin(p, tol) {                                                // Douglas-Peucker on a closed loop, split at its two farthest-apart points
+  const n = p.length; let far = 0; for (let i = 1; i < n; i++) if (Math.hypot(p[i][0] - p[0][0], p[i][1] - p[0][1]) > Math.hypot(p[far][0] - p[0][0], p[far][1] - p[0][1])) far = i;
+  const keep = new Uint8Array(n); keep[0] = keep[far] = 1;
+  const stack = [[0, far], [far, n]];
+  while (stack.length) {
+    const [a, b] = stack.pop(); const A = p[a], B = p[b % n], dx = B[0] - A[0], dy = B[1] - A[1], len = Math.hypot(dx, dy) || 1e-9;
+    let best = -1, bd = tol;
+    for (let i = a + 1; i < b; i++) { const d = Math.abs((p[i][0] - A[0]) * dy - (p[i][1] - A[1]) * dx) / len; if (d > bd) { bd = d; best = i; } }
+    if (best >= 0) { keep[best] = 1; stack.push([a, best], [best, b]); }
+  }
+  const out = []; for (let i = 0; i < n; i++) if (keep[i]) out.push(p[i]); return out;
+}
+function squareLoops(type) {                                           // the plain tile squares, for the art sheet's "natural edges" switch
+  const { cols, cells } = MAP, loops = [];
+  cells.forEach((cl, i) => { if (cl.type !== type) return; const x = i % cols, y = (i - x) / cols; loops.push({ pts: Float32Array.from([x, y, x + 1, y, x + 1, y + 1, x, y + 1]), x0: x, y0: y, x1: x + 1, y1: y + 1 }); }); return loops;
+}
+// The part of a loop inside a box, as a polygon (Sutherland-Hodgman). A box entirely inside the loop comes back as
+// the box itself; one entirely outside comes back empty. Orientation is kept, so nonzero fills still add up.
+function clipLoop(pts, bx0, by0, bx1, by1, dy = 0) {
+  let poly = []; for (let i = 0; i < pts.length; i += 2) poly.push(pts[i], pts[i + 1] + dy);
+  for (const [axis, lim, keepBelow] of [[0, bx0, false], [0, bx1, true], [1, by0, false], [1, by1, true]]) {
+    const out = [], n = poly.length / 2; if (!n) return out;
+    const inside = (x, y) => keepBelow ? (axis ? y : x) <= lim : (axis ? y : x) >= lim;
+    for (let i = 0; i < n; i++) {
+      const ax = poly[i * 2], ay = poly[i * 2 + 1], j = (i + 1) % n, bx = poly[j * 2], by = poly[j * 2 + 1], ia = inside(ax, ay), ib = inside(bx, by);
+      if (ia) out.push(ax, ay);
+      if (ia !== ib) { const t = axis ? (lim - ay) / (by - ay) : (lim - ax) / (bx - ax); out.push(ax + (bx - ax) * t, ay + (by - ay) * t); }
+    }
+    poly = out;
+  }
+  return poly;
+}
+// For a box (tile units): the fill path of these loops inside it, and the open runs of outline inside it (a little
+// wider, for strokes), or null when no loop reaches the box. dy moves the loops down first (cliffs).
+function loopsInBox(loops, bx0, by0, bx1, by1, dy = 0, margin = 0.6, clip = new Path2D(), runs = new Path2D()) {   // clip, runs: paths to add to (runs null: not wanted)
+  let any = false;
+  for (const lp of loops) {
+    if (lp.x1 < bx0 - margin || lp.x0 > bx1 + margin || lp.y1 + dy < by0 - margin || lp.y0 + dy > by1 + margin) continue;
+    const poly = clipLoop(lp.pts, bx0, by0, bx1, by1, dy); if (poly.length >= 6) { any = true; clip.moveTo(poly[0], poly[1]); for (let i = 2; i < poly.length; i += 2) clip.lineTo(poly[i], poly[i + 1]); clip.closePath(); }
+    if (!runs) continue;
+    const p = lp.pts, n = p.length / 2; let open = false;              // the outline's runs through the widened box
+    for (let i = 0; i <= n; i++) { const k = i % n, x = p[k * 2], y = p[k * 2 + 1] + dy, inb = x >= bx0 - margin && x <= bx1 + margin && y >= by0 - margin && y <= by1 + margin;
+      if (inb) { if (open) runs.lineTo(x, y); else { runs.moveTo(x, y); open = true; } } else open = false; }
+  }
+  return any ? { clip, runs } : null;
+}
+// Per view box, the clipped outlines of every ground type and mountain level, kept for the chunks that get repainted.
+const BOXPATHS = new Map();
+function boxPaths(V) {
+  const key = V.x0 + ',' + V.y0 + ',' + V.x1 + ',' + V.y1; let p = BOXPATHS.get(key); if (p) return p;
+  if (BOXPATHS.size > 300) BOXPATHS.delete(BOXPATHS.keys().next().value);   // the oldest goes, one at a time
+  const bx0 = Math.max(0, V.x0 - 1), by0 = Math.max(0, V.y0 - 1), bx1 = Math.min(COLS, V.x1 + 2), by1 = Math.min(ROWS, V.y1 + 2);
+  p = { types: {}, levels: [] };
+  for (const type in MAP.masks) p.types[type] = loopsInBox(MAP.masks[type].loops, bx0, by0, bx1, by1);
+  for (const lv of MAP.levels || []) {
+    const top = loopsInBox(lv.loops, bx0, by0, bx1 + 1, by1 + 5);     // cliffs hang below their plateau, which is drawn moved up
+    const wall = new Path2D(); let anyWall = false;
+    for (let d = 0; d <= LIFT + 1e-6; d += LIFT / 4) if (loopsInBox(lv.loops, bx0, by0, bx1 + 1, by1 + 5, Math.min(d, LIFT), 0.6, wall, null)) anyWall = true;   // one path for all the copies
+    p.levels.push(top || anyWall ? { top: top && top.clip, runs: top && top.runs, wall: anyWall ? wall : null } : null);
+  }
+  BOXPATHS.set(key, p); return p;
+}
+// edge: the colour of the band along the outline; band: its width in tiles (half of it shows, the rest is under the tiles)
+const EDGES = { rock: { edge: '#5E5850', inner: 0.53, band: 0.06 }, sand: { edge: '#C2AE86', inner: 0.53, band: 0.06 }, soil: { edge: '#3E2A1C', inner: 0.535, band: 0.07 }, path: { edge: '#584E46', inner: 0.53, band: 0.06 }, water: { edge: '#1D5677', inner: 0.56, band: 0.08 } };
+const WORN_BAND = 0.5, RIM_BAND = 0.12;                        // trodden grass along fields and paths; the sunlit rim of a plateau
 // The masks take a while on a slow machine, so they are built in slices with a breath between them: the page keeps
 // answering clicks and the loading note keeps moving. Nothing is drawn until they are all there. Resolves to false
 // when a newer island replaced this one meanwhile.
@@ -591,11 +706,11 @@ let MASKGEN = 0;
 async function makeMasks() {
   const natural = document.getElementById('natural').checked, map = MAP, gen = ++MASKGEN;
   const breathe = async () => { await new Promise(r => setTimeout(r, 0)); return MAP === map && gen === MASKGEN; };
-  map.building = true; map.masks = {}; nearMaps();
+  map.building = true; map.masks = {}; BOXPATHS.clear(); nearMaps(); S = LOW.on ? 8 : 16;
   for (const type of ['rock', 'sand', 'soil', 'path', 'water']) {
     if (!map.cells.some(c => c.type === type)) continue;
-    if (!natural) { const m = squareMask(type); map.masks[type] = { edge: null, inner: m }; continue; }
-    const f = field(type); map.masks[type] = { edge: mask(f, 0.5), inner: mask(f, EDGES[type].inner), worn: CFG.wornEdges && (type === 'soil' || type === 'path') ? mask(f, 0.33, 0.08) : null };
+    if (!natural) { map.masks[type] = { loops: squareLoops(type), worn: false, band: 0 }; continue; }
+    const f = field(type); map.masks[type] = { loops: contourLoops(f, EDGES[type].inner), worn: !!(CFG.wornEdges && (type === 'soil' || type === 'path')), band: EDGES[type].band };
     if (!await breathe()) return false;
   }
   map.shallow = null; map.foam = null;
@@ -611,12 +726,12 @@ async function makeMasks() {
   const elev = MAP_EXTRA.elev;
   for (let L = 1; L <= 5; L++) {
     if (!elev.some(e => e >= L)) break;
-    const f = field('rock', i => elev[i] >= L && map.cells[i].type === 'rock', 0.16), rim = mask(f, 0.5), top = mask(f, 0.56), lift = Math.round(LIFT * S);
-    const wall = document.createElement('canvas'); wall.width = rim.width; wall.height = rim.height; const wg = wall.getContext('2d');
-    for (let d = 0; d <= lift; d++) wg.drawImage(rim, 0, d);
-    map.levels.push({ L, rim, top, wall });
+    const f = field('rock', i => elev[i] >= L && map.cells[i].type === 'rock', 0.16);
+    map.levels.push({ L, loops: contourLoops(f, 0.56) });
     if (!await breathe()) return false;
   }
+  map.nf = null;                                              // the noise field is only needed while masks are made
+  EDGE_NEXT = null;                                           // and so is the contour tracer's scratch
   map.building = false;
   return true;
 }
@@ -631,28 +746,79 @@ function clampCam() {
   CAM.x = vw >= COLS ? (COLS - vw) / 2 : Math.min(Math.max(CAM.x, 0), COLS - vw);
   CAM.y = vh >= ROWS ? (ROWS - vh) / 2 : Math.min(Math.max(CAM.y, 0), ROWS - vh);
 }
-function zoomAt(f, px, py) {
+function zoomNow(f, px, py) {                                 // zoom by f at once, keeping the world point under (px, py) in place
   const z = Math.min(zMax, Math.max(zMin(), CAM.z * f)); if (z === CAM.z) return;
-  const wx = CAM.x + px / CAM.z, wy = CAM.y + py / CAM.z; CAM.z = z; CAM.x = wx - px / z; CAM.y = wy - py / z; clampCam(); queue();   // one redraw per frame, however many wheel or pinch events arrive
+  const wx = CAM.x + px / CAM.z, wy = CAM.y + py / CAM.z; CAM.z = z; CAM.x = wx - px / z; CAM.y = wy - py / z; clampCam(); redraw();
 }
+// Wheel notches and buttons do not jump: they move a target, and the view eases towards it over about a quarter
+// of a second, so a zoom reads as one motion however the notches arrive.
+const ZOOM = { target: 0, px: 0, py: 0, raf: 0, last: 0 };
+function zoomTo(z, px, py) {
+  ZOOM.target = Math.min(zMax, Math.max(zMin(), z)); ZOOM.px = px; ZOOM.py = py;
+  if (!ZOOM.raf) { ZOOM.last = performance.now(); ZOOM.raf = requestAnimationFrame(zoomStep); }
+}
+function zoomStep(now) {
+  const dt = Math.min(50, now - ZOOM.last); ZOOM.last = now;
+  const ratio = ZOOM.target / CAM.z;
+  if (Math.abs(Math.log(ratio)) < 0.003) { ZOOM.raf = 0; zoomNow(ratio, ZOOM.px, ZOOM.py); return; }
+  ZOOM.raf = requestAnimationFrame(zoomStep);                 // booked first, so nothing else queues a second redraw this frame
+  zoomNow(ratio ** (1 - Math.exp(-dt / 80)), ZOOM.px, ZOOM.py);
+}
+function zoomAt(f, px, py) { zoomTo((ZOOM.raf ? ZOOM.target : CAM.z) * f, px, py); }   // eased; the factor stacks onto a zoom already under way
 function fit() { CAM.z = zMin(); CAM.x = 0; CAM.y = 0; clampCam(); redraw(); }
 
 // ---------- drawing: only what the camera sees ----------
 const imgCache = {}, bmpCache = new Map();
 const load = u => imgCache[u] ??= new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = u; });
-const DPR = () => Math.min(window.devicePixelRatio || 1, 1.5);   // backing-store pixels per CSS pixel, capped to spare the GPU on very sharp screens
+// The low-end tier: fewer pixels, smaller ground chunks and a smaller cache. On from the start on small machines,
+// and switched on for the session when frames keep arriving late.
+const LOW = { on: !!((navigator.deviceMemory && navigator.deviceMemory <= 4) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2)), since: 0 };
+function setLowTier(on) { if (LOW.on === !!on) return; LOW.on = !!on; redraw(); }
+const DPR = () => Math.min(window.devicePixelRatio || 1, LOW.on ? 1 : 1.5);   // backing-store pixels per CSS pixel, capped to spare the GPU on very sharp screens
+const maxLevel = () => LOW.on ? 128 : 256;                      // the finest ground detail level that gets painted
+const cachePx = () => LOW.on ? 16e6 : 48e6;                     // painted ground kept, in pixels
+// The sprite layer's colour grade. It is baked into the sprites as they are rasterised (and into the colours drawn
+// by hand on that layer) where the canvas can filter; otherwise the CSS filter on #live does the same work per frame.
+const GRADE = 'saturate(.88) contrast(1.06)', CAN_GRADE = 'filter' in CanvasRenderingContext2D.prototype;
+const gradeRgb = ([r, g, b]) => { if (!CAN_GRADE) return [r, g, b];
+  const s = 0.88, c = 1.06, sat = v => [(0.213 + 0.787 * s) * v[0] + (0.715 - 0.715 * s) * v[1] + (0.072 - 0.072 * s) * v[2],
+    (0.213 - 0.213 * s) * v[0] + (0.715 + 0.285 * s) * v[1] + (0.072 - 0.072 * s) * v[2], (0.213 - 0.213 * s) * v[0] + (0.715 - 0.715 * s) * v[1] + (0.072 + 0.928 * s) * v[2]];
+  return sat([r, g, b]).map(v => Math.max(0, Math.min(255, Math.round(v * c + 127.5 * (1 - c))))); };
+const gradeHex = h => { const [r, g, b] = gradeRgb([1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16))); return `rgb(${r},${g},${b})`; };
+const SHADE = gradeRgb([20, 40, 15]).join(',');                 // creature shadows on the sprite layer
 const tileLevel = z => Math.min(512, 2 ** Math.ceil(Math.log2(Math.max(16, z * (DPR())))));
-function bitmap(u, L) {                                        // tiles rasterised once per size level, then reused
-  const k = u + '@' + L; let b = bmpCache.get(k); if (b !== undefined) return b;
+function bitmap(u, L, graded = false) {                        // tiles rasterised once per size level, then reused; graded: with the sprite layer's grade
+  const k = u + '@' + L + (graded && CAN_GRADE ? 'g' : ''); let b = bmpCache.get(k); if (b !== undefined) return b;
   bmpCache.set(k, null);
-  load(u).then(im => { if (!im) { const e = document.createElement('canvas'); e.width = e.height = 1; bmpCache.set(k, e); return; }   // a missing image never blocks the ground cache
- const c = document.createElement('canvas'); c.width = c.height = L; c.getContext('2d').drawImage(im, 0, 0, L, L); bmpCache.set(k, c); queue(); });
+  load(u).then(im => { RASTER.todo.push({ k, im, L, graded }); if (!RASTER.raf) RASTER.raf = document.hidden ? setTimeout(rasterSome, 40) : requestAnimationFrame(rasterSome); });
   return null;
 }
-let pending = false; const queue = () => { if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; redraw(); }); } };
+// The bitmap at this level, or the nearest level already made while this one is still being rasterised: a sprite
+// must never vanish for a frame or two on a zoom.
+function bitmapNear(u, L, graded = false) {
+  const b = bitmap(u, L, graded); if (b) return b;
+  const g = graded && CAN_GRADE ? 'g' : '';
+  for (const l of [L / 2, L * 2, L / 4, L * 4, L / 8, L * 8]) { const c = bmpCache.get(u + '@' + l + g); if (c) return c; }
+  return null;
+}
+// Rasterising a vector image at a new size is CPU work, a few milliseconds for a detailed tree. A new zoom level asks
+// for dozens at once, so they are done a few milliseconds per frame rather than in one stall.
+const RASTER = { todo: [], raf: 0, gen: 0 };                    // gen: counts deliveries, so a chunk waiting for textures is retried only after new ones arrived
+function rasterSome() {
+  RASTER.raf = 0; const t0 = performance.now(); const n0 = PERF.raster;
+  while (RASTER.todo.length && performance.now() - t0 < 3) {
+    const { k, im, L, graded } = RASTER.todo.shift();
+    if (!im) { const e = document.createElement('canvas'); e.width = e.height = 1; bmpCache.set(k, e); continue; }   // a missing image never blocks the ground cache
+    const c = document.createElement('canvas'); c.width = c.height = L; const g = c.getContext('2d'); if (graded && CAN_GRADE) g.filter = GRADE; g.drawImage(im, 0, 0, L, L); bmpCache.set(k, c); PERF.raster++;
+  }
+  RASTER.gen++; PERF.log.push({ t: Math.round(t0), kind: 'raster', ms: +(performance.now() - t0).toFixed(1), n: PERF.raster - n0, left: RASTER.todo.length });
+  queue(); if (RASTER.todo.length) RASTER.raf = document.hidden ? setTimeout(rasterSome, 40) : requestAnimationFrame(rasterSome);
+}
+const bitmapsReady = urls => urls.every(u => bmpCache.get(u + '@' + OV.P));
+let pending = false; const queue = () => { if (!pending && !ZOOM.raf) { pending = true; requestAnimationFrame(() => { pending = false; redraw(); }); } };   // a running zoom redraws every frame anyway
 function sizeCanvases() {
   const dpr = DPR(), w = view().clientWidth, h = view().clientHeight;
-  for (const id of ['field', 'live', 'fx', 'weather', 'labels']) { const c = document.getElementById(id); if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); } }
+  for (const id of ['field', 'live', 'fx', 'weather', 'labels']) { const c = document.getElementById(id); if (!c) continue; if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); } }
   return dpr;
 }
 const visible = () => {                                        // tile range in view, plus the world-to-canvas transform
@@ -661,10 +827,10 @@ const visible = () => {                                        // tile range in 
   const x1 = Math.min(COLS - 1, Math.floor(CAM.x + view().clientWidth / CAM.z)), y1 = Math.min(ROWS - 1, Math.floor(CAM.y + view().clientHeight / CAM.z));
   return { k, x0, y0, x1, y1, sx: x => (x - CAM.x) * k, sy: y => (y - CAM.y) * k };
 };
+// Paint something, keep only the part inside a soft raster mask (the shallows, which fade on purpose): drawn on a
+// scratch canvas inside the box, masked with destination-in, copied back under a clip.
 let scratch = null;
-// Paint something, keep only the part inside the mask. box (canvas pixels) limits the work to where the mask can
-// reach: the scratch is cleared, drawn, masked and copied only there.
-function through(ctx, draw, m, V, W, H, dy = 0, box = null) {
+function throughMask(ctx, draw, m, V, W, H, dy = 0, box = null) {
   let bx = 0, by = 0, bw = W, bh = H;
   if (box) { bx = Math.max(0, box[0]); by = Math.max(0, box[1]); bw = Math.min(W, box[2]) - bx; bh = Math.min(H, box[3]) - by; if (bw <= 0 || bh <= 0) return; }
   scratch ??= document.createElement('canvas'); if (scratch.width !== W || scratch.height !== H) { scratch.width = W; scratch.height = H; }
@@ -672,12 +838,28 @@ function through(ctx, draw, m, V, W, H, dy = 0, box = null) {
   g.save(); g.beginPath(); g.rect(bx, by, bw, bh); g.clip(); draw(g);
   g.globalCompositeOperation = 'destination-in'; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(m, V.sx(0), V.sy(0) + dy, COLS * V.k, ROWS * V.k); g.restore();
-  ctx.save(); ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.clip(); ctx.drawImage(scratch, 0, 0); ctx.restore();   // a clipped whole-image copy; a sub-rectangle copy rounds a little differently
+  ctx.save(); ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.clip(); ctx.drawImage(scratch, 0, 0); ctx.restore();
+}
+// Paint something inside an outline: the path (tile units) is set as a clip at the view's scale, moved by dy, and the
+// drawing is limited to box (canvas pixels). No scratch canvas, no mask composite, and the edge is sharp at any zoom.
+function through(ctx, draw, path, V, W, H, dy = 0, box = null) {
+  let bx = 0, by = 0, bw = W, bh = H;
+  if (box) { bx = Math.max(0, box[0]); by = Math.max(0, box[1]); bw = Math.min(W, box[2]) - bx; bh = Math.min(H, box[3]) - by; if (bw <= 0 || bh <= 0) return; }
+  ctx.save(); ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.clip();
+  ctx.setTransform(V.k, 0, 0, V.k, V.sx(0), V.sy(0) + dy); ctx.clip(path, 'nonzero'); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  draw(ctx); ctx.restore();
 }
 // Which tiles each soft mask can touch: a ground type's or a mountain level's tiles, widened by two. The masks are
 // blurred by well under a tile, so passes and tiles outside these areas cannot change a pixel and are skipped.
 function nearMaps() {
   const { cols, rows, cells } = MAP, elev = MAP_EXTRA.elev, near = { t: {}, l: {} };
+  // Under the edge between two kinds of ground, grass must not peek through: below a sand, rock, field or path cell
+  // that borders another kind lies its own kind, and below water that borders such ground lies that ground.
+  const PREF = ['sand', 'rock', 'soil', 'path'];
+  cells.forEach((c, i) => { if (c.type === 'grass') return; const x = i % cols, y = (i - x) / cols; let other = null;
+    for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) { const X = x + k, Y = y + j; if ((j || k) && X >= 0 && Y >= 0 && X < cols && Y < rows) { const n = cells[Y * cols + X]; if (n.type !== 'grass' && n.type !== c.type && (!other || PREF.indexOf(n.type) < PREF.indexOf(other.type))) other = n; } }
+    if (!other) { if (c.ocean) { let allSea = true; for (let j = -1; j <= 1 && allSea; j++) for (let k = -1; k <= 1; k++) { const X = x + k, Y = y + j; if (X >= 0 && Y >= 0 && X < cols && Y < rows && !cells[Y * cols + X].ocean) { allSea = false; break; } } if (allSea) c.under = c.tile; } return; }   // open sea lies on sea
+    c.under = c.type === 'water' ? c.fill[other.type] : c.tile; });
   const widen = (src, r) => { const out = new Uint8Array(cols * rows);
     for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { if (!src[y * cols + x]) continue;
       for (let j = Math.max(0, y - r); j <= Math.min(rows - 1, y + r); j++) for (let i = Math.max(0, x - r); i <= Math.min(cols - 1, x + r); i++) out[j * cols + i] = 1; }
@@ -697,30 +879,39 @@ function tileBox(arr, V, yExtra = 1) {
 }
 // ...and that box in canvas pixels, a tile wider all round (more below for cliffs, which hang down), moved by dy.
 const pxBox = (tb, V, dy = 0, below = 0) => tb && [Math.floor(V.sx(tb[0] - 1)), Math.floor(V.sy(tb[1] - 1) + dy), Math.ceil(V.sx(tb[2] + 2)), Math.ceil(V.sy(tb[3] + 2 + below) + dy)];
-function paintGround(ctx, V, W, H, L) {                     // grass everywhere, then soil, path and water through their masks
+function paintGround(ctx, V, W, H, L, strict = false) {     // grass everywhere, then soil, path and water through their masks; strict: stop at the first missing texture
   MISSING = false;
   const T = V.k; ctx.imageSmoothingQuality = 'high';
   const { cells, cols, near } = MAP;
   const tile = (g, x, y, n) => { const b = bitmap(src(n), L); if (!b) MISSING = true; if (b) g.drawImage(b, Math.floor(V.sx(x)), Math.floor(V.sy(y)), Math.ceil(T) + 1, Math.ceil(T) + 1); };
-  for (let y = V.y0; y <= V.y1; y++) for (let x = V.x0; x <= V.x1; x++) { const c = cells[y * cols + x]; tile(ctx, x, y, c.type === 'grass' ? c.tile : c.under); }
-  if (CFG.grassTint && MAP_DECOR.tint) { ctx.imageSmoothingEnabled = true; ctx.drawImage(MAP_DECOR.tint, V.sx(0), V.sy(0), COLS * T, ROWS * T); }   // lush and dry patches
+  // A view that is one ground type to a tile beyond its edges (most of the sea) has a mask of 255 everywhere, so its
+  // tiles are drawn straight onto the canvas; the ground below and the soft edges would be fully covered anyway.
+  let solid = cells[V.y0 * cols + V.x0].type; if (solid === 'grass') solid = null;
+  if (solid) for (let y = Math.max(0, V.y0 - 1); y <= Math.min(ROWS - 1, V.y1 + 1) && solid; y++) for (let x = Math.max(0, V.x0 - 1); x <= Math.min(COLS - 1, V.x1 + 1); x++) if (cells[y * cols + x].type !== solid) { solid = null; break; }
+  PAINT.solid = !!solid;
+  if (!solid) for (let y = V.y0; y <= V.y1; y++) for (let x = V.x0; x <= V.x1; x++) { const c = cells[y * cols + x]; tile(ctx, x, y, c.type === 'grass' ? c.tile : c.under); }
+  if (!solid && CFG.grassTint && MAP_DECOR.tint) { ctx.imageSmoothingEnabled = true; ctx.drawImage(MAP_DECOR.tint, V.sx(0), V.sy(0), COLS * T, ROWS * T); }   // lush and dry patches
   const decorAt = under => { for (const d of MAP_DECOR.decor) {
     if (!!d.under !== under || d.x < V.x0 - 2 || d.x > V.x1 + 2 || d.y < V.y0 - 2 || d.y > V.y1 + 2) continue;
     const b = bitmap(src(d.url), Math.min(512, L * Math.ceil(d.sc))); if (!b) { MISSING = true; continue; }
     ctx.drawImage(b, V.sx(d.x + 0.5) - d.sc * T / 2, V.sy(d.y + 0.5) - d.sc * T / 2, d.sc * T, d.sc * T); } };
-  decorAt(true);
-  for (const type of ['rock', 'sand', 'soil', 'path', 'water']) {
-    const m = MAP.masks[type]; if (!m) continue;
+  if (!solid) decorAt(true); if (strict && MISSING) return;
+  if (solid) for (let y = V.y0; y <= V.y1; y++) for (let x = V.x0; x <= V.x1; x++) { const c = cells[y * cols + x]; tile(ctx, x, y, c.type === solid ? c.tile : c.fill[solid]); }
+  const BP = !solid || solid === 'rock' ? boxPaths(V) : null;      // a chunk of solid rock still has its mountain levels
+  const strokes = (runs, dy, draw) => { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); ctx.setTransform(T, 0, 0, T, V.sx(0), V.sy(0) + dy); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; draw(ctx, runs); ctx.restore(); };
+  if (!solid) for (const type of ['rock', 'sand', 'soil', 'path', 'water']) {
+    const m = MAP.masks[type], bp = BP.types[type]; if (!m || !bp) continue; if (strict && MISSING) return;
     const nt = near.t[type], box = pxBox(tileBox(nt, V), V); if (!box) continue;       // none of this ground near the view
-    if (m.worn) through(ctx, g => { g.fillStyle = 'rgba(118,96,58,.32)'; g.fillRect(0, 0, W, H); }, m.worn, V, W, H, 0, box);   // trodden grass
-    if (m.edge) through(ctx, g => { g.fillStyle = EDGES[type].edge; g.fillRect(0, 0, W, H); }, m.edge, V, W, H, 0, box);
+    if (m.band) strokes(bp.runs, 0, (g, runs) => {                                    // the bands along the edge: trodden grass, then the edge colour
+      if (m.worn) { g.strokeStyle = 'rgba(118,96,58,.32)'; g.lineWidth = WORN_BAND; g.stroke(runs); }
+      g.strokeStyle = EDGES[type].edge; g.lineWidth = m.band; g.stroke(runs); });
     through(ctx, g => { for (let y = Math.max(0, V.y0 - 1); y <= Math.min(ROWS - 1, V.y1 + 1); y++) for (let x = Math.max(0, V.x0 - 1); x <= Math.min(COLS - 1, V.x1 + 1); x++) {
-      if (!nt[y * cols + x]) continue; const c = cells[y * cols + x]; tile(g, x, y, c.type === type ? c.tile : c.fill[type]); } }, m.inner, V, W, H, 0, box);
+      if (!nt[y * cols + x]) continue; const c = cells[y * cols + x]; tile(g, x, y, c.type === type ? c.tile : c.fill[type]); } }, bp.clip, V, W, H, 0, box);
   }
-  if (MAP.shallow) { const box = pxBox(tileBox(near.coast, V), V);                   // turquoise shallows, sea only
+  if (MAP.shallow && !solid) { const box = pxBox(tileBox(near.coast, V), V);         // turquoise shallows, sea only
     if (box) for (const [m, col] of [[MAP.shallow.far, 'rgba(40,140,150,.24)'], [MAP.shallow.near, 'rgba(95,180,175,.3)']])
-      through(ctx, g => { g.fillStyle = col; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'destination-in'; g.drawImage(MAP.shallow.sea, V.sx(0), V.sy(0), COLS * T, ROWS * T); }, m, V, W, H, 0, box); }
-  decorAt(false);                                            // small details, baked into the ground
+      throughMask(ctx, g => { g.fillStyle = col; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'destination-in'; g.drawImage(MAP.shallow.sea, V.sx(0), V.sy(0), COLS * T, ROWS * T); }, m, V, W, H, 0, box); }
+  decorAt(false); if (strict && MISSING) return;             // small details, baked into the ground
   const stripes = STRIPES ??= (() => { const c = document.createElement('canvas'); c.width = 23; c.height = 8; const g = c.getContext('2d');
     for (const [x, w, a] of [[1, 2, .35], [7, 1, .22], [12, 3, .3], [18, 1, .18]]) { g.fillStyle = `rgba(30,24,18,${a})`; g.fillRect(x, 0, w, 8); } return c; })();
   const rockAt = (g, dy, shade, nl) => {                     // rock texture where this level reaches, moved up by dy, then tinted
@@ -729,43 +920,81 @@ function paintGround(ctx, V, W, H, L) {                     // grass everywhere,
       const c = cells[y * cols + x], b = bitmap(src(c.fill.rock), L); if (!b) MISSING = true; if (b) g.drawImage(b, Math.floor(V.sx(x)), Math.floor(V.sy(y) + dy), Math.ceil(T) + 1, Math.ceil(T) + 1); }
     if (shade) { g.fillStyle = shade; g.fillRect(0, 0, W, H); }
   };
-  for (const lv of MAP.levels || []) {
+  if (BP) for (const [li, lv] of (MAP.levels || []).entries()) {
+    const lp = BP.levels[li]; if (!lp) continue;
     const nl = near.l[lv.L], up = -lv.L * LIFT * T, box = pxBox(tileBox(nl, V, 4), V, up, 1); if (!box) continue;   // no such heights near the view
-    through(ctx, g => { rockAt(g, up, 'rgba(40,33,26,.55)', nl); const p = g.createPattern(stripes, 'repeat'); p.setTransform(new DOMMatrix([T / 46, 0, 0, T / 8, V.sx(0), 0])); g.fillStyle = p; g.fillRect(0, 0, W, H); }, lv.wall, V, W, H, up, box);                                  // the cliff face
-    through(ctx, g => { g.fillStyle = lv.L === 5 ? '#F2F5F8' : '#C2BBB0'; g.fillRect(0, 0, W, H); }, lv.rim, V, W, H, up, box);   // sunlit rim
-    through(ctx, g => rockAt(g, up, lv.L === 5 ? 'rgba(236,241,246,.82)' : lv.L === 4 ? 'rgba(225,230,236,.3)' : `rgba(255,250,240,${0.04 * lv.L})`, nl), lv.top, V, W, H, up, box);   // plateau, snow on the summit
+    if (strict && MISSING) return;
+    if (lp.wall) through(ctx, g => { rockAt(g, up, 'rgba(40,33,26,.55)', nl); const p = g.createPattern(stripes, 'repeat'); p.setTransform(new DOMMatrix([T / 46, 0, 0, T / 8, V.sx(0), 0])); g.fillStyle = p; g.fillRect(0, 0, W, H); }, lp.wall, V, W, H, up, box);   // the cliff face
+    if (lp.runs) strokes(lp.runs, up, (g, runs) => { g.strokeStyle = lv.L === 5 ? '#F2F5F8' : '#C2BBB0'; g.lineWidth = RIM_BAND; g.stroke(runs); });   // sunlit rim
+    if (lp.top) through(ctx, g => rockAt(g, up, lv.L === 5 ? 'rgba(236,241,246,.82)' : lv.L === 4 ? 'rgba(225,230,236,.3)' : `rgba(255,250,240,${0.04 * lv.L})`, nl), lp.top, V, W, H, up, box);   // plateau, snow on the summit
   }
 }
 // Ground chunks: each 8x8-tile block is painted once per detail level and kept, so panning and animation never repaint it.
-const CH = 8, CHUNKS = new Map(), CACHE_PX = 48e6; let MISSING = false, CHUNK_PX = 0;   // the cache holds this many pixels of painted ground
+const CH = 8, CHUNKS = new Map(); let MISSING = false, CHUNK_PX = 0, VIEW_PENDING = false;   // CH: tiles per water-sparkle bucket; VIEW_PENDING: some ground on screen is still a stand-in
+// Tiles per ground chunk at a detail level: the finest level keeps chunks at 1024 pixels, because painting a 2048-pixel
+// one costs a weak GPU more than a frame, however seldom it happens.
+const chunkTiles = L => L >= 256 ? 4 : 8;
+// Painting is budgeted in GPU time: a chunk is cheap for the CPU now, but the GPU still spends roughly 4 ms on a
+// 64-level chunk and 17 ms on a 256-level one, and handing it several per frame makes dragging lag behind the pointer.
+// The budget is shared by in-frame and idle painting and refills with wall time: rate is the share of the GPU that
+// painting may take, so a view sharpens over a few tenths of a second while frames keep coming on time.
+const PAINT = { credit: 0, rate: 0.35, max: 8, at: 0, solid: false }, chunkCost = L => 17 * (chunkTiles(L) * L / 2048) ** 2 * (PAINT.solid ? 0.3 : 1);   // in GPU milliseconds, roughly, per pixel painted
+function paintCredit() { const now = performance.now(); if (PAINT.at) PAINT.credit = Math.min(PAINT.max, PAINT.credit + (now - PAINT.at) * PAINT.rate); PAINT.at = now; return PAINT.credit; }
+const PERF = { log: [], painted: 0, raster: 0, evicted: 0 };    // profiling: what each redraw did
 function chunkCanvas(cx, cy, L) {
   const key = cx + ',' + cy + ',' + L; let c = CHUNKS.get(key);
   if (c) { CHUNKS.delete(key); CHUNKS.set(key, c); return c; }                       // most recently used goes last
   return null;
 }
+// Are the textures a chunk needs rasterised yet? Asking also queues the missing ones. Checked before a chunk canvas
+// is allocated: a 2048-pixel canvas thrown away for a missing texture, many times a frame, is what stalls a zoom.
+function texturesReady(V, L) {
+  const { cells, cols, near } = MAP; let ok = true;
+  const need = (n, lv = L) => { if (!bitmap(src(n), lv)) ok = false; };
+  for (let y = Math.max(0, V.y0 - 1); y <= Math.min(ROWS - 1, V.y1 + 4); y++) for (let x = Math.max(0, V.x0 - 1); x <= Math.min(COLS - 1, V.x1 + 1); x++) {
+    const i = y * cols + x, c = cells[i]; need(c.type === 'grass' ? c.tile : c.under);
+    for (const type of ['rock', 'sand', 'soil', 'path', 'water']) if (MAP.masks[type] && near.t[type][i]) need(c.type === type ? c.tile : c.fill[type]);
+    if (MAP.levels.length && near.l[1][i]) need(c.fill.rock);
+  }
+  for (const d of MAP_DECOR.decor) if (d.x >= V.x0 - 2 && d.x <= V.x1 + 2 && d.y >= V.y0 - 2 && d.y <= V.y1 + 2) need(d.url, Math.min(512, L * Math.ceil(d.sc)));
+  return ok;
+}
+// Chunk canvases are reused, not thrown away: a GPU texture freed by garbage collection costs a late frame at some
+// random later moment, and a zoom can evict a couple of hundred at once.
+const POOL = new Map();
+function takeCanvas(S0) { const p = POOL.get(S0), c = p && p.pop(); PERF.pool = (PERF.pool || 0) + (c ? 1 : 0); PERF.fresh = (PERF.fresh || 0) + (c ? 0 : 1); if (c) { c.getContext('2d').clearRect(0, 0, S0, S0); return c; } const n = document.createElement('canvas'); n.width = n.height = S0; return n; }
+function giveCanvas(c) { let p = POOL.get(c.width); if (!p) POOL.set(c.width, p = []); if (p.length < 16) p.push(c); else c.width = c.height = 0; }   // beyond the pool, freed at once rather than by the collector
+const NOT_READY = new Map();                                   // chunk key -> RASTER.gen when its textures were found missing
 function paintChunk(cx, cy, L) {
-  const S0 = CH * L, c = document.createElement('canvas'); c.width = c.height = S0;
-  const ox = cx * CH, oy = cy * CH;
-  const V = { k: L, x0: Math.max(0, ox - 1), y0: Math.max(0, oy - 1), x1: Math.min(COLS - 1, ox + CH), y1: Math.min(ROWS - 1, oy + CH), sx: x => (x - ox) * L, sy: y => (y - oy) * L };
-  paintGround(c.getContext('2d'), V, S0, S0, L);
-  if (MISSING) return null;                                                          // a texture was still loading: try again later
+  const key = cx + ',' + cy + ',' + L; if (NOT_READY.get(key) === RASTER.gen) return null;
+  const ch = chunkTiles(L), S0 = ch * L, ox = cx * ch, oy = cy * ch;
+  const V = { k: L, x0: Math.max(0, ox - 1), y0: Math.max(0, oy - 1), x1: Math.min(COLS - 1, ox + ch), y1: Math.min(ROWS - 1, oy + ch), sx: x => (x - ox) * L, sy: y => (y - oy) * L };
+  if (!texturesReady(V, L)) { NOT_READY.set(key, RASTER.gen); return null; }
+  const c = takeCanvas(S0);
+  paintGround(c.getContext('2d'), V, S0, S0, L, true);
+  if (MISSING) { giveCanvas(c); NOT_READY.set(key, RASTER.gen); return null; }
+  NOT_READY.delete(key);                                                          // a texture was still loading: try again later
   CHUNKS.set(cx + ',' + cy + ',' + L, c); CHUNK_PX += S0 * S0;
-  for (const [k, old] of CHUNKS) { if (CHUNK_PX < CACHE_PX) break; CHUNKS.delete(k); CHUNK_PX -= old.width * old.height; }   // keep memory bounded
+  for (const [k, old] of CHUNKS) { if (CHUNK_PX < cachePx()) break; CHUNKS.delete(k); CHUNK_PX -= old.width * old.height; giveCanvas(old); PERF.evicted++; }   // keep memory bounded
   return c;
 }
 function drawChunks(ctx, V) {
-  const L = Math.min(256, tileLevel(CAM.z)), T = V.k, t0 = performance.now(); let pending = false;
-  for (let cy = Math.floor(V.y0 / CH); cy <= Math.floor(V.y1 / CH); cy++) for (let cx = Math.floor(V.x0 / CH); cx <= Math.floor(V.x1 / CH); cx++) {
+  const L = Math.min(maxLevel(), tileLevel(CAM.z)), ch = chunkTiles(L), T = V.k, t0 = performance.now(); let pending = false, tries = 0;
+  ctx.imageSmoothingQuality = 'low';                          // 'high' makes the GPU rebuild mip levels for every chunk, every frame: 50 ms a frame at medium zoom
+  paintCredit();
+  for (let cy = Math.floor(V.y0 / ch); cy <= Math.floor(V.y1 / ch); cy++) for (let cx = Math.floor(V.x0 / ch); cx <= Math.floor(V.x1 / ch); cx++) {
     let c = chunkCanvas(cx, cy, L);
-    if (!c && performance.now() - t0 < 4) c = paintChunk(cx, cy, L);                // only a few new chunks per frame; the rest come from idle time
-    const x = V.sx(cx * CH), y = V.sy(cy * CH), s = CH * T;
+    if (!c && !ZOOM.raf && PAINT.credit > 0 && tries < 3 && performance.now() - t0 < 2.5) { tries++; c = paintChunk(cx, cy, L); if (c) { PAINT.credit -= chunkCost(L); PERF.painted++; } }   // within budget (a paint that waits for textures costs nothing); the rest come from idle time
+    const ox = cx * ch, oy = cy * ch, x = V.sx(ox), y = V.sy(oy), s = ch * T;
     if (c) { ctx.drawImage(c, Math.floor(x), Math.floor(y), Math.ceil(s) + 1, Math.ceil(s) + 1); continue; }
     pending = true;
-    let alt = null; for (const l of [L / 2, L * 2, L / 4, L * 4]) if (alt = CHUNKS.get(cx + ',' + cy + ',' + l)) break;   // same block, other detail level
-    if (alt) { ctx.drawImage(alt, Math.floor(x), Math.floor(y), Math.ceil(s) + 1, Math.ceil(s) + 1); continue; }
-    if (OV.ready) ctx.drawImage(OV.canvas, cx * CH * OV.P, cy * CH * OV.P, CH * OV.P, CH * OV.P, x, y, s, s);
+    let alt = null;                                             // the same ground at another detail level, whose chunks may be a different size
+    for (const l of [L / 2, L * 2, L / 4, L * 4]) { const c2 = chunkTiles(l); if (c2 < ch) continue; const a = CHUNKS.get(Math.floor(ox / c2) + ',' + Math.floor(oy / c2) + ',' + l);
+      if (a) { alt = [a, (ox - Math.floor(ox / c2) * c2) * l, (oy - Math.floor(oy / c2) * c2) * l, ch * l]; break; } }
+    if (alt) { ctx.drawImage(alt[0], alt[1], alt[2], alt[3], alt[3], Math.floor(x), Math.floor(y), Math.ceil(s) + 1, Math.ceil(s) + 1); continue; }
+    if (OV.ready) ctx.drawImage(OV.canvas, ox * OV.P, oy * OV.P, ch * OV.P, ch * OV.P, x, y, s, s);
   }
-  if (pending) queue();
+  VIEW_PENDING = pending; if (pending) queue();
   warmSoon(V, L);
 }
 // Paint the chunks around the view while the browser is idle, nearest first, so panning finds them ready.
@@ -775,18 +1004,20 @@ function warmSoon(V, L) {
   const idle = window.requestIdleCallback || (fn => setTimeout(() => fn({ timeRemaining: () => 6 }), 30));
   WARM = idle(deadline => {
     WARM = 0;
-    const m = 2, cx0 = Math.floor(V.x0 / CH) - m, cx1 = Math.floor(V.x1 / CH) + m, cy0 = Math.floor(V.y0 / CH) - m, cy1 = Math.floor(V.y1 / CH) + m;
+    if (ZOOM.raf) { setTimeout(() => warmSoon(visible(), Math.min(maxLevel(), tileLevel(CAM.z))), 120); return; }   // not during a zoom: a paint can cost a frame, and the zoom should read as one motion
+    const ch = chunkTiles(L), m = 2, cx0 = Math.floor(V.x0 / ch) - m, cx1 = Math.floor(V.x1 / ch) + m, cy0 = Math.floor(V.y0 / ch) - m, cy1 = Math.floor(V.y1 / ch) + m;
     const mx = (cx0 + cx1) / 2, my = (cy0 + cy1) / 2, todo = [];
-    for (let cy = Math.max(0, cy0); cy <= Math.min(ROWS / CH, cy1); cy++) for (let cx = Math.max(0, cx0); cx <= Math.min(COLS / CH, cx1); cx++)
+    for (let cy = Math.max(0, cy0); cy <= Math.min(Math.ceil(ROWS / ch) - 1, cy1); cy++) for (let cx = Math.max(0, cx0); cx <= Math.min(Math.ceil(COLS / ch) - 1, cx1); cx++)
       if (!CHUNKS.has(cx + ',' + cy + ',' + L)) todo.push([(cx - mx) ** 2 + (cy - my) ** 2, cx, cy]);
     todo.sort((a, b) => a[0] - b[0]);
     // only as many as fit beside what is on screen: close up, chunks are big and painting the whole margin would push
     // the visible ones out of the cache, to be painted again on the next frame
-    const onScreen = (Math.floor(V.x1 / CH) - Math.floor(V.x0 / CH) + 1) * (Math.floor(V.y1 / CH) - Math.floor(V.y0 / CH) + 1);
-    todo.length = Math.max(0, Math.min(todo.length, Math.floor(CACHE_PX / (CH * L) ** 2) - onScreen));
-    let painted = 0;
-    for (const [, cx, cy] of todo) { if (deadline.timeRemaining() < 4 || L !== Math.min(256, tileLevel(CAM.z))) break; if (paintChunk(cx, cy, L)) painted++; else break; }
-    if (painted && painted < todo.length) warmSoon(visible(), Math.min(256, tileLevel(CAM.z)));
+    const onScreen = (Math.floor(V.x1 / ch) - Math.floor(V.x0 / ch) + 1) * (Math.floor(V.y1 / ch) - Math.floor(V.y0 / ch) + 1);
+    todo.length = Math.max(0, Math.min(todo.length, Math.floor(cachePx() / (ch * L) ** 2) - onScreen));
+    let painted = 0, waiting = false; const tw = performance.now();
+    for (const [, cx, cy] of todo) { if (painted >= 3 || paintCredit() <= 0 || deadline.timeRemaining() < 7 || L !== Math.min(maxLevel(), tileLevel(CAM.z))) break; if (paintChunk(cx, cy, L)) { painted++; PAINT.credit -= chunkCost(L); } else { waiting = true; break; } }
+    if (painted) PERF.log.push({ t: Math.round(tw), kind: 'warm', ms: +(performance.now() - tw).toFixed(1), n: painted, L });
+    if (!waiting && painted < todo.length) setTimeout(() => warmSoon(visible(), Math.min(maxLevel(), tileLevel(CAM.z))), 40);   // more to do once the budget refills; missing textures redraw on their own
   }, { timeout: 400 });
 }
 // Far out, the whole world comes from one pre-drawn overview image (ground plus crops, fences and bridges).
@@ -797,7 +1028,8 @@ async function buildOverview() {
   const urls = new Set();
   MAP.cells.forEach(c => { urls.add(src(c.type === 'grass' ? c.tile : c.under)); urls.add(src(c.tile)); Object.values(c.fill).forEach(n => urls.add(src(n))); });
   LIVE.crops.forEach(c => urls.add(c.url));
-  await Promise.all([...urls].map(u => { bitmap(u, P); return load(u).then(() => new Promise(r => setTimeout(r, 0))); }));
+  await Promise.all([...urls].map(u => { bitmap(u, P); return load(u); }));
+  while (!bitmapsReady([...urls])) { await new Promise(r => setTimeout(r, 30)); if (id !== OV.id) return; }
   if (id !== OV.id) return;
   const c = OV.canvas ?? document.createElement('canvas'); c.width = COLS * P; c.height = ROWS * P; OV.canvas = c;
   const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height);
@@ -814,20 +1046,24 @@ async function buildOverview() {
 let LAST_REDRAW = 0;
 function redraw() {
   if (!MAP || !CAM.z || MAP.building) return;
-  LAST_REDRAW = performance.now();
+  LAST_REDRAW = performance.now(); const perfT0 = LAST_REDRAW; PERF.painted = 0; PERF.raster = 0; PERF.evicted = 0;
   sizeCanvases();
   const cv = document.getElementById('field'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height, V = visible();
   ctx.clearRect(0, 0, W, H);
   const sea = bitmap(src('sea-01'), Math.min(64, tileLevel(CAM.z)));          // open sea beyond the map edge
   if (sea) { const p = ctx.createPattern(sea, 'repeat'); p.setTransform(new DOMMatrix([V.k / sea.width, 0, 0, V.k / sea.width, V.sx(0), V.sy(0)])); ctx.fillStyle = p; ctx.fillRect(0, 0, W, H); }
-  if (farOut(V)) { ctx.imageSmoothingQuality = 'high'; ctx.drawImage(OV.canvas, CAM.x * OV.P, CAM.y * OV.P, view().clientWidth / CAM.z * OV.P, view().clientHeight / CAM.z * OV.P, 0, 0, W, H); }
+  if (farOut(V)) { ctx.imageSmoothingQuality = 'low'; ctx.drawImage(OV.canvas, CAM.x * OV.P, CAM.y * OV.P, view().clientWidth / CAM.z * OV.P, view().clientHeight / CAM.z * OV.P, 0, 0, W, H); }
   else drawChunks(ctx, V);
-  { const t = performance.now() / 1000, still = !animating(); drawLive(t, still); drawWater(t, V, still); if (still) drawWeather(0, 0, true); }   // live layers follow the camera in the same frame
+  const perfT1 = performance.now();
+  { const t = performance.now() / 1000, still = !animating(); drawLive(t, still); PERF.tLive = performance.now() - perfT1; drawWater(t, V, still); drawWeather(t, 0, still); }   // live layers follow the camera in the same frame
+  PERF.tChunks = perfT1 - perfT0;
   drawLabels(V);
+  PERF.log.push({ t: Math.round(perfT0), ms: +(performance.now() - perfT0).toFixed(1), chunksMs: +PERF.tChunks.toFixed(1), liveMs: +PERF.tLive.toFixed(1), painted: PERF.painted, raster: PERF.raster, evicted: PERF.evicted, L: Math.min(maxLevel(), tileLevel(CAM.z)), z: Math.round(CAM.z), queue: RASTER.todo.length, chunks: CHUNKS.size }); if (PERF.log.length > 2000) PERF.log.shift();
 }
 
 // ---------- living water ----------
 const FX = { glints: [], waves: [], rings: [], grid: new Map(), raf: 0, last: 0 };
+const SKIP = {};                                               // profiling switches: SKIP.sparkle, foam, flies, clouds, live, water leave that part out
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const animating = () => document.getElementById('animate').checked && !reduceMotion.matches;
 const fxCell = (x, y) => Math.floor(y / CH) * 64 + Math.floor(x / CH);
@@ -850,9 +1086,11 @@ function lens(g, x, y, len, th) {
 function clearFx() { const c = document.getElementById('fx'); c.getContext('2d').clearRect(0, 0, c.width, c.height); }
 function drawWater(t, V, still) {
   const c = document.getElementById('fx'), g = c.getContext('2d'), W = c.width, H = c.height, T = V.k;
-  g.clearRect(0, 0, W, H); if (!MAP.masks.water) return;
+  g.clearRect(0, 0, W, H); if (!MAP.masks.water || SKIP.water) return;
+  const wp = loopsInBox(MAP.masks.water.loops, V.x0, V.y0, V.x1 + 1, V.y1 + 1); if (!wp) { if (MAP.foam && !SKIP.foam && V.k > 6) drawFoam(g, V, t, still); return; }
+  g.save(); g.setTransform(V.k, 0, 0, V.k, V.sx(0), V.sy(0)); g.clip(wp.clip, 'nonzero'); g.setTransform(1, 0, 0, 1, 0, 0);   // everything below stays inside the water's outline
   if (showCreatures()) for (const cr of CRE.list) if (cr.home === 'water' && inView(cr.x, cr.y, V, 3)) drawCreature(g, cr, t, V, still);   // swimmers live inside the water's shape
-  if (!still && V.k > 14) {                                   // far out, glints and rings are too small to see
+  if (!still && !SKIP.sparkle && V.k > 14) {                                   // far out, glints and rings are too small to see
   const near = [];                                            // the sparkle in the chunks on screen
   for (let cy = Math.floor(V.y0 / CH) - 1; cy <= Math.floor(V.y1 / CH) + 1; cy++) for (let cx = Math.floor(V.x0 / CH) - 1; cx <= Math.floor(V.x1 / CH) + 1; cx++) {
     if (cx < 0 || cy < 0) continue; const b = FX.grid.get(cy * 64 + cx); if (b) near.push(b); }
@@ -879,11 +1117,12 @@ function drawWater(t, V, still) {
     g.strokeStyle = `rgba(225,245,255,${(1 - k) * 0.7})`; g.lineWidth = Math.max(1, T * 0.018);
     for (const kk of [k, k - 0.25]) if (kk > 0) { g.beginPath(); g.ellipse(V.sx(r.x), V.sy(r.y), kk * T * 0.28, kk * T * 0.17, 0, 0, 6.2832); g.stroke(); } }
   }
-  g.globalCompositeOperation = 'destination-in'; g.drawImage(MAP.masks.water.inner, V.sx(0), V.sy(0), COLS * V.k, ROWS * V.k); g.globalCompositeOperation = 'source-over';
-  if (MAP.foam && V.k > 6) { const w = still ? 0 : Math.sin(t * 0.9);
-    g.globalAlpha = 0.5 + 0.35 * w; g.drawImage(MAP.foam[0], V.sx(0), V.sy(0), COLS * V.k, ROWS * V.k);
-    g.globalAlpha = 0.35 - 0.3 * w; g.drawImage(MAP.foam[1], V.sx(0), V.sy(0), COLS * V.k, ROWS * V.k); g.globalAlpha = 1; }
+  g.restore();
+  if (MAP.foam && !SKIP.foam && V.k > 6) drawFoam(g, V, t, still);
 }
+function drawFoam(g, V, t, still) { const w = still ? 0 : Math.sin(t * 0.9);
+  g.globalAlpha = 0.5 + 0.35 * w; g.drawImage(MAP.foam[0], V.sx(0), V.sy(0), COLS * V.k, ROWS * V.k);
+  g.globalAlpha = 0.35 - 0.3 * w; g.drawImage(MAP.foam[1], V.sx(0), V.sy(0), COLS * V.k, ROWS * V.k); g.globalAlpha = 1; }
 
 // ---------- living world: swaying crops, butterflies, cloud shadows ----------
 const LIVE = { crops: [], flies: [], cloud: null };
@@ -901,30 +1140,61 @@ function setupLive() {
   MAP.cells.forEach((c, i) => { if (c.fence) LIVE.crops.push({ url: src(c.fence), x: i % COLS, y: Math.floor(i / COLS), still: true }); });
   MAP.cells.forEach((c, i) => { if (c.crop) LIVE.crops.push({ url: c.crop, x: i % COLS, y: Math.floor(i / COLS), phase: Math.random() * 6.28 }); });
   LIVE.crops.sort((a, b) => a.y - b.y);
-  const colours = [['#FFFFFF', '#F3E9C8'], ['#F6D04D', '#E8A93A'], ['#F2A7C3', '#E07AA3'], ['#A9D4F5', '#6FAEE0']];
+  const colours = [['#FFFFFF', '#F3E9C8'], ['#F6D04D', '#E8A93A'], ['#F2A7C3', '#E07AA3'], ['#A9D4F5', '#6FAEE0']].map(p => p.map(gradeHex));
   const home = [];                                              // butterflies stay over the island: they circle grass at least 3 tiles from the sea
   if (CFG.butterflies) for (let y = 3; y < ROWS - 3; y++) for (let x = 3; x < COLS - 3; x++) { if (MAP.cells[y * COLS + x].type !== 'grass') continue;
     let sea = false; for (let j = -3; j <= 3 && !sea; j++) for (let k = -3; k <= 3 && !sea; k++) sea = !!MAP.cells[(y + j) * COLS + x + k].ocean; if (!sea) home.push([x, y]); }
   LIVE.flies = Array.from({ length: Math.round(home.length / 35) }, () => { const [x, y] = pick(home); return { cx: x + Math.random(), cy: y + Math.random(),
-    a: Math.random() * 6.28, b: Math.random() * 6.28, sp: 0.15 + Math.random() * 0.15, c: pick(colours) }; });
+    a: Math.random() * 6.28, b: Math.random() * 6.28, sp: 0.15 + Math.random() * 0.15, ci: Math.floor(Math.random() * colours.length) }; });
+  // Fireflies: little swarms of one to five, at home on the banks of ponds and lakes and, less often, along the shore.
+  const banks = [];
+  for (let y = 1; y < ROWS - 1; y++) for (let x = 1; x < COLS - 1; x++) { const c = MAP.cells[y * COLS + x]; if (c.type !== 'grass' && c.type !== 'sand') continue;
+    let fresh = false, sea = false; for (let j = -2; j <= 2; j++) for (let k = -2; k <= 2; k++) { const X = x + k, Y = y + j; if (X < 0 || Y < 0 || X >= COLS || Y >= ROWS) continue; const n = MAP.cells[Y * COLS + X]; if (n.type === 'water') { if (n.ocean) sea = true; else fresh = true; } }
+    if (fresh) banks.push([x, y], [x, y], [x, y]); else if (sea && c.type === 'grass') banks.push([x, y]); }
+  LIVE.swarms = Array.from({ length: Math.min(48, Math.round(banks.length / 24)) }, () => { const [x, y] = pick(banks); const n = 1 + Math.floor(Math.random() * 5);
+    return { cx: x + Math.random(), cy: y + Math.random(), a: Math.random() * 6.28, sp: 0.04 + Math.random() * 0.05,
+      flies: Array.from({ length: n }, () => ({ r: 0.12 + Math.random() * 0.4, a0: Math.random() * 6.28, w: (0.2 + Math.random() * 0.3) * (Math.random() < 0.5 ? 1 : -1), b: Math.random() * 6.28, bob: 0.04 + Math.random() * 0.08 })) }; });
+  LIVE.flySprites ??= colours.map(c => Array.from({ length: FLY_STAGES }, (_, i) => {   // shadow, wings and body, at 32 px per unit
+    const cv = document.createElement('canvas'); cv.width = cv.height = FLY_PX; paintFly(cv.getContext('2d'), FLY_PX / 2, FLY_PX / 4, 32, 0.25 + 0.75 * (i + 0.5) / FLY_STAGES, c); return cv; }));
+  if (!LIVE.glow) {                                             // one firefly glow: a soft green-gold light with a bright heart
+    const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,244,210,1)'); gr.addColorStop(0.18, 'rgba(255,222,150,.9)'); gr.addColorStop(0.5, 'rgba(255,190,100,.28)'); gr.addColorStop(1, 'rgba(255,170,80,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64); LIVE.glow = c;
+    const p = document.createElement('canvas'); p.width = p.height = 128; const pg = p.getContext('2d'), pr = pg.createRadialGradient(64, 64, 0, 64, 64, 64);   // the warm light a firefly throws on the ground
+    pr.addColorStop(0, 'rgba(255,210,130,.5)'); pr.addColorStop(0.45, 'rgba(255,195,110,.18)'); pr.addColorStop(1, 'rgba(255,170,90,0)');
+    pg.fillStyle = pr; pg.fillRect(0, 0, 128, 128); LIVE.pool = p;
+    const h = document.createElement('canvas'); h.width = h.height = 128; const hg = h.getContext('2d'), hr = hg.createRadialGradient(64, 64, 0, 64, 64, 64);   // and the hole it opens in the dark
+    hr.addColorStop(0, 'rgba(0,0,0,1)'); hr.addColorStop(0.35, 'rgba(0,0,0,.75)'); hr.addColorStop(1, 'rgba(0,0,0,0)');
+    hg.fillStyle = hr; hg.fillRect(0, 0, 128, 128); LIVE.cut = h;
+  }
   if (!LIVE.cloud) {                                            // one soft cloud-shadow sprite, drawn with even darkness
     const c = document.createElement('canvas'); c.width = 512; c.height = 360; const g = c.getContext('2d');
-    g.filter = 'blur(30px)'; g.fillStyle = '#0d1d33';
+    g.filter = 'blur(30px)'; g.fillStyle = gradeHex('#0d1d33');
     for (const [x, y, r] of [[256, 180, 95], [350, 190, 75], [165, 195, 70], [290, 125, 65], [210, 235, 60], [330, 245, 55]]) { g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill(); }
     LIVE.cloud = c;
   }
 }
+const FLY_SHADOW = `rgba(${gradeRgb([30, 50, 20]).join(',')},.18)`, FLY_BODY = gradeHex('#3A2A1E');
+const FLY_STAGES = 8, FLY_PX = 192;
+function paintFly(g, x, y, s, flap, c) {                       // a butterfly from above: shadow below, two wings a side, a body; s = one unit
+  g.fillStyle = FLY_SHADOW; g.beginPath(); g.ellipse(x + s * 1.2, y + s * 2.2, s * flap, s * 0.5, 0, 0, 6.2832); g.fill();
+  for (const side of [-1, 1]) {
+    g.fillStyle = c[0]; g.beginPath(); g.moveTo(x, y); g.lineTo(x + side * s * 1.3 * flap, y - s * 1.1); g.lineTo(x + side * s * 1.1 * flap, y + s * 0.2); g.closePath(); g.fill();
+    g.fillStyle = c[1]; g.beginPath(); g.moveTo(x, y); g.lineTo(x + side * s * 0.9 * flap, y + s * 0.2); g.lineTo(x + side * s * 0.6 * flap, y + s * 0.9); g.closePath(); g.fill();
+  }
+  g.fillStyle = FLY_BODY; g.fillRect(x - s * 0.12, y - s * 0.6, s * 0.24, s * 1.3);
+}
 const gust = (x, t) => (0.25 + 0.75 * Math.max(0, Math.sin(t * 0.45 - x * 0.35)) ** 2) * wx().gust;   // stormy winds blow harder
 function drawLive(t, still) {
   const lv = document.getElementById('live'), g = lv.getContext('2d'), W = lv.width, H = lv.height, V = visible(), T = V.k, L = tileLevel(CAM.z);
-  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); if (SKIP.live) return;
   const items = [], far = farOut(V); for (const c of LIVE.crops) if (!far && inView(c.x, c.y, V, c.sc ? 3 : 1)) items.push([c.y + 0.5 + (c.z || 0), c]);   // only what is on screen
   if (showCreatures()) for (const c of CRE.list) if (c.home === 'land' && inView(c.x, c.y, V, 3)) items.push([c.y, c]);
   items.sort((a, b) => a[0] - b[0]);
   for (const [, c] of items) {
     if (c.home) { drawCreature(g, c, t, V, still); continue; }
     if (!inView(c.x, c.y, V, c.sc ? 3 : 1)) continue;
-    const b = bitmap(c.url, c.sc ? Math.min(512, tileLevel(CAM.z * c.sc)) : L); if (!b) continue;
+    const b = bitmapNear(c.url, c.sc ? Math.min(512, tileLevel(CAM.z * c.sc)) : L, true); if (!b) continue;
     const sway = still || c.still ? 0 : Math.sin(t * 2.1 + c.phase - c.x * 0.5) * 0.06 * (c.sw ?? 1) * gust(c.x, t), sc = c.sc || 1;
     g.setTransform(1, 0, sway, 1 + Math.abs(sway) * 0.15, V.sx(c.x + 0.5), V.sy(c.y + 0.5 - (c.lift || 0)));
     g.drawImage(b, -T * sc / 2, T / 2 - T * sc, T * sc, T * sc);   // big items stand on their tile and rise above it
@@ -933,21 +1203,16 @@ function drawLive(t, still) {
   if (showCreatures()) flyerShadows(g, t, V, still);
   if (still) { if (showCreatures()) for (const c of CRE.list) if (c.home === 'air') drawCreature(g, c, t, V, true); return; }
   for (const [fi, f] of LIVE.flies.entries()) {
-    if (V.k < 14) break;                                             // far out, butterflies are too small to see
-    if (fi >= LIVE.flies.length * WX[WEATHER.kind].flies) break;                // fewer butterflies in bad weather
+    if (V.k < 14 || SKIP.flies) break;                                             // far out, butterflies are too small to see
+    if (fi >= LIVE.flies.length * WX[WEATHER.kind].flies * day().flies) break;   // fewer butterflies in bad weather, none at night
     const wx = f.cx + Math.sin(t * f.sp + f.a) * 2.2 + Math.sin(t * f.sp * 2.3 + f.b) * 0.8, wy = f.cy + Math.cos(t * f.sp * 1.3 + f.b) * 1.6 + Math.sin(t * f.sp * 3.1 + f.a) * 0.5;
     if (!inView(wx, wy, V)) continue;
-    const x = V.sx(wx), y = V.sy(wy), flap = 0.25 + 0.75 * Math.abs(Math.sin(t * 11 + f.a)), s = T * 0.075;
-    g.fillStyle = 'rgba(30,50,20,.18)'; g.beginPath(); g.ellipse(x + s * 1.2, y + s * 2.2, s * flap, s * 0.5, 0, 0, 6.2832); g.fill();
-    for (const side of [-1, 1]) {
-      g.fillStyle = f.c[0]; g.beginPath(); g.moveTo(x, y); g.lineTo(x + side * s * 1.3 * flap, y - s * 1.1); g.lineTo(x + side * s * 1.1 * flap, y + s * 0.2); g.closePath(); g.fill();
-      g.fillStyle = f.c[1]; g.beginPath(); g.moveTo(x, y); g.lineTo(x + side * s * 0.9 * flap, y + s * 0.2); g.lineTo(x + side * s * 0.6 * flap, y + s * 0.9); g.closePath(); g.fill();
-    }
-    g.fillStyle = '#3A2A1E'; g.fillRect(x - s * 0.12, y - s * 0.6, s * 0.24, s * 1.3);
+    const x = V.sx(wx), y = V.sy(wy), stage = Math.min(FLY_STAGES - 1, Math.floor(Math.abs(Math.sin(t * 11 + f.a)) * FLY_STAGES)), k = T * 0.075 / 32;
+    g.drawImage(LIVE.flySprites[f.ci][stage], x - FLY_PX / 2 * k, y - FLY_PX / 4 * k, FLY_PX * k, FLY_PX * k);
   }
   g.globalAlpha = wx().clouds * 1.3;                                // cloud shadows drift slowly across the whole world
   const M = Math.max(10, (view().clientWidth / zMin() - COLS) / 2 + 6);   // clouds appear and vanish beyond the widest view, out of sight, then drift in
-  for (let k = 0; k < 7; k++) {                               // the 7th is a rare giant that now and then covers most of the map
+  for (let k = 0; k < 7 && !SKIP.clouds; k++) {              // the 7th is a rare giant that now and then covers most of the map
     const w = [8, 14, 22, 10, 30, 12, 80][k], giant = k === 6, span = COLS + w + 2 * M + (giant ? 200 : 0);
     const wx = ((t * (giant ? 0.2 : 0.3) + (giant ? 60 : k * span / 6)) % span) - w - M, wy = ((k * 7.3) % ROWS) + Math.sin(t * 0.05 + k) * 0.8 - w * 0.3;   // sizes vary, some are big
     if (wx + w < CAM.x || wx > V.x1 + 2 || wy + w * 0.6 < CAM.y || wy > V.y1 + 2) continue;
@@ -958,12 +1223,22 @@ function drawLive(t, still) {
 }
 function frame(now) {
   FX.raf = requestAnimationFrame(frame);
-  if (now - FX.last < 33) return; FX.last = now;
+  FX.frames = (FX.frames || 0) + 1;                            // the FPS readout, once a second, where the page has one
+  if (!FX.fpsAt) FX.fpsAt = now; else if (now - FX.fpsAt >= 1000) { const el = document.getElementById('fps'); if (el) el.textContent = `${Math.round(FX.frames * 1000 / (now - FX.fpsAt))} fps${LOW.on ? ' · low' : ''}`; FX.frames = 0; FX.fpsAt = now; }
+  // How late frames arrive says how busy the machine is, but only while the camera rests: dragging and zooming paint
+  // ground on purpose, and that must not be read as a slow machine.
+  const gap = now - (FX.prev || now); FX.prev = now;
+  if (gap > 0 && gap < 200 && now - LAST_REDRAW > 500) FX.gap = FX.gap ? FX.gap * 0.9 + gap * 0.1 : gap;
+  if (FX.gap > 28 && !FX.slow) { FX.slow = true; LOW.since = now; } else if (FX.gap < 20 && FX.slow) { FX.slow = false; LOW.since = 0; }
+  if (FX.slow && !LOW.on && now - LOW.since > 5000) setLowTier(true);
+  if (now - FX.last < (FX.slow ? 50 : 33)) return; FX.last = now;
   if (!MAP || !CAM.z || MAP.building || !animating()) return;
   if (performance.now() - LAST_REDRAW < 40) return;            // the camera just redrew everything; skip this tick
   const t = now / 1000, V = visible(), dt = Math.min(0.1, (now - (CRE.last || now)) / 1000); CRE.last = now;
   if (showCreatures()) stepCreatures(dt);
+  const tickT0 = performance.now();
   drawLive(t, false); drawWater(t, V, false); drawWeather(t, Math.min(0.1, (now - (WEATHER.last || now)) / 1000), false); WEATHER.last = now;
+  PERF.log.push({ t: Math.round(tickT0), kind: 'tick', ms: +(performance.now() - tickT0).toFixed(1) }); if (PERF.log.length > 2000) PERF.log.shift();
 }
 function startAnim() { cancelAnimationFrame(FX.raf); if (!document.hidden) FX.raf = requestAnimationFrame(frame); }
 document.addEventListener('visibilitychange', startAnim);
@@ -1096,11 +1371,11 @@ function pickTarget(c, away) {                               // away: a preferre
   c.tx = c.x; c.ty = c.y; c.wait = 1;
 }
 const showCreatures = () => document.getElementById('creatures').checked;
-function shadow(g, x, y, rx, ry, a) { g.fillStyle = `rgba(20,40,15,${a})`; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 6.2832); g.fill(); }
+function shadow(g, x, y, rx, ry, a) { g.fillStyle = `rgba(${SHADE},${a})`; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 6.2832); g.fill(); }
 let wet = null;
 function drawCreature(g, c, t, V, still) {
   g.setTransform(1, 0, 0, 1, 0, 0);                           // the previous crop or fence leaves its transform behind
-  const T = V.k, size = c.size * T, b = bitmap(c.url, tileLevel(CAM.z * c.size)); if (!b) return;
+  const T = V.k, size = c.size * T, b = bitmapNear(c.url, tileLevel(CAM.z * c.size), c.home !== 'water'); if (!b) return;   // swimmers are drawn on the water layer, ungraded
   const breathe = still ? 1 : 1 + 0.015 * Math.sin(t * 2 + c.phase), bob = still || !c.moving ? 0 : Math.abs(Math.sin(t * 8 + c.phase));
   const sx = breathe * (1 - bob * 0.03), sy = breathe * (1 + bob * 0.05), x = V.sx(c.x), y = V.sy(c.y);
   if (c.home === 'water') {                                   // swimming: tinted by the water, ripples around the body
@@ -1125,7 +1400,7 @@ function flyerShadows(g, t, V, still) {                        // soft, blurry s
     const rx = size * 0.34 * (1 - 0.05 * bob), x = V.sx(c.x + 0.75 + 0.04 * bob), y = V.sy(c.y + 1.05 + 0.05 * bob);
     g.save(); g.translate(x, y); g.scale(1, 0.72);
     const gr = g.createRadialGradient(0, 0, 0, 0, 0, rx), a = 0.2 - 0.02 * bob;
-    gr.addColorStop(0, `rgba(20,40,15,${a})`); gr.addColorStop(0.45, `rgba(20,40,15,${a * 0.8})`); gr.addColorStop(1, 'rgba(20,40,15,0)');
+    gr.addColorStop(0, `rgba(${SHADE},${a})`); gr.addColorStop(0.45, `rgba(${SHADE},${a * 0.8})`); gr.addColorStop(1, `rgba(${SHADE},0)`);
     g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rx, 0, 6.2832); g.fill(); g.restore();
   }
 }
@@ -1134,15 +1409,35 @@ function flyerShadows(g, t, V, still) {                        // soft, blurry s
 // ---------- weather: a tint and colour grade for the scene plus particles on a top layer ----------
 // Everything is screen-space and cheap: a few hundred lines or dots per frame, one full-screen fill.
 const WEATHER = { kind: 'sun', parts: [], flash: 0, nextFlash: 0, last: 0 };
-const WX = {                                                   // per-weather settings used across the scene
-  sun:    { gust: 1,   clouds: 0.3,  flies: 1,   tint: null },
-  storm:  { gust: 2.3, clouds: 0.5,  flies: 0,   tint: 'rgba(18,28,48,.38)' },
-  rain:   { gust: 1.3, clouds: 0.4,  flies: 0.15, tint: 'rgba(30,50,80,.16)' },
+const WX = {                                                   // per-weather settings used across the scene; sat/bri: the grade on the scene
+  sun:    { gust: 1,   clouds: 0.3,  flies: 1,    tint: null,                 sat: 1,    bri: 1 },
+  cloudy: { gust: 1.2, clouds: 0.8,  flies: 0.6,  tint: 'rgba(96,108,128,.13)', sat: 0.86, bri: 0.93 },   // an overcast day: a grey veil, heavy cloud shadows, no rain
+  storm:  { gust: 2.3, clouds: 0.5,  flies: 0,    tint: 'rgba(18,28,48,.38)', sat: 0.7,  bri: 0.82 },
+  rain:   { gust: 1.3, clouds: 0.4,  flies: 0.15, tint: 'rgba(30,50,80,.16)', sat: 0.85, bri: 0.93 },
 };
 const wx = () => WX[WEATHER.kind];
+// The time of day: a grade and a tint of its own, laid over whatever the weather does.
+const DAY = { kind: 'day' };
+const DAYS = {
+  morning: { tint: 'rgba(255,214,170,.12)', sat: 0.96, bri: 1.02, flies: 0.7, fireflies: 0 },
+  day:     { tint: null,                    sat: 1,    bri: 1,    flies: 1,   fireflies: 0 },
+  evening: { tint: 'rgba(255,150,70,.17)',  sat: 1.08, bri: 0.92, flies: 0.5, fireflies: 0.5 },
+  night:   { tint: 'rgba(9,18,56,.62)',     sat: 1,    bri: 1,    flies: 0,   fireflies: 1 },   // an overlay rather than a grade: a firefly's light lifts it where it shines
+};
+const day = () => DAYS[DAY.kind];
+function applyGrade() {                                        // weather and daytime grades multiply into one filter on the scene group
+  const sat = wx().sat * day().sat, bri = wx().bri * day().bri, sc = document.querySelector('.view .scene');
+  if (sc) sc.style.filter = sat === 1 && bri === 1 ? 'none' : `saturate(${sat.toFixed(3)}) brightness(${bri.toFixed(3)})`;
+  document.getElementById('weather').style.display = WEATHER.kind === 'sun' && !day().tint ? 'none' : '';
+}
+function setDaytime(kind) {
+  if (!DAYS[kind]) return; DAY.kind = kind;
+  document.querySelectorAll('[data-daytime]').forEach(b => b.setAttribute('aria-pressed', b.dataset.daytime === kind));
+  applyGrade(); redraw(); drawWeather(performance.now() / 1000, 0, !animating());
+}
 function setWeather(kind) {
   WEATHER.kind = kind; WEATHER.parts = []; WEATHER.started = false; WEATHER.flash = 0; WEATHER.nextFlash = performance.now() / 1000 + 3;
-  view().className = 'view w-' + kind;
+  view().classList.remove('w-sun', 'w-cloudy', 'w-rain', 'w-storm'); view().classList.add('w-' + kind); applyGrade();
   document.querySelectorAll('[data-weather]').forEach(b => b.setAttribute('aria-pressed', b.dataset.weather === kind));
   redraw(); drawWeather(performance.now() / 1000, 0, !animating());
 }
@@ -1153,10 +1448,12 @@ function spawn(W, H, k, dpr, anywhere) {
 }
 function drawWeather(t, dt, still) {
   const c = document.getElementById('weather'), g = c.getContext('2d'), W = c.width, H = c.height, dpr = DPR(), k = WEATHER.kind;
-  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
-  if (k === 'sun') return;
-  g.fillStyle = wx().tint; g.fillRect(0, 0, W, H);
-  if (still) return;
+  if (k === 'sun' && !day().tint) { if (WEATHER.dirty) { g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); WEATHER.dirty = false; } return; }
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); WEATHER.dirty = true;
+  if (day().tint) { g.fillStyle = day().tint; g.fillRect(0, 0, W, H); }   // the hour's light
+  if (wx().tint) { g.fillStyle = wx().tint; g.fillRect(0, 0, W, H); }
+  if (day().fireflies) drawFireflies(g, t, still);              // above the tints, so they really glow
+  if (still || k === 'sun') return;
   const area = W * H / (dpr * dpr), want = k === 'rain' ? Math.round(area / 7000) : Math.round(area / 2600);
   while (WEATHER.parts.length < want) WEATHER.parts.push(spawn(W, H, k, dpr, WEATHER.parts.length < want * 0.9 && !WEATHER.started));
   WEATHER.started = true;
@@ -1173,7 +1470,28 @@ function drawWeather(t, dt, still) {
     if (WEATHER.flash > 0.01) { g.fillStyle = `rgba(235,240,255,${WEATHER.flash * 0.55})`; g.fillRect(0, 0, W, H); WEATHER.flash *= Math.pow(0.02, dt); }   // lightning
   }
 }
+// Fireflies after dark: small swarms hovering over the banks, each light circling slowly in its group, bobbing a
+// little, with a soft steady glow that only breathes. Fewer at dusk and in rain, none in a storm.
+function drawFireflies(g, t, still) {
+  const V = visible(), T = V.k; if (T < 8 || !LIVE.glow || !LIVE.swarms) return;
+  const n = Math.round(LIVE.swarms.length * day().fireflies * wx().flies); if (!n) return;
+  const halo = T * 0.13, core = Math.max(1, T * 0.022), far = Math.min(1, Math.max(0.12, (T - 8) / 40));   // seen from afar, only faint specks
+  for (let i = 0; i < n; i++) { const sw = LIVE.swarms[i];
+    const cx = sw.cx + Math.sin(t * sw.sp + sw.a) * 0.4, cy = sw.cy + Math.cos(t * sw.sp * 0.8 + sw.a) * 0.3;   // the group drifts a little
+    if (!inView(cx, cy, V, 2)) continue;
+    const breath = (still ? 1 : 0.9 + 0.1 * Math.sin(t * 0.5 + sw.a)) * far, spots = [];
+    for (const f of sw.flies) { const ang = f.a0 + t * f.w; spots.push([V.sx(cx + Math.cos(ang) * f.r), V.sy(cy + Math.sin(ang) * f.r * 0.6 + (still ? 0 : Math.sin(t * 1.3 + f.b) * f.bob)), (still ? 0.85 : 0.72 + 0.22 * Math.sin(t * 0.6 + f.b)) * far]); }
+    const R = T * 0.7;                                          // the dark lifts around each light, and the ground there shows its daytime colours
+    g.globalCompositeOperation = 'destination-out'; for (const [sx, sy, glow] of spots) { g.globalAlpha = 0.85 * glow * breath; g.drawImage(LIVE.cut, sx - R, sy - R, 2 * R, 2 * R); }
+    g.globalCompositeOperation = 'lighter'; for (const [sx, sy, glow] of spots) { g.globalAlpha = 0.35 * glow * breath; g.drawImage(LIVE.pool, sx - R, sy - R, 2 * R, 2 * R); }   // a little warm light
+    g.globalCompositeOperation = 'source-over';
+    for (const [sx, sy, glow] of spots) {
+      g.globalAlpha = glow * 0.85; g.drawImage(LIVE.glow, sx - halo, sy - halo, 2 * halo, 2 * halo);
+      g.globalAlpha = glow; g.fillStyle = '#fff0c8'; g.beginPath(); g.arc(sx, sy, core, 0, 6.2832); g.fill(); } }
+  g.globalAlpha = 1;
+}
 document.querySelectorAll('[data-weather]').forEach(b => b.addEventListener('click', () => setWeather(b.dataset.weather)));
+document.querySelectorAll('[data-daytime]').forEach(b => b.addEventListener('click', () => setDaytime(b.dataset.daytime)));
 
 
 // ---------- base layer letters: one letter per tile for the ground type the generator chose ----------
@@ -1187,9 +1505,10 @@ const letterOf = c => c.type === 'water' ? (c.ocean ? 'S' : 'W') : { grass: 'G',
 const showLetters = () => document.getElementById('letters').checked;
 function mapAsText() { const out = []; for (let y = 0; y < ROWS; y++) { let r = ''; for (let x = 0; x < COLS; x++) r += letterOf(MAP.cells[y * COLS + x]); out.push(r); } return out.join('\n'); }
 function drawLabels(V) {
-  const c = document.getElementById('labels'), g = c.getContext('2d'), W = c.width, H = c.height;
+  const c = document.getElementById('labels'); if (!c) return;
+  const g = c.getContext('2d'), W = c.width, H = c.height;
   g.clearRect(0, 0, W, H);
-  document.getElementById('legend').hidden = !showLetters();
+  const legend = document.getElementById('legend'); if (legend) legend.hidden = !showLetters();
   if (!showLetters() || !MAP) return;
   const T = V.k, dpr = DPR();
   g.globalAlpha = T < 14 * dpr ? 0.85 : 0.62;                    // a coloured plate per tile; letters once there is room for them
@@ -1286,10 +1605,7 @@ document.getElementById('zout').addEventListener('click', () => zoomAt(1 / 1.4, 
 document.getElementById('zfit').addEventListener('click', fit);
 view().addEventListener('dblclick', e => {                     // double-click zooms in on that spot (shift + double-click zooms out)
   e.preventDefault(); const r = view().getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
-  const total = e.shiftKey ? 0.5 : 2, start = performance.now(); let done = 1;
-  const step = now => { const k = Math.min(1, (now - start) / 220), eased = 1 - (1 - k) ** 3, f = total ** eased;
-    zoomAt(f / done, px, py); done = f; if (k < 1) requestAnimationFrame(step); };
-  requestAnimationFrame(step);
+  zoomTo(CAM.z * (e.shiftKey ? 0.5 : 2), px, py);
 });
 view().addEventListener('wheel', e => { e.preventDefault(); const r = view().getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
 const ptrs = new Map(); let pinch = 0;
@@ -1299,15 +1615,17 @@ view().addEventListener('pointermove', e => {
   const [px, py] = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
   if (ptrs.size === 2) {                                         // pinch to zoom on touch screens
     const [a, b] = [...ptrs.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), r = view().getBoundingClientRect();
-    if (pinch) zoomAt(d / pinch, (a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top); pinch = d; return;
+    if (pinch) zoomNow(d / pinch, (a[0] + b[0]) / 2 - r.left, (a[1] + b[1]) / 2 - r.top); pinch = d; return;
   }
   CAM.x -= (e.clientX - px) / CAM.z; CAM.y -= (e.clientY - py) / CAM.z; clampCam(); queue();
 });
 const up = e => { ptrs.delete(e.pointerId); pinch = 0; if (!ptrs.size) view().classList.remove('drag'); };
 view().addEventListener('pointerup', up); view().addEventListener('pointercancel', up);
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (CAM.z < zMin()) CAM.z = zMin(); clampCam(); redraw(); }, 150); });
+if (CAN_GRADE) document.getElementById('live').style.filter = 'none';   // the grade is in the sprites
+document.getElementById('weather').style.display = WEATHER.kind === 'sun' ? 'none' : '';
 buildPanel(); applyLook(); startAnim(); loadMaps();
-{ const w = new URLSearchParams(location.hash.slice(1)).get('weather'); if (WX[w]) setWeather(w); }   // e.g. tiles.html#weather=storm
+{ const h = new URLSearchParams(location.hash.slice(1)); if (WX[h.get('weather')]) setWeather(h.get('weather')); if (DAYS[h.get('daytime')]) setDaytime(h.get('daytime')); }   // e.g. tiles.html#weather=storm&daytime=night
 </script>
 </body>
 </html>
