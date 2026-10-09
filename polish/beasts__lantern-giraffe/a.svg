@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lantern giraffe">
+  <style>
+    .c1 { fill: var(--c1, #E8B040); }
+    .c2 { fill: var(--c2, #F8D880); }
+    .c3 { fill: var(--c3, #FFF0C8); }
+    .c4 { fill: var(--c4, #6A3A1A); }
+    .c5 { fill: var(--c5, #FFE060); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(200 200) scale(0.9223) translate(-224.0 -188.0)">
+  <!-- far legs: tops tuck up inside the body -->
+  <polygon class="c1" points="146,276 166,276 168,392 148,392"/>
+  <polygon class="c2" points="146,276 152,276 154,392 148,392"/>
+  <polygon class="c1" points="270,276 290,276 292,392 272,392"/>
+  <polygon class="c2" points="270,276 276,276 278,392 272,392"/>
+  <polygon class="c4" points="148,382 168,382 170,394 146,394"/>
+  <polygon class="c4" points="272,382 292,382 294,394 270,394"/>
+  <!-- near legs -->
+  <polygon class="c1" points="124,276 146,276 148,392 126,392"/>
+  <polygon class="c2" points="124,276 133,276 135,392 126,392"/>
+  <polygon class="c1" points="250,276 272,276 274,392 252,392"/>
+  <polygon class="c2" points="250,276 259,276 261,392 252,392"/>
+  <polygon class="c4" points="124,382 148,382 150,394 122,394"/>
+  <polygon class="c4" points="250,382 274,382 276,394 248,394"/>
+  <polygon class="c1" points="126,382 136,382 136,386 125,386"/>
+  <polygon class="c1" points="252,382 262,382 262,386 251,386"/>
+  <!-- tail with lantern -->
+  <polygon class="c4" points="114,266 100,300 98,322 106,322 110,302 120,278"/>
+  <polygon class="c4" points="94,318 110,318 107,314 97,314"/>
+  <polygon class="c5" points="92,322 112,322 114,332 110,342 96,342 90,332"/>
+  <polygon class="c3" points="96,324 104,324 104,334 98,336"/>
+  <polygon class="c4" points="96,342 108,342 105,346 99,346"/>
+  <!-- tall neck: the base runs down inside the shoulder -->
+  <polygon class="c1" points="224,266 244,196 262,100 270,66 300,48 318,68 308,120 292,196 282,266"/>
+  <polygon class="c2" points="224,266 244,196 262,100 270,66 300,48 286,100 266,200 250,266"/>
+  <polygon class="c2" points="270,66 300,48 292,68 278,74"/>
+  <polygon class="c3" points="318,68 308,120 292,196 286,196 300,120 310,70"/>
+  <!-- body -->
+  <polygon class="c1" points="110,252 150,232 240,232 282,252 286,302 250,322 140,322 112,298"/>
+  <polygon class="c2" points="110,252 150,232 240,232 262,242 230,248 190,250 150,256 116,272"/>
+  <polygon class="c2" points="116,272 150,256 140,284 124,298 112,298"/>
+  <polygon class="c3" points="250,322 140,322 112,298 126,300 160,310 240,308"/>
+  <!-- haunch and forearm: thighs flow out of the body into the legs -->
+  <polygon class="c1" points="114,292 140,296 154,300 150,320 148,340 126,340 122,316"/>
+  <polygon class="c2" points="114,292 126,296 128,318 132,340 126,340 122,316"/>
+  <polygon class="c1" points="244,290 270,286 290,292 288,320 274,340 252,340 248,318"/>
+  <polygon class="c2" points="244,290 256,290 258,318 260,340 252,340 248,318"/>
+  <!-- shoulder: blends the neck into the body -->
+  <polygon class="c1" points="226,244 246,198 290,214 286,264 244,268"/>
+  <polygon class="c2" points="226,244 246,198 262,206 252,240 238,256"/>
+  <polygon class="c3" points="292,196 290,214 286,264 280,262 284,214 286,196"/>
+  <!-- lantern patches -->
+  <polygon class="c4" points="160,246 176,240 190,240 194,258 196,270 182,278 170,282 164,264"/>
+  <polygon class="c5" points="170,252 184,250 186,258 186,266 174,270"/>
+  <polygon class="c4" points="206,250 220,246 232,246 236,262 234,276 220,282 208,284"/>
+  <polygon class="c5" points="214,256 226,254 228,262 226,268 216,272"/>
+  <polygon class="c4" points="262,150 274,146 282,148 280,176 272,180 266,180"/>
+  <polygon class="c5" points="268,154 278,152 276,168 270,170"/>
+  <polygon class="c4" points="270,100 280,96 290,98 290,120 274,124"/>
+  <polygon class="c4" points="256,196 266,192 276,194 276,220 258,224"/>
+  <!-- head and glowing lantern horns -->
+  <polygon class="c1" points="300,50 284,42 290,56 296,62"/>
+  <polygon class="c2" points="300,50 284,42 292,52"/>
+  <polygon class="c4" points="304,36 305,12 311,12 310,36"/>
+  <polygon class="c4" points="330,32 331,8 337,8 336,32"/>
+  <polygon class="c4" points="296,-6 320,-6 316,-12 300,-12"/>
+  <polygon class="c5" points="294,-6 322,-6 324,4 320,12 296,12 292,4"/>
+  <polygon class="c3" points="300,-2 308,-2 308,8 302,8"/>
+  <polygon class="c4" points="298,12 318,12 315,15 301,15"/>
+  <polygon class="c4" points="322,-12 346,-12 342,-18 326,-18"/>
+  <polygon class="c5" points="320,-12 348,-12 350,-2 346,6 322,6 318,-2"/>
+  <polygon class="c3" points="326,-8 334,-8 334,2 328,2"/>
+  <polygon class="c4" points="324,6 344,6 341,10 327,10"/>
+  <polygon class="c1" points="292,38 332,32 356,52 346,76 306,80 292,62"/>
+  <polygon class="c2" points="292,38 332,32 356,52 322,48"/>
+  <polygon class="c2" points="292,38 322,48 306,58 292,62"/>
+  <polygon class="c3" points="356,52 346,76 306,80 330,66"/>
+  <polygon class="eye" points="324,46 340,46 340,58 324,58"/>
+  <circle class="pupil" cx="332" cy="52" r="3"/>
+  <polygon class="c4" points="352,56 358,60 352,66"/>
+  </g>
+</svg>

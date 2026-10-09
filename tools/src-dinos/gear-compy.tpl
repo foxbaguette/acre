@@ -1,0 +1,35 @@
+<palette name="Gear compy" c1="#B8864A" c2="#E0B070" c3="#F4E4C0" c4="#3A2A18" c5="#FF9A3A"/>
+  <!-- tail -->
+  <ribbon pts="122,236,18 80,226,12 40,216,7 10,206,3" cls="c1" top="c2" under="c4"/>
+  <!-- far hind leg -->
+  <polygon class="c1" points="150,256 120,290 90,300 94,310 128,304 160,266"/>
+  <polygon class="c4" points="90,300 94,310 72,314"/>
+  <!-- back gear -->
+  <polygon class="c4" points="204,148 212,148 212,162 204,162"/>
+  <polygon class="c4" points="236,160 246,168 236,178 226,170"/>
+  <polygon class="c4" points="168,160 178,168 168,178 158,170"/>
+  <polygon class="c4" points="184,172 208,162 232,172 242,196 232,218 208,226 184,216 174,194"/>
+  <polygon class="c5" points="194,182 208,176 222,182 228,196 222,210 208,216 194,210 188,196"/>
+  <polygon class="c3" points="204,190 212,190 212,200 204,200"/>
+  <!-- body -->
+  <polygon class="c1" points="120,232 160,206 230,204 280,220 292,244 260,264 170,268 126,258"/>
+  <polygon class="c2" points="160,206 230,204 280,220 292,244 240,226 170,232"/>
+  <polygon class="c3" points="260,264 170,268 126,258 180,256 250,250"/>
+  <polygon class="c5" points="240,232 262,228 264,246 244,250"/>
+  <polygon class="c4" points="250,236 256,236 256,244 250,244"/>
+  <!-- near hind leg -->
+  <polygon class="c1" points="170,256 214,262 226,310 210,316 192,284 160,274"/>
+  <polygon class="c4" points="210,314 228,308 240,318 216,324"/>
+  <!-- tiny arms -->
+  <polygon class="c1" points="270,230 298,240 304,258 296,260 280,248"/>
+  <polygon class="c4" points="302,254 312,256 304,262"/>
+  <!-- head -->
+  <polygon class="c1" points="290,198 330,188 370,202 372,216 332,224 296,226"/>
+  <polygon class="c2" points="290,198 330,188 370,202 332,200"/>
+  <polygon class="c4" points="330,212 372,212 368,224 332,220"/>
+  <polygon class="c3" points="340,210 345,210 342,218"/>
+  <polygon class="c3" points="354,210 359,210 356,218"/>
+  <polygon class="c5" points="296,196 300,178 312,194"/>
+  <polygon class="eye" points="316,200 332,198 332,210 316,212"/>
+  <circle class="pupil" cx="324" cy="205" r="3"/>
+</svg>

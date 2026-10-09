@@ -1,0 +1,21 @@
+<palette name="Skunk" c1="#2A2A32" c2="#44444E" c3="#F8F8F4" c4="#0E0E12" c5="#C8C8D0"/>
+  <polygon class="c1" points="110,330 80,260 90,170 130,110 176,100 190,150 170,210 150,280 150,330"/>
+  <polygon class="c3" points="130,110 176,100 190,150 170,210 150,160 138,170 124,216 100,170"/>
+  <polygon class="c2" points="90,170 100,170 124,216 118,280 98,250"/>
+  <polygon class="c1" points="150,340 170,290 220,260 270,276 296,320 280,366 160,372"/>
+  <polygon class="c2" points="170,290 220,260 270,276 296,320 230,290 190,304"/>
+  <polygon class="c3" points="196,262 232,262 280,300 296,320 236,296 210,296"/>
+  <polygon class="c1" points="150,346 200,356 196,380 130,382"/>
+  <polygon class="c4" points="126,376 198,376 198,384 126,384"/>
+  <polygon class="c1" points="250,330 290,336 306,376 270,382"/>
+  <polygon class="c4" points="266,376 308,376 308,384 266,384"/>
+  <polygon class="c1" points="270,290 300,262 340,254 372,274 380,306 356,334 310,332"/>
+  <polygon class="c2" points="300,262 340,254 372,274 336,280"/>
+  <polygon class="c3" points="318,258 336,254 340,300 326,304"/>
+  <polygon class="c5" points="372,290 380,306 356,334 344,316"/>
+  <polygon class="c4" points="368,282 382,292 368,300"/>
+  <polygon class="c1" points="304,262 296,240 322,256"/>
+  <polygon class="c1" points="346,256 356,236 362,264"/>
+  <polygon class="eye" points="330,290 346,290 346,304 332,306"/>
+  <circle class="pupil" cx="338" cy="297" r="3"/>
+</svg>

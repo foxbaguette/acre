@@ -1,0 +1,26 @@
+<palette name="Cheetah" c1="#E4B05A" c2="#F4D088" c3="#FBF0D4" c4="#2E1C0E" c5="#B8782E"/>
+  <ribbon pts="90,230,10 50,214,13 22,180,9 30,146,4" cls="c1" top="c2" under="c4"/>
+  <polygon class="c4" points="30,146 18,130 40,134"/>
+  <polygon class="c4" points="36,196 46,192 48,204 38,208"/>
+  <polygon class="c1" points="230,262 280,288 322,310 340,330 320,338 276,314 226,290"/>
+  <polygon class="c1" points="150,270 120,300 70,320 56,340 78,346 130,330 168,300"/>
+  <polygon class="c1" points="86,236 126,206 200,200 262,216 296,244 274,274 200,262 120,270 90,258"/>
+  <polygon class="c2" points="126,206 200,200 262,216 296,244 220,226 150,226"/>
+  <polygon class="c3" points="274,274 200,262 120,270 90,258 150,254 240,256"/>
+  <polygon class="c4" points="140,222 152,220 154,232 142,234"/>
+  <polygon class="c4" points="176,216 188,214 190,226 178,228"/>
+  <polygon class="c4" points="214,220 226,220 228,232 216,232"/>
+  <polygon class="c4" points="248,230 258,230 260,240 250,240"/>
+  <polygon class="c1" points="270,252 310,270 360,300 380,320 360,328 306,300 262,280"/>
+  <polygon class="c1" points="108,258 150,276 110,320 66,350 50,344 70,310 104,286"/>
+  <polygon class="c4" points="320,332 342,336 338,346 316,342"/>
+  <polygon class="c4" points="54,342 76,350 70,360 48,354"/>
+  <polygon class="c1" points="290,232 306,200 346,188 378,206 380,236 346,258 310,258"/>
+  <polygon class="c2" points="306,200 346,188 378,206 340,208"/>
+  <polygon class="c3" points="380,236 346,258 310,258 344,238"/>
+  <polygon class="c4" points="372,226 384,232 374,240"/>
+  <polygon class="c1" points="314,198 310,176 336,192"/>
+  <polygon class="c4" points="330,210 336,230 342,230 336,212"/>
+  <polygon class="eye" points="326,210 346,208 346,222 328,224"/>
+  <circle class="pupil" cx="336" cy="216" r="3.4"/>
+</svg>

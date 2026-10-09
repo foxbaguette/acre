@@ -1,0 +1,36 @@
+<palette name="Baku" c1="#9A8AB8" c2="#C0B0D8" c3="#F4F0FA" c4="#3A2E54" c5="#FFD870"/>
+  <!-- ox tail with a star tuft -->
+  <polygon class="c4" points="100,232 72,252 68,292 84,286 94,258"/>
+  <polygon class="c5" points="68,292 52,296 62,310 80,300"/>
+  <!-- far legs -->
+  <polygon class="c1" points="236,270 272,272 276,336 238,338"/>
+  <polygon class="c1" points="150,272 188,274 190,336 152,338"/>
+  <!-- body -->
+  <polygon class="c1" points="100,212 150,182 240,182 290,212 296,262 260,288 140,288 108,258"/>
+  <polygon class="c2" points="150,182 240,182 290,212 296,262 240,218 160,226"/>
+  <polygon class="c3" points="260,288 140,288 108,258 160,274 250,274"/>
+  <polygon class="c5" points="190,198 198,210 190,222 182,210"/>
+  <polygon class="c5" points="236,206 242,216 236,226 230,216"/>
+  <polygon class="c5" points="140,212 146,222 140,232 134,222"/>
+  <!-- near striped legs -->
+  <polygon class="c1" points="258,272 296,272 300,336 262,338"/>
+  <polygon class="c4" points="260,296 298,296 298,304 260,304"/>
+  <polygon class="c4" points="261,318 299,318 300,326 262,326"/>
+  <polygon class="c1" points="126,274 170,276 172,336 132,338"/>
+  <polygon class="c4" points="128,298 171,298 171,306 129,306"/>
+  <polygon class="c4" points="129,320 172,320 172,328 130,328"/>
+  <polygon class="c3" points="256,332 304,332 306,346 254,346"/>
+  <polygon class="c3" points="124,332 174,332 176,346 122,346"/>
+  <!-- tapir head and long trunk -->
+  <ribbon pts="362,226,26 386,256,22 392,298,14 374,322,8" cls="c1" top="c2" under="c3"/>
+  <polygon class="c1" points="290,198 330,184 366,204 372,238 346,258 300,244"/>
+  <polygon class="c2" points="290,198 330,184 366,204 330,206"/>
+  <polygon class="c3" points="372,238 346,258 300,244 330,236"/>
+  <polygon class="c3" points="350,248 364,264 352,268"/>
+  <polygon class="c1" points="300,192 296,166 322,184"/>
+  <polygon class="c4" points="302,186 300,174 316,184"/>
+  <polygon class="c3" points="296,166 304,160 312,172"/>
+  <polygon class="c4" points="326,210 352,210 352,216 328,218"/>
+  <polygon class="eye" points="332,216 348,216 348,228 332,228"/>
+  <circle class="pupil" cx="340" cy="222" r="3"/>
+</svg>

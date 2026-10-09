@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sea monk">
+  <style>
+    .c1 { fill: var(--c1, #6A4A38); }
+    .c2 { fill: var(--c2, #9A7458); }
+    .c3 { fill: var(--c3, #C8D8D0); }
+    .c4 { fill: var(--c4, #1E1410); }
+    .c5 { fill: var(--c5, #E8C040); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(0 -28)">
+  <polygon class="c3" points="200,396 160,350 170,320 230,320 240,350"/>
+  <polygon class="c1" points="150,396 200,350 250,396 200,376"/>
+  <polygon class="c1" points="140,160 260,160 300,260 270,350 200,372 130,350 100,260"/>
+  <polygon class="c2" points="140,160 200,160 200,372 130,350 100,260"/>
+  <polygon class="c4" points="198,160 202,160 202,372 198,372"/>
+  <polygon class="c5" points="196,230 204,230 204,300 196,300"/>
+  <polygon class="c5" points="184,254 216,254 216,262 184,262"/>
+  <polygon class="c3" points="100,260 60,300 90,320 124,282"/>
+  <polygon class="c3" points="300,260 340,300 310,320 276,282"/>
+  <polygon class="c1" points="150,70 250,70 280,150 260,200 140,200 120,150"/>
+  <polygon class="c2" points="150,70 200,60 200,200 140,200 120,150"/>
+  <polygon class="c3" points="160,110 240,110 252,160 200,206 148,160"/>
+  <polygon class="c4" points="176,176 224,176 214,196 186,196"/>
+  <polygon class="c3" points="182,178 190,178 186,190"/>
+  <polygon class="c3" points="196,178 204,178 200,192"/>
+  <polygon class="c3" points="210,178 218,178 214,190"/>
+  <polygon class="eye" points="166,126 192,126 192,152 168,154"/>
+  <circle class="pupil" cx="179" cy="140" r="7"/>
+  <polygon class="eye" points="234,126 208,126 208,152 232,154"/>
+  <circle class="pupil" cx="221" cy="140" r="7"/>
+  <polygon class="c5" points="190,66 210,66 206,84 194,84"/>
+  </g>
+</svg>

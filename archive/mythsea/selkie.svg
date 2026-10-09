@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Selkie">
+  <style>
+    .c1 { fill: var(--c1, #6A6A7A); }
+    .c2 { fill: var(--c2, #9A9AAA); }
+    .c3 { fill: var(--c3, #E8E4DC); }
+    .c4 { fill: var(--c4, #22222C); }
+    .c5 { fill: var(--c5, #E8B040); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-8 -48)">
+  <polygon class="c1" points="96,330 40,280 20,230 60,220 90,262 130,300"/>
+  <polygon class="c2" points="40,280 20,230 60,220 56,250"/>
+  <polygon class="c1" points="96,340 120,250 170,200 230,180 290,200 300,260 250,330 160,360"/>
+  <polygon class="c2" points="170,200 230,180 290,200 300,260 230,214 180,236"/>
+  <polygon class="c3" points="300,260 250,330 160,360 96,340 190,320 260,290"/>
+  <polygon class="c4" points="150,260 166,250 172,270 156,280"/>
+  <polygon class="c4" points="200,230 216,222 222,242 206,250"/>
+  <polygon class="c4" points="240,256 256,250 258,270 244,276"/>
+  <polygon class="c1" points="270,230 260,180 280,140 330,136 360,160 354,196 310,210"/>
+  <polygon class="c2" points="260,180 280,140 330,136 310,162"/>
+  <polygon class="c3" points="354,196 360,160 376,178 372,204 340,214 316,206"/>
+  <polygon class="c4" points="368,168 380,174 372,184"/>
+  <polygon class="c3" points="352,196 394,190 388,200 350,206"/>
+  <polygon class="c3" points="352,188 396,176 390,186 350,196"/>
+  <polygon class="c5" points="280,196 300,190 304,210 286,214"/>
+  <polygon class="c1" points="236,300 270,310 280,356 250,346"/>
+  <polygon class="eye" points="316,166 336,164 336,178 318,180"/>
+  <circle class="pupil" cx="327" cy="172" r="5"/>
+  </g>
+</svg>

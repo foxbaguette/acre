@@ -1,0 +1,43 @@
+<palette name="Moss sloth" c1="#8A7A5A" c2="#B0A07A" c3="#E8DCC0" c4="#3A3020" c5="#D84A4A"/>
+  <sym>
+  <!-- long hanging arm -->
+  <polygon class="c1" points="140,180 100,222 84,304 98,348 122,344 118,300 132,240"/>
+  <polygon class="c2" points="140,180 100,222 110,226 134,196"/>
+  <polygon class="c4" points="98,346 92,378 106,372"/>
+  <polygon class="c4" points="106,346 106,380 118,372"/>
+  <polygon class="c4" points="114,344 120,378 128,368"/>
+  <!-- folded leg -->
+  <polygon class="c2" points="150,300 196,300 196,346 144,346"/>
+  <!-- eye mask and eye -->
+  <polygon class="c4" points="148,112 186,108 190,134 160,142"/>
+  <polygon class="eye" points="160,116 180,114 182,128 164,130"/>
+  <circle class="pupil" cx="171" cy="122" r="3.4"/>
+  </sym>
+  <!-- body -->
+  <polygon class="c1" points="140,160 260,160 290,240 270,330 130,330 110,240"/>
+  <polygon class="c3" points="170,190 230,190 240,270 200,320 160,270"/>
+  <polygon class="c2" points="140,160 260,160 250,184 150,184"/>
+  <!-- mushrooms and ferns -->
+  <polygon class="c4" points="250,170 296,128 276,174"/>
+  <polygon class="c4" points="150,170 104,128 124,174"/>
+  <polygon class="c3" points="184,160 196,160 196,176 184,176"/>
+  <polygon class="c5" points="162,162 170,134 210,134 220,162"/>
+  <polygon class="c3" points="176,144 184,140 186,150 178,152"/>
+  <polygon class="c3" points="196,146 204,144 204,154 196,154"/>
+  <polygon class="c3" points="246,156 254,156 254,170 246,170"/>
+  <polygon class="c5" points="232,158 238,138 268,138 270,158"/>
+  <polygon class="c3" points="246,146 252,144 254,152 248,154"/>
+  <polygon class="c3" points="134,104 142,104 142,124 134,124"/>
+  <polygon class="c5" points="122,108 128,86 154,86 156,108"/>
+  <polygon class="c3" points="134,94 140,92 142,100 136,102"/>
+  <!-- head -->
+  <polygon class="c3" points="160,84 240,84 262,122 250,172 150,172 138,122"/>
+  <polygon class="c1" points="160,84 200,62 240,84 200,94"/>
+  <sym>
+  <polygon class="c4" points="148,112 186,108 190,134 160,142"/>
+  <polygon class="eye" points="160,116 180,114 182,128 164,130"/>
+  <circle class="pupil" cx="171" cy="122" r="3.4"/>
+  </sym>
+  <polygon class="c4" points="190,132 210,132 200,144"/>
+  <polygon class="c4" points="180,154 200,160 220,154 220,158 200,164 180,158"/>
+</svg>

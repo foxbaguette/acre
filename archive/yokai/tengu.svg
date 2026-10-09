@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tengu">
+  <style>
+    .c1 { fill: var(--c1, #3A3A4A); }
+    .c2 { fill: var(--c2, #5E5E72); }
+    .c3 { fill: var(--c3, #F0E8D8); }
+    .c4 { fill: var(--c4, #14141C); }
+    .c5 { fill: var(--c5, #D83A2A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(0 -27)">
+    <!-- dark feathered wings -->
+    <polygon class="c4" points="172,176 168,186 20,133 20,100"/>
+  <polygon class="c1" points="168,186 165,196 20,167 20,133"/>
+  <polygon class="c4" points="165,196 161,206 20,200 20,167"/>
+  <polygon class="c1" points="161,206 157,216 20,233 20,200"/>
+  <polygon class="c4" points="157,216 154,226 20,267 20,233"/>
+  <polygon class="c1" points="154,226 150,236 20,300 20,267"/>
+  <!-- tall geta sandals -->
+  <polygon class="c3" points="160,340 190,340 190,360 160,360"/>
+  <polygon class="c4" points="148,360 200,360 200,372 148,372"/>
+  <polygon class="c4" points="156,372 168,372 168,394 156,394"/>
+  <polygon class="c4" points="182,372 194,372 194,394 182,394"/>
+  <!-- sleeve and hand -->
+  <polygon class="c1" points="150,180 110,222 100,300 132,310 140,242"/>
+  <polygon class="c2" points="150,180 110,222 120,226 144,198"/>
+  <polygon class="c3" points="100,300 132,310 126,330 104,326"/>
+  <!-- white hair, brow and eye -->
+  <polygon class="c3" points="154,108 138,140 160,152"/>
+  <polygon class="c3" points="166,108 196,116 194,128 168,124"/>
+  <polygon class="eye" points="172,128 190,128 190,140 174,140"/>
+  <circle class="pupil" cx="181" cy="134" r="3"/>
+    <!-- dark feathered wings -->
+    <polygon class="c4" points="228,176 232,186 380,133 380,100"/>
+  <polygon class="c1" points="232,186 235,196 380,167 380,133"/>
+  <polygon class="c4" points="235,196 239,206 380,200 380,167"/>
+  <polygon class="c1" points="239,206 243,216 380,233 380,200"/>
+  <polygon class="c4" points="243,216 246,226 380,267 380,233"/>
+  <polygon class="c1" points="246,226 250,236 380,300 380,267"/>
+  <!-- tall geta sandals -->
+  <polygon class="c3" points="240,340 210,340 210,360 240,360"/>
+  <polygon class="c4" points="252,360 200,360 200,372 252,372"/>
+  <polygon class="c4" points="244,372 232,372 232,394 244,394"/>
+  <polygon class="c4" points="218,372 206,372 206,394 218,394"/>
+  <!-- sleeve and hand -->
+  <polygon class="c1" points="250,180 290,222 300,300 268,310 260,242"/>
+  <polygon class="c2" points="250,180 290,222 280,226 256,198"/>
+  <polygon class="c3" points="300,300 268,310 274,330 296,326"/>
+  <!-- white hair, brow and eye -->
+  <polygon class="c3" points="246,108 262,140 240,152"/>
+  <polygon class="c3" points="234,108 204,116 206,128 232,124"/>
+  <polygon class="eye" points="228,128 210,128 210,140 226,140"/>
+  <circle class="pupil" cx="219" cy="134" r="3"/>
+    <!-- robe -->
+  <polygon class="c1" points="150,170 250,170 270,260 280,340 120,340 130,260"/>
+  <polygon class="c2" points="150,170 200,170 200,340 120,340 130,260"/>
+  <polygon class="c3" points="176,172 200,212 224,172 224,182 200,226 176,182"/>
+  <polygon class="c5" points="140,250 260,250 262,270 138,270"/>
+  <polygon class="c3" points="190,250 210,250 210,272 190,272"/>
+  <!-- head with long nose -->
+  <polygon class="c5" points="168,92 232,92 246,128 232,162 168,162 154,128"/>
+  <polygon class="c5" points="186,126 214,126 200,192"/>
+  <polygon class="c3" points="190,128 200,128 200,180"/>
+  <polygon class="c4" points="188,74 212,74 212,94 188,94"/>
+  <polygon class="c3" points="196,60 204,60 204,76 196,76"/>
+  <polygon class="c4" points="194,152 206,152 200,160"/>
+  </g>
+</svg>

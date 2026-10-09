@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Skull tortoise">
+  <style>
+    .c1 { fill: var(--c1, #8A8A68); }
+    .c2 { fill: var(--c2, #AEAE88); }
+    .c3 { fill: var(--c3, #EEE4CA); }
+    .c4 { fill: var(--c4, #1A1A12); }
+    .c5 { fill: var(--c5, #7AF0A0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-19 -71)">
+  <polygon class="c1" points="150,310 200,310 192,356 198,378 142,378 142,346"/>
+  <polygon class="c1" points="250,310 300,312 306,346 306,378 252,378 246,340"/>
+  <polygon class="c4" points="136,372 200,372 202,382 134,382"/>
+  <polygon class="c4" points="250,372 308,372 310,382 248,382"/>
+  <polygon class="c1" points="60,318 80,240 130,180 200,160 270,180 324,240 344,318"/>
+  <polygon class="c2" points="80,240 130,180 200,160 270,180 324,240 240,210 150,220"/>
+  <polygon class="c3" points="130,200 270,200 280,260 250,310 150,310 120,260"/>
+  <polygon class="c4" points="150,232 188,232 188,268 154,274"/>
+  <polygon class="c4" points="212,232 250,232 246,274 212,268"/>
+  <polygon class="c4" points="192,280 208,280 200,296"/>
+  <polygon class="c4" points="166,296 234,296 230,308 170,308"/>
+  <polygon class="c3" points="176,298 184,298 182,308 176,308"/>
+  <polygon class="c3" points="192,298 200,298 200,308 192,308"/>
+  <polygon class="c3" points="208,298 216,298 216,308 208,308"/>
+  <polygon class="c5" points="160,244 178,242 176,262 160,262"/>
+  <polygon class="c5" points="222,242 240,244 240,262 224,262"/>
+  <polygon class="c1" points="320,300 350,270 380,266 396,284 390,316 350,324 326,326"/>
+  <polygon class="c2" points="350,270 380,266 396,284 366,282"/>
+  <polygon class="c3" points="390,316 396,284 398,300 390,320"/>
+  <polygon class="c4" points="388,288 398,294 388,302"/>
+  <polygon class="eye" points="362,282 378,282 378,294 364,295"/>
+  <circle class="pupil" cx="370" cy="288" r="2.8"/>
+  <polygon class="c1" points="60,318 40,330 62,346"/>
+  </g>
+</svg>

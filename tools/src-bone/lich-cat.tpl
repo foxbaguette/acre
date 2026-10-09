@@ -1,0 +1,33 @@
+<palette name="Lich cat" c1="#4A3A5A" c2="#6E5A82" c3="#EEE4D0" c4="#120E18" c5="#9AF060"/>
+  <ribbon pts="120,350,12 70,352,16 40,310,12 56,260,5" cls="c1" top="c2" under="c4"/>
+  <polygon class="c3" points="56,262 48,240 64,244"/>
+  <polygon class="c3" points="62,300 70,294 74,306 66,312"/>
+  <polygon class="c1" points="106,350 124,276 170,230 236,238 266,300 256,352 220,380 130,380"/>
+  <polygon class="c2" points="124,276 170,230 236,238 266,300 204,262 150,290"/>
+  <polygon class="c4" points="170,262 224,266 230,330 200,356 172,330"/>
+  <polygon class="c5" points="188,284 210,286 212,320 192,322"/>
+  <polygon class="c3" points="176,270 184,270 186,336 178,336"/>
+  <polygon class="c3" points="212,274 220,276 218,336 210,336"/>
+  <polygon class="c3" points="112,374 190,374 196,388 106,388"/>
+  <polygon class="c4" points="124,382 128,392 134,382"/>
+  <polygon class="c1" points="236,288 270,296 282,350 264,388 238,382"/>
+  <polygon class="c3" points="236,382 280,382 284,394 232,394"/>
+  <polygon class="c1" points="190,230 190,170 220,126 270,120 304,150 308,210 270,246 220,252"/>
+  <polygon class="c2" points="190,170 220,126 270,120 304,150 250,150"/>
+  <polygon class="c3" points="214,186 288,186 298,222 262,252 226,236"/>
+  <polygon class="c4" points="224,194 248,194 250,218 228,220"/>
+  <polygon class="c4" points="262,194 286,194 284,216 266,220"/>
+  <polygon class="c4" points="250,226 262,226 256,238"/>
+  <polygon class="c3" points="240,240 246,240 244,252"/>
+  <polygon class="c3" points="258,240 264,240 262,252"/>
+  <polygon class="c1" points="196,172 184,120 224,134"/>
+  <polygon class="c4" points="198,164 192,134 216,142"/>
+  <polygon class="c1" points="290,148 304,106 308,158"/>
+  <polygon class="c4" points="296,146 304,120 304,150"/>
+  <polygon class="c3" points="214,132 226,106 238,124 250,98 262,122 276,104 280,130"/>
+  <polygon class="c5" points="244,118 250,106 256,118 250,128"/>
+  <polygon class="eye" points="228,198 244,198 244,212 230,213"/>
+  <circle class="pupil" cx="236" cy="205" r="3"/>
+  <polygon class="eye" points="268,198 282,198 282,210 270,212"/>
+  <circle class="pupil" cx="275" cy="204" r="3"/>
+</svg>

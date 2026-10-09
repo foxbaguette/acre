@@ -1,0 +1,46 @@
+<palette name="Blossom stag" c1="#A06A44" c2="#C48C62" c3="#F4E4D0" c4="#3A2418" c5="#F8A8C8"/>
+  <!-- antler tree -->
+  <polygon class="c4" points="334,94 340,34 350,34 346,96"/>
+  <polygon class="c4" points="340,72 306,44 312,36 346,62"/>
+  <polygon class="c4" points="342,56 376,28 382,36 348,68"/>
+  <polygon class="c4" points="340,46 322,8 330,6 348,42"/>
+  <polygon class="c5" points="296,42 310,30 322,40 314,54 298,54"/>
+  <polygon class="c5" points="368,26 382,16 394,28 386,40 370,40"/>
+  <polygon class="c5" points="312,8 326,-2 338,8 330,22 314,22"/>
+  <polygon class="c5" points="340,26 352,16 362,26 354,38 342,38"/>
+  <polygon class="c5" points="316,60 322,54 328,62 322,68"/>
+  <polygon class="c5" points="366,52 372,46 378,54 372,60"/>
+  <polygon class="c5" points="270,90 276,84 282,92 276,98"/>
+  <polygon class="c5" points="250,140 256,134 262,142 256,148"/>
+  <!-- far legs -->
+  <polygon class="c1" points="238,230 266,234 270,300 268,340 246,340 248,300"/>
+  <polygon class="c1" points="140,232 176,238 170,300 168,340 146,340 150,300"/>
+  <polygon class="c4" points="246,330 268,330 270,342 244,342"/>
+  <polygon class="c4" points="146,330 168,330 170,342 144,342"/>
+  <!-- tail -->
+  <polygon class="c3" points="114,190 96,196 92,212 110,214"/>
+  <!-- body -->
+  <polygon class="c1" points="110,172 170,150 250,150 292,172 298,222 272,246 140,246 112,224"/>
+  <polygon class="c2" points="110,172 170,150 250,150 292,172 236,172 170,178 124,198"/>
+  <polygon class="c3" points="298,222 272,246 140,246 112,224 160,236 260,232"/>
+  <polygon class="c3" points="200,186 208,182 214,188 206,194"/>
+  <polygon class="c3" points="170,200 178,196 184,202 176,208"/>
+  <polygon class="c3" points="230,196 238,192 244,198 236,204"/>
+  <!-- near legs -->
+  <polygon class="c1" points="262,226 294,232 300,300 296,340 270,340 272,300"/>
+  <polygon class="c1" points="118,220 162,230 154,300 150,340 124,340 128,300"/>
+  <polygon class="c2" points="118,220 162,230 158,246 124,238"/>
+  <polygon class="c4" points="270,330 298,330 300,342 266,342"/>
+  <polygon class="c4" points="126,330 152,330 154,342 122,342"/>
+  <!-- neck and head -->
+  <polygon class="c1" points="272,160 300,110 330,90 350,110 330,142 296,204"/>
+  <polygon class="c2" points="272,160 300,110 330,90 316,122 292,160"/>
+  <polygon class="c3" points="296,204 330,142 318,196"/>
+  <polygon class="c1" points="326,92 360,98 388,122 376,142 346,146 326,126"/>
+  <polygon class="c2" points="326,92 360,98 388,122 352,114"/>
+  <polygon class="c3" points="388,122 376,142 346,146 360,132"/>
+  <polygon class="c1" points="324,94 310,74 332,86"/>
+  <polygon class="eye" points="342,106 358,108 358,120 342,118"/>
+  <circle class="pupil" cx="350" cy="113" r="3"/>
+  <polygon class="c4" points="384,122 392,126 386,134"/>
+</svg>

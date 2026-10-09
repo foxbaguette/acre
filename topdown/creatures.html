@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creatures Sheet</title>
+<style>
+  :root {
+    --bg: #f4f2ee; --panel: #ffffff; --tile: #eeebe5; --ink: #1f1d1a; --muted: #6f6a62;
+    --line: #d9d4cb; --ok: #2f7a4a; --wait: #a07a1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93;
+      --line: #3a3732; --ok: #6cc28c; --wait: #d8b04a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93;
+    --line: #3a3732; --ok: #6cc28c; --wait: #d8b04a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { max-width: 1240px; margin: 0 auto; padding: 28px 16px 12px; }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.01em; }
+  .sub { margin: 0; color: var(--muted); }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 14px; color: var(--muted); }
+  .bar label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .progress { font-variant-numeric: tabular-nums; }
+  main { max-width: 1240px; margin: 0 auto; padding: 0 16px 40px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .head h2 { margin: 0; font-size: 16px; }
+  .badge { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .badge.done { color: var(--ok); } .badge.wait { color: var(--wait); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  figure { margin: 0; background: var(--tile); border-radius: 10px; overflow: hidden; }
+  figure img { width: 100%; aspect-ratio: 1; display: block; }
+  figcaption { padding: 5px 9px; font-size: 12px; color: var(--muted); }
+  .pending img { opacity: .25; }
+  a.big { color: inherit; }
+  .crumb { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+  .crumb a { color: inherit; }
+</style>
+</head>
+<body>
+<header>
+  <p class="crumb"><a href="index.html">Sheets</a> / Creatures</p>
+  <h1>Creatures</h1>
+  <p class="sub">Each favorite seen from the side and from above. New top-down drawings appear here by themselves as they are finished.</p>
+  <div class="bar">
+    <span class="progress" id="progress">Loading…</span>
+    <label><input type="checkbox" id="onlyDone"> Show finished only</label>
+  </div>
+</header>
+<main id="cards"></main>
+<script>
+let keys = [];
+const stamps = {};
+const folder = k => k.replace('/', '__');
+const title = k => k.split('/')[1].replace(/-polished$/, '').split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+
+function render() {
+  const main = document.getElementById('cards');
+  main.innerHTML = keys.map(k => `
+    <section class="card" data-key="${k}">
+      <div class="head"><h2>${title(k)}</h2><span class="badge wait">Drawing…</span></div>
+      <div class="pair">
+        <figure><img alt="${title(k)} from the side" src="${folder(k)}/side.svg"><figcaption>Side</figcaption></figure>
+        <figure class="pending"><a class="big" target="_blank" href="${folder(k)}/top.svg"><img alt="${title(k)} from above" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></a><figcaption>From above</figcaption></figure>
+      </div>
+    </section>`).join('');
+  applyFilter();
+}
+
+function applyFilter() {
+  const only = document.getElementById('onlyDone').checked;
+  document.querySelectorAll('.card').forEach(c => { c.hidden = only && !stamps[c.dataset.key]; });
+}
+
+async function poll() {
+  let done = 0;
+  await Promise.all(keys.map(async k => {
+    let s = '';
+    try { const r = await fetch(`${folder(k)}/done.txt?t=${Date.now()}`, { cache: 'no-store' }); if (r.ok) s = (await r.text()).trim(); } catch (e) {}
+    if (s) done++;
+    if (s && s !== stamps[k]) {
+      stamps[k] = s;
+      const card = document.querySelector(`.card[data-key="${k}"]`);
+      if (card) {
+        const b = card.querySelector('.badge'); b.className = 'badge done'; b.textContent = 'Done';
+        const fig = card.querySelectorAll('figure')[1]; fig.classList.remove('pending');
+        fig.querySelector('img').src = `${folder(k)}/top.svg?t=${encodeURIComponent(s)}`;
+      }
+    }
+  }));
+  document.getElementById('progress').textContent = `${done} of ${keys.length} drawn from above`;
+  applyFilter();
+}
+
+document.getElementById('onlyDone').addEventListener('change', applyFilter);
+fetch('favorites.txt?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()).then(t => {
+  keys = t.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  render(); poll(); setInterval(poll, 5000);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ember butterfly">
+  <style>
+    .c1 { fill: var(--c1, #E8641E); }
+    .c2 { fill: var(--c2, #F89C4A); }
+    .c3 { fill: var(--c3, #FFE2A8); }
+    .c4 { fill: var(--c4, #2A1608); }
+    .c5 { fill: var(--c5, #FFD84A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-43 4.5)">
+  <!-- legs -->
+  <polygon class="c4" points="196,250 224,290 218,298 190,262"/>
+  <polygon class="c4" points="194,262 168,300 162,296 188,258"/>
+  <!-- abdomen -->
+    <polygon class="c4" points="202,241 195,291 185,289 190,239"/>
+  <polygon class="c4" points="202,241 195,291 191,290 197,240"/>
+  <polygon class="c4" points="190,239 185,289 188,290 194,240"/>
+  <polygon class="c4" points="195,291 182,331 178,329 185,289"/>
+  <polygon class="c4" points="195,291 182,331 181,330 192,290"/>
+  <polygon class="c4" points="185,289 178,329 180,330 189,290"/>
+  <!-- hindwing -->
+  <polygon class="c1" points="200,232 240,252 300,230 312,290 270,322 220,292"/>
+  <polygon class="c2" points="200,232 240,252 260,262 214,268"/>
+  <polygon class="c4" points="312,290 270,322 266,318 306,288"/>
+  <polygon class="c3" points="262,282 276,276 282,290 268,296"/>
+  <!-- forewing -->
+  <polygon class="c1" points="200,230 230,120 270,70 330,60 340,110 300,200 240,250"/>
+  <polygon class="c2" points="230,120 270,70 330,60 300,110 262,150"/>
+  <polygon class="c4" points="330,60 340,110 335,114 324,64"/>
+  <polygon class="c4" points="200,230 206,228 322,62 326,66"/>
+  <polygon class="c3" points="300,102 312,98 316,112 304,116"/>
+  <polygon class="c3" points="280,140 292,136 296,150 284,154"/>
+  <!-- head and antennae -->
+  <polygon class="c1" points="186,214 214,214 220,236 180,236"/>
+  <polygon class="pupil" points="182,216 196,214 198,230 184,232"/>
+  <circle class="eye" cx="190" cy="222" r="2"/>
+    <polygon class="c4" points="189,216 169,181 171,179 191,216"/>
+  <polygon class="c4" points="169,181 149,150 151,150 171,179"/>
+  <polygon class="c5" points="146,152 154,148 156,156 148,160"/>
+  </g>
+</svg>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Squirrel">
+  <style>
+    .c1 { fill: var(--c1, #C06A3A); }
+    .c2 { fill: var(--c2, #E08A56); }
+    .c3 { fill: var(--c3, #F8E8D4); }
+    .c4 { fill: var(--c4, #3A1E10); }
+    .c5 { fill: var(--c5, #8A4A26); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-26 -50)">
+  <polygon class="c1" points="150,360 100,330 70,270 76,190 110,120 160,110 196,146 190,210 160,260 160,320"/>
+  <polygon class="c2" points="110,120 160,110 196,146 190,210 150,170 120,180 98,230 84,190"/>
+  <polygon class="c5" points="76,190 98,230 94,290 76,250"/>
+  <polygon class="c1" points="170,370 190,310 240,270 290,290 300,350 270,384 200,386"/>
+  <polygon class="c2" points="190,310 240,270 290,290 300,350 250,310"/>
+  <polygon class="c3" points="270,384 200,386 170,370 220,352 280,350"/>
+  <polygon class="c4" points="188,380 260,380 262,390 186,390"/>
+  <polygon class="c1" points="250,300 290,310 310,366 290,386 256,382"/>
+  <polygon class="c4" points="268,380 312,380 312,390 266,390"/>
+  <polygon class="c1" points="270,290 290,250 330,230 366,246 372,280 340,300 300,306"/>
+  <polygon class="c3" points="236,256 262,230 290,260 270,320 244,304"/>
+  <polygon class="c1" points="282,240 296,196 330,176 364,196 372,240 340,262 300,264"/>
+  <polygon class="c2" points="296,196 330,176 364,196 330,204"/>
+  <polygon class="c3" points="372,240 340,262 300,264 336,232"/>
+  <polygon class="c4" points="364,232 376,240 364,248"/>
+  <polygon class="c1" points="296,196 292,168 316,186"/>
+  <polygon class="c5" points="298,192 296,176 310,186"/>
+  <polygon class="c1" points="340,182 350,160 362,190"/>
+  <polygon class="c3" points="372,262 382,274 366,278"/>
+  <polygon class="eye" points="326,208 344,206 344,220 328,222"/>
+  <circle class="pupil" cx="335" cy="214" r="3.4"/>
+  </g>
+</svg>

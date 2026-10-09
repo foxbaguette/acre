@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polish Picker</title>
+<style>
+  :root {
+    --bg: #f4f2ee; --panel: #ffffff; --tile: #e9e6e0; --ink: #1f1d1a; --muted: #6f6a62;
+    --line: #d9d4cb; --accent: #c2572b; --accent-ink: #ffffff; --ok: #2f7a4a; --wait: #a07a1c;
+    --pick: #c2572b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93;
+      --line: #3a3732; --accent: #e07a4a; --accent-ink: #1a1410; --ok: #6cc28c; --wait: #d8b04a; --pick: #e07a4a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93;
+    --line: #3a3732; --accent: #e07a4a; --accent-ink: #1a1410; --ok: #6cc28c; --wait: #d8b04a; --pick: #e07a4a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; padding-bottom: 150px; }
+  header { padding: 28px 16px 12px; max-width: 1240px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 14px; color: var(--muted); }
+  .bar label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .progress { font-variant-numeric: tabular-nums; }
+  main { max-width: 1240px; margin: 0 auto; padding: 0 16px; display: grid; gap: 16px; }
+  .row { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+  .row-head h2 { margin: 0; font-size: 17px; }
+  .key { color: var(--muted); font-size: 13px; }
+  .badge { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .badge.done { color: var(--ok); } .badge.wait { color: var(--wait); }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .tile { position: relative; background: var(--tile); border-radius: 10px; border: 2px solid transparent;
+    cursor: pointer; display: flex; flex-direction: column; overflow: hidden; transition: border-color .12s; }
+  .tile.on { border-color: var(--pick); }
+  .tile img { width: 100%; aspect-ratio: 1; display: block; }
+  .tile .cap { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 7px 10px;
+    font-size: 13px; background: var(--panel); border-top: 1px solid var(--line); }
+  .tile input { width: 18px; height: 18px; accent-color: var(--pick); cursor: pointer; }
+  .tile .label b { font-weight: 600; } .tile .label span { color: var(--muted); }
+  .tile.pending img { opacity: .35; }
+  footer { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--line);
+    padding: 12px 16px; box-shadow: 0 -6px 20px rgba(0,0,0,.08); }
+  .foot { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+  textarea { width: 100%; height: 64px; resize: vertical; background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px; font: 13px/1.4 ui-monospace, Consolas, monospace; }
+  button { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 10px 16px;
+    font: 600 14px system-ui, sans-serif; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btns { display: grid; gap: 6px; }
+  .count { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Polish picker</h1>
+  <p class="sub">Each favorite next to three polished copies. Tick what you want to keep, then copy the string at the bottom. Originals are never changed.</p>
+  <div class="bar">
+    <span class="progress" id="progress">Loading…</span>
+    <label><input type="checkbox" id="onlyDone"> Show finished only</label>
+  </div>
+</header>
+<main id="rows"></main>
+<footer>
+  <div class="foot">
+    <div>
+      <div class="count" id="count"></div>
+      <textarea id="out" readonly aria-label="Selection string"></textarea>
+    </div>
+    <div class="btns">
+      <button id="copy">Copy string</button>
+      <button class="ghost" id="clear">Clear ticks</button>
+    </div>
+  </div>
+</footer>
+<script>
+const OPTS = [
+  ['O', 'original', 'Original', 'unchanged'],
+  ['A', 'a', 'Polish A', 'refined facets'],
+  ['B', 'b', 'Polish B', 'anatomy and silhouette'],
+  ['C', 'c', 'Polish C', 'character and detail'],
+];
+const STORE = 'polish-picks';
+let picks = {};
+try { picks = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { picks = {}; }
+const save = () => { try { localStorage.setItem(STORE, JSON.stringify(picks)); } catch (e) {} };
+const stamps = {};
+let keys = [];
+
+function title(k) {
+  const n = k.split('/')[1];
+  return n.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+}
+function folder(k) { return k.replace('/', '__'); }
+
+function render() {
+  const main = document.getElementById('rows');
+  main.innerHTML = '';
+  for (const k of keys) {
+    const row = document.createElement('section');
+    row.className = 'row'; row.dataset.key = k;
+    row.innerHTML = `<div class="row-head"><div><h2>${title(k)}</h2><span class="key">${k}</span></div>
+      <span class="badge wait">Polishing…</span></div><div class="tiles"></div>`;
+    const tiles = row.querySelector('.tiles');
+    for (const [code, file, name, note] of OPTS) {
+      const t = document.createElement('label');
+      t.className = 'tile' + (code === 'O' ? '' : ' pending');
+      t.dataset.code = code; t.dataset.file = file;
+      const on = (picks[k] || []).includes(code);
+      if (on) t.classList.add('on');
+      t.innerHTML = `<img alt="${name} of ${title(k)}" src="${folder(k)}/${file}.svg?t=0">
+        <div class="cap"><span class="label"><b>${name}</b> <span>${note}</span></span>
+        <input type="checkbox" ${on ? 'checked' : ''} aria-label="Keep ${name} of ${title(k)}"></div>`;
+      t.querySelector('input').addEventListener('change', e => {
+        const set = new Set(picks[k] || []);
+        e.target.checked ? set.add(code) : set.delete(code);
+        picks[k] = OPTS.map(o => o[0]).filter(c => set.has(c));
+        if (!picks[k].length) delete picks[k];
+        t.classList.toggle('on', e.target.checked);
+        save(); output();
+      });
+      tiles.appendChild(t);
+    }
+    main.appendChild(row);
+  }
+  applyFilter(); output();
+}
+
+function output() {
+  const parts = keys.filter(k => picks[k] && picks[k].length).map(k => `${k}=${picks[k].join('')}`);
+  document.getElementById('out').value = parts.join(';');
+  document.getElementById('count').textContent =
+    `${parts.length} of ${keys.length} favorites have a choice. Format: folder/name=letters (O original, A, B, C).`;
+}
+
+function applyFilter() {
+  const only = document.getElementById('onlyDone').checked;
+  document.querySelectorAll('.row').forEach(r => {
+    r.hidden = only && !stamps[r.dataset.key];
+  });
+}
+
+async function poll() {
+  let done = 0;
+  await Promise.all(keys.map(async k => {
+    let s = '';
+    try { const r = await fetch(`${folder(k)}/done.txt?t=${Date.now()}`, { cache: 'no-store' }); if (r.ok) s = (await r.text()).trim(); } catch (e) {}
+    if (s) done++;
+    if (s && s !== stamps[k]) {
+      stamps[k] = s;
+      const row = document.querySelector(`.row[data-key="${k}"]`);
+      if (row) {
+        row.querySelector('.badge').className = 'badge done';
+        row.querySelector('.badge').textContent = 'Polished';
+        row.querySelectorAll('.tile').forEach(t => {
+          t.classList.remove('pending');
+          t.querySelector('img').src = `${folder(k)}/${t.dataset.file}.svg?t=${encodeURIComponent(s)}`;
+        });
+      }
+    }
+  }));
+  document.getElementById('progress').textContent = `${done} of ${keys.length} polished`;
+  applyFilter();
+}
+
+document.getElementById('onlyDone').addEventListener('change', applyFilter);
+document.getElementById('copy').addEventListener('click', async () => {
+  const ta = document.getElementById('out');
+  try { await navigator.clipboard.writeText(ta.value); } catch (e) { ta.select(); document.execCommand('copy'); }
+  const b = document.getElementById('copy'); b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy string', 1400);
+});
+document.getElementById('clear').addEventListener('click', () => { picks = {}; save(); render(); poll(); });
+
+fetch('favorites.txt?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()).then(t => {
+  keys = t.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  render(); poll(); setInterval(poll, 5000);
+});
+</script>
+</body>
+</html>

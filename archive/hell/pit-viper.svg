@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pit viper">
+  <style>
+    .c1 { fill: var(--c1, #5A1E5A); }
+    .c2 { fill: var(--c2, #8A3A8A); }
+    .c3 { fill: var(--c3, #F0D0E8); }
+    .c4 { fill: var(--c4, #1E0820); }
+    .c5 { fill: var(--c5, #FF4A6A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(3.5 -30)">
+  <!-- coiled body -->
+    <polygon class="c1" points="39,372 120,344 120,388 41,388"/>
+  <polygon class="c2" points="39,372 120,344 120,362 40,379"/>
+  <polygon class="c3" points="41,388 120,388 120,375 41,383"/>
+  <polygon class="c1" points="120,344 248,350 252,410 120,388"/>
+  <polygon class="c2" points="120,344 248,350 249,367 120,356"/>
+  <polygon class="c3" points="120,388 252,410 250,385 120,370"/>
+  <polygon class="c1" points="248,350 306,342 354,362 252,410"/>
+  <polygon class="c2" points="248,350 306,342 326,350 250,375"/>
+  <polygon class="c3" points="252,410 354,362 340,356 251,392"/>
+  <polygon class="c1" points="306,342 274,335 286,289 354,362"/>
+  <polygon class="c2" points="306,342 274,335 277,322 320,347"/>
+  <polygon class="c3" points="354,362 286,289 281,308 334,354"/>
+  <polygon class="c1" points="274,335 152,333 168,287 286,289"/>
+  <polygon class="c2" points="274,335 152,333 159,314 279,316"/>
+  <polygon class="c3" points="286,289 168,287 163,301 282,303"/>
+  <polygon class="c1" points="152,333 110,253 150,271 168,287"/>
+  <polygon class="c2" points="152,333 110,253 121,258 157,320"/>
+  <polygon class="c3" points="168,287 150,271 133,263 161,306"/>
+  <polygon class="c1" points="110,253 184,209 216,235 150,271"/>
+  <polygon class="c2" points="110,253 184,209 198,220 127,261"/>
+  <polygon class="c3" points="150,271 216,235 206,227 138,266"/>
+  <polygon class="c1" points="184,209 182,176 218,176 216,235"/>
+  <polygon class="c2" points="184,209 182,176 192,176 193,216"/>
+  <polygon class="c3" points="216,235 218,176 203,176 202,224"/>
+  <polygon class="c4" points="116,356 128,348 136,358 124,368"/>
+  <polygon class="c4" points="246,372 258,364 268,374 256,384"/>
+  <polygon class="c4" points="326,344 338,336 346,346 334,356"/>
+  <polygon class="c4" points="156,304 168,296 176,306 164,316"/>
+  <polygon class="c4" points="196,214 208,206 216,216 204,226"/>
+  <!-- cobra-like hood -->
+  <polygon class="c2" points="200,160 120,120 100,60 160,76 200,50 240,76 300,60 280,120"/>
+  <polygon class="c1" points="200,160 140,126 130,84 170,92 200,70 230,92 270,84 260,126"/>
+  <polygon class="c5" points="168,96 188,92 192,120 172,124"/>
+  <polygon class="c5" points="232,96 212,92 208,120 228,124"/>
+  <polygon class="c4" points="176,102 182,102 184,114 178,114"/>
+  <polygon class="c4" points="224,102 218,102 216,114 222,114"/>
+  <!-- viper head with forked horns -->
+  <polygon class="c1" points="164,150 236,150 250,194 224,232 176,232 150,194"/>
+  <polygon class="c2" points="164,150 236,150 226,172 174,172"/>
+  <polygon class="c3" points="180,206 220,206 214,232 186,232"/>
+  <polygon class="c3" points="168,152 156,110 148,86 164,100 178,140"/>
+  <polygon class="c3" points="232,152 244,110 252,86 236,100 222,140"/>
+  <polygon class="c3" points="156,110 138,100 150,92"/>
+  <polygon class="c3" points="244,110 262,100 250,92"/>
+    <polygon class="eye" points="166,170 188,170 188,186 168,186"/>
+  <polygon class="pupil" points="177,170 181,178 177,186 173,178"/>
+  <polygon class="eye" points="170,152 180,152 180,160 172,160"/>
+  <circle class="pupil" cx="175" cy="156" r="2"/>
+  <polygon class="c3" points="178,230 184,230 181,252"/>
+    <polygon class="eye" points="234,170 212,170 212,186 232,186"/>
+  <polygon class="pupil" points="223,170 219,178 223,186 227,178"/>
+  <polygon class="eye" points="230,152 220,152 220,160 228,160"/>
+  <circle class="pupil" cx="225" cy="156" r="2"/>
+  <polygon class="c3" points="222,230 216,230 219,252"/>
+    <polygon class="c5" points="196,232 204,232 204,262 214,280 200,272 186,280 196,262"/>
+  </g>
+</svg>

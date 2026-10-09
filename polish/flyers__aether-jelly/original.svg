@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aether jelly">
+  <style>
+    .c1 { fill: var(--c1, #B16BD6); }
+    .c2 { fill: var(--c2, #D9A0F0); }
+    .c3 { fill: var(--c3, #F6E4FF); }
+    .c4 { fill: var(--c4, #4B2A6B); }
+    .c5 { fill: var(--c5, #6FE3D0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(0 0)">
+  <!-- wing frills -->
+  <polygon class="c2" points="136,150 50,100 20,140 40,190 130,176"/>
+  <polygon class="c3" points="50,100 20,140 40,150 76,122"/>
+  <polygon class="c1" points="136,150 50,100 76,122 132,160"/>
+  <polygon class="c2" points="264,150 350,100 380,140 360,190 270,176"/>
+  <polygon class="c3" points="350,100 380,140 360,150 324,122"/>
+  <polygon class="c1" points="264,150 350,100 324,122 268,160"/>
+  <!-- tentacles -->
+    <polygon class="c5" points="160,181 153,226 147,226 152,179"/>
+  <polygon class="c3" points="160,181 153,226 151,226 157,180"/>
+  <polygon class="c4" points="152,179 147,226 149,226 154,180"/>
+  <polygon class="c5" points="153,226 163,270 157,270 147,226"/>
+  <polygon class="c3" points="153,226 163,270 161,270 152,226"/>
+  <polygon class="c4" points="147,226 157,270 160,270 149,226"/>
+  <polygon class="c5" points="163,270 150,313 146,311 157,270"/>
+  <polygon class="c3" points="163,270 150,313 148,312 160,270"/>
+  <polygon class="c4" points="157,270 146,311 147,312 159,270"/>
+    <polygon class="c5" points="248,179 255,226 249,226 240,181"/>
+  <polygon class="c3" points="248,179 255,226 253,226 245,180"/>
+  <polygon class="c4" points="240,181 249,226 251,226 242,180"/>
+  <polygon class="c5" points="255,226 243,270 237,270 249,226"/>
+  <polygon class="c3" points="255,226 243,270 241,270 254,226"/>
+  <polygon class="c4" points="249,226 237,270 240,270 251,226"/>
+  <polygon class="c5" points="243,270 254,311 250,313 237,270"/>
+  <polygon class="c3" points="243,270 254,311 252,312 240,270"/>
+  <polygon class="c4" points="237,270 250,313 251,312 239,270"/>
+    <polygon class="c5" points="180,182 173,236 167,236 172,182"/>
+  <polygon class="c3" points="180,182 173,236 171,236 177,182"/>
+  <polygon class="c4" points="172,182 167,236 169,236 174,182"/>
+  <polygon class="c5" points="173,236 183,284 178,284 167,236"/>
+  <polygon class="c3" points="173,236 183,284 181,284 172,236"/>
+  <polygon class="c4" points="167,236 178,284 180,284 169,236"/>
+  <polygon class="c5" points="183,284 171,330 169,330 178,284"/>
+  <polygon class="c3" points="183,284 171,330 170,330 180,284"/>
+  <polygon class="c4" points="178,284 169,330 169,330 179,284"/>
+    <polygon class="c5" points="228,182 233,236 227,236 220,182"/>
+  <polygon class="c3" points="228,182 233,236 231,236 225,182"/>
+  <polygon class="c4" points="220,182 227,236 229,236 222,182"/>
+  <polygon class="c5" points="233,236 223,284 218,284 227,236"/>
+  <polygon class="c3" points="233,236 223,284 221,284 232,236"/>
+  <polygon class="c4" points="227,236 218,284 220,284 229,236"/>
+  <polygon class="c5" points="223,284 231,330 229,330 218,284"/>
+  <polygon class="c3" points="223,284 231,330 230,330 220,284"/>
+  <polygon class="c4" points="218,284 229,330 229,330 219,284"/>
+  <!-- oral arms -->
+  <polygon class="c3" points="184,182 216,182 224,250 210,284 200,308 190,284 176,250"/>
+  <polygon class="c2" points="184,182 200,182 200,308 190,284 176,250"/>
+  <!-- bell -->
+  <polygon class="c1" points="130,164 150,100 200,70 250,100 270,164 250,180 150,180"/>
+  <polygon class="c2" points="150,100 200,70 250,100 200,112"/>
+  <polygon class="c3" points="170,96 200,80 218,92 182,108"/>
+  <polygon class="c4" points="130,164 150,180 168,168 190,182 210,182 232,168 250,180 270,164 250,188 150,188"/>
+  <polygon class="c5" points="200,126 212,138 200,150 188,138"/>
+  <polygon class="c5" points="160,140 168,148 160,156 152,148"/>
+  <polygon class="c5" points="240,140 248,148 240,156 232,148"/>
+  </g>
+</svg>

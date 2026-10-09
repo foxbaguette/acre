@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cactus camel">
+  <style>
+    .c1 { fill: var(--c1, #C8A060); }
+    .c2 { fill: var(--c2, #E4C888); }
+    .c3 { fill: var(--c3, #F6E8C8); }
+    .c4 { fill: var(--c4, #4A3418); }
+    .c5 { fill: var(--c5, #5AB84A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-43 -19)">
+  <!-- tail -->
+  <polygon class="c4" points="112,214 92,238 88,262 100,262 106,240 118,226"/>
+  <!-- far legs -->
+  <polygon class="c1" points="150,262 184,262 182,330 186,350 158,350 152,322"/>
+  <polygon class="c1" points="250,264 284,264 286,330 290,350 262,350 254,322"/>
+  <!-- cacti -->
+  <polygon class="c5" points="166,192 166,122 176,110 186,110 196,122 196,192"/>
+  <polygon class="c5" points="166,152 140,152 140,122 150,122 150,142 166,142"/>
+  <polygon class="c5" points="196,164 222,164 222,134 232,134 232,154 196,154"/>
+  <polygon class="c4" points="180,114 182,114 182,190 180,190"/>
+  <polygon class="c3" points="166,108 181,88 196,108 181,116"/>
+  <polygon class="c5" points="242,194 242,160 250,152 258,152 266,160 266,194"/>
+  <polygon class="c5" points="242,174 224,174 224,158 232,158 232,166 242,166"/>
+  <polygon class="c3" points="242,150 254,134 266,150 254,156"/>
+  <!-- body -->
+  <polygon class="c1" points="110,202 160,184 250,192 300,212 306,252 270,272 140,272 112,242"/>
+  <polygon class="c2" points="160,184 250,192 300,212 306,252 240,220 160,222"/>
+  <polygon class="c3" points="270,272 140,272 112,242 150,260 260,258"/>
+  <!-- near legs -->
+  <polygon class="c1" points="270,258 304,258 306,330 310,350 282,350 276,322"/>
+  <polygon class="c1" points="126,258 164,262 160,330 164,350 136,350 132,322"/>
+  <polygon class="c4" points="282,340 312,340 314,352 280,352"/>
+  <polygon class="c4" points="138,340 166,340 168,352 136,352"/>
+  <!-- neck and head -->
+  <polygon class="c1" points="296,204 320,150 340,110 366,120 360,152 326,206"/>
+  <polygon class="c2" points="296,204 320,150 340,110 328,132 306,180"/>
+  <polygon class="c1" points="340,106 380,104 396,130 380,152 346,148"/>
+  <polygon class="c2" points="340,106 380,104 396,130 360,124"/>
+  <polygon class="c3" points="396,130 380,152 346,148 366,140 388,138"/>
+  <polygon class="c1" points="340,108 332,86 354,104"/>
+  <polygon class="eye" points="356,114 372,114 372,126 356,126"/>
+  <circle class="pupil" cx="364" cy="120" r="3"/>
+  <polygon class="c4" points="390,128 398,132 392,140"/>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Thunder diplodocus">
+  <style>
+    .c1 { fill: var(--c1, #5A6A8A); }
+    .c2 { fill: var(--c2, #8A9AB8); }
+    .c3 { fill: var(--c3, #D8E0F0); }
+    .c4 { fill: var(--c4, #1E2438); }
+    .c5 { fill: var(--c5, #FFE45A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(200 200) scale(0.9406) translate(-194.0 -181.0)">
+  <!-- spark burst at the tail tip -->
+  <polygon class="c5" points="18,230 4,200 26,216"/>
+  <polygon class="c5" points="20,230 -8,232 16,240"/>
+  <polygon class="c5" points="22,228 34,192 32,222"/>
+  <!-- whip tail: one smooth taper curling up -->
+  <polygon class="c1" points="140,236 98,259 68,272 48,274 38,264 31,246 28,226 16,226 18,250 26,274 46,290 72,291 102,285 140,280"/>
+  <polygon class="c2" points="140,236 98,259 68,272 48,274 38,264 31,246 28,226 22,226 24,248 34,266 48,280 70,278 100,266 140,248"/>
+  <polygon class="c3" points="16,226 18,250 26,274 46,290 72,291 102,285 140,280 104,280 72,286 48,285 30,272 21,250"/>
+  <!-- far legs -->
+  <polygon class="c1" points="180,280 212,280 216,304 212,330 214,352 180,352 182,328 178,304"/>
+  <polygon class="c4" points="178,348 216,348 220,360 176,360"/>
+  <polygon class="c1" points="268,284 294,284 300,310 296,330 298,352 268,352 270,328 266,306"/>
+  <polygon class="c4" points="266,348 300,348 304,360 264,360"/>
+  <!-- dorsal spikes growing out of the back -->
+  <polygon class="c5" points="156,218 166,186 182,208"/>
+  <polygon class="c5" points="192,204 206,172 220,202"/>
+  <polygon class="c5" points="232,202 248,174 258,208"/>
+  <!-- long neck: one smooth tapering curve -->
+  <polygon class="c1" points="256,214 272,186 288,150 302,110 316,72 330,44 342,26 362,36 356,60 346,100 334,150 320,196 292,252"/>
+  <polygon class="c2" points="256,214 272,186 288,150 302,110 316,72 330,44 342,26 350,30 338,52 324,84 310,118 296,156 282,192 268,224"/>
+  <polygon class="c3" points="362,36 356,60 346,100 334,150 320,196 292,252 292,240 312,190 324,148 336,100 346,62 354,36"/>
+  <!-- body -->
+  <polygon class="c1" points="120,268 128,240 150,216 182,200 222,196 258,202 284,220 296,246 292,276 270,298 230,306 170,306 138,294"/>
+  <polygon class="c2" points="128,240 150,216 182,200 222,196 258,202 284,220 252,214 214,212 176,218 144,238"/>
+  <polygon class="c3" points="292,276 270,298 230,306 170,306 138,294 176,296 230,296 268,286"/>
+  <polygon class="c2" points="172,232 192,224 206,236 198,252 176,250"/>
+  <polygon class="c2" points="226,232 248,226 262,240 252,256 232,254"/>
+  <polygon class="c2" points="192,266 212,258 228,270 218,286 196,284"/>
+  <!-- near legs: columns that grow out of hip and shoulder -->
+  <polygon class="c1" points="120,268 162,262 168,290 164,328 168,352 124,352 128,328 122,296"/>
+  <polygon class="c2" points="122,296 132,298 136,328 136,350 126,350 128,328"/>
+  <polygon class="c4" points="120,348 168,348 174,360 114,360"/>
+  <polygon class="c1" points="226,272 266,268 272,294 266,328 270,352 228,352 232,328 226,300"/>
+  <polygon class="c2" points="227,300 238,302 242,328 240,350 230,350 232,328"/>
+  <polygon class="c4" points="226,348 270,348 274,360 220,360"/>
+  <!-- tiny head -->
+  <polygon class="c5" points="348,22 340,2 358,16"/>
+  <polygon class="c1" points="338,30 346,18 366,14 384,18 396,28 392,40 376,46 352,46 342,40"/>
+  <polygon class="c2" points="346,18 366,14 384,18 396,28 370,24 350,26"/>
+  <polygon class="c3" points="392,40 376,46 352,46 368,40 386,36"/>
+  <polygon class="eye" points="352,26 358,23 365,25 365,32 358,35 352,32"/>
+  <circle class="pupil" cx="359" cy="29" r="2.8"/>
+  </g>
+</svg>

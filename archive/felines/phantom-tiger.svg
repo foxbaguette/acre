@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Phantom tiger">
+  <style>
+    .c1 { fill: var(--c1, #7A6AD0); }
+    .c2 { fill: var(--c2, #A898F0); }
+    .c3 { fill: var(--c3, #E4DCFF); }
+    .c4 { fill: var(--c4, #2A2260); }
+    .c5 { fill: var(--c5, #78F0E0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-15 13)">
+  <!-- wisp tail and trailing wisps -->
+    <polygon class="c1" points="95,156 66,114 74,110 105,148"/>
+  <polygon class="c2" points="95,156 66,114 69,112 99,153"/>
+  <polygon class="c4" points="105,148 74,110 72,111 102,151"/>
+  <polygon class="c1" points="66,114 57,72 63,72 74,110"/>
+  <polygon class="c2" points="66,114 57,72 58,72 68,113"/>
+  <polygon class="c4" points="74,110 63,72 61,72 71,112"/>
+  <polygon class="c1" points="57,72 79,29 81,31 63,72"/>
+  <polygon class="c2" points="57,72 79,29 80,30 59,72"/>
+  <polygon class="c4" points="63,72 81,31 81,30 61,72"/>
+    <polygon class="c3" points="130,200 108,246 92,242 110,192"/>
+  <polygon class="c2" points="130,200 108,246 101,244 122,197"/>
+  <polygon class="c3" points="110,192 92,242 97,243 116,194"/>
+  <polygon class="c3" points="108,246 97,292 87,292 92,242"/>
+  <polygon class="c2" points="108,246 97,292 94,292 103,245"/>
+  <polygon class="c3" points="92,242 87,292 91,292 99,244"/>
+  <polygon class="c3" points="97,292 99,336 97,336 87,292"/>
+  <polygon class="c2" points="97,292 99,336 98,336 93,292"/>
+  <polygon class="c3" points="87,292 97,336 97,336 90,292"/>
+    <polygon class="c3" points="166,208 153,254 139,254 146,204"/>
+  <polygon class="c3" points="166,208 153,254 147,254 158,206"/>
+  <polygon class="c2" points="146,204 139,254 143,254 152,205"/>
+  <polygon class="c3" points="153,254 160,303 152,305 139,254"/>
+  <polygon class="c3" points="153,254 160,303 158,303 149,254"/>
+  <polygon class="c2" points="139,254 152,305 155,304 145,254"/>
+  <polygon class="c3" points="160,303 177,343 175,345 152,305"/>
+  <polygon class="c3" points="160,303 177,343 176,344 157,304"/>
+  <polygon class="c2" points="152,305 175,345 175,344 154,305"/>
+  <!-- far legs -->
+  <polygon class="c1" points="262,202 292,224 314,268 324,306 294,312 288,276 262,246"/>
+  <polygon class="c5" points="324,306 340,324 318,324"/>
+  <polygon class="c1" points="122,168 90,194 54,200 52,188 84,180 112,156"/>
+  <!-- body -->
+  <polygon class="c1" points="90,152 150,120 230,130 290,170 300,222 250,232 160,202 100,192"/>
+  <polygon class="c2" points="90,152 150,120 230,130 290,170 230,160 150,150"/>
+  <polygon class="c3" points="300,222 250,232 160,202 100,192 170,196 250,214"/>
+  <polygon class="c5" points="140,126 156,122 150,176 134,170"/>
+  <polygon class="c5" points="182,122 198,124 190,184 176,176"/>
+  <polygon class="c5" points="224,134 240,138 232,190 218,180"/>
+  <polygon class="c4" points="108,150 120,146 114,186 102,180"/>
+  <!-- near legs -->
+  <polygon class="c1" points="272,196 304,218 328,262 340,302 308,310 302,274 274,238"/>
+  <polygon class="c5" points="340,302 358,320 334,322"/>
+  <polygon class="c1" points="132,162 100,190 62,198 62,184 94,174 120,152"/>
+  <polygon class="c1" points="308,206 302,178 330,198"/>
+  <polygon class="c1" points="334,198 348,176 358,206"/>
+  <polygon class="c5" points="310,198 308,184 324,196"/>
+  <polygon class="c1" points="300,214 322,196 352,204 372,226 372,252 354,270 324,270 304,246"/>
+  <polygon class="c2" points="300,214 322,196 352,204 372,226 344,226 318,232"/>
+  <polygon class="c3" points="372,226 372,252 354,270 344,252 356,238"/>
+  <polygon class="c5" points="322,200 328,200 326,218 320,216"/>
+  <polygon class="c5" points="338,204 344,206 340,222 334,220"/>
+  <polygon class="eye" points="336,228 354,230 354,240 338,240"/>
+  <polygon class="pupil" points="345,228 348,234 345,240 342,234"/>
+  <polygon class="c3" points="354,258 359,258 356,276"/>
+  <polygon class="c3" points="342,264 347,264 344,280"/>
+  <polygon class="c4" points="370,232 378,234 374,240"/>
+  </g>
+</svg>

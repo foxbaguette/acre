@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Troll">
+  <style>
+    .c1 { fill: var(--c1, #7A8A6A); }
+    .c2 { fill: var(--c2, #A0B088); }
+    .c3 { fill: var(--c3, #E8E8D0); }
+    .c4 { fill: var(--c4, #2A3220); }
+    .c5 { fill: var(--c5, #4AA84A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(0 -16)">
+  <!-- wooden club -->
+  <polygon class="c4" points="296,150 330,130 346,160 330,330 296,330 292,200"/>
+  <polygon class="c1" points="296,150 330,130 322,168 300,170"/>
+  <polygon class="c4" points="300,176 310,172 312,184 304,188"/>
+  <polygon class="c3" points="326,196 336,194 336,204 326,206"/>
+    <!-- legs -->
+  <polygon class="c1" points="144,320 194,320 192,376 134,376"/>
+  <polygon class="c4" points="126,370 192,370 194,386 120,386"/>
+  <!-- arm -->
+  <polygon class="c1" points="126,170 74,190 52,266 90,288 112,226 134,206"/>
+  <polygon class="c2" points="126,170 74,190 92,198 130,184"/>
+  <polygon class="c2" points="52,266 90,288 94,318 46,310"/>
+  <polygon class="c5" points="126,170 100,160 120,188"/>
+  <!-- big ear, brow and eye -->
+  <polygon class="c1" points="150,100 106,96 98,132 148,136"/>
+  <polygon class="c2" points="146,106 116,104 112,126 146,128"/>
+  <polygon class="c4" points="158,100 196,108 192,120 160,114"/>
+  <polygon class="eye" points="166,112 188,112 188,124 168,124"/>
+  <circle class="pupil" cx="177" cy="118" r="3.4"/>
+  <polygon class="c3" points="168,170 164,150 178,162"/>
+    <!-- legs -->
+  <polygon class="c1" points="256,320 206,320 208,376 266,376"/>
+  <polygon class="c4" points="274,370 208,370 206,386 280,386"/>
+  <!-- arm -->
+  <polygon class="c1" points="274,170 326,190 348,266 310,288 288,226 266,206"/>
+  <polygon class="c2" points="274,170 326,190 308,198 270,184"/>
+  <polygon class="c2" points="348,266 310,288 306,318 354,310"/>
+  <polygon class="c5" points="274,170 300,160 280,188"/>
+  <!-- big ear, brow and eye -->
+  <polygon class="c1" points="250,100 294,96 302,132 252,136"/>
+  <polygon class="c2" points="254,106 284,104 288,126 254,128"/>
+  <polygon class="c4" points="242,100 204,108 208,120 240,114"/>
+  <polygon class="eye" points="234,112 212,112 212,124 232,124"/>
+  <circle class="pupil" cx="223" cy="118" r="3.4"/>
+  <polygon class="c3" points="232,170 236,150 222,162"/>
+    <!-- warty torso, mossy shoulders -->
+  <polygon class="c1" points="124,160 276,160 308,240 286,318 114,318 92,240"/>
+  <polygon class="c2" points="124,160 276,160 292,200 108,200"/>
+  <polygon class="c3" points="164,214 236,214 244,300 156,300"/>
+  <polygon class="c4" points="140,228 154,222 160,236 146,244"/>
+  <polygon class="c4" points="246,246 260,240 266,254 252,262"/>
+  <polygon class="c5" points="104,164 140,152 132,178 110,184"/>
+  <polygon class="c5" points="260,160 296,164 290,184 266,178"/>
+  <polygon class="c5" points="188,300 200,290 212,300 200,312"/>
+  <!-- head with a big nose and one tooth -->
+  <polygon class="c1" points="152,66 248,66 264,114 248,166 152,166 136,114"/>
+  <polygon class="c2" points="152,66 248,66 232,90 168,90"/>
+  <polygon class="c4" points="164,148 236,148 228,168 172,168"/>
+  <polygon class="c3" points="188,148 198,148 194,170"/>
+  <polygon class="c3" points="162,150 170,150 166,128"/>
+  <polygon class="c3" points="238,150 230,150 234,128"/>
+  <polygon class="c2" points="180,112 220,112 226,148 200,156 174,148"/>
+  <polygon class="c4" points="188,138 196,134 204,134 212,138 206,144 194,144"/>
+  <polygon class="c5" points="156,68 172,48 188,66"/>
+  <polygon class="c5" points="216,66 232,46 248,68"/>
+  </g>
+</svg>

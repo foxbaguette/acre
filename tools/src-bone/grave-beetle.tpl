@@ -1,0 +1,29 @@
+<palette name="Grave beetle" c1="#3A3248" c2="#5A4E70" c3="#EEE6D2" c4="#120E18" c5="#9AF050"/>
+  <sym>
+  <polygon class="c4" points="170,240 120,230 70,250 50,290 76,296 116,270 160,266"/>
+  <polygon class="c4" points="170,270 124,290 100,340 124,346 140,310 176,290"/>
+  <polygon class="c4" points="176,296 150,336 150,384 170,384 176,346 190,312"/>
+  </sym>
+  <polygon class="c1" points="140,200 200,170 260,200 270,290 240,350 200,366 160,350 130,290"/>
+  <polygon class="c2" points="200,170 260,200 270,290 240,350 200,366 200,170"/>
+  <polygon class="c4" points="198,172 202,172 202,366 198,366"/>
+  <polygon class="c3" points="170,208 192,196 192,262 168,274 160,246"/>
+  <polygon class="c4" points="168,224 184,222 184,236 170,238"/>
+  <polygon class="c4" points="174,244 186,242 188,256 174,260"/>
+  <polygon class="c3" points="230,208 208,196 208,262 232,274 240,246"/>
+  <polygon class="c4" points="232,224 216,222 216,236 230,238"/>
+  <polygon class="c4" points="226,244 214,242 212,256 226,260"/>
+  <polygon class="c4" points="184,282 200,300 216,282 214,294 200,312 186,294"/>
+  <polygon class="c5" points="190,320 210,320 206,342 194,342"/>
+  <polygon class="c1" points="170,166 230,166 244,134 200,106 156,134"/>
+  <polygon class="c2" points="170,166 200,106 156,134"/>
+  <polygon class="c3" points="176,140 200,130 224,140 220,160 180,160"/>
+  <polygon class="c4" points="168,118 150,70 192,106"/>
+  <polygon class="c4" points="232,118 250,70 208,106"/>
+  <polygon class="c5" points="160,98 156,80 172,92"/>
+  <polygon class="c5" points="240,98 244,80 228,92"/>
+  <sym>
+  <polygon class="eye" points="176,124 190,124 190,138 178,139"/>
+  <circle class="pupil" cx="183" cy="131" r="3"/>
+  </sym>
+</svg>

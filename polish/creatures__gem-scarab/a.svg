@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gem scarab">
+  <style>
+    .c1 { fill: var(--c1, #2F8F7A); }
+    .c2 { fill: var(--c2, #5CC4A8); }
+    .c3 { fill: var(--c3, #CFEFE6); }
+    .c4 { fill: var(--c4, #163C34); }
+    .c5 { fill: var(--c5, #E8C04A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(2 1.5)">
+  <!-- hind wings -->
+  <polygon class="c3" points="230,180 130,110 80,120 70,150 220,200"/>
+  <polygon class="c3" points="226,200 120,196 60,210 64,226 220,214"/>
+  <!-- far elytron -->
+  <polygon class="c1" points="236,180 286,98 300,106 252,178"/>
+  <polygon class="c2" points="236,180 286,98 292,104 248,176"/>
+  <!-- far legs, hinged under the body -->
+  <polygon class="c4" points="190.1,228.9 169.2,257.8 148.8,287.1 151.2,288.9 174.8,262.2 197.9,235.1"/>
+  <polygon class="c4" points="151.4,223.8 119.8,245.3 96.9,273 99.1,275 124.2,250.7 156.6,232.2"/>
+  <!-- abdomen -->
+  <polygon class="c1" points="252,196 190,186 130,200 110,222 130,246 190,254 252,236"/>
+  <polygon class="c2" points="252,196 190,186 130,200 144,208 192,200 244,208"/>
+  <polygon class="c2" points="130,200 110,222 122,222 144,208"/>
+  <polygon class="c4" points="252,236 190,254 130,246 150,246 192,246 246,230"/>
+  <polygon class="c4" points="190,200 194,202 192,246 188,246"/>
+  <polygon class="c4" points="150,206 154,206 152,244 148,243"/>
+  <polygon class="c5" points="110,222 118,214 118,230"/>
+  <!-- near elytron -->
+  <polygon class="c1" points="256,196 316,116 336,128 262,214"/>
+  <polygon class="c2" points="256,196 316,116 326,122 262,206"/>
+  <polygon class="c4" points="336,128 262,214 266,204 330,128"/>
+  <!-- gem set in the elytron -->
+  <polygon class="c5" points="300,140 316,126 320,136 306,150"/>
+  <polygon class="c3" points="300,140 316,126 310,138"/>
+  <!-- thorax -->
+  <polygon class="c1" points="246,196 290,190 300,222 254,236 248,230"/>
+  <polygon class="c2" points="246,196 290,190 280,206 254,210"/>
+  <polygon class="c4" points="300,222 254,236 266,226 296,216"/>
+  <!-- head -->
+  <polygon class="c1" points="290,190 312,192 322,210 310,228 296,226"/>
+  <polygon class="c2" points="290,190 312,192 316,200 300,198"/>
+  <!-- horn grows from the head -->
+  <polygon class="c5" points="304,196 318,160 326,164 316,198"/>
+  <polygon class="c3" points="318,160 322,162 308,196 304,196"/>
+  <polygon class="pupil" points="300,200 310,202 310,212 300,210"/>
+  <!-- near legs -->
+  <polygon class="c4" points="267.4,228 254.9,260.4 240.7,289.3 243.3,290.7 261.1,263.6 276.6,232"/>
+  <polygon class="c4" points="222.1,238.9 201.2,267.9 182.8,297.1 185.2,298.9 206.8,272.1 229.9,245.1"/>
+  <polygon class="c4" points="163.2,241.9 131.7,265.4 106.9,297 109.1,299 136.3,270.6 168.8,250.1"/>
+  </g>
+</svg>

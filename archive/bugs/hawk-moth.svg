@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hawk moth">
+  <style>
+    .c1 { fill: var(--c1, #8A7A68); }
+    .c2 { fill: var(--c2, #B8A890); }
+    .c3 { fill: var(--c3, #EAE0D0); }
+    .c4 { fill: var(--c4, #3A2E24); }
+    .c5 { fill: var(--c5, #E86A8A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-14.5 41)">
+  <!-- tail fan -->
+    <polygon class="c4" points="92,230 92,241 30,241 30,222"/>
+  <polygon class="c1" points="92,241 92,251 30,259 30,241"/>
+  <polygon class="c4" points="92,251 92,262 30,278 30,259"/>
+  <!-- hindwing -->
+  <polygon class="c5" points="256,212 200,160 150,176 180,224 236,236"/>
+  <polygon class="c3" points="200,160 150,176 168,186 196,176"/>
+  <!-- forewings -->
+    <polygon class="c1" points="260,196 269,194 173,37 130,40"/>
+  <polygon class="c2" points="269,194 278,192 215,34 173,37"/>
+  <polygon class="c1" points="278,192 287,190 258,31 215,34"/>
+  <polygon class="c2" points="287,190 296,188 300,28 258,31"/>
+  <!-- abdomen -->
+  <polygon class="c1" points="90,230 130,206 220,200 270,222 270,256 220,276 130,270"/>
+  <polygon class="c2" points="90,230 130,206 220,200 270,222 220,224 130,230"/>
+  <polygon class="c4" points="140,208 154,206 156,272 142,268"/>
+  <polygon class="c4" points="176,202 190,202 192,276 178,276"/>
+  <polygon class="c4" points="212,200 226,202 226,276 214,278"/>
+  <polygon class="c5" points="148,236 154,242 148,248 142,242"/>
+  <polygon class="c5" points="184,236 190,242 184,248 178,242"/>
+  <!-- thorax and head -->
+  <polygon class="c1" points="250,196 296,190 320,224 296,260 250,254"/>
+  <polygon class="c2" points="250,196 296,190 320,224 280,212"/>
+  <polygon class="c1" points="310,206 338,204 350,228 332,248 308,240"/>
+  <polygon class="eye" points="318,210 336,210 342,228 330,240 316,232"/>
+  <circle class="pupil" cx="330" cy="224" r="6"/>
+    <polygon class="c4" points="345,231 379,245 377,247 343,233"/>
+  <polygon class="c4" points="379,245 399,284 397,284 377,247"/>
+  <!-- tucked legs -->
+  <polygon class="c4" points="274,256 262,284 252,290 248,284 258,276 268,254"/>
+  <polygon class="c4" points="246,258 232,282 222,286 220,280 228,274 240,256"/>
+  </g>
+</svg>

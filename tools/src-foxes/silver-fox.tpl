@@ -1,0 +1,33 @@
+<palette name="Silver fox" c1="#2E2E3A" c2="#50506A" c3="#F4F4F8" c4="#101018" c5="#B8B8CC"/>
+  <polygon class="c1" points="112,240 78,206 60,160 76,118 108,100 134,112 140,150 128,196 130,214"/>
+  <polygon class="c2" points="112,240 78,206 60,160 76,118 90,150 92,200"/>
+  <polygon class="c5" points="66,160 90,150 94,184 72,190"/>
+  <polygon class="c5" points="98,196 120,190 122,222 102,226"/>
+  <polygon class="c3" points="76,118 108,100 134,112 126,134 88,138"/>
+  <polygon class="c1" points="238,292 262,296 262,348 240,350"/>
+  <polygon class="c1" points="150,292 178,296 168,346 148,348"/>
+  <polygon class="c4" points="240,340 266,340 268,356 240,356"/>
+  <polygon class="c4" points="148,338 172,338 174,354 146,354"/>
+  <polygon class="c1" points="108,276 126,232 182,214 246,218 290,242 294,276 268,306 186,314 126,308"/>
+  <polygon class="c2" points="126,232 182,214 246,218 290,242 230,232 160,240"/>
+  <polygon class="c5" points="150,226 190,218 204,234 162,242"/>
+  <polygon class="c5" points="214,226 254,224 268,240 226,244"/>
+  <polygon class="c5" points="130,262 168,252 176,270 140,280"/>
+  <polygon class="c1" points="108,280 156,268 178,306 162,340 122,342 114,314"/>
+  <polygon class="c2" points="108,280 156,268 162,282 116,292"/>
+  <polygon class="c4" points="126,332 166,332 170,356 126,358"/>
+  <polygon class="c1" points="250,286 288,284 314,300 332,320 322,332 296,316 262,310"/>
+  <polygon class="c4" points="318,314 338,324 328,340 312,328"/>
+  <polygon class="c1" points="268,246 296,216 324,198 346,216 332,250 306,270"/>
+  <polygon class="c3" points="302,238 334,244 324,274 296,298 268,292 266,262"/>
+  <polygon class="c1" points="322,190 358,174 392,188 404,210 392,224 356,234 328,226"/>
+  <polygon class="c2" points="322,190 358,174 392,188 350,194"/>
+  <polygon class="c5" points="340,196 362,190 360,202 342,206"/>
+  <polygon class="c4" points="396,202 408,210 396,218"/>
+  <polygon class="c1" points="326,192 322,144 350,170"/>
+  <polygon class="c4" points="330,184 328,160 344,174"/>
+  <polygon class="c1" points="348,178 362,142 376,182"/>
+  <polygon class="c4" points="354,176 362,158 370,178"/>
+  <polygon class="eye" points="344,200 360,198 362,210 346,212"/>
+  <circle class="pupil" cx="353" cy="205" r="3.4"/>
+</svg>

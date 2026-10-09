@@ -1,0 +1,34 @@
+<palette name="Pit wyrm" c1="#7A3A4A" c2="#A85A64" c3="#F0D8C8" c4="#2A0E14" c5="#FF8A3A"/>
+  <!-- segmented body rising from below -->
+  <polygon class="c1" points="140,360 260,360 270,320 130,320"/>
+  <polygon class="c2" points="130,320 270,320 262,284 138,284"/>
+  <polygon class="c1" points="138,284 262,284 254,248 146,248"/>
+  <polygon class="c2" points="146,248 254,248 246,212 154,212"/>
+  <polygon class="c3" points="170,214 230,214 240,360 160,360"/>
+  <polygon class="c4" points="150,248 250,248 250,252 150,252"/>
+  <polygon class="c4" points="138,284 262,284 262,288 138,288"/>
+  <polygon class="c4" points="130,320 270,320 270,324 130,324"/>
+  <polygon class="c5" points="188,246 212,246 210,254 190,254"/>
+  <!-- ring of teeth around a circular maw -->
+  <polygon class="c1" points="110,100 160,50 240,50 290,100 290,160 240,210 160,210 110,160"/>
+  <polygon class="c2" points="160,50 240,50 290,100 200,96 110,100"/>
+  <polygon class="c4" points="140,106 172,76 228,76 260,106 260,154 228,184 172,184 140,154"/>
+  <polygon class="c3" points="150,106 162,86 172,110"/>
+  <polygon class="c3" points="174,84 192,76 190,104"/>
+  <polygon class="c3" points="208,76 226,84 210,104"/>
+  <polygon class="c3" points="238,86 250,106 230,110"/>
+  <polygon class="c3" points="250,128 258,154 238,146"/>
+  <polygon class="c3" points="242,168 228,182 224,156"/>
+  <polygon class="c3" points="196,184 172,182 188,158"/>
+  <polygon class="c3" points="164,176 148,156 170,150"/>
+  <polygon class="c3" points="148,128 150,150 168,132"/>
+  <polygon class="c4" points="164,112 236,112 244,140 236,164 164,164 156,140"/>
+  <polygon class="c5" points="182,124 218,124 224,140 218,154 182,154 176,140"/>
+  <polygon class="c3" points="190,130 200,130 196,148"/>
+  <!-- small eyes on the brow -->
+  <sym>
+  <polygon class="eye" points="134,72 152,66 156,80 138,86"/>
+  <circle class="pupil" cx="145" cy="76" r="3.4"/>
+  <polygon class="c1" points="122,64 110,34 142,56"/>
+  </sym>
+</svg>

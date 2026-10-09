@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ember scorpion">
+  <style>
+    .c1 { fill: var(--c1, #7A2E2E); }
+    .c2 { fill: var(--c2, #A64B45); }
+    .c3 { fill: var(--c3, #D9A08C); }
+    .c4 { fill: var(--c4, #2E1414); }
+    .c5 { fill: var(--c5, #4ADCB5); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-17 5)">
+  <!-- far legs -->
+  <polygon class="c4" points="200,236 208,240 176,262 150,290 144,286 170,258"/>
+  <polygon class="c4" points="170,232 178,236 140,254 116,282 110,278 136,250"/>
+  <polygon class="c4" points="230,236 238,240 220,268 206,296 200,292 214,264"/>
+  <polygon class="c4" points="140,230 148,234 106,246 78,268 72,264 102,240"/>
+  <!-- far pincer -->
+  <polygon class="c1" points="264,210 284,204 306,222 294,234"/>
+  <polygon class="c2" points="294,234 306,222 344,208 356,222 334,244 304,244"/>
+  <polygon class="c1" points="306,222 344,208 340,200 310,214"/>
+  <!-- tail -->
+  <polygon class="c1" points="104,240 120,218 96,186 76,196"/>
+  <polygon class="c2" points="120,218 96,186 90,190 112,214"/>
+  <polygon class="c1" points="76,196 96,186 96,146 74,148"/>
+  <polygon class="c2" points="96,186 96,146 88,150 88,182"/>
+  <polygon class="c1" points="74,148 96,146 116,112 100,98"/>
+  <polygon class="c2" points="96,146 116,112 108,110 90,144"/>
+  <polygon class="c1" points="100,98 116,112 152,98 148,80"/>
+  <polygon class="c2" points="116,112 152,98 150,90 112,104"/>
+  <polygon class="c1" points="148,80 152,98 190,102 192,84"/>
+  <polygon class="c2" points="152,98 190,102 190,96 152,92"/>
+  <polygon class="c5" points="190,84 192,102 214,112 224,100 212,84"/>
+  <polygon class="c4" points="214,112 224,100 240,126 228,128"/>
+  <!-- body -->
+  <polygon class="c1" points="270,218 200,208 120,220 104,240 124,258 200,262 270,246"/>
+  <polygon class="c2" points="270,218 200,208 120,220 134,228 200,220 264,228"/>
+  <polygon class="c4" points="160,210 164,210 166,260 162,260"/>
+  <polygon class="c4" points="200,208 204,208 206,262 202,262"/>
+  <polygon class="c4" points="240,212 244,212 246,250 242,250"/>
+  <polygon class="c3" points="124,258 200,262 270,246 262,240 200,254 130,250"/>
+  <!-- eyes -->
+  <polygon class="pupil" points="262,222 270,222 270,228 262,228"/>
+  <!-- near pincer -->
+  <polygon class="c1" points="270,232 290,226 312,246 300,258"/>
+  <polygon class="c2" points="300,258 312,246 350,232 362,246 340,268 310,268"/>
+  <polygon class="c1" points="312,246 350,232 346,224 316,238"/>
+  <polygon class="c4" points="340,250 356,244 350,256"/>
+  <!-- near legs -->
+  <polygon class="c4" points="210,250 218,254 190,276 166,306 160,302 182,272"/>
+  <polygon class="c4" points="180,248 188,252 152,270 128,300 122,296 146,266"/>
+  <polygon class="c4" points="240,250 248,254 230,282 216,310 210,306 224,278"/>
+  <polygon class="c4" points="150,246 158,250 116,264 88,286 82,282 112,258"/>
+  </g>
+</svg>

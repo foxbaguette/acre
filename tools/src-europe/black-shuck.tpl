@@ -1,0 +1,36 @@
+<palette name="Black Shuck" c1="#2A2A36" c2="#4A4A5C" c3="#9A9AB0" c4="#0E0E16" c5="#6AE8F0"/>
+  <!-- drooping tail -->
+  <polygon class="c1" points="104,214 76,230 62,274 78,272 92,248 110,236"/>
+  <!-- far legs -->
+  <polygon class="c1" points="236,270 274,272 278,332 238,336"/>
+  <polygon class="c1" points="150,274 186,276 188,334 150,338"/>
+  <!-- shaggy body -->
+  <polygon class="c1" points="100,192 150,160 250,160 300,190 310,250 270,284 130,284 100,242"/>
+  <polygon class="c2" points="150,160 250,160 300,190 310,250 240,200 160,208"/>
+  <polygon class="c2" points="130,284 140,306 156,284"/>
+  <polygon class="c2" points="170,284 182,310 196,284"/>
+  <polygon class="c2" points="210,284 222,308 236,284"/>
+  <polygon class="c2" points="250,284 264,306 276,282"/>
+  <!-- near legs with ghost flames -->
+  <polygon class="c1" points="268,268 308,268 314,330 270,334"/>
+  <polygon class="c1" points="120,272 166,272 172,334 126,338"/>
+  <polygon class="c5" points="266,324 316,324 304,350 276,350"/>
+  <polygon class="c5" points="122,328 172,328 160,354 134,354"/>
+  <polygon class="c4" points="268,330 316,330 318,342 266,342"/>
+  <polygon class="c4" points="124,334 172,334 174,346 122,346"/>
+  <polygon class="c5" points="96,204 88,186 108,198"/>
+  <polygon class="c5" points="140,166 132,148 154,160"/>
+  <!-- neck, big head with floppy ears -->
+  <polygon class="c1" points="276,188 298,152 316,134 326,172 296,212"/>
+  <polygon class="c1" points="298,168 340,148 384,168 392,204 358,230 308,220"/>
+  <polygon class="c2" points="298,168 340,148 384,168 346,168"/>
+  <polygon class="c3" points="392,204 358,230 308,220 350,210"/>
+  <polygon class="c1" points="314,160 296,184 306,216 326,196"/>
+  <polygon class="c4" points="310,142 318,136 322,154"/>
+  <polygon class="c5" points="326,176 360,168 362,196 330,198"/>
+  <polygon class="eye" points="332,178 354,174 356,192 334,194"/>
+  <circle class="pupil" cx="344" cy="184" r="4.6"/>
+  <polygon class="c4" points="386,186 394,192 388,200"/>
+  <polygon class="c3" points="346,222 354,222 350,232"/>
+  <polygon class="c5" points="312,196 322,186 326,200"/>
+</svg>

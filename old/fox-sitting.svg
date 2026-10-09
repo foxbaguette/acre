@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 30 400 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A cute sitting fox">
+  <style>
+    .fur   { fill: var(--c-fur,   #E8842A); }
+    .cream { fill: var(--c-cream, #FFF1DC); }
+    .dark  { fill: var(--c-dark,  #5A3420); }
+    .ink   { fill: var(--c-ink,   #1F1A17); }
+    .blush { fill: var(--c-blush, #F7A3A3); }
+    .tear  { fill: none; stroke: var(--c-dark, #5A3420); stroke-width: 4; stroke-linecap: round; }
+    .mouth { fill: none; stroke: var(--c-ink,  #1F1A17); stroke-width: 3; stroke-linecap: round; }
+  </style>
+  <!-- body with haunches -->
+  <path class="fur" d="M 200 238
+    C 160 238 134 280 126 316
+    C 100 318 92 352 98 376
+    C 104 396 140 400 200 400
+    C 260 400 296 396 302 376
+    C 308 352 300 318 274 316
+    C 266 280 240 238 200 238 Z"/>
+  <!-- chest -->
+  <path class="cream" d="M 200 246
+    C 224 246 240 282 236 322
+    C 232 352 216 376 200 378
+    C 184 376 168 352 164 322
+    C 160 282 176 246 200 246 Z"/>
+  <!-- front legs with dark stockings -->
+  <rect class="fur"  x="160" y="300" width="30" height="92" rx="14"/>
+  <rect class="fur"  x="210" y="300" width="30" height="92" rx="14"/>
+  <rect class="dark" x="162" y="346" width="26" height="48" rx="13"/>
+  <rect class="dark" x="212" y="346" width="26" height="48" rx="13"/>
+  <ellipse class="dark" cx="175" cy="393" rx="18" ry="9"/>
+  <ellipse class="dark" cx="225" cy="393" rx="18" ry="9"/>
+  <!-- tail: bushy, wraps around the right haunch, cream tip -->
+  <path class="fur" d="M 236 392
+    C 290 406 352 382 362 322
+    C 368 288 358 256 342 232
+    C 318 248 300 276 302 308
+    C 302 342 280 370 236 392 Z"/>
+  <path class="cream" d="M 342 232
+    C 356 252 364 276 363 300
+    C 344 304 324 298 310 288
+    C 308 266 322 246 342 232 Z"/>
+  <!-- ears: orange, black tips, cream inner fur -->
+  <path class="fur"   d="M 126 152 C 108 118 110 80 122 46 C 150 70 180 96 206 118 Z"/>
+  <path class="dark"  d="M 122 46 C 130 58 140 70 152 82 L 136 96 C 128 80 124 62 122 46 Z"/>
+  <path class="cream" d="M 136 146 C 130 128 132 108 138 92 C 158 108 178 124 196 138 Z"/>
+  <path class="fur"   d="M 274 152 C 292 118 290 80 278 46 C 250 70 220 96 194 118 Z"/>
+  <path class="dark"  d="M 278 46 C 270 58 260 70 248 82 L 264 96 C 272 80 276 62 278 46 Z"/>
+  <path class="cream" d="M 264 146 C 270 128 268 108 262 92 C 242 108 222 124 204 138 Z"/>
+  <!-- head: wide at the cheeks, tapering to the muzzle -->
+  <path class="fur" d="M 200 104
+    C 232 102 266 114 276 138
+    C 290 160 288 184 276 204
+    C 258 230 230 250 200 254
+    C 170 250 142 230 124 204
+    C 112 184 110 160 124 138
+    C 134 114 168 102 200 104 Z"/>
+  <!-- white mask: cheeks, muzzle sides and chin, orange bridge in between -->
+  <path class="cream" d="M 186 194
+    C 164 184 140 188 126 204
+    C 138 232 168 252 200 256
+    C 232 252 262 232 274 204
+    C 260 188 236 184 214 194
+    C 212 206 206 218 200 226
+    C 194 218 188 206 186 194 Z"/>
+  <!-- tear lines from the eyes toward the muzzle -->
+  <path class="tear" d="M 182 178 C 186 190 188 200 188 210"/>
+  <path class="tear" d="M 218 178 C 214 190 212 200 212 210"/>
+  <!-- blush -->
+  <ellipse class="blush" cx="146" cy="214" rx="14" ry="7"/>
+  <ellipse class="blush" cx="254" cy="214" rx="14" ry="7"/>
+  <!-- eyes: almond shaped, slanting up and out -->
+  <path class="ink" d="M 148 162 C 158 150 174 156 184 172 C 172 180 156 176 148 162 Z"/>
+  <path class="ink" d="M 252 162 C 242 150 226 156 216 172 C 228 180 244 176 252 162 Z"/>
+  <circle class="cream" cx="162" cy="162" r="3"/>
+  <circle class="cream" cx="238" cy="162" r="3"/>
+  <!-- nose + mouth -->
+  <path class="ink"   d="M 188 222 C 192 216 208 216 212 222 C 212 232 206 240 200 242 C 194 240 188 232 188 222 Z"/>
+  <path class="mouth" d="M 200 242 L 200 248 M 190 247 C 194 253 206 253 210 247"/>
+</svg>

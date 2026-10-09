@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Isonade">
+  <style>
+    .c1 { fill: var(--c1, #4A6A8A); }
+    .c2 { fill: var(--c2, #7A9AB8); }
+    .c3 { fill: var(--c3, #F0F0E8); }
+    .c4 { fill: var(--c4, #16202E); }
+    .c5 { fill: var(--c5, #E8483A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-17 7)">
+    <polygon class="c1" points="120,254 86,191 94,189 132,246"/>
+  <polygon class="c2" points="120,254 86,191 89,190 125,251"/>
+  <polygon class="c4" points="132,246 94,189 92,190 129,248"/>
+  <polygon class="c1" points="86,191 108,120 112,120 94,189"/>
+  <polygon class="c2" points="86,191 108,120 109,120 88,190"/>
+  <polygon class="c4" points="94,189 112,120 110,120 91,190"/>
+  <polygon class="c1" points="108,120 79,60 81,60 112,120"/>
+  <polygon class="c2" points="108,120 79,60 80,60 110,120"/>
+  <polygon class="c4" points="112,120 81,60 80,60 111,120"/>
+  <polygon class="c5" points="76,66 40,50 66,84"/>
+  <polygon class="c5" points="86,100 52,98 82,120"/>
+  <polygon class="c5" points="104,132 76,150 112,150"/>
+  <polygon class="c1" points="120,262 160,216 250,196 340,206 394,240 340,276 250,296 160,292"/>
+  <polygon class="c2" points="160,216 250,196 340,206 394,240 300,222 220,226"/>
+  <polygon class="c3" points="340,276 250,296 160,292 120,262 200,274 300,268"/>
+  <polygon class="c4" points="230,196 250,148 290,200"/>
+  <polygon class="c5" points="246,166 252,150 262,170"/>
+  <polygon class="c2" points="220,284 190,336 244,296"/>
+  <polygon class="c4" points="288,230 292,258 298,258 294,230"/>
+  <polygon class="c4" points="298,228 302,256 308,256 304,228"/>
+  <polygon class="c4" points="320,248 394,242 376,278 330,270"/>
+  <polygon class="c3" points="332,250 340,250 336,262"/>
+  <polygon class="c3" points="352,248 360,248 356,260"/>
+  <polygon class="c3" points="372,246 380,246 376,258"/>
+  <polygon class="eye" points="344,222 362,222 362,234 346,234"/>
+  <circle class="pupil" cx="353" cy="228" r="3.2"/>
+  </g>
+</svg>

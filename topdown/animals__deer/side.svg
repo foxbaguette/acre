@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Deer">
+  <style>
+    .c1 { fill: var(--c1, #C98D58); }
+    .c2 { fill: var(--c2, #E3AE78); }
+    .c3 { fill: var(--c3, #F7E9D4); }
+    .c4 { fill: var(--c4, #4A3023); }
+    .c5 { fill: var(--c5, #8C6A4E); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-39.5 21)">
+  <!-- far antler -->
+  <polygon class="c5" points="302,80 309,78 312,62 318,46 324,30 326,24 322,24 316,40 308,58"/>
+  <polygon class="c5" points="308,66 311,61 323,56 325,60"/>
+  <polygon class="c5" points="313,52 316,46 302,34 299,37"/>
+  <polygon class="c5" points="320,36 323,31 334,20 336,23"/>
+  <!-- far legs -->
+  <polygon class="c1" points="140,192 170,190 188,206 182,228 166,250 156,266 150,284 140,286 136,268 138,246 132,222"/>
+  <polygon class="c1" points="140,280 152,280 156,326 146,326"/>
+  <polygon class="c4" points="145,326 157,326 159,340 151,340 151,334 150,340 143,340"/>
+  <polygon class="c4" points="146,308 143,311 146,314"/>
+  <polygon class="c1" points="226,196 248,198 244,236 242,262 238,272 237,326 225,326 226,272 224,262 228,236"/>
+  <polygon class="c4" points="224,326 238,326 240,340 232,340 231,334 230,340 222,340"/>
+  <polygon class="c4" points="226,308 223,311 226,314"/>
+  <!-- tail -->
+  <polygon class="c3" points="122,176 108,178 100,188 106,198 120,198"/>
+  <polygon class="c4" points="122,176 108,178 102,184 110,182"/>
+  <!-- far ear -->
+  <polygon class="c1" points="302,86 286,76 270,72 278,84 296,98"/>
+  <!-- body -->
+  <polygon class="c1" points="114,182 124,168 150,161 190,160 230,158 252,156 272,172 280,192 270,208 248,214 214,218 184,220 156,214 130,210 116,198"/>
+  <polygon class="c2" points="114,182 124,168 150,161 190,160 230,158 252,156 262,166 232,172 190,174 150,176 128,184"/>
+  <polygon class="c3" points="270,208 248,214 214,218 184,220 158,214 172,208 210,208 246,202"/>
+  <!-- belly fur fringe -->
+  <polygon class="c3" points="172,208 176,214 180,209 186,216 190,209 196,217 200,209 206,216 210,208"/>
+  <!-- rump patch -->
+  <polygon class="c3" points="124,170 114,182 116,198 122,192 126,182"/>
+  <!-- spots, following the barrel -->
+  <g class="c3">
+    <polygon points="146,186 151,183 156,186 151,189"/><polygon points="166,184 171,181 176,184 171,187"/><polygon points="188,184 193,181 198,184 193,187"/>
+    <polygon points="210,184 215,181 220,184 215,187"/><polygon points="232,182 237,179 242,182 237,185"/>
+    <polygon points="156,197 160,195 164,197 160,199"/><polygon points="178,197 182,195 186,197 182,199"/><polygon points="200,197 204,195 208,197 204,199"/>
+    <polygon points="222,195 226,193 230,195 226,197"/>
+    <polygon points="138,178 142,176 146,178 142,180"/><polygon points="158,176 162,174 166,176 162,178"/>
+  </g>
+  <!-- neck -->
+  <polygon class="c1" points="236,162 262,128 284,100 300,86 330,116 314,138 296,164 280,190 258,168"/>
+  <polygon class="c2" points="236,162 262,128 284,100 300,86 304,104 280,130 256,164"/>
+  <polygon class="c3" points="330,116 314,138 296,164 280,190 290,166 308,136 322,120"/>
+  <!-- chest ruff -->
+  <polygon class="c3" points="280,190 290,166 296,170 292,178 299,176 292,188 296,190 284,200"/>
+  <!-- head -->
+  <polygon class="c1" points="298,90 306,78 322,74 340,80 358,88 374,94 377,100 368,108 352,114 336,120 322,118 308,108"/>
+  <polygon class="c2" points="306,78 322,74 340,80 358,88 374,94 352,94 334,90 316,88 302,92"/>
+  <polygon class="c3" points="377,100 368,108 352,114 336,120 348,107 364,103"/>
+  <!-- throat patch -->
+  <polygon class="c3" points="322,118 336,120 330,128 320,126"/>
+  <!-- pale muzzle band -->
+  <polygon class="c3" points="358,88 366,91 366,98 360,104 356,96"/>
+  <!-- near ear -->
+  <polygon class="c1" points="306,84 292,68 274,58 280,74 298,94"/>
+  <polygon class="c3" points="302,84 290,70 282,65 286,76 298,90"/>
+  <polygon class="c1" points="300,80 296,76 293,80 290,74 287,76 289,70 300,82"/>
+  <!-- near antler -->
+  <polygon class="c5" points="312,80 320,78 324,62 330,46 338,28 340,22 336,22 328,40 320,58"/>
+  <polygon class="c5" points="320,68 323,62 336,56 338,60"/>
+  <polygon class="c5" points="326,52 329,46 314,32 311,35"/>
+  <polygon class="c5" points="333,36 336,31 348,18 350,22"/>
+  <!-- pale tine tips -->
+  <polygon class="c3" points="333,58 336,56 338,60 334,60"/>
+  <polygon class="c3" points="315,34 314,32 311,35 313,37"/>
+  <polygon class="c3" points="346,20 348,18 350,22 348,22"/>
+  <polygon class="c3" points="337,24 340,22 339,25"/>
+  <polygon class="pupil" points="327,94 333,89 341,90 339,96 331,98"/>
+  <circle cx="334" cy="92" r="1.5" class="eye"/>
+  <!-- nose -->
+  <polygon class="c4" points="367,92 375,92 379,98 372,102 366,97"/>
+  <!-- near legs -->
+  <polygon class="c1" points="116,190 152,184 174,202 168,226 152,248 142,264 136,282 124,284 120,266 122,244 112,222"/>
+  <polygon class="c2" points="116,190 152,184 166,196 146,208 124,214"/>
+  <polygon class="c1" points="124,278 136,278 140,326 130,326"/>
+  <polygon class="c4" points="129,326 141,326 143,340 135,340 135,334 134,340 127,340"/>
+  <polygon class="c4" points="131,308 128,311 131,314"/>
+  <polygon class="c1" points="244,196 268,198 264,236 262,262 258,272 257,326 245,326 246,272 244,262 248,236"/>
+  <polygon class="c2" points="244,196 268,198 266,214 246,214"/>
+  <polygon class="c4" points="244,326 258,326 260,340 252,340 251,334 250,340 242,340"/>
+  <polygon class="c4" points="246,308 243,311 246,314"/>
+  </g>
+</svg>

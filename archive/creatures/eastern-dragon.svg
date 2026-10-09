@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Eastern dragon">
+  <style>
+    .c1 { fill: var(--c1, #C8473A); }
+    .c2 { fill: var(--c2, #E07A5A); }
+    .c3 { fill: var(--c3, #F2D9A4); }
+    .c4 { fill: var(--c4, #5A1E14); }
+    .c5 { fill: var(--c5, #F0C04A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-66 -4)">
+  <!-- far legs -->
+  <polygon class="c1" points="190,186 206,192 214,222 200,226"/>
+  <polygon class="c4" points="200,226 214,222 224,230 202,234"/>
+  <polygon class="c1" points="254,286 270,288 276,316 262,320"/>
+  <polygon class="c4" points="262,320 276,316 286,324 264,328"/>
+  <!-- mane behind head -->
+  <polygon class="c5" points="290,100 258,86 244,108 262,134 300,140"/>
+  <!-- body (S curve) -->
+  <polygon class="c1" points="288,104 243,119 183,159 152,217 173,277 229,305 286,309 324,314 368,340 336,294 294,275 243,259 207,243 200,223 217,193 257,165 304,144"/>
+  <polygon class="c2" points="288,104 243,119 183,159 152,217 165,220 192,168 248,132 290,116"/>
+  <polygon class="c5" points="304,144 257,165 217,193 200,223 207,243 243,259 294,275 336,294 330,300 292,284 240,268 198,246 190,222 208,186 250,156 298,136"/>
+  <!-- dorsal spines -->
+  <polygon class="c4" points="236,121 230,100 250,116"/>
+  <polygon class="c4" points="176,162 164,142 190,156"/>
+  <polygon class="c4" points="148,218 132,206 156,228"/>
+  <polygon class="c4" points="170,280 160,296 180,284"/>
+  <polygon class="c4" points="224,308 222,324 236,310"/>
+  <polygon class="c4" points="282,312 284,328 294,312"/>
+  <!-- tail flame -->
+  <polygon class="c5" points="368,340 388,352 372,356 360,344"/>
+  <!-- near legs -->
+  <polygon class="c1" points="205,190 222,196 236,224 222,228"/>
+  <polygon class="c4" points="222,228 236,224 246,232 224,236"/>
+  <polygon class="c1" points="272,290 290,292 300,320 286,324"/>
+  <polygon class="c4" points="286,324 300,320 310,328 288,332"/>
+  <!-- head -->
+  <polygon class="c1" points="288,104 316,90 352,100 374,114 364,134 332,142 304,144"/>
+  <polygon class="c2" points="288,104 316,90 352,100 374,114 350,112 318,104"/>
+  <polygon class="c3" points="374,114 364,134 332,142 340,124 360,120"/>
+  <!-- antlers -->
+  <polygon class="c4" points="302,94 286,58 294,56 314,90"/>
+  <polygon class="c4" points="320,90 322,52 330,54 332,92"/>
+  <!-- whiskers -->
+  <polygon class="c5" points="368,122 398,104 400,108 372,128"/>
+  <!-- eye -->
+  <polygon class="pupil" points="334,110 346,108 348,116 336,118"/>
+  <circle cx="339" cy="112" r="1.3" class="eye"/>
+  </g>
+</svg>

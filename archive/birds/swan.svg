@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Swan">
+  <style>
+    .c1 { fill: var(--c1, #F4F4F8); }
+    .c2 { fill: var(--c2, #FFFFFF); }
+    .c3 { fill: var(--c3, #C8CCD8); }
+    .c4 { fill: var(--c4, #2A2A32); }
+    .c5 { fill: var(--c5, #F08A28); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-18 6)">
+  <polygon class="c1" points="40,280 80,236 160,222 240,236 290,270 300,310 250,336 130,336 60,320"/>
+  <polygon class="c2" points="80,236 160,222 240,236 290,270 200,262 120,264"/>
+  <polygon class="c3" points="250,336 130,336 60,320 120,316 240,314"/>
+  <polygon class="c1" points="120,240 70,190 40,150 50,130 90,160 130,210 170,236"/>
+  <polygon class="c3" points="120,240 70,196 56,170 80,180 140,236"/>
+  <polygon class="c1" points="270,264 292,220 296,160 290,110 300,70 330,56 346,76 330,100 322,150 324,210 310,262"/>
+  <polygon class="c2" points="270,264 292,220 296,160 290,110 300,70 330,56 312,90 308,160 300,230"/>
+  <polygon class="c1" points="316,56 354,52 378,66 374,86 340,88 322,76"/>
+  <polygon class="c2" points="316,56 354,52 378,66 346,62"/>
+  <polygon class="c5" points="374,64 396,76 380,90 366,80"/>
+  <polygon class="c4" points="352,56 364,56 368,70 358,72"/>
+  <polygon class="c4" points="330,58 346,58 346,68 332,70"/>
+  <polygon class="eye" points="332,62 346,62 346,72 334,74"/>
+  <circle class="pupil" cx="340" cy="67" r="2.6"/>
+  </g>
+</svg>

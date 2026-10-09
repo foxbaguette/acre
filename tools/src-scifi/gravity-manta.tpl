@@ -1,0 +1,41 @@
+<palette name="Gravity manta" c1="#3A3A5A" c2="#5A5A8A" c3="#E8E8FF" c4="#12122A" c5="#FFB040"/>
+  <polygon class="c5" points="396,230 381,250 376,249 391,230"/>
+  <polygon class="c5" points="381,250 339,267 335,265 376,249"/>
+  <polygon class="c5" points="339,267 275,278 273,276 335,265"/>
+  <polygon class="c5" points="275,278 200,282 200,280 273,276"/>
+  <polygon class="c5" points="200,282 125,278 127,276 200,280"/>
+  <polygon class="c5" points="125,278 61,267 65,265 127,276"/>
+  <polygon class="c5" points="61,267 19,250 24,249 65,265"/>
+  <polygon class="c5" points="19,250 4,230 9,230 24,249"/>
+  <polygon class="c5" points="4,230 19,210 24,211 9,230"/>
+  <polygon class="c5" points="19,210 61,193 65,195 24,211"/>
+  <polygon class="c5" points="61,193 125,182 127,184 65,195"/>
+  <polygon class="c5" points="125,182 200,178 200,180 127,184"/>
+  <polygon class="c5" points="200,178 275,182 273,184 200,180"/>
+  <polygon class="c5" points="275,182 339,193 335,195 273,184"/>
+  <polygon class="c5" points="339,193 381,210 376,211 335,195"/>
+  <polygon class="c5" points="381,210 396,230 391,230 376,211"/>
+  <ribbon pts="200,250,30 200,310,18 200,360,10 200,396,2" cls="c1" top="c1" under="c4"/>
+  <sym>
+  <polygon class="c1" points="190,170 130,140 60,130 10,150 40,200 100,250 160,270 190,260"/>
+  <polygon class="c2" points="190,170 130,140 60,130 10,150 70,170 130,200 188,220"/>
+  <polygon class="c3" points="100,190 130,200 160,236 140,250 110,222"/>
+  <polygon class="c3" points="64,174 90,186 104,210 80,208"/>
+  <polygon class="c5" points="190,170 130,142 150,170 190,196"/>
+  <polygon class="c1" points="174,150 156,100 136,76 150,70 172,96 188,140"/>
+  <polygon class="c4" points="136,76 150,70 146,60 134,66"/>
+  <polygon class="c4" points="150,196 160,206 154,214 144,206"/>
+  </sym>
+  <polygon class="c1" points="170,150 230,150 244,220 230,290 170,290 156,220"/>
+  <polygon class="c2" points="170,150 200,146 200,290 170,290 156,220"/>
+  <polygon class="c3" points="176,170 224,170 232,222 200,262 168,222"/>
+  <polygon class="c4" points="182,206 192,206 190,220 184,220"/>
+  <polygon class="c4" points="208,206 218,206 216,220 210,220"/>
+  <polygon class="c4" points="184,238 216,238 212,248 188,248"/>
+  <sym>
+  <polygon class="eye" points="162,160 176,160 176,172 164,174"/>
+  <circle class="pupil" cx="169" cy="166" r="2.6"/>
+  </sym>
+  <polygon class="c5" points="50,200 49,204 47,207 44,209 40,210 36,209 33,207 31,204 30,200 31,196 33,193 36,191 40,190 44,191 47,193 49,196"/>
+  <polygon class="c3" points="368,262 367,265 366,268 363,269 360,270 357,269 354,268 353,265 352,262 353,259 354,256 357,255 360,254 363,255 366,256 367,259"/>
+</svg>

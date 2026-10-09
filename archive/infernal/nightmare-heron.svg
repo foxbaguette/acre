@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nightmare heron">
+  <style>
+    .c1 { fill: var(--c1, #4A3A68); }
+    .c2 { fill: var(--c2, #6E5A90); }
+    .c3 { fill: var(--c3, #D8D0E8); }
+    .c4 { fill: var(--c4, #140E20); }
+    .c5 { fill: var(--c5, #FF6A50); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-24 -18.5)">
+  <polygon class="c5" points="180,380 188,378 190,300 184,300"/>
+  <polygon class="c5" points="228,380 236,378 236,300 230,300"/>
+  <polygon class="c4" points="172,378 192,378 196,392 168,390"/>
+  <polygon class="c4" points="222,378 242,378 246,392 218,390"/>
+  <polygon class="c1" points="70,250 110,210 180,190 240,206 270,250 258,296 200,310 120,304"/>
+  <polygon class="c2" points="110,210 180,190 240,206 270,250 190,240 130,250"/>
+  <polygon class="c3" points="258,296 200,310 120,304 150,290 220,280"/>
+  <polygon class="c4" points="100,244 150,236 170,270 110,276"/>
+  <polygon class="c1" points="110,256 60,290 54,330 100,300"/>
+  <polygon class="c3" points="236,214 256,240 276,230 252,198"/>
+  <polygon class="c3" points="250,210 280,190 262,170 240,190"/>
+  <polygon class="c1" points="250,210 270,170 280,130 270,100 290,80 310,92 304,126 300,170 286,222"/>
+  <polygon class="c3" points="250,210 270,170 280,130 270,100 284,90 290,136 280,184"/>
+  <polygon class="c1" points="276,78 310,70 350,82 354,100 316,100 288,96"/>
+  <polygon class="c3" points="276,78 310,70 336,76 290,82"/>
+  <polygon class="c5" points="352,82 394,92 394,98 350,98"/>
+  <polygon class="c4" points="268,76 240,56 244,48 276,70"/>
+  <polygon class="c4" points="296,74 306,72 306,84 298,86"/>
+  <polygon class="eye" points="298,78 312,78 312,90 300,92"/>
+  <circle class="pupil" cx="305" cy="84" r="2.6"/>
+  <polygon class="c5" points="277,86 278,58 286,86"/>
+  <polygon class="c5" points="287,86 296,52 296,86"/>
+  <polygon class="c5" points="297,86 298,45 306,86"/>
+  <polygon class="c5" points="307,86 316,58 316,86"/>
+  </g>
+</svg>

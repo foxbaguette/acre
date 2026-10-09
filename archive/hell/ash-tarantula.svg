@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ash Tarantula">
+  <style>
+    .c1 { fill: var(--c1, #4A4448); }
+    .c2 { fill: var(--c2, #7A7078); }
+    .c3 { fill: var(--c3, #D8D0D0); }
+    .c4 { fill: var(--c4, #161214); }
+    .c5 { fill: var(--c5, #FF5A2A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-8 -26)">
+    <polygon class="c1" points="284,219 338,114 342,126 296,225"/>
+  <polygon class="c2" points="284,219 338,114 340,119 289,222"/>
+  <polygon class="c4" points="296,225 342,126 341,123 293,223"/>
+  <polygon class="c1" points="338,114 380,200 372,200 342,126"/>
+  <polygon class="c2" points="338,114 380,200 378,200 339,117"/>
+  <polygon class="c4" points="342,126 372,200 375,200 340,121"/>
+  <polygon class="c1" points="380,200 367,356 365,356 372,200"/>
+  <polygon class="c2" points="380,200 367,356 366,356 377,200"/>
+  <polygon class="c4" points="372,200 365,356 366,356 374,200"/>
+    <polygon class="c1" points="269,234 309,146 299,154 283,238"/>
+  <polygon class="c2" points="269,234 309,146 305,149 275,236"/>
+  <polygon class="c4" points="283,238 299,154 302,152 279,237"/>
+  <polygon class="c1" points="309,146 322,280 314,280 299,154"/>
+  <polygon class="c2" points="309,146 322,280 320,280 306,148"/>
+  <polygon class="c4" points="299,154 314,280 317,280 303,151"/>
+  <polygon class="c1" points="322,280 301,362 299,362 314,280"/>
+  <polygon class="c2" points="322,280 301,362 300,362 319,280"/>
+  <polygon class="c4" points="314,280 299,362 300,362 316,280"/>
+    <polygon class="c1" points="259,247 194,305 186,295 249,237"/>
+  <polygon class="c2" points="259,247 194,305 191,301 255,243"/>
+  <polygon class="c4" points="249,237 186,295 188,298 252,240"/>
+  <polygon class="c1" points="194,305 153,333 147,327 186,295"/>
+  <polygon class="c2" points="194,305 153,333 151,331 192,302"/>
+  <polygon class="c4" points="186,295 147,327 149,330 189,299"/>
+  <polygon class="c1" points="153,333 135,364 133,364 147,327"/>
+  <polygon class="c2" points="153,333 135,364 134,364 151,330"/>
+  <polygon class="c4" points="147,327 133,364 134,364 149,329"/>
+    <polygon class="c1" points="240,247 122,282 118,270 236,233"/>
+  <polygon class="c2" points="240,247 122,282 120,277 238,241"/>
+  <polygon class="c4" points="236,233 118,270 119,274 237,237"/>
+  <polygon class="c1" points="122,282 47,313 41,307 118,270"/>
+  <polygon class="c2" points="122,282 47,313 45,312 121,279"/>
+  <polygon class="c4" points="118,270 41,307 44,309 120,275"/>
+  <polygon class="c1" points="47,313 23,356 21,356 41,307"/>
+  <polygon class="c2" points="47,313 23,356 22,356 44,311"/>
+  <polygon class="c4" points="41,307 21,356 22,356 43,309"/>
+  <polygon class="c1" points="58,164 78,110 140,84 200,106 224,164 204,218 140,238 78,216"/>
+  <polygon class="c2" points="78,110 140,84 200,106 224,164 150,120 100,140"/>
+  <polygon class="c4" points="96,146 120,140 126,164 102,170"/><polygon class="c4" points="150,140 176,146 172,170 148,164"/><polygon class="c5" points="126,182 154,182 150,208 130,208"/>
+  <polygon class="c1" points="212,164 276,154 318,186 306,232 244,242 212,212"/>
+  <polygon class="c2" points="212,164 276,154 318,186 260,176"/>
+  <polygon class="c5" points="262,154 268,138 278,154"/>
+  <polygon class="c5" points="240,158 244,142 254,158"/>
+    <polygon class="c1" points="290,220 368,143 368,157 302,232"/>
+  <polygon class="c2" points="290,220 368,143 368,149 295,225"/>
+  <polygon class="c4" points="302,232 368,157 368,153 298,228"/>
+  <polygon class="c1" points="368,143 395,230 385,230 368,157"/>
+  <polygon class="c2" points="368,143 395,230 392,230 368,147"/>
+  <polygon class="c4" points="368,157 385,230 389,230 368,151"/>
+  <polygon class="c1" points="395,230 389,368 387,368 385,230"/>
+  <polygon class="c2" points="395,230 389,368 388,368 391,230"/>
+  <polygon class="c4" points="385,230 387,368 388,368 388,230"/>
+    <polygon class="c1" points="278,233 340,170 332,182 290,243"/>
+  <polygon class="c2" points="278,233 340,170 337,175 283,237"/>
+  <polygon class="c4" points="290,243 332,182 334,178 286,240"/>
+  <polygon class="c1" points="340,170 357,290 347,290 332,182"/>
+  <polygon class="c2" points="340,170 357,290 354,290 338,174"/>
+  <polygon class="c4" points="332,182 347,290 351,290 335,177"/>
+  <polygon class="c1" points="357,290 341,368 339,368 347,290"/>
+  <polygon class="c2" points="357,290 341,368 340,368 353,290"/>
+  <polygon class="c4" points="347,290 339,368 340,368 350,290"/>
+    <polygon class="c1" points="265,246 232,304 220,296 251,238"/>
+  <polygon class="c2" points="265,246 232,304 227,301 259,243"/>
+  <polygon class="c4" points="251,238 220,296 224,299 255,240"/>
+  <polygon class="c1" points="232,304 211,332 201,328 220,296"/>
+  <polygon class="c2" points="232,304 211,332 208,331 229,302"/>
+  <polygon class="c4" points="220,296 201,328 205,330 225,299"/>
+  <polygon class="c1" points="211,332 201,368 199,368 201,328"/>
+  <polygon class="c2" points="211,332 201,368 200,368 207,330"/>
+  <polygon class="c4" points="201,328 199,368 200,368 204,329"/>
+    <polygon class="c1" points="246,249 153,296 147,284 238,235"/>
+  <polygon class="c2" points="246,249 153,296 150,291 243,243"/>
+  <polygon class="c4" points="238,235 147,284 149,287 241,239"/>
+  <polygon class="c1" points="153,296 87,320 81,312 147,284"/>
+  <polygon class="c2" points="153,296 87,320 85,318 151,293"/>
+  <polygon class="c4" points="147,284 81,312 83,315 150,289"/>
+  <polygon class="c1" points="87,320 61,368 59,368 81,312"/>
+  <polygon class="c2" points="87,320 61,368 60,368 85,317"/>
+  <polygon class="c4" points="81,312 59,368 60,368 83,314"/>
+  <polygon class="c1" points="250,186 316,182 322,226 296,240 256,230"/>
+  <polygon class="c2" points="250,186 316,182 304,196 258,198"/>
+  <polygon class="eye" points="276,194 298,192 298,210 278,212"/>
+  <circle class="pupil" cx="287" cy="202" r="5"/>
+  <polygon class="eye" points="300,212 312,212 312,222 302,224"/>
+  <circle class="pupil" cx="306" cy="217" r="2.6"/>
+  <polygon class="eye" points="262,190 274,188 274,198 264,200"/>
+  <circle class="pupil" cx="268" cy="194" r="2.4"/>
+  <polygon class="c4" points="298,236 312,230 316,272"/>
+  <polygon class="c3" points="302,242 308,240 310,258"/>
+  <polygon class="c4" points="278,242 290,238 288,278"/>
+  </g>
+</svg>

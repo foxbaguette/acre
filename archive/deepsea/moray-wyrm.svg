@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Moray wyrm">
+  <style>
+    .c1 { fill: var(--c1, #4F8A4A); }
+    .c2 { fill: var(--c2, #86C070); }
+    .c3 { fill: var(--c3, #F0E4A0); }
+    .c4 { fill: var(--c4, #1F3A28); }
+    .c5 { fill: var(--c5, #E8503A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-7 -22.5)">
+  <!-- dorsal crests -->
+  <polygon class="c5" points="86,306 96,288 108,310"/>
+  <polygon class="c5" points="146,312 160,292 172,316"/>
+  <polygon class="c5" points="204,290 224,270 232,296"/>
+  <!-- body -->
+    <polygon class="c1" points="20,329 80,312 80,332 20,335"/>
+  <polygon class="c2" points="20,329 80,312 80,320 20,332"/>
+  <polygon class="c3" points="20,335 80,332 80,326 20,333"/>
+  <polygon class="c1" points="80,312 139,315 141,349 80,332"/>
+  <polygon class="c2" points="80,312 139,315 139,325 80,318"/>
+  <polygon class="c3" points="80,332 141,349 140,335 80,324"/>
+  <polygon class="c1" points="139,315 190,294 210,330 141,349"/>
+  <polygon class="c2" points="139,315 190,294 198,309 140,329"/>
+  <polygon class="c3" points="141,349 210,330 204,319 141,339"/>
+  <polygon class="c1" points="190,294 232,264 268,280 210,330"/>
+  <polygon class="c2" points="190,294 232,264 242,268 196,304"/>
+  <polygon class="c3" points="210,330 268,280 253,273 202,315"/>
+  <polygon class="c1" points="232,264 224,232 256,212 268,280"/>
+  <polygon class="c2" points="232,264 224,232 237,224 247,271"/>
+  <polygon class="c3" points="268,280 256,212 246,218 257,275"/>
+  <polygon class="c1" points="224,232 183,197 217,187 256,212"/>
+  <polygon class="c2" points="224,232 183,197 192,194 233,226"/>
+  <polygon class="c3" points="256,212 217,187 203,191 243,220"/>
+  <polygon class="c1" points="183,197 209,139 231,165 217,187"/>
+  <polygon class="c2" points="183,197 209,139 218,150 197,193"/>
+  <polygon class="c3" points="217,187 231,165 224,157 207,190"/>
+  <polygon class="c1" points="209,139 265,117 275,147 231,165"/>
+  <polygon class="c2" points="209,139 265,117 268,125 215,146"/>
+  <polygon class="c3" points="231,165 275,147 271,134 222,154"/>
+  <polygon class="c1" points="265,117 304,107 312,137 275,147"/>
+  <polygon class="c2" points="265,117 304,107 307,120 269,130"/>
+  <polygon class="c3" points="275,147 312,137 310,128 272,138"/>
+  <polygon class="c4" points="150,318 162,320 154,332"/>
+  <polygon class="c4" points="214,296 226,298 216,312"/>
+  <polygon class="c4" points="246,248 258,250 250,262"/>
+  <!-- jaws -->
+  <polygon class="c5" points="318,128 378,124 394,172 354,142 314,140"/>
+  <polygon class="c1" points="300,100 340,96 384,110 380,122 330,124 304,132"/>
+  <polygon class="c2" points="300,100 340,96 384,110 332,108"/>
+  <polygon class="c1" points="310,138 356,142 394,172 380,176 340,162 308,152"/>
+  <polygon class="c3" points="340,124 346,124 343,136"/>
+  <polygon class="c3" points="360,124 366,124 363,134"/>
+  <polygon class="c3" points="352,142 358,144 358,134"/>
+  <polygon class="c3" points="372,152 378,156 378,146"/>
+  <polygon class="eye" points="316,106 330,104 332,116 318,118"/>
+  <circle class="pupil" cx="324" cy="111" r="2.8"/>
+  </g>
+</svg>

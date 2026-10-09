@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Unicorn">
+  <style>
+    .c1 { fill: var(--c1, #EDE8E0); }
+    .c2 { fill: var(--c2, #FBF9F4); }
+    .c3 { fill: var(--c3, #D6CBE2); }
+    .c4 { fill: var(--c4, #5B4B6B); }
+    .c5 { fill: var(--c5, #E8C35A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-32 24)">
+  <!-- far hind leg -->
+  <polygon class="c1" points="124,240 170,252 166,290 142,286"/>
+  <polygon class="c1" points="142,286 166,290 166,328 148,328"/>
+  <polygon class="c5" points="146,328 168,328 170,340 144,340"/>
+  <!-- far front leg -->
+  <polygon class="c1" points="262,140 284,150 290,200 272,204"/>
+  <polygon class="c1" points="272,204 290,200 276,244 258,238"/>
+  <polygon class="c5" points="258,238 276,244 272,258 252,252"/>
+  <!-- tail -->
+  <polygon class="c3" points="130,262 150,300 118,330 88,346 80,330 104,300 116,276"/>
+  <!-- body, rearing -->
+  <polygon class="c1" points="280,104 220,150 160,220 130,262 150,300 200,250 250,190 286,150 300,120"/>
+  <polygon class="c2" points="280,104 220,150 160,220 130,262 150,254 186,208 236,160 284,120"/>
+  <polygon class="c3" points="300,120 286,150 250,190 200,250 150,300 172,292 216,244 262,192 296,148"/>
+  <!-- neck -->
+  <polygon class="c1" points="280,104 304,66 330,56 352,78 344,96 300,122"/>
+  <polygon class="c2" points="280,104 304,66 330,56 322,72 298,96"/>
+  <polygon class="c3" points="352,78 344,96 300,122 316,104 340,88"/>
+  <!-- mane -->
+  <polygon class="c3" points="280,100 304,62 330,52 338,40 318,48 296,56 272,90"/>
+  <!-- head -->
+  <polygon class="c1" points="330,56 360,80 384,108 376,124 350,122 340,100 344,96"/>
+  <polygon class="c2" points="330,56 360,80 384,108 366,104 344,84"/>
+  <polygon class="c3" points="384,108 376,124 350,122 358,110"/>
+  <!-- horn -->
+  <polygon class="c5" points="322,58 334,52 370,8 366,6"/>
+  <polygon class="c2" points="326,58 334,52 364,12 360,12"/>
+  <!-- ear -->
+  <polygon class="c1" points="332,58 338,34 346,62"/>
+  <polygon class="c3" points="337,40 340,56 334,58"/>
+  <!-- eye and nostril -->
+  <polygon class="pupil" points="346,82 356,80 358,88 348,90"/>
+  <circle cx="351" cy="84" r="1.3" class="eye"/>
+  <polygon class="c3" points="374,110 382,108 384,116 376,118"/>
+  <!-- near hind leg -->
+  <polygon class="c1" points="146,246 192,258 190,296 166,292"/>
+  <polygon class="c2" points="146,246 192,258 186,268 150,260"/>
+  <polygon class="c1" points="166,292 190,296 190,330 172,330"/>
+  <polygon class="c5" points="170,330 192,330 194,342 168,342"/>
+  <!-- near front leg -->
+  <polygon class="c1" points="280,134 304,144 316,196 296,200"/>
+  <polygon class="c2" points="280,134 304,144 302,156 284,150"/>
+  <polygon class="c1" points="296,200 316,196 300,246 282,240"/>
+  <polygon class="c5" points="282,240 300,246 296,260 276,254"/>
+  </g>
+</svg>

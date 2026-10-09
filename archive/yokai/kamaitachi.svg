@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kamaitachi">
+  <style>
+    .c1 { fill: var(--c1, #A88A5A); }
+    .c2 { fill: var(--c2, #D0B080); }
+    .c3 { fill: var(--c3, #F4E8C8); }
+    .c4 { fill: var(--c4, #3A2A18); }
+    .c5 { fill: var(--c5, #8AE0F0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-12.5 -25)">
+  <!-- wind trails -->
+    <polygon class="c5" points="38,302 90,281 90,287 42,310"/>
+  <polygon class="c5" points="90,281 131,303 129,305 90,287"/>
+    <polygon class="c5" points="59,248 110,233 110,239 61,256"/>
+  <polygon class="c5" points="110,233 151,251 149,253 110,239"/>
+    <polygon class="c5" points="29,275 70,266 70,270 31,281"/>
+  <polygon class="c5" points="70,266 100,277 100,279 70,270"/>
+  <!-- tail -->
+    <polygon class="c1" points="99,266 66,254 74,238 105,242"/>
+  <polygon class="c1" points="66,254 38,229 42,223 74,238"/>
+  <!-- hind legs -->
+  <polygon class="c1" points="110,270 76,300 52,312 56,322 88,314 122,284"/>
+  <polygon class="c4" points="52,310 38,316 56,324"/>
+  <polygon class="c1" points="130,262 110,300 90,320 96,328 124,310 144,276"/>
+  <polygon class="c4" points="88,318 76,328 96,330"/>
+  <!-- body -->
+    <polygon class="c1" points="93,246 149,202 171,254 111,278"/>
+  <polygon class="c2" points="93,246 149,202 158,224 101,260"/>
+  <polygon class="c3" points="111,278 171,254 165,238 106,268"/>
+  <polygon class="c1" points="149,202 215,180 229,236 171,254"/>
+  <polygon class="c2" points="149,202 215,180 219,196 155,217"/>
+  <polygon class="c3" points="171,254 229,236 223,213 162,232"/>
+  <polygon class="c1" points="215,180 265,178 271,226 229,236"/>
+  <polygon class="c2" points="215,180 265,178 268,198 221,203"/>
+  <polygon class="c3" points="229,236 271,226 269,212 225,219"/>
+  <!-- sickle arms -->
+  <polygon class="c1" points="250,206 290,186 320,160 330,176 300,210 264,226"/>
+  <polygon class="c3" points="320,160 360,120 392,124 372,134 346,160 332,178"/>
+  <polygon class="c5" points="392,124 372,134 380,138"/>
+  <polygon class="c1" points="270,226 310,222 340,200 350,214 322,240 280,246"/>
+  <polygon class="c3" points="340,200 382,180 396,190 362,208 348,216"/>
+  <polygon class="c5" points="396,190 382,198 388,204"/>
+  <!-- weasel head -->
+  <polygon class="c1" points="288,176 328,160 362,174 366,194 336,206 296,200"/>
+  <polygon class="c2" points="288,176 328,160 362,174 330,176"/>
+  <polygon class="c3" points="366,194 336,206 296,200 330,194"/>
+  <polygon class="c1" points="300,172 296,150 320,166"/>
+  <polygon class="eye" points="326,170 344,168 344,180 326,182"/>
+  <polygon class="pupil" points="335,168 338,175 335,182 332,175"/>
+  <polygon class="c4" points="360,176 368,180 362,186"/>
+  </g>
+</svg>

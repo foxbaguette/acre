@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lava eel">
+  <style>
+    .c1 { fill: var(--c1, #5A2A2A); }
+    .c2 { fill: var(--c2, #8A4A3A); }
+    .c3 { fill: var(--c3, #F0C8A0); }
+    .c4 { fill: var(--c4, #1E0C0C); }
+    .c5 { fill: var(--c5, #FF7A1A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-4 -4)">
+  <!-- flaming dorsal fin -->
+  <polygon class="c5" points="90,330 84,300 106,324"/>
+  <polygon class="c5" points="130,336 130,296 152,330"/>
+  <polygon class="c5" points="176,330 184,290 198,326"/>
+  <polygon class="c5" points="220,300 240,266 244,304"/>
+  <polygon class="c5" points="262,250 290,226 286,262"/>
+  <polygon class="c5" points="246,196 270,170 264,206"/>
+  <polygon class="c5" points="206,160 224,130 226,166"/>
+  <polygon class="c5" points="160,150 170,116 182,152"/>
+  <!-- S-shaped body -->
+    <polygon class="c1" points="20,347 80,329 80,351 20,353"/>
+  <polygon class="c2" points="20,347 80,329 80,338 20,350"/>
+  <polygon class="c3" points="20,353 80,351 80,344 20,351"/>
+  <polygon class="c1" points="80,329 148,328 152,364 80,351"/>
+  <polygon class="c2" points="80,329 148,328 149,338 80,335"/>
+  <polygon class="c3" points="80,351 152,364 150,349 80,342"/>
+  <polygon class="c1" points="148,328 209,307 231,345 152,364"/>
+  <polygon class="c2" points="148,328 209,307 218,323 150,343"/>
+  <polygon class="c3" points="152,364 231,345 224,334 151,353"/>
+  <polygon class="c1" points="209,307 249,274 291,286 231,345"/>
+  <polygon class="c2" points="209,307 249,274 261,277 215,318"/>
+  <polygon class="c3" points="231,345 291,286 273,281 222,329"/>
+  <polygon class="c1" points="249,274 234,239 266,213 291,286"/>
+  <polygon class="c2" points="249,274 234,239 247,228 267,279"/>
+  <polygon class="c3" points="291,286 266,213 256,221 278,283"/>
+  <polygon class="c1" points="234,239 185,208 215,184 266,213"/>
+  <polygon class="c2" points="234,239 185,208 193,201 243,232"/>
+  <polygon class="c3" points="266,213 215,184 202,194 253,224"/>
+  <polygon class="c1" points="185,208 173,144 207,156 215,184"/>
+  <polygon class="c2" points="185,208 173,144 187,149 198,198"/>
+  <polygon class="c3" points="215,184 207,156 197,152 206,191"/>
+  <polygon class="c1" points="173,144 221,93 239,123 207,156"/>
+  <polygon class="c2" points="173,144 221,93 226,102 183,147"/>
+  <polygon class="c3" points="207,156 239,123 231,110 193,151"/>
+  <polygon class="c1" points="221,93 286,76 294,108 239,123"/>
+  <polygon class="c2" points="221,93 286,76 289,89 229,106"/>
+  <polygon class="c3" points="239,123 294,108 292,99 233,114"/>
+  <polygon class="c5" points="120,340 128,334 134,344 126,350"/>
+  <polygon class="c5" points="212,322 220,316 226,326 218,332"/>
+  <polygon class="c5" points="264,276 272,270 278,280 270,286"/>
+  <polygon class="c5" points="244,222 252,216 258,226 250,232"/>
+  <polygon class="c5" points="190,148 198,142 204,152 196,158"/>
+  <!-- fanged head with a huge jaw -->
+  <polygon class="c1" points="288,66 336,56 382,76 388,104 350,118 296,112"/>
+  <polygon class="c2" points="288,66 336,56 382,76 336,72"/>
+  <polygon class="c4" points="318,100 388,98 372,134 326,122"/>
+  <polygon class="c3" points="326,100 334,100 330,116"/>
+  <polygon class="c3" points="346,98 354,98 350,114"/>
+  <polygon class="c3" points="366,98 374,98 370,112"/>
+  <polygon class="c3" points="336,124 344,124 340,110"/>
+  <polygon class="c3" points="358,128 366,126 362,112"/>
+  <polygon class="c1" points="312,118 366,126 350,148 304,132"/>
+  <polygon class="c5" points="296,64 292,44 308,60"/>
+  <polygon class="eye" points="308,74 328,72 328,86 308,88"/>
+  <circle class="pupil" cx="318" cy="80" r="3.6"/>
+  </g>
+</svg>

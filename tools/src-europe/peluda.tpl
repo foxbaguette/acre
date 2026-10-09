@@ -1,0 +1,45 @@
+<palette name="Peluda" c1="#4A7A3A" c2="#78A850" c3="#E0E8B8" c4="#2A3A14" c5="#E86A3A"/>
+  <!-- serpent tail -->
+  <ribbon pts="106,226,22 70,246,18 44,224,12 40,186,7" cls="c1" top="c2" under="c4"/>
+  <polygon class="c1" points="30,172 56,162 62,180 38,190"/>
+  <polygon class="c5" points="56,172 74,170 58,178"/>
+  <!-- poison quills -->
+  <polygon class="c4" points="130,176 100,100 150,164"/>
+  <polygon class="c5" points="100,100 108,120 96,118"/>
+  <polygon class="c4" points="156,164 140,80 184,158"/>
+  <polygon class="c5" points="140,80 148,102 136,100"/>
+  <polygon class="c4" points="186,158 184,70 214,156"/>
+  <polygon class="c5" points="184,70 190,92 180,92"/>
+  <polygon class="c4" points="214,156 226,74 244,160"/>
+  <polygon class="c5" points="226,74 230,96 222,96"/>
+  <polygon class="c4" points="246,162 270,88 276,172"/>
+  <polygon class="c5" points="270,88 270,110 262,108"/>
+  <!-- far legs with turtle claws -->
+  <polygon class="c1" points="238,262 274,266 278,330 240,334"/>
+  <polygon class="c1" points="150,266 188,270 190,332 152,336"/>
+  <!-- shaggy body -->
+  <polygon class="c1" points="100,200 150,168 250,170 296,198 302,250 266,280 134,280 104,246"/>
+  <polygon class="c2" points="150,168 250,170 296,198 302,250 240,208 160,212"/>
+  <polygon class="c3" points="266,280 134,280 104,246 160,268 256,262"/>
+  <polygon class="c4" points="150,196 160,190 170,198 160,208"/>
+  <polygon class="c4" points="204,196 214,190 224,198 214,208"/>
+  <polygon class="c4" points="252,206 262,200 270,208 260,218"/>
+  <!-- near legs -->
+  <polygon class="c1" points="262,262 302,266 308,328 264,332"/>
+  <polygon class="c1" points="122,266 166,270 170,332 128,336"/>
+  <polygon class="c4" points="262,326 312,326 316,342 258,342"/>
+  <polygon class="c4" points="124,330 174,330 178,346 120,346"/>
+  <polygon class="c3" points="300,336 310,336 304,350"/>
+  <polygon class="c3" points="130,340 140,340 134,354"/>
+  <!-- ox-like head with horns -->
+  <polygon class="c1" points="276,196 296,160 312,142 324,180 296,214"/>
+  <polygon class="c1" points="296,160 336,142 380,166 388,206 354,228 308,218"/>
+  <polygon class="c2" points="296,160 336,142 380,166 340,166"/>
+  <polygon class="c3" points="388,206 354,228 308,218 352,208"/>
+  <polygon class="c3" points="310,152 296,118 330,134"/>
+  <polygon class="c3" points="340,144 358,108 366,150"/>
+  <polygon class="c5" points="296,118 290,106 304,122"/>
+  <polygon class="c4" points="378,196 388,202 380,212"/>
+  <polygon class="eye" points="326,170 346,168 346,182 326,184"/>
+  <circle class="pupil" cx="336" cy="176" r="3.6"/>
+</svg>

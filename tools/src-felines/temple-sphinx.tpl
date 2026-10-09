@@ -1,0 +1,31 @@
+<palette name="Temple sphinx" c1="#D9B26A" c2="#F0D294" c3="#FBEBC8" c4="#2D4A7A" c5="#3FB8B0"/>
+  <!-- tail -->
+  <polygon class="c1" points="76,252 44,244 34,226 46,218 56,236 84,240"/>
+  <polygon class="c4" points="34,226 46,218 40,204 28,214"/>
+  <!-- far paw -->
+  <polygon class="c1" points="246,236 326,238 340,256 330,262 246,254"/>
+  <polygon class="c3" points="326,238 350,246 352,262 330,262"/>
+  <!-- body -->
+  <polygon class="c1" points="70,252 100,202 190,172 270,178 300,216 296,262 90,262"/>
+  <polygon class="c2" points="100,202 190,172 270,178 300,216 220,196 130,216"/>
+  <polygon class="c3" points="296,262 90,262 120,254 280,252"/>
+  <polygon class="c1" points="110,230 172,236 178,262 104,262"/>
+  <polygon class="c2" points="110,230 172,236 162,246 114,246"/>
+  <!-- folded wing -->
+  <fan b="238,182 262,198" t="76,226 96,264" n="5" cls="c4 c5" shape="quad"/>
+  <!-- near paw -->
+  <polygon class="c1" points="250,240 332,244 350,262 342,270 250,264"/>
+  <polygon class="c3" points="332,244 360,252 362,270 342,270"/>
+  <!-- headdress -->
+  <polygon class="c4" points="274,150 300,116 350,120 376,150 372,238 340,224 300,202 276,192"/>
+  <polygon class="c5" points="296,118 312,116 306,202 292,198"/>
+  <polygon class="c5" points="330,118 346,120 350,224 334,218"/>
+  <polygon class="c1" points="286,150 310,138 340,144 358,164 352,190 326,200 300,194 284,172"/>
+  <polygon class="c3" points="358,164 352,190 326,200 330,180 346,170"/>
+  <polygon class="c4" points="312,164 324,158 346,160 346,164 326,164 316,170"/>
+  <polygon class="eye" points="320,160 340,158 342,168 322,170"/>
+  <polygon class="pupil" points="331,158 334,164 331,170 328,164"/>
+  <polygon class="c4" points="352,166 360,166 356,172"/>
+  <polygon class="c5" points="300,140 308,128 314,142"/>
+  <polygon class="c5" points="326,198 336,198 332,216 324,212"/>
+</svg>

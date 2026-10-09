@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cloud brontosaurus">
+  <style>
+    .c1 { fill: var(--c1, #A8B8D8); }
+    .c2 { fill: var(--c2, #D0DCF0); }
+    .c3 { fill: var(--c3, #F4F8FF); }
+    .c4 { fill: var(--c4, #4A5A80); }
+    .c5 { fill: var(--c5, #5AA8F0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(4 3)">
+  <!-- tail with cloud puff -->
+    <polygon class="c1" points="125,278 85,290 75,266 111,246"/>
+  <polygon class="c2" points="125,278 85,290 81,280 119,265"/>
+  <polygon class="c3" points="111,246 75,266 78,273 115,256"/>
+  <polygon class="c1" points="85,290 48,299 40,285 75,266"/>
+  <polygon class="c2" points="85,290 48,299 46,295 82,283"/>
+  <polygon class="c3" points="75,266 40,285 43,291 79,276"/>
+  <polygon class="c1" points="48,299 25,315 19,309 40,285"/>
+  <polygon class="c2" points="48,299 25,315 22,312 45,293"/>
+  <polygon class="c3" points="40,285 19,309 21,311 42,289"/>
+  <polygon class="c3" points="26,312 6,298 18,284 36,292"/>
+  <polygon class="c5" points="14,330 20,342 14,354 8,342"/>
+  <!-- far legs -->
+  <polygon class="c1" points="150,300 192,300 194,360 150,360"/>
+  <polygon class="c1" points="258,300 298,300 298,360 256,360"/>
+  <!-- cloud puffs on the back -->
+  <polygon class="c3" points="120,206 132,160 172,140 212,150 232,192 190,216"/>
+  <polygon class="c3" points="200,172 220,128 270,118 302,152 298,204 250,218"/>
+  <polygon class="c2" points="132,160 172,140 212,150 190,166"/>
+  <polygon class="c2" points="220,128 270,118 302,152 262,150"/>
+  <!-- neck -->
+    <polygon class="c1" points="256,234 284,178 324,190 304,254"/>
+  <polygon class="c2" points="256,234 284,178 301,183 276,242"/>
+  <polygon class="c3" points="304,254 324,190 312,187 290,248"/>
+  <polygon class="c1" points="284,178 306,108 338,116 324,190"/>
+  <polygon class="c2" points="284,178 306,108 315,110 295,181"/>
+  <polygon class="c3" points="324,190 338,116 325,113 307,185"/>
+  <polygon class="c1" points="306,108 323,58 349,66 338,116"/>
+  <polygon class="c2" points="306,108 323,58 334,61 319,111"/>
+  <polygon class="c3" points="338,116 349,66 341,64 329,114"/>
+  <!-- body -->
+  <polygon class="c1" points="110,252 150,212 250,212 296,242 296,292 250,312 150,312 114,292"/>
+  <polygon class="c2" points="150,212 250,212 296,242 296,292 250,252 160,252"/>
+  <polygon class="c3" points="250,312 150,312 114,292 160,300 240,298"/>
+  <!-- near legs -->
+  <polygon class="c1" points="126,300 172,300 174,360 128,360"/>
+  <polygon class="c1" points="230,302 276,302 278,360 232,360"/>
+  <polygon class="c3" points="120,354 178,354 182,372 114,372"/>
+  <polygon class="c3" points="226,354 284,354 288,372 220,372"/>
+  <!-- rain -->
+  <polygon class="c5" points="160,330 166,342 160,354 154,342"/>
+  <polygon class="c5" points="204,326 208,326 204,356 200,356"/>
+  <polygon class="c5" points="196,340 202,350 196,360 190,350"/>
+  <polygon class="c5" points="300,330 306,342 300,354 294,342"/>
+  <!-- head -->
+  <polygon class="c1" points="326,40 366,36 386,56 374,74 340,76 328,60"/>
+  <polygon class="c2" points="326,40 366,36 386,56 350,48"/>
+  <polygon class="c3" points="386,56 374,74 340,76 364,66"/>
+  <polygon class="c5" points="332,40 328,22 344,38"/>
+  <polygon class="eye" points="344,48 360,48 360,60 344,60"/>
+  <circle class="pupil" cx="352" cy="54" r="3"/>
+  </g>
+</svg>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lantern firefly">
+  <style>
+    .c1 { fill: var(--c1, #3A3248); }
+    .c2 { fill: var(--c2, #5E5478); }
+    .c3 { fill: var(--c3, #D8D0E8); }
+    .c4 { fill: var(--c4, #14101C); }
+    .c5 { fill: var(--c5, #FFE45A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(6.5 15)">
+  <!-- far wing -->
+    <polygon class="c3" points="230,212 241,210 123,98 90,112"/>
+  <polygon class="c2" points="241,210 251,208 157,84 123,98"/>
+  <polygon class="c3" points="251,208 262,206 190,70 157,84"/>
+  <!-- legs -->
+  <polygon class="c4" points="250,250 262,290 252,302 244,298 252,266 240,254"/>
+  <polygon class="c4" points="232,252 232,292 220,306 212,302 220,288 222,254"/>
+  <polygon class="c4" points="214,248 204,286 190,296 184,290 196,282 204,248"/>
+  <!-- abdomen with glowing lantern -->
+    <polygon class="c1" points="234,245 190,268 174,236 218,215"/>
+  <polygon class="c2" points="234,245 190,268 183,255 227,232"/>
+  <polygon class="c4" points="218,215 174,236 179,246 223,224"/>
+  <polygon class="c1" points="190,268 147,288 133,260 174,236"/>
+  <polygon class="c2" points="190,268 147,288 143,280 186,259"/>
+  <polygon class="c4" points="174,236 133,260 139,272 181,249"/>
+    <polygon class="c5" points="148,288 107,309 93,283 132,260"/>
+  <polygon class="c3" points="148,288 107,309 101,298 141,276"/>
+  <polygon class="c5" points="132,260 93,283 97,291 137,268"/>
+  <polygon class="c5" points="107,309 72,325 60,307 93,283"/>
+  <polygon class="c3" points="107,309 72,325 68,320 103,302"/>
+  <polygon class="c5" points="93,283 60,307 65,314 99,294"/>
+  <polygon class="c5" points="72,325 53,330 47,322 60,307"/>
+  <polygon class="c3" points="72,325 53,330 50,327 67,318"/>
+  <polygon class="c5" points="60,307 47,322 49,324 64,312"/>
+  <!-- thorax and head -->
+  <polygon class="c1" points="230,206 270,196 290,226 266,256 226,248"/>
+  <polygon class="c2" points="230,206 270,196 290,226 252,222"/>
+  <polygon class="c1" points="286,214 314,208 328,230 312,252 288,248"/>
+  <polygon class="pupil" points="294,214 312,212 320,230 308,244 294,238"/>
+  <circle class="eye" cx="304" cy="224" r="2.6"/>
+    <polygon class="c4" points="303,211 315,183 317,185 305,213"/>
+  <polygon class="c4" points="315,183 340,167 340,169 317,185"/>
+    <polygon class="c4" points="295,214 289,184 291,184 297,214"/>
+  <polygon class="c4" points="289,184 303,160 305,160 291,184"/>
+  <!-- near wing -->
+    <polygon class="c3" points="236,206 244,204 160,55 130,60"/>
+  <polygon class="c2" points="244,204 251,202 190,50 160,55"/>
+  <polygon class="c3" points="251,202 259,200 220,45 190,50"/>
+  <polygon class="c2" points="259,200 266,198 250,40 220,45"/>
+  </g>
+</svg>

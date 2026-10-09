@@ -1,0 +1,26 @@
+<palette name="Porcupine" c1="#4A3A30" c2="#6C5848" c3="#F4ECD8" c4="#1A120C" c5="#B8A890"/>
+  <polygon class="c3" points="70,290 40,280 50,250 80,262"/>
+  <polygon class="c3" points="84,256 54,232 74,220 100,240"/>
+  <polygon class="c3" points="110,230 90,196 116,190 130,216"/>
+  <polygon class="c3" points="150,214 140,176 164,176 172,208"/>
+  <polygon class="c3" points="196,208 196,168 220,172 218,208"/>
+  <polygon class="c3" points="242,214 256,176 274,188 262,222"/>
+  <polygon class="c1" points="76,300 96,236 160,200 240,206 290,246 296,310 264,350 120,356"/>
+  <polygon class="c2" points="96,236 160,200 240,206 290,246 296,310 230,236 150,240"/>
+  <polygon class="c4" points="150,220 134,190 160,206"/>
+  <polygon class="c4" points="198,210 196,176 218,208"/>
+  <polygon class="c4" points="246,224 262,186 272,226"/>
+  <polygon class="c4" points="110,240 94,208 122,232"/>
+  <polygon class="c1" points="230,326 270,326 276,362 246,372 232,364"/>
+  <polygon class="c1" points="110,326 160,332 150,366 114,372"/>
+  <polygon class="c4" points="108,366 154,366 154,376 106,376"/>
+  <polygon class="c4" points="228,366 276,366 276,376 226,376"/>
+  <polygon class="c1" points="276,270 312,252 352,254 382,280 380,314 346,334 300,330 284,304"/>
+  <polygon class="c2" points="312,252 352,254 382,280 346,274"/>
+  <polygon class="c5" points="380,296 380,314 346,334 340,308"/>
+  <polygon class="c4" points="372,284 384,292 372,300"/>
+  <polygon class="c1" points="318,254 314,236 336,250"/>
+  <polygon class="c5" points="330,308 366,318 346,332"/>
+  <polygon class="eye" points="336,276 352,276 352,290 338,292"/>
+  <circle class="pupil" cx="344" cy="283" r="3.2"/>
+</svg>

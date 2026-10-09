@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Star turtle">
+  <style>
+    .c1 { fill: var(--c1, #3A3A7A); }
+    .c2 { fill: var(--c2, #6060B0); }
+    .c3 { fill: var(--c3, #D8D8FF); }
+    .c4 { fill: var(--c4, #12123A); }
+    .c5 { fill: var(--c5, #FFD060); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-17 -70)">
+  <polygon class="c1" points="60,330 36,336 40,356 66,350"/>
+  <polygon class="c5" points="150,310 200,310 192,356 198,376 142,376 142,346"/>
+  <polygon class="c5" points="250,310 300,312 306,346 306,376 252,376 246,340"/>
+  <polygon class="c4" points="136,370 200,370 202,380 134,380"/>
+  <polygon class="c4" points="250,370 308,370 310,380 248,380"/>
+  <polygon class="c3" points="64,318 340,318 316,346 90,346"/>
+  <polygon class="c1" points="60,318 80,240 130,180 200,160 270,180 324,240 344,318"/>
+  <polygon class="c2" points="80,240 130,180 200,160 270,180 324,240 240,210 150,220"/>
+  <polygon class="c4" points="130,180 138,186 130,318 122,318"/>
+  <polygon class="c4" points="200,160 192,170 200,318 210,318"/>
+  <polygon class="c4" points="270,180 262,188 272,318 282,318"/>
+  <polygon class="c4" points="80,240 90,244 94,318 84,318"/>
+  <polygon class="c4" points="324,240 314,244 314,318 324,318"/>
+  <polygon class="c5" points="154,230 182,224 186,268 158,274"/>
+  <polygon class="c5" points="216,224 246,230 242,274 214,268"/>
+  <polygon class="c1" points="320,300 350,270 380,266 396,284 390,316 350,324 326,326"/>
+  <polygon class="c2" points="350,270 380,266 396,284 366,282"/>
+  <polygon class="c3" points="390,316 396,284 398,300 390,320"/>
+  <polygon class="c4" points="388,288 398,294 388,302"/>
+  <polygon class="c5" points="340,308 396,306 396,318 346,322"/>
+  <polygon class="eye" points="364,282 380,282 380,294 366,296"/>
+  <circle class="pupil" cx="372" cy="288" r="2.8"/>
+  <polygon class="c5" points="164,230 163,235 160,240 155,243 150,244 145,243 140,240 137,235 136,230 137,225 140,220 145,217 150,216 155,217 160,220 163,225"/>
+  <polygon class="c3" points="272,214 271,218 269,221 266,223 262,224 258,223 255,221 253,218 252,214 253,210 255,207 258,205 262,204 266,205 269,207 271,210"/>
+  <polygon class="c5" points="200,184 203,193 212,196 203,199 200,208 197,199 188,196 197,193"/>
+  <polygon class="c3" points="300,240 292,248 289,248 296,240"/>
+  <polygon class="c3" points="292,248 271,256 268,254 289,248"/>
+  <polygon class="c3" points="271,256 238,260 237,258 268,254"/>
+  <polygon class="c3" points="238,260 200,262 200,260 237,258"/>
+  <polygon class="c3" points="200,262 162,260 163,258 200,260"/>
+  <polygon class="c3" points="162,260 129,256 132,254 163,258"/>
+  <polygon class="c3" points="129,256 108,248 111,248 132,254"/>
+  <polygon class="c3" points="108,248 100,240 104,240 111,248"/>
+  <polygon class="c3" points="100,240 108,232 111,232 104,240"/>
+  <polygon class="c3" points="108,232 129,224 132,226 111,232"/>
+  <polygon class="c3" points="129,224 162,220 163,222 132,226"/>
+  <polygon class="c3" points="162,220 200,218 200,220 163,222"/>
+  <polygon class="c3" points="200,218 238,220 237,222 200,220"/>
+  <polygon class="c3" points="238,220 271,224 268,226 237,222"/>
+  <polygon class="c3" points="271,224 292,232 289,232 268,226"/>
+  <polygon class="c3" points="292,232 300,240 296,240 289,232"/>
+  <polygon class="c3" points="130,173 132,178 137,180 132,182 130,187 128,182 123,180 128,178"/>
+  </g>
+</svg>

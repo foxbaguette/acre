@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Moon spinosaurus">
+  <style>
+    .c1 { fill: var(--c1, #4A5A8A); }
+    .c2 { fill: var(--c2, #7A8ABA); }
+    .c3 { fill: var(--c3, #D8E0F4); }
+    .c4 { fill: var(--c4, #1A2040); }
+    .c5 { fill: var(--c5, #FFE08A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(12 -2)">
+  <!-- tail with fin -->
+  <polygon class="c1" points="300,250 340,264 374,282 370,290 330,282 292,268"/>
+  <polygon class="c5" points="340,264 360,242 318,260"/>
+  <!-- far legs -->
+  <polygon class="c1" points="250,290 200,290 196,350 248,352"/>
+  <polygon class="c1" points="114,292 82,294 78,340 112,342"/>
+  <!-- crescent moon sail -->
+  <polygon class="c4" points="218,200 222,116 214,114 206,200"/>
+  <polygon class="c4" points="180,196 176,92 168,92 168,198"/>
+  <polygon class="c5" points="250,200 260,130 230,76 170,50 110,52 138,70 164,104 170,150 160,200"/>
+  <polygon class="c3" points="230,76 170,50 110,52 150,62 200,84 228,120"/>
+  <polygon class="c3" points="192,140 186,150 192,160 198,150"/>
+  <!-- body -->
+  <polygon class="c1" points="300,238 260,202 180,198 110,212 70,242 70,280 110,302 260,302"/>
+  <polygon class="c2" points="260,202 180,198 110,212 70,242 160,222 240,230"/>
+  <polygon class="c3" points="110,302 260,302 300,238 240,282 130,282"/>
+  <polygon class="c5" points="210,246 202,258 210,270 218,258"/>
+  <polygon class="c3" points="160,250 154,260 160,270 166,260"/>
+  <!-- near legs -->
+  <polygon class="c1" points="250,290 196,290 192,350 248,352"/>
+  <polygon class="c1" points="110,292 78,294 74,340 108,342"/>
+  <polygon class="c4" points="250,342 190,342 188,354 252,354"/>
+  <polygon class="c4" points="110,334 72,334 70,346 112,346"/>
+  <!-- long crocodile-like head -->
+  <polygon class="c1" points="80,238 40,228 2,248 4,264 46,270 74,262"/>
+  <polygon class="c2" points="80,238 40,228 2,248 46,240"/>
+  <polygon class="c3" points="46,270 4,264 20,276 54,274"/>
+  <polygon class="c3" points="42,262 36,262 39,272"/>
+  <polygon class="c3" points="26,260 20,260 23,270"/>
+  <polygon class="c5" points="70,236 64,218 56,232"/>
+  <polygon class="eye" points="64,242 48,240 48,252 64,254"/>
+  <circle class="pupil" cx="56" cy="247" r="3"/>
+  </g>
+</svg>

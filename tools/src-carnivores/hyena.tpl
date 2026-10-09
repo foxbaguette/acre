@@ -1,0 +1,28 @@
+<palette name="Hyena" c1="#9A8460" c2="#BEA880" c3="#E8DCC0" c4="#3A2C1A" c5="#6A5A3A"/>
+  <ribbon pts="96,232,10 60,244,13 40,276,8" cls="c5" top="c5" under="c4"/>
+  <polygon class="c4" points="40,276 30,296 48,290"/>
+  <polygon class="c1" points="236,252 268,256 276,310 280,350 254,350 252,314"/>
+  <polygon class="c1" points="146,262 180,266 168,312 172,350 148,350 150,316"/>
+  <polygon class="c1" points="92,236 124,208 190,180 262,184 296,216 292,266 258,284 130,284 98,268"/>
+  <polygon class="c2" points="124,208 190,180 262,184 296,216 220,206 150,226"/>
+  <polygon class="c3" points="258,284 130,284 98,268 170,266 250,262"/>
+  <polygon class="c4" points="146,236 160,230 166,246 152,252"/>
+  <polygon class="c4" points="186,214 200,208 208,224 192,230"/>
+  <polygon class="c4" points="226,214 240,210 246,226 232,230"/>
+  <polygon class="c4" points="204,252 218,248 224,262 210,266"/>
+  <polygon class="c1" points="258,260 296,264 308,318 316,350 288,352 280,320"/>
+  <polygon class="c1" points="118,250 160,268 146,316 152,350 124,352 126,318"/>
+  <polygon class="c4" points="286,344 320,344 322,356 284,356"/>
+  <polygon class="c4" points="122,344 156,344 158,356 120,356"/>
+  <polygon class="c5" points="250,192 270,150 300,126 316,132 316,172 290,220"/>
+  <polygon class="c1" points="290,150 322,128 362,138 386,172 380,206 340,226 304,214"/>
+  <polygon class="c2" points="322,128 362,138 386,172 340,156"/>
+  <polygon class="c4" points="340,186 384,176 382,210 346,226"/>
+  <polygon class="c3" points="352,184 360,184 356,196"/>
+  <polygon class="c3" points="370,180 378,180 374,192"/>
+  <polygon class="c1" points="304,138 296,104 326,126"/>
+  <polygon class="c4" points="306,130 302,112 320,126"/>
+  <polygon class="c1" points="344,130 360,104 372,142"/>
+  <polygon class="eye" points="326,150 344,148 344,162 328,164"/>
+  <circle class="pupil" cx="335" cy="157" r="3.2"/>
+</svg>

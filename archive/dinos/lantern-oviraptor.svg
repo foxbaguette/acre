@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lantern oviraptor">
+  <style>
+    .c1 { fill: var(--c1, #D88A4A); }
+    .c2 { fill: var(--c2, #F0B880); }
+    .c3 { fill: var(--c3, #FFF0D8); }
+    .c4 { fill: var(--c4, #5A301A); }
+    .c5 { fill: var(--c5, #FFE060); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-61 6)">
+  <!-- feet below the egg -->
+  <polygon class="c1" points="190,320 186,350 170,356 170,362 200,360 206,324"/>
+  <polygon class="c1" points="230,320 232,350 220,356 222,364 252,360 250,324"/>
+  <polygon class="c4" points="168,358 202,358 204,366 166,366"/>
+  <polygon class="c4" points="220,358 254,358 256,366 218,366"/>
+  <!-- glowing egg -->
+  <polygon class="c3" points="130,260 150,200 200,180 250,200 270,260 250,320 150,320"/>
+  <polygon class="c5" points="160,250 175,210 200,196 225,210 240,250 225,290 175,290"/>
+  <!-- feathered body on top -->
+  <polygon class="c1" points="150,190 200,150 260,160 290,200 270,240 190,250 150,226"/>
+  <polygon class="c2" points="200,150 260,160 290,200 240,176 190,180"/>
+  <polygon class="c2" points="150,200 190,170 260,190 270,250 180,270"/>
+  <polygon class="c1" points="150,208 180,186 250,204 256,246 190,258"/>
+  <polygon class="c3" points="190,214 232,218 228,236 196,238"/>
+  <!-- neck, parrot head and lantern crest -->
+    <polygon class="c1" points="246,167 277,130 303,146 278,189"/>
+  <polygon class="c2" points="246,167 277,130 288,137 259,176"/>
+  <polygon class="c3" points="278,189 303,146 295,141 269,183"/>
+  <polygon class="c1" points="277,130 300,98 320,110 303,146"/>
+  <polygon class="c2" points="277,130 300,98 305,101 284,134"/>
+  <polygon class="c3" points="303,146 320,110 312,105 292,139"/>
+  <polygon class="c1" points="300,84 340,70 372,90 366,114 330,120 304,108"/>
+  <polygon class="c5" points="366,90 392,104 368,116"/>
+  <polygon class="c4" points="372,94 390,104 380,106"/>
+  <polygon class="c5" points="310,82 316,40 348,34 356,72"/>
+  <polygon class="c4" points="314,56 352,52 352,56 314,60"/>
+  <polygon class="c4" points="316,72 354,70 354,74 316,76"/>
+  <polygon class="c4" points="326,34 338,34 338,22 326,22"/>
+  <polygon class="c3" points="322,44 330,44 330,52 322,52"/>
+  <polygon class="c1" points="326,114 336,122 330,134 322,124"/>
+  <polygon class="eye" points="326,92 342,90 342,102 326,104"/>
+  <circle class="pupil" cx="334" cy="97" r="3"/>
+  </g>
+</svg>

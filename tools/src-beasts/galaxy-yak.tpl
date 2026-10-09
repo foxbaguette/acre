@@ -1,0 +1,38 @@
+<palette name="Galaxy yak" c1="#3A3A6A" c2="#6A6AA8" c3="#E8E0FF" c4="#14143A" c5="#FFD870"/>
+  <!-- tail -->
+  <polygon class="c4" points="96,222 70,240 66,272 80,270 90,248 104,236"/>
+  <!-- legs -->
+  <polygon class="c4" points="270,290 304,290 306,340 270,340"/>
+  <polygon class="c4" points="130,292 164,292 166,340 130,340"/>
+  <polygon class="c4" points="200,294 232,294 232,340 202,340"/>
+  <!-- body -->
+  <polygon class="c1" points="90,240 100,190 150,150 240,150 300,190 320,250 290,290 120,290"/>
+  <polygon class="c2" points="100,190 150,150 240,150 300,190 230,176 160,184"/>
+  <!-- stars -->
+  <polygon class="c5" points="160,200 168,214 160,228 152,214"/>
+  <polygon class="c5" points="230,210 236,222 230,234 224,222"/>
+  <polygon class="c5" points="196,170 202,180 196,190 190,180"/>
+  <polygon class="c3" points="120,230 128,226 130,236 122,238"/>
+  <polygon class="c3" points="270,220 278,216 280,226 272,228"/>
+  <polygon class="c3" points="188,244 196,240 198,250 190,252"/>
+  <polygon class="c3" points="256,176 262,174 264,182 258,184"/>
+  <!-- shaggy skirt -->
+  <polygon class="c2" points="110,270 118,330 134,284"/>
+  <polygon class="c2" points="134,284 146,340 162,290"/>
+  <polygon class="c2" points="162,290 176,336 192,292"/>
+  <polygon class="c2" points="192,292 208,340 224,292"/>
+  <polygon class="c2" points="224,292 240,336 256,290"/>
+  <polygon class="c2" points="256,290 270,332 290,280"/>
+  <!-- crescent horns -->
+  <polygon class="c5" points="320,192 298,162 306,120 340,98 330,130 334,162"/>
+  <polygon class="c5" points="352,190 374,164 396,152 394,178 372,192"/>
+  <polygon class="c3" points="340,98 330,118 322,112"/>
+  <!-- head -->
+  <polygon class="c1" points="300,190 350,184 384,214 380,260 340,276 306,250"/>
+  <polygon class="c2" points="300,190 350,184 384,214 344,208"/>
+  <polygon class="c2" points="306,196 296,222 312,240"/>
+  <polygon class="c3" points="380,260 340,276 336,250 372,240"/>
+  <polygon class="c5" points="378,244 392,248 386,262 374,258"/>
+  <polygon class="eye" points="336,206 354,206 354,218 336,218"/>
+  <circle class="pupil" cx="345" cy="212" r="3.2"/>
+</svg>

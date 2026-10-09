@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Antler stag beetle">
+  <style>
+    .c1 { fill: var(--c1, #5A2E1A); }
+    .c2 { fill: var(--c2, #8A4E2C); }
+    .c3 { fill: var(--c3, #D8A870); }
+    .c4 { fill: var(--c4, #1E0E08); }
+    .c5 { fill: var(--c5, #C8402A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-51 -28)">
+  <!-- legs -->
+  <polygon class="c4" points="300,262 330,296 346,324 336,328 318,300 292,274"/>
+  <polygon class="c4" points="240,276 250,312 242,336 232,334 232,310 226,278"/>
+  <polygon class="c4" points="150,272 130,310 110,334 100,330 118,304 138,270"/>
+  <polygon class="c3" points="338,322 348,326 342,334"/>
+  <!-- body -->
+  <polygon class="c1" points="90,230 120,190 200,170 280,186 320,226 300,270 200,284 110,274"/>
+  <polygon class="c2" points="120,190 200,170 280,186 320,226 230,200 150,214"/>
+  <polygon class="c4" points="300,270 200,284 110,274 200,262"/>
+  <polygon class="c4" points="200,170 204,170 204,284 200,284"/>
+  <polygon class="c1" points="280,186 322,166 352,198 338,238 320,226"/>
+  <polygon class="c2" points="280,186 322,166 352,198 318,190"/>
+  <!-- head and antler mandibles -->
+  <polygon class="c1" points="336,176 372,172 392,200 378,232 340,236 330,206"/>
+  <polygon class="c2" points="336,176 372,172 392,200 358,196"/>
+  <polygon class="c5" points="384,196 404,170 396,140 380,150 388,172 374,188"/>
+  <polygon class="c5" points="396,140 372,120 376,138"/>
+  <polygon class="c5" points="392,160 412,152 404,172"/>
+  <polygon class="c5" points="380,222 406,238 398,268 384,252 392,238 374,228"/>
+  <polygon class="c3" points="384,196 396,176 392,196"/>
+  <polygon class="pupil" points="350,184 366,182 368,196 352,198"/>
+  <circle class="eye" cx="359" cy="190" r="2.2"/>
+    <polygon class="c4" points="361,171 371,147 373,149 363,173"/>
+  <polygon class="c4" points="371,147 392,135 392,137 373,149"/>
+  </g>
+</svg>

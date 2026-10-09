@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Roc">
+  <style>
+    .c1 { fill: var(--c1, #8A5A32); }
+    .c2 { fill: var(--c2, #B27C48); }
+    .c3 { fill: var(--c3, #F5E6C8); }
+    .c4 { fill: var(--c4, #35210F); }
+    .c5 { fill: var(--c5, #E8B832); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(200 200) scale(0.9948) translate(-205.0 -136.0)">
+  <!-- far wing, up and forward -->
+  <polygon class="c1" points="210,176 290,168 296,130 226,126"/>
+    <polygon class="c2" points="226,126 238,127 274,2 250,-6"/>
+  <polygon class="c1" points="238,127 249,127 299,11 274,2"/>
+  <polygon class="c2" points="249,127 261,128 323,19 299,11"/>
+  <polygon class="c1" points="261,128 273,129 347,27 323,19"/>
+  <polygon class="c2" points="273,129 284,129 372,36 347,27"/>
+  <polygon class="c1" points="284,129 296,130 396,44 372,36"/>
+  <!-- tail -->
+    <polygon class="c4" points="124,206 124,213 17,217 14,198"/>
+  <polygon class="c1" points="124,213 124,219 19,236 17,217"/>
+  <polygon class="c4" points="124,219 124,226 22,255 19,236"/>
+  <polygon class="c1" points="124,226 124,232 24,274 22,255"/>
+  <!-- legs and talons -->
+  <polygon class="c5" points="196,236 214,238 216,268 202,270"/>
+  <polygon class="c4" points="202,270 216,268 228,284 206,286"/>
+  <polygon class="c5" points="230,226 248,228 254,260 240,262"/>
+  <polygon class="c4" points="240,262 254,260 268,276 246,278"/>
+  <!-- body -->
+  <polygon class="c1" points="120,200 200,170 262,160 298,166 308,196 270,214 190,236 124,236"/>
+  <polygon class="c2" points="120,200 200,170 262,160 298,166 250,176 190,192 132,212"/>
+  <polygon class="c3" points="308,196 270,214 190,236 124,236 170,222 250,206"/>
+  <!-- head -->
+  <polygon class="c3" points="298,166 316,150 346,146 362,160 350,180 322,190 308,196"/>
+  <polygon class="c2" points="316,150 346,146 362,160 336,160"/>
+  <polygon class="c5" points="358,160 392,178 364,192 346,178"/>
+  <polygon class="c4" points="392,178 384,190 370,192"/>
+  <polygon class="c4" points="326,150 350,148 352,156 328,158"/>
+  <polygon class="eye" points="332,160 344,158 346,166 334,168"/>
+  <circle class="pupil" cx="339" cy="163" r="2.4"/>
+  <!-- near wing -->
+  <polygon class="c1" points="130,208 230,182 224,128 146,130"/>
+  <polygon class="c2" points="146,130 224,128 226,146 148,148"/>
+    <polygon class="c1" points="146,130 157,130 38,58 16,70"/>
+  <polygon class="c2" points="157,130 168,129 59,46 38,58"/>
+  <polygon class="c1" points="168,129 179,129 81,34 59,46"/>
+  <polygon class="c2" points="179,129 191,129 103,22 81,34"/>
+  <polygon class="c1" points="191,129 202,129 125,10 103,22"/>
+  <polygon class="c2" points="202,129 213,128 146,-2 125,10"/>
+  <polygon class="c1" points="213,128 224,128 168,-14 146,-2"/>
+  </g>
+</svg>

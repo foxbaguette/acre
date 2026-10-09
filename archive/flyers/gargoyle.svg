@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gargoyle">
+  <style>
+    .c1 { fill: var(--c1, #7C7F86); }
+    .c2 { fill: var(--c2, #A4A7AE); }
+    .c3 { fill: var(--c3, #C9CBD0); }
+    .c4 { fill: var(--c4, #34363C); }
+    .c5 { fill: var(--c5, #C8553D); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-1 12)">
+  <!-- far wing -->
+  <polygon class="c2" points="206,170 150,70 80,52 60,110 86,170 150,204"/>
+  <polygon class="c4" points="206,170 198,176 144,76 152,66"/>
+  <polygon class="c4" points="150,70 154,76 84,58 80,52"/>
+  <polygon class="c4" points="150,72 154,78 64,114 60,108"/>
+  <polygon class="c4" points="150,74 154,80 90,174 84,168"/>
+  <!-- tail -->
+  <polygon class="c1" points="142,240 104,262 78,296 88,308 112,282 150,262"/>
+  <polygon class="c5" points="78,296 62,288 66,312 88,308"/>
+  <!-- far arm and leg -->
+  <polygon class="c1" points="248,204 276,212 298,234 284,248"/>
+  <polygon class="c1" points="284,248 298,234 332,226 334,242"/>
+  <polygon class="c5" points="332,226 356,230 334,240"/>
+  <polygon class="c1" points="156,246 200,254 190,290 150,282"/>
+  <polygon class="c1" points="150,282 190,290 218,306 212,318"/>
+  <polygon class="c5" points="212,306 236,314 218,324"/>
+  <!-- body -->
+  <polygon class="c1" points="150,170 210,150 262,160 280,200 262,250 200,270 150,250 138,210"/>
+  <polygon class="c2" points="150,170 210,150 262,160 280,200 232,176 190,186 146,206"/>
+  <polygon class="c3" points="262,250 200,270 150,250 176,246 210,252 250,232"/>
+  <!-- head and horns -->
+  <polygon class="c1" points="262,150 292,134 322,146 326,176 304,196 276,190"/>
+  <polygon class="c2" points="262,150 292,134 322,146 296,150"/>
+  <polygon class="c3" points="326,176 304,196 276,190 296,182"/>
+  <polygon class="c5" points="276,142 262,100 290,134"/>
+  <polygon class="c5" points="300,134 320,98 322,140"/>
+  <polygon class="c4" points="284,148 320,150 324,158 286,158"/>
+  <polygon class="eye" points="290,156 304,154 306,164 292,166"/>
+  <circle class="pupil" cx="298" cy="160" r="2.6"/>
+  <polygon class="c3" points="296,186 300,186 298,198"/>
+  <polygon class="c3" points="308,184 312,184 310,194"/>
+  <!-- near arm and leg -->
+  <polygon class="c1" points="262,200 290,208 312,230 298,244"/>
+  <polygon class="c2" points="262,200 290,208 294,216 266,212"/>
+  <polygon class="c1" points="298,244 312,230 346,222 348,238"/>
+  <polygon class="c5" points="346,222 372,226 348,234"/>
+  <polygon class="c5" points="348,234 370,242 348,242"/>
+  <polygon class="c1" points="170,240 214,248 204,284 164,276"/>
+  <polygon class="c2" points="170,240 214,248 210,260 172,252"/>
+  <polygon class="c1" points="164,276 204,284 232,300 226,312"/>
+  <polygon class="c5" points="226,300 250,308 232,318"/>
+  <!-- near wing -->
+  <polygon class="c2" points="190,170 120,90 40,70 30,130 60,190 130,214"/>
+  <polygon class="c4" points="190,170 182,178 114,96 124,86"/>
+  <polygon class="c4" points="120,90 124,96 44,76 40,70"/>
+  <polygon class="c4" points="120,92 124,98 34,134 30,128"/>
+  <polygon class="c4" points="120,94 124,100 64,194 58,188"/>
+  <polygon class="c1" points="190,170 120,90 128,150"/>
+  </g>
+</svg>

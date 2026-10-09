@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Spider crab">
+  <style>
+    .c1 { fill: var(--c1, #C85A3A); }
+    .c2 { fill: var(--c2, #E8906A); }
+    .c3 { fill: var(--c3, #F6DCC0); }
+    .c4 { fill: var(--c4, #4A1E12); }
+    .c5 { fill: var(--c5, #4AD0C0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(0 -9)">
+  <!-- legs -->
+    <polygon class="c1" points="151,211 97,204 95,196 153,201"/>
+  <polygon class="c2" points="151,211 97,204 96,201 152,207"/>
+  <polygon class="c4" points="153,201 95,196 96,198 152,204"/>
+  <polygon class="c1" points="97,204 46,232 42,228 95,196"/>
+  <polygon class="c2" points="97,204 46,232 45,231 96,202"/>
+  <polygon class="c4" points="95,196 42,228 44,230 96,199"/>
+  <polygon class="c1" points="46,232 21,282 19,282 42,228"/>
+  <polygon class="c2" points="46,232 21,282 20,282 44,230"/>
+  <polygon class="c4" points="42,228 19,282 20,282 43,229"/>
+    <polygon class="c1" points="159,230 113,265 107,259 153,222"/>
+  <polygon class="c2" points="159,230 113,265 110,262 156,227"/>
+  <polygon class="c4" points="153,222 107,259 109,261 155,224"/>
+  <polygon class="c1" points="113,265 72,323 68,321 107,259"/>
+  <polygon class="c2" points="113,265 72,323 71,322 111,263"/>
+  <polygon class="c4" points="107,259 68,321 70,322 110,262"/>
+  <polygon class="c1" points="72,323 57,374 55,374 68,321"/>
+  <polygon class="c2" points="72,323 57,374 56,374 70,322"/>
+  <polygon class="c4" points="68,321 55,374 56,374 69,322"/>
+    <polygon class="c1" points="171,244 144,301 136,299 161,240"/>
+  <polygon class="c2" points="171,244 144,301 141,300 167,242"/>
+  <polygon class="c4" points="161,240 136,299 139,299 164,241"/>
+  <polygon class="c1" points="144,301 126,353 122,351 136,299"/>
+  <polygon class="c2" points="144,301 126,353 125,352 142,301"/>
+  <polygon class="c4" points="136,299 122,351 124,352 139,300"/>
+  <polygon class="c1" points="126,353 121,396 119,396 122,351"/>
+  <polygon class="c2" points="126,353 121,396 120,396 124,352"/>
+  <polygon class="c4" points="122,351 119,396 120,396 123,352"/>
+    <polygon class="c1" points="247,201 305,196 303,204 249,211"/>
+  <polygon class="c4" points="247,201 305,196 304,199 248,205"/>
+  <polygon class="c2" points="249,211 303,204 304,202 248,208"/>
+  <polygon class="c1" points="305,196 358,228 354,232 303,204"/>
+  <polygon class="c4" points="305,196 358,228 357,229 304,198"/>
+  <polygon class="c2" points="303,204 354,232 356,230 304,201"/>
+  <polygon class="c1" points="358,228 381,282 379,282 354,232"/>
+  <polygon class="c4" points="358,228 381,282 380,282 356,230"/>
+  <polygon class="c2" points="354,232 379,282 380,282 355,231"/>
+    <polygon class="c1" points="247,222 293,259 287,265 241,230"/>
+  <polygon class="c4" points="247,222 293,259 290,262 244,225"/>
+  <polygon class="c2" points="241,230 287,265 289,263 243,228"/>
+  <polygon class="c1" points="293,259 332,321 328,323 287,265"/>
+  <polygon class="c4" points="293,259 332,321 331,322 291,261"/>
+  <polygon class="c2" points="287,265 328,323 330,322 290,262"/>
+  <polygon class="c1" points="332,321 345,374 343,374 328,323"/>
+  <polygon class="c4" points="332,321 345,374 344,374 330,322"/>
+  <polygon class="c2" points="328,323 343,374 344,374 329,322"/>
+    <polygon class="c1" points="239,240 264,299 256,301 229,244"/>
+  <polygon class="c4" points="239,240 264,299 261,300 235,242"/>
+  <polygon class="c2" points="229,244 256,301 259,301 232,243"/>
+  <polygon class="c1" points="264,299 278,351 274,353 256,301"/>
+  <polygon class="c4" points="264,299 278,351 277,352 262,299"/>
+  <polygon class="c2" points="256,301 274,353 276,352 259,300"/>
+  <polygon class="c1" points="278,351 281,396 279,396 274,353"/>
+  <polygon class="c4" points="278,351 281,396 280,396 276,352"/>
+  <polygon class="c2" points="274,353 279,396 280,396 275,352"/>
+  <!-- claw arms -->
+    <polygon class="c1" points="160,181 120,145 128,139 168,171"/>
+  <polygon class="c2" points="160,181 120,145 123,143 163,177"/>
+  <polygon class="c4" points="168,171 128,139 125,141 166,174"/>
+  <polygon class="c1" points="120,145 97,106 103,102 128,139"/>
+  <polygon class="c2" points="120,145 97,106 99,105 122,143"/>
+  <polygon class="c4" points="128,139 103,102 101,104 125,141"/>
+  <polygon class="c1" points="100,104 70,88 58,50 92,60 114,88"/>
+  <polygon class="c2" points="58,50 52,22 80,48"/>
+  <polygon class="c3" points="92,60 96,28 110,56"/>
+    <polygon class="c1" points="232,171 272,139 280,145 240,181"/>
+  <polygon class="c4" points="232,171 272,139 275,141 235,175"/>
+  <polygon class="c2" points="240,181 280,145 277,143 238,178"/>
+  <polygon class="c1" points="272,139 297,102 303,106 280,145"/>
+  <polygon class="c4" points="272,139 297,102 299,103 274,141"/>
+  <polygon class="c2" points="280,145 303,106 301,104 277,143"/>
+  <polygon class="c1" points="300,104 330,88 342,50 308,60 286,88"/>
+  <polygon class="c2" points="342,50 348,22 320,48"/>
+  <polygon class="c3" points="308,60 304,28 290,56"/>
+  <!-- body -->
+  <polygon class="c1" points="200,126 252,190 232,252 168,252 148,190"/>
+  <polygon class="c2" points="200,126 252,190 200,202 148,190"/>
+  <polygon class="c3" points="200,126 194,108 206,108"/>
+  <polygon class="c3" points="148,190 132,184 150,176"/>
+  <polygon class="c3" points="252,190 268,184 250,176"/>
+  <polygon class="c5" points="200,200 210,212 200,224 190,212"/>
+  <polygon class="c5" points="176,226 184,234 176,242 168,234"/>
+  <polygon class="c5" points="224,226 232,234 224,242 216,234"/>
+  <!-- eyes -->
+  <polygon class="eye" points="182,140 196,136 198,152 184,156"/>
+  <circle class="pupil" cx="190" cy="146" r="3"/>
+  <polygon class="eye" points="218,140 204,136 202,152 216,156"/>
+  <circle class="pupil" cx="210" cy="146" r="3"/>
+  </g>
+</svg>

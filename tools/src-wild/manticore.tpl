@@ -1,0 +1,32 @@
+<palette name="Manticore" c1="#B84A3A" c2="#E07A5A" c3="#F8E0B8" c4="#2A100C" c5="#8A4AB8"/>
+  <ribbon pts="300,300,14 350,290,18 380,240,14 360,190,10 320,160,3" cls="c1" top="c2" under="c4"/>
+  <polygon class="c5" points="320,160 290,150 306,130 336,138"/>
+  <polygon class="c5" points="320,160 304,184 330,184"/>
+  <polygon class="c4" points="200,220 150,160 100,130 70,160 90,200 120,236"/>
+  <polygon class="c5" points="200,220 150,166 108,150 100,190 130,232"/>
+  <polygon class="c1" points="250,330 300,310 290,356 296,374 250,376 250,352"/>
+  <polygon class="c4" points="246,368 300,368 302,382 244,382"/>
+  <polygon class="c1" points="110,320 90,260 130,210 210,190 280,214 300,280 270,340 130,350"/>
+  <polygon class="c2" points="130,210 210,190 280,214 300,280 220,236 150,250"/>
+  <polygon class="c3" points="270,340 130,350 110,320 170,316 250,306"/>
+  <polygon class="c1" points="110,320 160,310 150,360 156,378 108,378 120,350"/>
+  <polygon class="c4" points="102,372 160,372 162,386 100,386"/>
+  <polygon class="c5" points="150,224 164,218 172,236 158,244"/>
+  <polygon class="c5" points="210,218 224,212 232,230 218,238"/>
+  <polygon class="c1" points="60,250 40,300 80,320 110,280"/>
+  <polygon class="c1" points="60,230 80,160 130,130 170,150 160,206 110,246"/>
+  <polygon class="c5" points="80,164 40,140 60,210 70,230"/>
+  <polygon class="c5" points="60,230 20,220 70,260"/>
+  <polygon class="c1" points="80,170 100,120 150,100 190,120 200,170 160,206 110,206"/>
+  <polygon class="c2" points="100,120 150,100 190,120 150,130"/>
+  <polygon class="c3" points="80,170 62,196 80,222 120,220 130,190"/>
+  <polygon class="c4" points="66,200 80,196 74,212"/>
+  <polygon class="c4" points="84,214 120,212 112,226 90,226"/>
+  <polygon class="c3" points="90,212 96,212 93,224"/>
+  <polygon class="c3" points="108,212 114,212 111,222"/>
+  <polygon class="c1" points="110,116 96,76 128,104"/>
+  <polygon class="c3" points="112,112 106,90 122,106"/>
+  <polygon class="c1" points="176,114 192,78 200,124"/>
+  <polygon class="eye" points="104,158 126,154 128,170 106,174"/>
+  <polygon class="pupil" points="115,155 120,164 115,173 110,164"/>
+</svg>

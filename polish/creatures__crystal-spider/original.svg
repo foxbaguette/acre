@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crystal spider">
+  <style>
+    .c1 { fill: var(--c1, #6E7FB8); }
+    .c2 { fill: var(--c2, #9BAAE0); }
+    .c3 { fill: var(--c3, #DCE4FA); }
+    .c4 { fill: var(--c4, #2E3560); }
+    .c5 { fill: var(--c5, #F0C8FF); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-12 -3)">
+  <!-- far legs: coxa on the far side of the cephalothorax, femur up, tibia down -->
+  <polygon class="c4" points="253,225 251,219 321,197 323,203"/>
+  <polygon class="c4" points="325,198 319,202 365,264 371,260"/>
+  <polygon class="c4" points="318,195 326,195 326,205 318,205"/>
+  <polygon class="c4" points="365,264 371,260 372,270"/>
+  <polygon class="c4" points="247,224 241,220 297,140 303,144"/>
+  <polygon class="c4" points="303,141 297,143 327,247 333,245"/>
+  <polygon class="c4" points="296,138 304,138 304,148 296,148"/>
+  <polygon class="c4" points="327,247 333,245 332,255"/>
+  <polygon class="c4" points="235,222 229,226 173,142 179,138"/>
+  <polygon class="c4" points="179,142 173,138 117,248 123,252"/>
+  <polygon class="c4" points="172,136 180,136 180,146 172,146"/>
+  <polygon class="c4" points="117,248 123,252 114,258"/>
+  <polygon class="c4" points="225,223 223,229 139,213 141,207"/>
+  <polygon class="c4" points="142,213 138,207 58,265 62,271"/>
+  <polygon class="c4" points="136,206 144,206 144,216 136,216"/>
+  <polygon class="c4" points="58,265 62,271 52,272"/>
+  <!-- crystal spikes rooted in the abdomen -->
+  <polygon class="c5" points="190,182 174,172 176,112"/>
+  <polygon class="c5" points="208,194 198,188 206,140"/>
+  <polygon class="c5" points="152,166 130,170 132,100"/>
+  <polygon class="c5" points="120,172 104,175 96,118"/>
+  <polygon class="c3" points="174,172 176,112 182,148"/>
+  <polygon class="c3" points="130,170 132,100 140,140"/>
+  <!-- abdomen -->
+  <polygon class="c1" points="216,196 160,160 100,172 74,214 100,256 166,262 216,232"/>
+  <polygon class="c2" points="216,196 160,160 140,200 190,216"/>
+  <polygon class="c3" points="160,160 100,172 120,210 140,200"/>
+  <polygon class="c2" points="74,214 100,256 166,262 140,236 100,228"/>
+  <!-- cephalothorax -->
+  <polygon class="c1" points="216,196 260,190 280,214 262,240 216,232"/>
+  <polygon class="c2" points="216,196 260,190 252,206 222,210"/>
+  <!-- eyes on the front -->
+  <polygon class="pupil" points="262,198 278,206 276,216 260,212"/>
+  <polygon class="eye" points="265,201 269,201 269,205 265,205"/>
+  <polygon class="eye" points="271,204 275,205 275,209 271,208"/>
+  <!-- fangs under the front -->
+  <polygon class="c3" points="268,238 278,234 282,256 274,250"/>
+  <polygon class="c3" points="260,240 270,238 270,258 262,254"/>
+  <!-- near legs -->
+  <polygon class="c4" points="258,235 254,230 308,178 312,183"/>
+  <polygon class="c4" points="313,179 307,181 353,283 359,281"/>
+  <polygon class="c4" points="306,176 314,176 314,186 306,186"/>
+  <polygon class="c4" points="353,283 359,281 360,291"/>
+  <polygon class="c4" points="251,235 245,233 275,153 281,155"/>
+  <polygon class="c4" points="281,153 275,155 303,277 309,275"/>
+  <polygon class="c4" points="274,150 282,150 282,160 274,160"/>
+  <polygon class="c4" points="303,277 309,275 308,285"/>
+  <polygon class="c4" points="239,234 233,238 193,166 199,162"/>
+  <polygon class="c4" points="199,165 193,163 163,279 169,281"/>
+  <polygon class="c4" points="192,160 200,160 200,170 192,170"/>
+  <polygon class="c4" points="163,279 169,281 160,287"/>
+  <polygon class="c4" points="230,235 226,241 158,199 162,193"/>
+  <polygon class="c4" points="163,198 157,194 87,298 93,302"/>
+  <polygon class="c4" points="156,192 164,192 164,202 156,202"/>
+  <polygon class="c4" points="87,298 93,302 84,306"/>
+  </g>
+</svg>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kirin">
+  <style>
+    .c1 { fill: var(--c1, #D8A840); }
+    .c2 { fill: var(--c2, #F0D070); }
+    .c3 { fill: var(--c3, #FFF4D0); }
+    .c4 { fill: var(--c4, #2A4A6A); }
+    .c5 { fill: var(--c5, #FF6A3A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-24 11)">
+  <!-- flame tail -->
+  <polygon class="c5" points="112,196 76,182 48,208 78,222 100,228"/>
+  <polygon class="c2" points="108,200 82,194 66,208 86,216"/>
+  <!-- far legs -->
+  <polygon class="c1" points="238,230 266,234 270,300 268,340 246,340 248,300"/>
+  <polygon class="c1" points="140,232 176,238 170,300 168,340 146,340 150,300"/>
+  <polygon class="c4" points="246,330 268,330 270,342 244,342"/>
+  <polygon class="c4" points="146,330 168,330 170,342 144,342"/>
+  <!-- body with scale band -->
+  <polygon class="c1" points="110,176 170,154 250,154 292,176 298,226 272,248 140,248 112,226"/>
+  <polygon class="c2" points="110,176 170,154 250,154 292,176 236,174 170,180 124,198"/>
+  <polygon class="c4" points="170,154 250,154 292,176 250,172 170,172"/>
+  <polygon class="c4" points="180,182 194,176 208,184 194,196"/>
+  <polygon class="c4" points="216,184 230,178 244,186 230,198"/>
+  <polygon class="c4" points="144,196 158,190 172,198 158,210"/>
+  <polygon class="c3" points="298,226 272,248 140,248 112,226 160,238 260,234"/>
+  <!-- near legs with flames at the ankles -->
+  <polygon class="c1" points="262,226 294,232 300,300 296,340 270,340 272,300"/>
+  <polygon class="c1" points="118,220 162,230 154,300 150,340 124,340 128,300"/>
+  <polygon class="c5" points="268,296 298,296 284,330"/>
+  <polygon class="c5" points="124,296 156,296 140,330"/>
+  <polygon class="c4" points="270,330 298,330 300,342 266,342"/>
+  <polygon class="c4" points="126,330 152,330 154,342 122,342"/>
+  <!-- flame mane, neck and dragon head -->
+  <polygon class="c5" points="274,164 262,130 292,152"/>
+  <polygon class="c5" points="290,142 282,104 312,134"/>
+  <polygon class="c5" points="308,126 312,88 330,120"/>
+  <polygon class="c1" points="272,160 300,110 330,90 350,112 330,142 296,204"/>
+  <polygon class="c2" points="272,160 300,110 330,90 316,122 292,160"/>
+  <polygon class="c1" points="326,92 362,98 392,122 384,146 346,150 326,128"/>
+  <polygon class="c2" points="326,92 362,98 392,122 352,114"/>
+  <polygon class="c3" points="384,146 346,150 360,134"/>
+  <polygon class="c3" points="334,92 328,50 342,48 346,92"/>
+  <polygon class="c3" points="336,66 312,42 316,36 340,58"/>
+  <polygon class="c5" points="346,150 340,176 358,152"/>
+  <polygon class="c5" points="384,132 400,142 386,146"/>
+  <polygon class="eye" points="342,106 358,108 358,120 342,118"/>
+  <circle class="pupil" cx="350" cy="113" r="3"/>
+  </g>
+</svg>

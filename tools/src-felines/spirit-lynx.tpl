@@ -1,0 +1,32 @@
+<palette name="Spirit lynx" c1="#7E8FA8" c2="#A9B8CC" c3="#E8EEF6" c4="#2A3550" c5="#7FE8D8"/>
+  <!-- tail -->
+  <polygon class="c1" points="262,340 306,352 336,332 330,308 304,332 264,326"/>
+  <polygon class="c4" points="336,332 330,308 346,310 348,330"/>
+  <!-- body -->
+  <polygon class="c1" points="160,186 240,186 262,250 282,332 250,362 150,362 118,332 138,250"/>
+  <polygon class="c2" points="138,250 118,332 150,362 152,300"/>
+  <polygon class="c2" points="262,250 282,332 250,362 248,300"/>
+  <polygon class="c3" points="176,194 224,194 232,262 220,352 180,352 168,262"/>
+  <polygon class="c1" points="170,262 198,262 198,352 166,352"/>
+  <polygon class="c1" points="202,262 230,262 234,352 202,352"/>
+  <polygon class="c3" points="158,346 200,346 202,364 154,364"/>
+  <polygon class="c3" points="200,346 242,346 246,364 198,364"/>
+  <polygon class="c5" points="200,222 208,234 200,246 192,234"/>
+  <polygon class="c5" points="200,268 206,278 200,288 194,278"/>
+  <!-- head -->
+  <polygon class="c3" points="142,150 110,170 128,188 120,204 150,196 168,184"/>
+  <polygon class="c3" points="258,150 290,170 272,188 280,204 250,196 232,184"/>
+  <polygon class="c1" points="150,104 160,66 182,92 200,86 218,92 240,66 250,104 258,150 240,188 200,206 160,188 142,150"/>
+  <polygon class="c2" points="150,104 160,66 182,92 200,86 218,92 240,66 250,104 200,116"/>
+  <polygon class="c4" points="160,66 150,20 178,76"/>
+  <polygon class="c4" points="240,66 250,20 222,76"/>
+  <polygon class="eye" points="160,134 188,130 188,148 162,150"/>
+  <polygon class="pupil" points="175,135 178,141 175,147 172,141"/>
+  <polygon class="eye" points="240,134 212,130 212,148 238,150"/>
+  <polygon class="pupil" points="225,135 228,141 225,147 222,141"/>
+  <polygon class="c3" points="184,160 216,160 224,184 200,202 176,184"/>
+  <polygon class="c4" points="192,164 208,164 200,174"/>
+  <polygon class="c4" points="150,150 170,152 150,160"/>
+  <polygon class="c4" points="250,150 230,152 250,160"/>
+  <polygon class="c5" points="200,96 208,108 200,120 192,108"/>
+</svg>

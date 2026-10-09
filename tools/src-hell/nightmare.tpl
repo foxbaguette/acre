@@ -1,0 +1,37 @@
+<palette name="Nightmare" c1="#1E1A24" c2="#3A3446" c3="#8A8298" c4="#08060C" c5="#FF5A1A"/>
+  <!-- flaming tail -->
+  <polygon class="c5" points="124,262 70,270 36,320 84,316 118,298"/>
+  <polygon class="c5" points="122,256 76,230 50,256 96,262"/>
+  <polygon class="c4" points="124,268 86,290 66,312 96,306 120,290"/>
+  <!-- far legs -->
+  <polygon class="c1" points="176,284 218,296 210,340 216,376 184,376 186,340"/>
+  <polygon class="c1" points="300,196 336,176 376,196 388,228 370,236 348,212 310,236"/>
+  <!-- rearing body -->
+  <polygon class="c1" points="106,286 128,236 196,206 262,160 306,148 330,196 296,256 226,300 170,332 118,320"/>
+  <polygon class="c2" points="128,236 196,206 262,160 306,148 316,174 250,198 190,236 146,264"/>
+  <polygon class="c3" points="330,196 296,256 226,300 170,332 196,296 250,244 300,196"/>
+  <!-- near hind leg and hoof fire -->
+  <polygon class="c1" points="116,268 182,280 176,336 182,368 146,368 148,332"/>
+  <polygon class="c5" points="140,360 190,360 178,384 152,384"/>
+  <polygon class="c4" points="148,364 184,364 182,372 150,372"/>
+  <!-- front legs -->
+  <polygon class="c1" points="290,190 328,178 368,200 382,234 362,244 344,220 304,238"/>
+  <polygon class="c5" points="360,232 390,226 380,256 360,252"/>
+  <polygon class="c4" points="366,234 384,232 380,244 366,246"/>
+  <!-- flaming mane -->
+  <polygon class="c5" points="264,150 232,140 244,174"/>
+  <polygon class="c5" points="276,112 244,92 252,132"/>
+  <polygon class="c5" points="292,80 268,50 270,94"/>
+  <polygon class="c5" points="318,56 306,24 300,64"/>
+  <!-- neck and head -->
+  <polygon class="c1" points="268,166 282,112 316,62 352,76 346,128 320,196"/>
+  <polygon class="c2" points="268,166 282,112 316,62 328,86 304,132"/>
+  <polygon class="c1" points="324,58 364,50 396,88 392,114 360,122 338,100"/>
+  <polygon class="c2" points="324,58 364,50 396,88 356,76"/>
+  <polygon class="c3" points="396,88 392,114 360,122 376,102"/>
+  <polygon class="c1" points="324,60 322,30 346,52"/>
+  <polygon class="c5" points="326,54 326,38 340,52"/>
+  <polygon class="eye" points="344,72 362,72 362,86 346,86"/>
+  <circle class="pupil" cx="354" cy="79" r="3"/>
+  <polygon class="c5" points="388,94 398,92 392,104"/>
+</svg>

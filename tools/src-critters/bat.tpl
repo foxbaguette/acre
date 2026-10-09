@@ -1,0 +1,32 @@
+<palette name="Bat" c1="#5A4A5A" c2="#7E6A7E" c3="#C8B8C0" c4="#1A121A" c5="#E8A0B0"/>
+  <polygon class="c4" points="180,170 130,90 60,70 20,110 50,150 40,200 80,190 110,230 150,210 170,220"/>
+  <polygon class="c1" points="180,170 130,96 70,80 40,112 70,146 62,188 100,186 130,214 160,208"/>
+  <polygon class="c4" points="130,90 70,80 76,86 134,98"/>
+  <polygon class="c4" points="60,70 64,74 78,150 70,146"/>
+  <polygon class="c4" points="40,200 44,196 106,190 110,200"/>
+  <polygon class="c4" points="220,170 270,90 340,70 380,110 350,150 360,200 320,190 290,230 250,210 230,220"/>
+  <polygon class="c1" points="220,170 270,96 330,80 360,112 330,146 338,188 300,186 270,214 240,208"/>
+  <polygon class="c4" points="270,90 330,80 324,86 266,98"/>
+  <polygon class="c4" points="340,70 336,74 322,150 330,146"/>
+  <polygon class="c4" points="360,200 356,196 294,190 290,200"/>
+  <polygon class="c1" points="186,160 214,160 224,210 216,260 184,260 176,210"/>
+  <polygon class="c2" points="186,160 200,160 200,260 184,260 176,210"/>
+  <polygon class="c3" points="188,190 212,190 214,240 200,256 186,240"/>
+  <polygon class="c1" points="170,214 198,290 200,330 180,290"/>
+  <polygon class="c1" points="230,214 202,290 200,330 220,290"/>
+  <polygon class="c4" points="190,330 210,330 200,350"/>
+  <polygon class="c3" points="186,324 192,324 190,344"/>
+  <polygon class="c3" points="208,324 214,324 210,344"/>
+  <polygon class="c1" points="170,130 230,130 240,170 200,196 160,170"/>
+  <polygon class="c2" points="170,130 230,130 216,146 184,146"/>
+  <polygon class="c1" points="170,134 158,70 190,110"/>
+  <polygon class="c5" points="172,126 164,86 184,112"/>
+  <polygon class="c1" points="230,134 242,70 210,110"/>
+  <polygon class="c5" points="228,126 236,86 216,112"/>
+  <polygon class="c3" points="186,168 214,168 210,190 200,196 190,190"/>
+  <polygon class="c4" points="194,174 206,174 200,184"/>
+  <polygon class="eye" points="176,148 192,148 192,160 178,162"/>
+  <circle class="pupil" cx="184" cy="155" r="2.8"/>
+  <polygon class="eye" points="224,148 208,148 208,160 222,162"/>
+  <circle class="pupil" cx="216" cy="155" r="2.8"/>
+</svg>

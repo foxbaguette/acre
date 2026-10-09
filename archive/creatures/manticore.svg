@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Manticore">
+  <style>
+    .c1 { fill: var(--c1, #B5553A); }
+    .c2 { fill: var(--c2, #D47A55); }
+    .c3 { fill: var(--c3, #F0DCC0); }
+    .c4 { fill: var(--c4, #3A1E16); }
+    .c5 { fill: var(--c5, #7A4A8C); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-33 1)">
+  <!-- far hind leg -->
+  <polygon class="c1" points="154,214 196,222 178,282 142,276"/>
+  <polygon class="c1" points="142,276 178,282 180,330 154,334"/>
+  <polygon class="c1" points="150,328 184,330 190,342 144,342"/>
+  <!-- far front leg -->
+  <polygon class="c1" points="222,222 252,232 262,280 236,284"/>
+  <polygon class="c1" points="236,284 262,280 274,330 250,334"/>
+  <polygon class="c1" points="248,328 278,330 284,342 240,342"/>
+  <!-- scorpion tail arcing over the back -->
+  <polygon class="c1" points="119,192 99,146 81,154 101,200"/>
+  <polygon class="c2" points="81,154 101,200 96,200 86,156"/>
+  <polygon class="c1" points="100,151 106,107 86,105 80,149"/>
+  <polygon class="c2" points="86,105 80,149 86,149 92,106"/>
+  <polygon class="c1" points="103,114 137,84 123,68 89,98"/>
+  <polygon class="c2" points="123,68 89,98 94,102 126,74"/>
+  <polygon class="c1" points="132,86 178,76 174,56 128,66"/>
+  <polygon class="c2" points="174,56 128,66 130,72 172,62"/>
+  <polygon class="c1" points="173,76 217,90 223,70 179,56"/>
+  <polygon class="c2" points="223,70 179,56 179,62 220,76"/>
+  <polygon class="c5" points="218,74 246,86 252,106 234,118 214,100"/>
+  <polygon class="c2" points="218,74 246,86 240,90 222,82"/>
+  <polygon class="c4" points="240,116 252,106 262,140 248,138"/>
+  <!-- body -->
+  <polygon class="c1" points="236,172 170,166 110,176 120,240 190,246 268,238"/>
+  <polygon class="c2" points="236,172 170,166 110,176 126,186 176,180 232,186"/>
+  <polygon class="c3" points="268,238 190,246 120,240 136,232 192,232 260,226"/>
+  <!-- neck -->
+  <polygon class="c1" points="302,218 236,172 268,238 340,258 312,246"/>
+  <polygon class="c2" points="302,218 236,172 252,180 310,226"/>
+  <polygon class="c3" points="340,258 268,238 286,232 332,250"/>
+  <!-- mane -->
+  <polygon class="c4" points="316,194 300,214 298,236 282,250 256,236 240,206 246,172 268,152 300,150 322,170"/>
+  <polygon class="c1" points="268,152 300,150 290,166 272,172"/>
+  <polygon class="c1" points="246,172 240,206 254,200 258,180"/>
+  <!-- near legs -->
+  <polygon class="c1" points="122,212 166,220 148,282 112,276"/>
+  <polygon class="c2" points="122,212 166,220 156,234 122,228"/>
+  <polygon class="c1" points="112,276 148,282 150,330 124,334"/>
+  <polygon class="c1" points="120,328 154,330 160,342 114,342"/>
+  <polygon class="c1" points="244,222 274,232 284,280 258,284"/>
+  <polygon class="c2" points="244,222 274,232 272,244 248,238"/>
+  <polygon class="c1" points="258,284 284,280 296,330 272,334"/>
+  <polygon class="c1" points="270,328 300,330 306,342 262,342"/>
+  <!-- head -->
+  <polygon class="c1" points="316,196 350,200 380,222 372,244 340,258 312,246 302,218"/>
+  <polygon class="c2" points="316,196 350,200 380,222 356,218 330,208"/>
+  <polygon class="c3" points="380,222 372,244 340,258 344,236 366,230"/>
+  <!-- ear -->
+  <polygon class="c1" points="324,196 316,176 306,206"/>
+  <polygon class="c4" points="316,176 320,192 310,200"/>
+  <!-- eye, nose, fangs -->
+  <polygon class="eye" points="340,214 352,212 354,220 342,222"/>
+  <circle cx="347" cy="217" r="2.2" class="pupil"/>
+  <polygon class="c4" points="380,222 374,216 384,216 386,226 378,228"/>
+  <polygon class="c3" points="352,240 360,240 356,252"/>
+  <polygon class="c3" points="364,236 372,236 368,248"/>
+  </g>
+</svg>

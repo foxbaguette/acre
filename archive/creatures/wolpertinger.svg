@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wolpertinger">
+  <style>
+    .c1 { fill: var(--c1, #A68B6E); }
+    .c2 { fill: var(--c2, #C7AF94); }
+    .c3 { fill: var(--c3, #F3EBDF); }
+    .c4 { fill: var(--c4, #4A3626); }
+    .c5 { fill: var(--c5, #D99A9A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-41 19)">
+  <!-- far ear -->
+  <polygon class="c1" points="272,104 258,32 270,30 288,102"/>
+  <polygon class="c4" points="258,32 270,30 270,42 260,44"/>
+  <!-- far antler -->
+  <polygon class="c4" points="302,104 312,104 316,64 308,62"/>
+  <polygon class="c4" points="308,84 326,68 330,74 312,92"/>
+  <polygon class="c4" points="312,70 302,48 308,44 318,64"/>
+  <!-- wing on the back -->
+  <polygon class="c2" points="250,176 130,128 146,116"/>
+  <polygon class="c1" points="250,176 146,116 166,112"/>
+  <polygon class="c2" points="250,176 166,112 190,120"/>
+  <polygon class="c1" points="250,176 190,120 214,140"/>
+  <polygon class="c2" points="250,176 214,140 232,160"/>
+  <!-- tail -->
+  <polygon class="c3" points="190,250 176,262 180,282 198,286"/>
+  <!-- body -->
+  <polygon class="c1" points="288,132 250,150 206,196 190,250 196,300 224,336 300,338 320,300 324,230 318,170 312,146"/>
+  <polygon class="c2" points="288,132 250,150 206,196 190,250 206,250 226,206 262,164 292,146"/>
+  <polygon class="c2" points="206,250 230,230 256,270 228,310 200,300"/>
+  <polygon class="c3" points="318,170 324,230 320,300 300,338 276,338 290,300 296,240 300,190 312,160"/>
+  <!-- hind foot -->
+  <polygon class="c1" points="196,320 300,322 320,340 190,340"/>
+  <polygon class="c2" points="196,320 300,322 296,330 198,328"/>
+  <!-- front paws -->
+  <polygon class="c1" points="292,236 312,238 316,256 300,262 286,254"/>
+  <polygon class="c2" points="292,236 312,238 310,246 294,244"/>
+  <polygon class="c4" points="312,250 318,254 314,260"/>
+  <!-- head -->
+  <polygon class="c1" points="290,96 322,100 346,118 340,138 312,146 288,132 280,110"/>
+  <polygon class="c2" points="290,96 322,100 346,118 324,114 300,106"/>
+  <polygon class="c3" points="346,118 340,138 312,146 322,128 336,124"/>
+  <!-- near ear -->
+  <polygon class="c1" points="288,100 284,24 296,22 306,100"/>
+  <polygon class="c5" points="292,94 288,30 294,30 302,94"/>
+  <polygon class="c4" points="284,24 296,22 296,34 286,36"/>
+  <!-- near antler -->
+  <polygon class="c4" points="312,100 322,100 326,60 318,58"/>
+  <polygon class="c4" points="318,80 336,64 340,70 322,88"/>
+  <polygon class="c4" points="322,66 312,44 318,40 328,60"/>
+  <!-- fangs -->
+  <polygon class="c3" points="330,136 338,136 334,148"/>
+  <polygon class="c3" points="320,140 328,140 324,152"/>
+  <!-- eye and nose -->
+  <polygon class="pupil" points="316,114 328,112 330,122 318,124"/>
+  <circle cx="321" cy="117" r="1.4" class="eye"/>
+  <polygon class="c5" points="346,118 340,114 350,114 352,124 344,126"/>
+  </g>
+</svg>

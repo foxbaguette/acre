@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Egg hatchling">
+  <style>
+    .c1 { fill: var(--c1, #7AC870); }
+    .c2 { fill: var(--c2, #A8E898); }
+    .c3 { fill: var(--c3, #FFF8E0); }
+    .c4 { fill: var(--c4, #2E5A2A); }
+    .c5 { fill: var(--c5, #F8A8D0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-33 -8)">
+  <!-- tail poking out -->
+  <polygon class="c1" points="294,284 330,262 352,276 342,290 316,282"/>
+  <polygon class="c5" points="352,276 366,268 348,262"/>
+  <!-- baby body inside the shell -->
+  <polygon class="c1" points="150,240 250,240 262,296 138,296"/>
+  <polygon class="c3" points="170,250 230,250 230,290 170,290"/>
+  <!-- eggshell bottom -->
+  <polygon class="c3" points="100,262 128,230 160,258 188,228 214,258 244,228 272,256 300,262 282,340 118,340"/>
+  <polygon class="c2" points="118,340 100,262 128,274 142,340"/>
+  <polygon class="c4" points="150,300 162,296 158,312 170,308"/>
+  <polygon class="c4" points="236,310 248,304 244,320 256,316"/>
+  <!-- arms -->
+  <polygon class="c1" points="132,244 106,232 102,252 124,262"/>
+  <polygon class="c1" points="268,244 294,232 298,252 276,262"/>
+  <!-- big round head with eggshell hat -->
+  <polygon class="c1" points="140,120 260,120 282,180 262,238 138,238 118,180"/>
+  <polygon class="c2" points="140,120 260,120 270,150 130,150"/>
+  <polygon class="c3" points="124,126 156,76 200,100 244,76 276,126 260,136 200,118 140,136"/>
+  <polygon class="c5" points="192,102 200,84 208,102"/>
+  <polygon class="eye" points="150,158 192,156 192,198 152,200"/>
+  <circle class="pupil" cx="172" cy="178" r="11"/>
+  <polygon class="eye" points="250,158 208,156 208,198 248,200"/>
+  <circle class="pupil" cx="228" cy="178" r="11"/>
+  <polygon class="c5" points="130,208 152,202 154,218 136,222"/>
+  <polygon class="c5" points="270,208 248,202 246,218 264,222"/>
+  <polygon class="c4" points="184,212 200,222 216,212 216,216 200,226 184,216"/>
+  </g>
+</svg>

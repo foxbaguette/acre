@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gem parasaurolophus">
+  <style>
+    .c1 { fill: var(--c1, #7A5A9A); }
+    .c2 { fill: var(--c2, #A888C8); }
+    .c3 { fill: var(--c3, #E8D8F4); }
+    .c4 { fill: var(--c4, #2A1A3A); }
+    .c5 { fill: var(--c5, #6AF0D0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-13 12)">
+  <!-- tail: long and tapering -->
+  <polygon class="c1" points="136,226 104,242 72,264 46,288 28,308 36,310 68,300 102,284 132,270 146,262"/>
+  <polygon class="c2" points="136,226 104,242 72,264 46,288 28,308 60,284 96,258 130,240"/>
+  <!-- far leg -->
+  <polygon class="c1" points="170,286 206,282 214,316 206,348 186,350 180,320"/>
+  <polygon class="c1" points="176,346 208,344 218,358 218,366 168,368 168,356"/>
+  <polygon class="c4" points="208,360 220,360 224,368 208,368"/>
+  <!-- body -->
+  <polygon class="c1" points="122,256 132,226 160,202 192,190 230,190 262,202 286,226 292,252 282,280 256,302 220,312 172,310 140,292"/>
+  <polygon class="c2" points="132,226 160,202 192,190 230,190 262,202 286,226 250,214 210,210 170,218 140,236"/>
+  <polygon class="c3" points="282,280 256,302 220,312 172,310 140,292 180,298 226,296 260,284"/>
+  <!-- gem set into the flank -->
+  <polygon class="c5" points="196,236 206,226 216,240 206,254"/>
+  <polygon class="c3" points="196,236 206,226 206,240"/>
+  <!-- near hind leg: thigh, shin, foot -->
+  <polygon class="c1" points="168,268 200,250 238,258 250,288 240,318 216,332 190,322 174,298"/>
+  <polygon class="c2" points="172,270 200,254 236,260 200,261 180,272"/>
+  <polygon class="c1" points="198,312 236,308 242,336 236,356 206,358 200,336"/>
+  <polygon class="c2" points="198,312 210,312 210,336 212,358 206,358 200,336"/>
+  <polygon class="c1" points="196,350 238,346 256,358 262,370 190,372 190,360"/>
+  <polygon class="c2" points="196,350 238,346 256,358 218,356"/>
+  <polygon class="c4" points="240,362 254,360 264,372 242,372"/>
+  <polygon class="c4" points="222,364 236,362 242,372 222,372"/>
+  <!-- small forearm -->
+  <polygon class="c1" points="260,238 280,246 292,262 298,276 290,278 280,264 264,256"/>
+  <polygon class="c2" points="260,238 280,246 292,262 284,258 268,248"/>
+  <!-- crystal shard growing from the back of the neck -->
+  <polygon class="c5" points="318,104 302,72 296,90 308,118"/>
+  <!-- neck rising in one smooth taper -->
+  <polygon class="c1" points="246,208 262,180 278,152 296,124 316,96 344,104 334,132 318,168 304,200 292,232"/>
+  <polygon class="c2" points="246,208 262,180 278,152 296,124 316,96 326,100 306,128 288,160 272,190 258,214"/>
+  <polygon class="c3" points="344,104 334,132 318,168 304,200 292,232 296,200 308,166 324,130 336,104"/>
+  <!-- crystal crest horn growing from the skull -->
+  <polygon class="c5" points="334,90 326,78 300,42 252,4 246,14 292,56 318,96"/>
+  <polygon class="c3" points="326,78 300,42 252,4 284,42 308,72"/>
+  <!-- duck-bill head -->
+  <polygon class="c1" points="318,98 322,84 340,78 362,80 384,92 398,104 396,114 380,120 352,124 330,118"/>
+  <polygon class="c2" points="322,84 340,78 362,80 384,92 398,104 360,96 334,92"/>
+  <polygon class="c3" points="396,114 380,120 352,124 336,116 370,114"/>
+  <polygon class="eye" points="334,94 342,90 350,93 350,100 342,104 334,101"/>
+  <circle class="pupil" cx="343" cy="97" r="3"/>
+  <polygon class="c4" points="388,102 394,104 390,110"/>
+  </g>
+</svg>

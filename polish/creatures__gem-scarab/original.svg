@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gem scarab">
+  <style>
+    .c1 { fill: var(--c1, #2F8F7A); }
+    .c2 { fill: var(--c2, #5CC4A8); }
+    .c3 { fill: var(--c3, #CFEFE6); }
+    .c4 { fill: var(--c4, #163C34); }
+    .c5 { fill: var(--c5, #E8C04A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(2 2)">
+  <!-- hind wings -->
+  <polygon class="c3" points="230,180 130,110 80,120 70,150 220,200"/>
+  <polygon class="c3" points="226,200 120,196 60,210 64,226 220,214"/>
+  <!-- far elytron -->
+  <polygon class="c1" points="236,180 286,98 300,106 252,178"/>
+  <polygon class="c2" points="236,180 286,98 292,104 248,176"/>
+  <!-- far legs -->
+  <polygon class="c4" points="190,230 200,236 170,262 150,290 144,286 166,258"/>
+  <polygon class="c4" points="150,226 160,232 124,250 100,276 94,272 120,246"/>
+  <!-- abdomen -->
+  <polygon class="c1" points="250,196 190,186 130,200 110,222 130,246 190,254 250,236"/>
+  <polygon class="c2" points="250,196 190,186 130,200 144,208 192,200 244,208"/>
+  <polygon class="c4" points="250,236 190,254 130,246 150,246 192,246 246,230"/>
+  <polygon class="c5" points="110,222 118,214 118,230"/>
+  <!-- near elytron -->
+  <polygon class="c1" points="256,196 316,116 336,128 262,214"/>
+  <polygon class="c2" points="256,196 316,116 326,122 262,206"/>
+  <polygon class="c5" points="300,140 316,126 320,136 306,150"/>
+  <!-- thorax -->
+  <polygon class="c1" points="250,196 290,190 300,222 254,236"/>
+  <polygon class="c2" points="250,196 290,190 280,206 256,210"/>
+  <!-- head -->
+  <polygon class="c1" points="290,190 312,192 322,210 310,228 296,226"/>
+  <polygon class="c5" points="306,192 318,160 326,164 314,196"/>
+  <polygon class="pupil" points="300,200 310,202 310,212 300,210"/>
+  <!-- near legs -->
+  <polygon class="c4" points="270,230 280,236 262,264 244,290 238,286 254,260"/>
+  <polygon class="c4" points="222,240 232,246 206,272 186,298 180,294 198,268"/>
+  <polygon class="c4" points="160,244 170,250 136,270 110,298 104,294 130,266"/>
+  </g>
+</svg>

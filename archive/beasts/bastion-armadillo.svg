@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bastion armadillo">
+  <style>
+    .c1 { fill: var(--c1, #8A7A68); }
+    .c2 { fill: var(--c2, #B0A08A); }
+    .c3 { fill: var(--c3, #E8DCC8); }
+    .c4 { fill: var(--c4, #3A2E24); }
+    .c5 { fill: var(--c5, #C8402A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-17 16)">
+  <!-- tail -->
+  <polygon class="c1" points="104,240 62,262 42,292 56,298 82,274 106,258"/>
+  <!-- far legs -->
+  <polygon class="c2" points="260,270 296,274 292,322 262,326"/>
+  <polygon class="c2" points="170,276 204,280 202,328 172,330"/>
+  <!-- towers -->
+  <polygon class="c3" points="168,152 168,98 178,98 178,106 188,106 188,98 198,98 198,106 208,106 208,98 218,98 218,152"/>
+  <polygon class="c5" points="162,98 193,56 224,98"/>
+  <polygon class="c4" points="184,118 194,118 194,136 184,136"/>
+  <polygon class="c4" points="204,118 214,118 214,136 204,136"/>
+  <polygon class="c5" points="192,56 194,56 194,32 192,32"/>
+  <polygon class="c5" points="194,32 218,38 194,46"/>
+  <polygon class="c3" points="240,166 240,126 248,126 248,134 256,134 256,126 264,126 264,166"/>
+  <polygon class="c5" points="236,126 252,100 268,126"/>
+  <polygon class="c4" points="248,142 256,142 256,156 248,156"/>
+  <!-- shell -->
+  <polygon class="c1" points="100,230 120,172 180,142 260,150 320,200 330,250 290,282 140,286"/>
+  <polygon class="c2" points="120,172 180,142 260,150 320,200 250,176 170,178"/>
+  <polygon class="c4" points="160,150 170,148 150,238 140,238"/>
+  <polygon class="c4" points="200,146 210,146 192,244 182,244"/>
+  <polygon class="c4" points="250,156 260,158 244,248 234,246"/>
+  <polygon class="c3" points="290,282 140,286 100,230 150,262 270,258"/>
+  <!-- near legs -->
+  <polygon class="c2" points="296,272 334,278 340,324 310,330 292,306"/>
+  <polygon class="c2" points="150,278 192,284 190,330 154,334"/>
+  <polygon class="c4" points="316,322 342,322 344,334 312,334"/>
+  <polygon class="c4" points="154,324 192,324 194,336 150,336"/>
+  <!-- head with armour cap -->
+  <polygon class="c2" points="320,210 360,218 392,246 380,266 340,266 316,248"/>
+  <polygon class="c1" points="320,210 350,198 372,226 360,218"/>
+  <polygon class="c1" points="330,204 322,178 348,200"/>
+  <polygon class="c4" points="378,246 392,246 384,256"/>
+  <polygon class="eye" points="346,226 362,228 360,240 346,238"/>
+  <circle class="pupil" cx="354" cy="233" r="3"/>
+  </g>
+</svg>

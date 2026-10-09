@@ -1,0 +1,39 @@
+<palette name="Drake lobster" c1="#B8402E" c2="#E87A5A" c3="#F6D8B8" c4="#4A1810" c5="#6FD0E8"/>
+  <!-- legs -->
+  <polygon class="c4" points="176,170 136,168 100,190 104,196 138,178 178,178"/>
+  <polygon class="c4" points="176,190 132,200 98,226 102,232 136,210 178,198"/>
+  <polygon class="c4" points="178,210 140,232 116,262 122,266 144,240 180,218"/>
+  <polygon class="c4" points="224,170 264,168 300,190 296,196 262,178 222,178"/>
+  <polygon class="c4" points="224,190 268,200 302,226 298,232 264,210 222,198"/>
+  <polygon class="c4" points="222,210 260,232 284,262 278,266 256,240 220,218"/>
+  <!-- claws -->
+  <polygon class="c1" points="176,152 140,130 110,100 126,92 150,110 180,132"/>
+  <polygon class="c1" points="110,100 80,70 70,30 104,50 126,92"/>
+  <polygon class="c2" points="70,30 56,6 84,38"/>
+  <polygon class="c3" points="104,50 112,12 124,50"/>
+  <polygon class="c1" points="224,152 260,130 290,100 274,92 250,110 220,132"/>
+  <polygon class="c1" points="290,100 320,70 330,30 296,50 274,92"/>
+  <polygon class="c2" points="330,30 344,6 316,38"/>
+  <polygon class="c3" points="296,50 288,12 276,50"/>
+  <!-- tail fan -->
+  <fan b="178,372 222,372" t="146,398 254,398" n="5" cls="c2 c1" shape="quad"/>
+  <!-- abdomen -->
+  <polygon class="c1" points="172,240 228,240 226,262 174,262"/>
+  <polygon class="c2" points="174,264 226,264 224,286 176,286"/>
+  <polygon class="c1" points="176,288 224,288 222,310 178,310"/>
+  <polygon class="c2" points="178,312 222,312 220,334 180,334"/>
+  <polygon class="c1" points="180,336 220,336 218,356 182,356"/>
+  <polygon class="c2" points="182,358 218,358 216,372 184,372"/>
+  <!-- carapace and head -->
+  <polygon class="c1" points="176,130 224,130 232,200 224,240 176,240 168,200"/>
+  <polygon class="c2" points="176,130 224,130 232,200 200,186 168,200"/>
+  <polygon class="c3" points="190,206 210,206 208,232 192,232"/>
+  <polygon class="c1" points="184,100 216,100 224,130 176,130"/>
+  <polygon class="c5" points="196,100 200,56 204,100"/>
+  <polygon class="c5" points="176,154 168,142 182,144"/>
+  <polygon class="c5" points="224,154 232,142 218,144"/>
+  <polygon class="eye" points="170,104 188,100 190,118 172,122"/>
+  <circle class="pupil" cx="180" cy="111" r="3"/>
+  <polygon class="eye" points="230,104 212,100 210,118 228,122"/>
+  <circle class="pupil" cx="220" cy="111" r="3"/>
+</svg>

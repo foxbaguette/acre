@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Peryton">
+  <style>
+    .c1 { fill: var(--c1, #B77A4A); }
+    .c2 { fill: var(--c2, #D8A472); }
+    .c3 { fill: var(--c3, #F2E2C6); }
+    .c4 { fill: var(--c4, #3E2A1A); }
+    .c5 { fill: var(--c5, #5A86C8); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-17 64)">
+  <!-- far wing -->
+  <polygon class="c1" points="210,194 270,196 266,156 216,148"/>
+    <polygon class="c4" points="216,148 226,150 233,14 200,8"/>
+  <polygon class="c5" points="226,150 236,151 266,21 233,14"/>
+  <polygon class="c4" points="236,151 246,153 300,27 266,21"/>
+  <polygon class="c5" points="246,153 256,154 333,34 300,27"/>
+  <polygon class="c4" points="256,154 266,156 366,40 333,34"/>
+  <!-- far legs -->
+  <polygon class="c1" points="250,224 276,228 306,244 296,256"/>
+  <polygon class="c1" points="296,256 306,244 340,250 338,262"/>
+  <polygon class="c4" points="338,262 340,250 352,252 350,264"/>
+  <polygon class="c1" points="152,224 184,230 164,252 138,246"/>
+  <polygon class="c1" points="138,246 164,252 108,266 102,256"/>
+  <polygon class="c4" points="102,256 108,266 94,270 88,260"/>
+  <!-- far antler -->
+  <polygon class="c4" points="308,124 316,124 308,70 300,72"/>
+  <polygon class="c4" points="306,96 286,78 290,72 310,88"/>
+  <!-- tail -->
+  <polygon class="c3" points="120,204 96,194 94,214"/>
+  <!-- body -->
+  <polygon class="c1" points="120,200 180,184 250,184 280,204 268,240 200,254 136,246"/>
+  <polygon class="c2" points="120,200 180,184 250,184 280,204 240,198 180,200 132,214"/>
+  <polygon class="c3" points="268,240 200,254 136,246 158,240 204,240 256,230"/>
+  <polygon class="c3" points="196,206 202,202 208,206 202,210"/>
+  <polygon class="c3" points="226,212 232,208 238,212 232,216"/>
+  <polygon class="c3" points="168,216 174,212 180,216 174,220"/>
+  <!-- neck and head -->
+  <polygon class="c1" points="256,194 284,150 314,122 334,142 308,172 276,230 266,234"/>
+  <polygon class="c2" points="256,194 284,150 314,122 304,146 278,184"/>
+  <polygon class="c1" points="314,120 344,116 372,134 372,150 348,156 330,150 322,140"/>
+  <polygon class="c2" points="314,120 344,116 372,134 346,128 326,128"/>
+  <polygon class="c3" points="372,150 348,156 330,150 346,142 368,142"/>
+  <polygon class="c1" points="320,122 300,98 330,116"/>
+  <polygon class="c4" points="302,104 300,98 316,112"/>
+  <polygon class="eye" points="336,128 348,126 350,134 338,136"/>
+  <circle class="pupil" cx="343" cy="131" r="2.4"/>
+  <polygon class="c4" points="368,132 374,134 370,138"/>
+  <!-- near antler -->
+  <polygon class="c4" points="322,120 332,120 334,62 326,60"/>
+  <polygon class="c4" points="330,96 352,76 356,80 334,104"/>
+  <polygon class="c4" points="328,78 308,60 312,54 330,70"/>
+  <!-- near legs -->
+  <polygon class="c1" points="262,230 286,232 318,246 308,260"/>
+  <polygon class="c2" points="262,230 286,232 290,240 266,238"/>
+  <polygon class="c1" points="308,260 318,246 352,252 350,264"/>
+  <polygon class="c4" points="350,264 352,252 364,254 362,266"/>
+  <polygon class="c1" points="130,224 172,232 148,256 120,248"/>
+  <polygon class="c1" points="120,248 148,256 92,268 86,258"/>
+  <polygon class="c4" points="86,258 92,268 78,272 72,262"/>
+  <!-- near wing -->
+  <polygon class="c1" points="170,192 250,188 244,150 180,144"/>
+  <polygon class="c2" points="180,144 244,150 242,164 178,158"/>
+    <polygon class="c5" points="180,144 191,145 88,67 60,80"/>
+  <polygon class="c4" points="191,145 201,146 117,53 88,67"/>
+  <polygon class="c5" points="201,146 212,147 145,40 117,53"/>
+  <polygon class="c4" points="212,147 223,148 173,27 145,40"/>
+  <polygon class="c5" points="223,148 233,149 202,13 173,27"/>
+  <polygon class="c4" points="233,149 244,150 230,0 202,13"/>
+  </g>
+</svg>

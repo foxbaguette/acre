@@ -1,0 +1,34 @@
+<palette name="Cursed cat" c1="#2A2430" c2="#483E54" c3="#D8D0E0" c4="#0E0A12" c5="#A050F0"/>
+  <ribbon pts="146,350,12 100,376,16 56,360,10 46,320,5" cls="c1" top="c2" under="c4"/>
+  <ribbon pts="140,346,10 110,392,14 76,396,8" cls="c1" top="c2" under="c4"/>
+  <polygon class="c1" points="226,236 270,220 280,250 262,300 250,340 270,362 222,364 232,318"/>
+  <polygon class="c4" points="220,360 276,360 278,372 218,372"/>
+  <ribbon pts="146,350,12 90,360,14 60,338,8" cls="c1" top="c2" under="c4"/>
+  <polygon class="c4" points="60,338 46,326 58,350"/>
+  <polygon class="c1" points="110,340 124,270 170,214 226,206 262,240 266,300 240,350 130,358"/>
+  <polygon class="c2" points="124,270 170,214 226,206 262,240 200,238 150,272"/>
+  <polygon class="c3" points="240,350 130,358 110,340 160,330 230,320"/>
+  <polygon class="c4" points="150,260 166,254 170,270 154,276"/>
+  <polygon class="c4" points="190,236 206,232 210,248 194,252"/>
+  <polygon class="c4" points="150,300 164,296 168,310 154,314"/>
+  <polygon class="c1" points="126,330 176,340 168,366 112,368"/>
+  <polygon class="c3" points="110,360 172,360 176,372 108,372"/>
+  <polygon class="c5" points="236,150 220,104 262,130"/>
+  <polygon class="c4" points="224,112 222,84 240,108"/>
+  <polygon class="c5" points="318,128 346,100 346,146"/>
+  <polygon class="c4" points="340,104 348,78 350,112"/>
+  <polygon class="c1" points="240,160 262,126 310,118 346,138 360,182 330,226 270,222 246,196"/>
+  <polygon class="c2" points="262,126 310,118 346,138 300,148"/>
+  <polygon class="c5" points="250,196 220,222 252,236 280,226"/>
+  <polygon class="c5" points="340,200 366,226 332,240 312,226"/>
+  <polygon class="c3" points="290,190 340,188 340,224 316,236 292,222"/>
+  <polygon class="c4" points="306,188 322,188 314,198"/>
+  <polygon class="c4" points="312,226 318,226 316,234"/>
+  <polygon class="eye" points="270,156 292,154 292,170 272,172"/>
+  <circle class="pupil" cx="281" cy="163" r="3.6"/>
+  <polygon class="eye" points="326,154 346,156 346,170 328,170"/>
+  <circle class="pupil" cx="336" cy="163" r="3.6"/>
+  <polygon class="c5" points="41,326 42,303 51,326"/>
+  <polygon class="c5" points="51,326 60,298 61,326"/>
+  <polygon class="c5" points="61,326 62,292 71,326"/>
+</svg>

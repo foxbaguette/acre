@@ -1,0 +1,42 @@
+<palette name="Storm wyvern" c1="#3E5C7A" c2="#6E92B2" c3="#CBD8E4" c4="#1B2733" c5="#F2D04A"/>
+  <!-- far wing -->
+  <polygon class="c2" points="232,174 190,50 112,20 92,88 120,150 190,196"/>
+  <polygon class="c4" points="232,174 224,180 184,56 192,48"/>
+  <polygon class="c4" points="190,52 194,58 116,26 112,20"/>
+  <polygon class="c4" points="190,54 194,60 96,92 92,86"/>
+  <polygon class="c4" points="190,56 194,62 124,154 118,148"/>
+  <!-- tail -->
+  <polygon class="c1" points="140,214 130,236 80,264 36,270 10,294 22,300 46,282 90,282 146,244"/>
+  <polygon class="c5" points="36,270 10,294 22,300 46,282"/>
+  <polygon class="c4" points="90,266 84,252 76,270"/>
+  <!-- body -->
+  <polygon class="c1" points="130,190 200,170 260,172 292,196 270,224 200,236 140,226"/>
+  <polygon class="c2" points="130,190 200,170 260,172 292,196 250,186 200,186 144,204"/>
+  <polygon class="c3" points="270,224 200,236 140,226 160,222 200,222 252,214"/>
+  <polygon class="c4" points="200,170 196,156 186,174"/>
+  <polygon class="c4" points="160,176 154,162 146,182"/>
+  <!-- tucked hind leg -->
+  <polygon class="c1" points="190,222 232,228 226,262 188,256"/>
+  <polygon class="c1" points="188,256 226,262 238,276 190,280"/>
+  <polygon class="c4" points="238,276 248,282 236,284"/>
+  <polygon class="c4" points="222,278 232,286 220,286"/>
+  <!-- neck and head -->
+  <polygon class="c1" points="260,176 292,140 322,116 344,130 320,160 290,214 270,226"/>
+  <polygon class="c2" points="260,176 292,140 322,116 312,136 286,170"/>
+  <polygon class="c4" points="292,142 288,126 280,146"/>
+  <polygon class="c1" points="320,114 346,102 380,116 390,136 372,150 340,152 328,140"/>
+  <polygon class="c2" points="320,114 346,102 380,116 358,114 338,116"/>
+  <polygon class="c3" points="390,136 372,150 340,152 352,142 378,138"/>
+  <polygon class="c4" points="330,108 306,84 314,80 338,104"/>
+  <polygon class="c4" points="342,104 324,70 334,68 350,102"/>
+  <polygon class="eye" points="348,118 360,116 362,124 350,126"/>
+  <circle class="pupil" cx="355" cy="121" r="2.4"/>
+  <polygon class="c4" points="384,126 388,128 384,132"/>
+  <!-- near wing -->
+  <polygon class="c2" points="200,178 150,76 74,58 52,120 78,178 160,208"/>
+  <polygon class="c4" points="200,178 192,184 144,82 152,72"/>
+  <polygon class="c4" points="150,76 154,82 78,64 74,58"/>
+  <polygon class="c4" points="150,78 154,84 56,124 52,118"/>
+  <polygon class="c4" points="150,80 154,86 82,182 76,176"/>
+  <polygon class="c5" points="98,92 118,86 106,108 124,106 88,138 98,112 88,112"/>
+</svg>

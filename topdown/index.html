@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Art Sheets</title>
+<style>
+  :root { --bg: #f4f2ee; --panel: #ffffff; --tile: #eeebe5; --ink: #1f1d1a; --muted: #6f6a62; --line: #d9d4cb; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93; --line: #3a3732; }
+  }
+  :root[data-theme="dark"] { --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93; --line: #3a3732; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header, main { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+  header { padding-top: 28px; padding-bottom: 12px; }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.01em; }
+  .sub { margin: 0; color: var(--muted); }
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding-bottom: 40px; }
+  a.card { display: block; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 12px; transition: transform .12s, border-color .12s; }
+  a.card:hover { transform: translateY(-2px); border-color: var(--muted); }
+  .preview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .preview img { width: 100%; aspect-ratio: 1; display: block; background: var(--tile); border-radius: 8px; }
+  h2 { margin: 12px 2px 2px; font-size: 18px; }
+  .card p { margin: 0 2px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Game art sheets</h1>
+  <p class="sub">Side and top-down art for the game, grouped by kind.</p>
+</header>
+<main>
+  <a class="card" href="creatures.html">
+    <div class="preview">
+      <img alt="" src="flyers__pegasus/top.svg">
+      <img alt="" src="turtles__crystal-turtle/top.svg">
+      <img alt="" src="creatures__kitsune/top.svg">
+    </div>
+    <h2>Creatures</h2>
+    <p>Every favorite from the side and from above.</p>
+  </a>
+  <a class="card" href="crops.html">
+    <div class="preview">
+      <img alt="" src="../crops/wheat/3-first-growth.svg">
+      <img alt="" src="../crops/wheat/6-harvest.svg">
+      <img alt="" src="../crops/wheat/7-harvest-front.svg">
+    </div>
+    <h2>Crops</h2>
+    <p>Each crop from seed to harvest.</p>
+  </a>
+  <a class="card" href="tiles.html">
+    <div class="preview">
+      <img alt="" src="../tiles/grass-05.svg">
+      <img alt="" src="../tiles/soil.svg">
+      <img alt="" src="../tiles/water-06.svg">
+    </div>
+    <h2>Tiles</h2>
+    <p>Seamless ground: grass, soil, cobblestone path and water.</p>
+  </a>
+</main>
+</body>
+</html>

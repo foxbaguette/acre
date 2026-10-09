@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Volcano stegosaurus">
+  <style>
+    .c1 { fill: var(--c1, #4A6A4A); }
+    .c2 { fill: var(--c2, #78A070); }
+    .c3 { fill: var(--c3, #C8D8A8); }
+    .c4 { fill: var(--c4, #2A1E1A); }
+    .c5 { fill: var(--c5, #FF6A2A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(200 200) scale(0.9794) translate(-200.0 -217.0)">
+  <!-- tail with obsidian spikes -->
+  <polygon class="c1" points="100,244 60,256 26,264 24,252 58,238 98,216"/>
+  <polygon class="c4" points="44,252 14,226 38,246"/>
+  <polygon class="c4" points="34,262 6,272 30,256"/>
+  <polygon class="c4" points="58,244 44,214 64,240"/>
+  <polygon class="c5" points="40,246 24,232 38,248"/>
+  <!-- far legs -->
+  <polygon class="c1" points="250,276 290,278 294,340 252,342"/>
+  <polygon class="c1" points="150,278 196,280 198,340 152,342"/>
+  <!-- glowing plates -->
+  <polygon class="c4" points="140,196 126,116 176,184"/>
+  <polygon class="c5" points="142,186 136,138 164,182"/>
+  <polygon class="c4" points="184,180 176,90 228,172"/>
+  <polygon class="c5" points="186,170 184,112 214,168"/>
+  <polygon class="c4" points="234,174 236,88 280,176"/>
+  <polygon class="c5" points="238,166 240,112 266,172"/>
+  <polygon class="c4" points="282,184 296,116 322,200"/>
+  <polygon class="c5" points="286,178 296,140 310,196"/>
+  <polygon class="c5" points="170,100 176,110 170,120 164,110"/>
+  <polygon class="c5" points="250,92 256,102 250,112 244,102"/>
+  <!-- body -->
+  <polygon class="c1" points="90,250 130,192 200,172 280,182 320,222 330,264 290,292 130,292"/>
+  <polygon class="c2" points="130,192 200,172 280,182 320,222 240,206 160,214"/>
+  <polygon class="c3" points="290,292 130,292 90,250 150,274 270,272"/>
+  <polygon class="c5" points="200,226 212,224 208,252 196,252"/>
+  <!-- near legs -->
+  <polygon class="c1" points="270,280 308,280 312,340 270,342"/>
+  <polygon class="c1" points="130,280 182,280 186,340 134,342"/>
+  <polygon class="c4" points="270,334 314,334 316,346 268,346"/>
+  <polygon class="c4" points="132,334 188,334 190,346 130,346"/>
+  <!-- small head -->
+  <polygon class="c1" points="320,226 352,220 380,242 376,264 342,268 324,252"/>
+  <polygon class="c2" points="320,226 352,220 380,242 346,236"/>
+  <polygon class="c3" points="376,242 394,252 376,264"/>
+  <polygon class="eye" points="340,232 356,232 356,244 340,244"/>
+  <circle class="pupil" cx="348" cy="238" r="3"/>
+  <polygon class="c4" points="334,224 360,222 360,228 336,230"/>
+  </g>
+</svg>

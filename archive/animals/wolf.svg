@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wolf">
+  <style>
+    .c1 { fill: var(--c1, #9A9A98); }
+    .c2 { fill: var(--c2, #C4C3BE); }
+    .c3 { fill: var(--c3, #ECEAE2); }
+    .c4 { fill: var(--c4, #3A3836); }
+    .c5 { fill: var(--c5, #E0B13E); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-6 7)">
+  <!-- far front leg -->
+  <polygon class="c1" points="232,210 256,216 254,300 252,340 230,340 232,300"/>
+  <!-- far ear -->
+  <polygon class="c1" points="290,98 268,70 278,108"/>
+  <!-- tail -->
+  <polygon class="c1" points="108,292 124,338 60,338 26,328 30,312 70,318"/>
+  <polygon class="c2" points="108,292 70,318 30,312 50,306 96,300"/>
+  <polygon class="c4" points="26,328 30,312 46,310 44,334"/>
+  <!-- body -->
+  <polygon class="c1" points="246,150 196,172 124,236 104,292 124,338 196,338 214,300 262,226 270,186"/>
+  <polygon class="c2" points="246,150 196,172 124,236 140,244 204,190 252,166"/>
+  <polygon class="c2" points="124,236 104,292 128,290 150,250"/>
+  <polygon class="c3" points="270,186 262,226 214,300 196,338 184,320 220,268 250,210"/>
+  <!-- hind paw -->
+  <polygon class="c1" points="150,320 196,322 212,340 140,340"/>
+  <polygon class="c2" points="150,320 196,322 190,330 148,328"/>
+  <!-- neck -->
+  <polygon class="c1" points="300,96 246,150 270,186 322,132 314,112"/>
+  <polygon class="c2" points="300,96 246,150 262,154 306,110"/>
+  <polygon class="c3" points="322,132 270,186 286,170 320,140"/>
+  <!-- head raised -->
+  <polygon class="c1" points="292,92 318,66 348,56 376,52 380,66 354,90 336,112 318,130 300,114"/>
+  <polygon class="c2" points="318,66 348,56 376,52 356,66 330,80"/>
+  <polygon class="c3" points="380,66 354,90 336,112 318,130 330,106 352,80"/>
+  <!-- near ear -->
+  <polygon class="c1" points="300,90 282,58 290,104"/>
+  <polygon class="c4" points="284,62 292,84 286,98"/>
+  <!-- eye and nose -->
+  <polygon class="eye" points="322,84 334,80 336,88 324,92"/>
+  <circle cx="329" cy="86" r="2.2" class="pupil"/>
+  <polygon class="c4" points="376,52 370,46 384,48 386,60 378,66"/>
+  <!-- near front leg -->
+  <polygon class="c1" points="250,206 276,214 272,300 270,340 248,340 250,300"/>
+  <polygon class="c2" points="250,206 276,214 272,240 254,236"/>
+  </g>
+</svg>

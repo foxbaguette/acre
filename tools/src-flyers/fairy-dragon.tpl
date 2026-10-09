@@ -1,0 +1,30 @@
+<palette name="Fairy dragon" c1="#7BC4B0" c2="#A8E6D2" c3="#FFF2C4" c4="#2E5A52" c5="#F29BC8"/>
+  <!-- far wings -->
+  <polygon class="c5" points="210,166 250,92 310,54 330,96 290,166"/>
+  <polygon class="c3" points="250,92 310,54 300,86 262,112"/>
+  <polygon class="c5" points="214,186 270,196 300,258 260,268 214,228"/>
+  <polygon class="c3" points="270,196 300,258 280,226"/>
+  <!-- tail -->
+  <polygon class="c1" points="184,268 160,286 130,290 112,276 124,268 144,276 170,262"/>
+  <polygon class="c5" points="112,276 96,262 92,282 110,290"/>
+  <!-- body -->
+  <polygon class="c1" points="200,170 236,182 252,220 240,262 214,282 182,270 176,240 196,214"/>
+  <polygon class="c2" points="200,170 236,182 228,206 206,200"/>
+  <polygon class="c3" points="236,182 252,220 240,262 214,282 224,244 228,206"/>
+  <polygon class="c4" points="214,272 224,274 222,292 212,290"/>
+  <!-- head -->
+  <polygon class="c1" points="232,150 258,142 286,154 292,172 270,184 244,182"/>
+  <polygon class="c2" points="232,150 258,142 286,154 258,158"/>
+  <polygon class="c3" points="292,172 270,184 244,182 266,172"/>
+  <polygon class="c4" points="240,148 232,124 246,144"/>
+  <polygon class="c4" points="256,142 258,116 266,140"/>
+  <polygon class="eye" points="260,156 270,154 272,162 262,164"/>
+  <circle class="pupil" cx="266" cy="159" r="2"/>
+  <polygon class="c4" points="286,166 290,168 286,172"/>
+  <!-- near wings -->
+  <polygon class="c5" points="196,170 150,100 90,60 70,100 110,170"/>
+  <polygon class="c3" points="150,100 90,60 102,92 138,116"/>
+  <polygon class="c2" points="196,170 150,100 154,140"/>
+  <polygon class="c5" points="190,190 130,200 100,260 140,270 190,230"/>
+  <polygon class="c3" points="130,200 100,260 120,232"/>
+</svg>

@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Polish view</title>
+<style>body{margin:0;background:#e9e6e0;font:13px system-ui}.g{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px}
+figure{margin:0;background:#f7f5f1;border-radius:8px}img{width:100%;aspect-ratio:1;display:block}figcaption{padding:4px 8px;color:#555}</style></head>
+<body><div class="g" id="g"></div><script>
+const q=new URLSearchParams(location.search), k=q.get('k'), only=q.get('only'), t=Date.now();
+const list=only?[only]:['original','a','b','c'];
+document.getElementById('g').style.gridTemplateColumns=only?'1fr':'1fr 1fr';
+document.getElementById('g').innerHTML=list.map(f=>`<figure><img src="${k}/${f}.svg?t=${t}"><figcaption>${f}</figcaption></figure>`).join('');
+</script></body></html>

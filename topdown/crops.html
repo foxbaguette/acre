@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crops Sheet</title>
+<style>
+  :root { --bg: #f4f2ee; --panel: #ffffff; --tile: #f1ece3; --ink: #1f1d1a; --muted: #6f6a62; --line: #d9d4cb; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93; --line: #3a3732; }
+  }
+  :root[data-theme="dark"] { --bg: #171614; --panel: #22201d; --tile: #2c2a26; --ink: #efebe4; --muted: #a39d93; --line: #3a3732; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header, main { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+  header { padding-top: 28px; padding-bottom: 12px; }
+  .crumb { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+  .crumb a { color: inherit; }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.01em; }
+  .sub { margin: 0; color: var(--muted); }
+  main { display: grid; gap: 16px; padding-bottom: 40px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .card h2 { margin: 0; font-size: 18px; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0 2px 10px; }
+  .badge { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  .badge.done { color: #2f7a4a; } .badge.wait { color: #a07a1c; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 14px; color: var(--muted); }
+  .bar label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .progress { font-variant-numeric: tabular-nums; }
+  .pending img { opacity: .25; }
+  .stages { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 900px) { .stages { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .stages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  figure { margin: 0; background: var(--tile); border-radius: 10px; overflow: hidden; }
+  figure a { display: block; }
+  figure img { width: 100%; aspect-ratio: 1; display: block; }
+  figcaption { padding: 6px 9px; font-size: 12px; line-height: 1.3; }
+  figcaption b { display: block; font-weight: 600; }
+  figcaption span { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <p class="crumb"><a href="index.html">Sheets</a> / Crops</p>
+  <h1>Crops</h1>
+  <p class="sub">Each crop from seed to harvest. Top-down stages share one scale, so the plant visibly grows between them. Stage 8 shows the crop after it died from lack of water. New crops appear here by themselves as they are finished.</p>
+  <div class="bar">
+    <span class="progress" id="progress">Loading…</span>
+    <label><input type="checkbox" id="onlyDone"> Show finished only</label>
+  </div>
+</header>
+<main id="crops"></main>
+<script>
+const STAGES = [
+  ['1-seeds-front', 'Seeds', 'front view'],
+  ['2-sown', 'Just sown', 'top down'],
+  ['3-first-growth', 'First growth', 'top down'],
+  ['4-second-growth', 'Second growth', 'top down'],
+  ['5-third-growth', 'Third growth', 'top down'],
+  ['6-harvest', 'Harvest', 'top down'],
+  ['7-harvest-front', 'Harvested crop', 'front view'],
+  ['8-dead', 'Died, not watered', 'top down'],
+];
+const CROPS = [
+  ['wheat', 'Wheat'], ['red-wheat', 'Red Wheat'], ['strawberries', 'Strawberries'], ['lettuce', 'Lettuce'], ['tomatoes', 'Tomatoes'],
+  ['pineapple', 'Pineapple'], ['moonbloom', 'Moonbloom (fantasy)'], ['ember-pepper', 'Ember Pepper (fantasy)'],
+  ['glowcap', 'Glowcap (fantasy)'], ['kiwi', 'Kiwi Bush'], ['spring-onions', 'Spring Onions'],
+  ['raspberries', 'Raspberries'], ['potatoes', 'Potatoes'], ['pumpkin', 'Pumpkin'],
+  ['carrots', 'Carrots'], ['corn', 'Corn'], ['sunflower', 'Sunflower'], ['rice', 'Rice'],
+  ['beetroot', 'Beetroot'], ['cabbage', 'Cabbage'], ['cucumber', 'Cucumber'], ['watermelon', 'Watermelon'],
+  ['eggplant', 'Eggplant'], ['bell-pepper', 'Bell Pepper'], ['garlic', 'Garlic'], ['peas', 'Peas'],
+  ['blueberries', 'Blueberries'], ['grapes', 'Grapes'], ['broccoli', 'Broccoli'], ['radish', 'Radish'],
+  ['dragon-fruit', 'Dragon Fruit'], ['coffee', 'Coffee'], ['sugar-cane', 'Sugar Cane'], ['zucchini', 'Zucchini'],
+  ['carolina-reaper', 'Carolina Reaper'], ['peanuts', 'Peanuts'], ['banana', 'Banana Plant'], ['blue-java', 'Blue Java Banana'],
+  ['olive', 'Olive Bush'], ['rye', 'Rye'], ['oats', 'Oats'],
+  ['lemon', 'Lemon'], ['lime', 'Lime'], ['finger-lime', 'Finger Lime'], ['buddhas-hand', "Buddha's Hand Citron"],
+  ['orange', 'Orange'], ['mandarin', 'Mandarin'],
+  ['rambutan', 'Rambutan'], ['durian', 'Durian'], ['jabuticaba', 'Jabuticaba'], ['custard-apple', 'Custard Apple'], ['mangosteen', 'Mangosteen'], ['pineberry', 'Pineberry'], ['pink-guava', 'Pink Guava'], ['cacao', 'Cocoa Bean'], ['mint', 'Mint'], ['thyme', 'Thyme'], ['basil', 'Basil'], ['chanterelle', 'Chanterelle'], ['champignon', 'Button Mushroom'], ['egg-plant', 'Egg Plant (silly)'], ['milk-pouch', 'Milkweed Pouch (silly)'],
+  ['salak', 'Snake Fruit (Salak)'], ['kiwano', 'Kiwano (Horned Melon)'], ['monstera', 'Monstera Fruit'],
+  ['beans', 'Beans'], ['red-cabbage', 'Red Cabbage'],
+];
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+const stamps = {};
+document.getElementById('crops').innerHTML = CROPS.map(([dir, name]) => `
+  <section class="card" data-crop="${dir}">
+    <div class="head"><h2>${name}</h2><span class="badge wait">Growing…</span></div>
+    <div class="stages">${STAGES.map(([f, label, view], i) => `
+      <figure class="pending" data-file="${f}"><a href="../crops/${dir}/${f}.svg" target="_blank"><img alt="${name}: ${label}, ${view}" src="${BLANK}"></a>
+      <figcaption><b>${i + 1}. ${label}</b><span>${view}</span></figcaption></figure>`).join('')}
+    </div>
+  </section>`).join('');
+
+async function poll() {
+  let done = 0;
+  await Promise.all(CROPS.map(async ([dir]) => {
+    let s = '';
+    try { const r = await fetch(`../crops/${dir}/done.txt?t=${Date.now()}`, { cache: 'no-store' }); if (r.ok) s = (await r.text()).trim(); } catch (e) {}
+    if (dir === 'wheat' && !s) s = 'wheat';
+    if (s) done++;
+    if (s && s !== stamps[dir]) {
+      stamps[dir] = s;
+      const card = document.querySelector(`.card[data-crop="${dir}"]`);
+      const b = card.querySelector('.badge'); b.className = 'badge done'; b.textContent = 'Done';
+      card.querySelectorAll('figure').forEach(f => {
+        f.classList.remove('pending');
+        f.querySelector('img').src = `../crops/${dir}/${f.dataset.file}.svg?t=${encodeURIComponent(s)}`;
+      });
+    }
+  }));
+  document.getElementById('progress').textContent = `${done} of ${CROPS.length} crops done`;
+  document.querySelectorAll('.card').forEach(c => { c.hidden = document.getElementById('onlyDone').checked && !stamps[c.dataset.crop]; });
+}
+document.getElementById('onlyDone').addEventListener('change', poll);
+poll(); setInterval(poll, 5000);
+</script>
+</body>
+</html>

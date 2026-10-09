@@ -1,0 +1,41 @@
+<palette name="Werewolf" c1="#5A4A3A" c2="#8A7660" c3="#E8E0D0" c4="#1A1410" c5="#8A3A3A"/>
+  <!-- curled tail -->
+  <polygon class="c1" points="270,320 322,320 340,290 326,262 316,284 296,298 268,300"/>
+  <polygon class="c3" points="326,262 340,290 332,292 322,274"/>
+  <sym>
+  <!-- legs and clawed feet -->
+  <polygon class="c1" points="150,326 192,326 190,384 140,384"/>
+  <polygon class="c4" points="136,380 190,380 192,392 130,392"/>
+  <polygon class="c3" points="130,382 124,396 140,390"/>
+  <!-- arm with claws -->
+  <polygon class="c1" points="132,174 86,196 60,262 90,290 112,230 138,208"/>
+  <polygon class="c2" points="132,174 86,196 100,204 134,190"/>
+  <polygon class="c3" points="60,262 36,262 56,280"/>
+  <polygon class="c3" points="64,278 44,290 70,296"/>
+  <polygon class="c3" points="80,292 66,314 92,300"/>
+  <!-- ears and eye -->
+  <polygon class="c1" points="156,76 150,32 184,62"/>
+  <polygon class="c4" points="158,68 156,48 174,62"/>
+  <polygon class="c4" points="162,102 196,108 194,118 164,114"/>
+  <polygon class="eye" points="168,114 190,114 190,126 170,126"/>
+  <circle class="pupil" cx="179" cy="120" r="3.2"/>
+  </sym>
+  <!-- torso with torn trousers -->
+  <polygon class="c1" points="130,160 270,160 300,236 280,310 120,310 100,236"/>
+  <polygon class="c2" points="150,180 200,192 250,180 244,232 156,232"/>
+  <polygon class="c3" points="176,236 224,236 230,296 170,296"/>
+  <polygon class="c5" points="124,290 276,290 286,350 114,350"/>
+  <polygon class="c4" points="150,290 164,300 156,350 144,350"/>
+  <polygon class="c1" points="164,350 176,330 190,350"/>
+  <polygon class="c1" points="214,350 226,332 238,350"/>
+  <!-- wolf head, mouth open in a howl -->
+  <polygon class="c1" points="160,70 240,70 254,110 246,150 154,150 146,110"/>
+  <polygon class="c2" points="160,70 240,70 226,92 174,92"/>
+  <polygon class="c2" points="170,118 230,118 234,150 200,166 166,150"/>
+  <polygon class="c4" points="176,142 224,142 220,166 180,166"/>
+  <polygon class="c3" points="180,142 188,142 184,156"/>
+  <polygon class="c3" points="212,142 220,142 216,156"/>
+  <polygon class="c3" points="188,166 196,166 192,152"/>
+  <polygon class="c3" points="204,166 212,166 208,152"/>
+  <polygon class="c4" points="190,120 210,120 200,132"/>
+</svg>

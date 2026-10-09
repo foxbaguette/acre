@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cleaver beetle">
+  <style>
+    .c1 { fill: var(--c1, #3B2F5A); }
+    .c2 { fill: var(--c2, #6B5B8E); }
+    .c3 { fill: var(--c3, #B8A8D6); }
+    .c4 { fill: var(--c4, #15101F); }
+    .c5 { fill: var(--c5, #E0A030); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-37 -27)">
+  <!-- far legs -->
+  <polygon class="c4" points="240,228 250,234 236,268 224,300 216,298 228,264"/>
+  <polygon class="c4" points="190,230 200,236 170,270 150,300 144,296 166,266"/>
+  <polygon class="c4" points="150,226 160,232 120,258 96,290 90,286 114,254"/>
+  <!-- abdomen / elytra -->
+  <polygon class="c1" points="250,186 176,172 112,188 96,214 118,244 186,254 246,242"/>
+  <polygon class="c2" points="250,186 176,172 170,210 240,214"/>
+  <polygon class="c3" points="176,172 112,188 130,196 174,186"/>
+  <polygon class="c4" points="250,186 112,188 114,194 250,192"/>
+  <!-- thorax -->
+  <polygon class="c1" points="250,186 292,180 300,214 252,240 246,242"/>
+  <polygon class="c2" points="250,186 292,180 284,200 256,206"/>
+  <!-- head -->
+  <polygon class="c1" points="292,180 318,184 328,206 312,222 300,214"/>
+  <polygon class="pupil" points="306,190 316,192 316,202 306,200"/>
+  <!-- mandibles (cleaves) -->
+  <polygon class="c5" points="316,188 372,150 384,160 344,198 330,200"/>
+  <polygon class="c4" points="350,176 362,170 358,182"/>
+  <polygon class="c5" points="318,206 380,228 372,242 340,216 326,214"/>
+  <polygon class="c4" points="352,224 364,230 354,236"/>
+  <!-- antennae -->
+  <polygon class="c5" points="312,186 340,160 344,164 318,190"/>
+  <polygon class="c5" points="340,160 354,150 358,156 344,164"/>
+  <!-- near legs -->
+  <polygon class="c4" points="270,224 280,230 262,266 246,300 238,296 254,260"/>
+  <polygon class="c4" points="220,236 230,242 206,272 186,304 178,300 196,268"/>
+  <polygon class="c4" points="160,236 170,242 136,264 106,300 100,296 128,258"/>
+  </g>
+</svg>

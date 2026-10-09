@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Horse">
+  <style>
+    .c1 { fill: var(--c1, #8E5A3A); }
+    .c2 { fill: var(--c2, #B57B55); }
+    .c3 { fill: var(--c3, #F1E6D8); }
+    .c4 { fill: var(--c4, #2C1A12); }
+    .c5 { fill: var(--c5, #C9553E); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(7 6)">
+  <!-- far hind leg (lifted back) -->
+  <polygon class="c1" points="116,182 154,192 146,244 114,240"/>
+  <polygon class="c1" points="114,240 146,244 112,310 92,304"/>
+  <polygon class="c5" points="92,304 112,310 108,324 86,318"/>
+  <!-- far front leg (planted) -->
+  <polygon class="c1" points="218,190 240,196 236,250 236,328 220,328 222,250"/>
+  <polygon class="c5" points="218,328 238,328 238,342 218,342"/>
+  <!-- tail -->
+  <polygon class="c4" points="84,158 92,208 62,230 28,240 24,224 54,204 70,174"/>
+  <!-- body -->
+  <polygon class="c1" points="236,150 160,146 84,158 92,208 170,222 262,200"/>
+  <polygon class="c2" points="236,150 160,146 84,158 100,168 166,162 232,166"/>
+  <polygon class="c3" points="262,200 170,220 92,208 110,204 172,208 252,190"/>
+  <!-- neck arched -->
+  <polygon class="c1" points="236,150 260,98 300,70 324,86 312,112 262,200"/>
+  <polygon class="c2" points="236,150 260,98 300,70 292,84 256,116"/>
+  <polygon class="c3" points="312,112 262,200 278,180 306,124"/>
+  <!-- mane -->
+  <polygon class="c4" points="236,146 260,94 300,66 312,52 290,56 252,84 226,130"/>
+  <!-- head -->
+  <polygon class="c1" points="300,70 338,96 362,124 354,138 326,134 312,112 324,86"/>
+  <polygon class="c2" points="300,70 338,96 362,124 344,118 318,92"/>
+  <polygon class="c3" points="362,124 354,138 326,134 336,122"/>
+  <polygon class="c3" points="314,78 362,124 354,126 306,84"/>
+  <!-- ear -->
+  <polygon class="c1" points="304,72 308,46 318,76"/>
+  <polygon class="c4" points="308,52 312,70 306,74"/>
+  <!-- eye and nostril -->
+  <polygon class="pupil" points="324,96 334,94 336,102 326,104"/>
+  <circle cx="329" cy="98" r="1.3" class="eye"/>
+  <polygon class="c5" points="352,126 360,124 362,132 354,134"/>
+  <!-- near hind leg (planted) -->
+  <polygon class="c1" points="96,178 136,188 124,246 92,240"/>
+  <polygon class="c2" points="96,178 136,188 130,200 98,194"/>
+  <polygon class="c1" points="92,240 124,246 120,328 102,328"/>
+  <polygon class="c5" points="100,328 122,328 122,342 100,342"/>
+  <!-- near front leg (lifted, bent) -->
+  <polygon class="c1" points="240,192 264,202 272,248 252,254"/>
+  <polygon class="c2" points="240,192 264,202 262,214 244,208"/>
+  <polygon class="c1" points="252,254 272,248 262,290 244,284"/>
+  <polygon class="c5" points="244,284 262,290 258,304 238,298"/>
+  </g>
+</svg>

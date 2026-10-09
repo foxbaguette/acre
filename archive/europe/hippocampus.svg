@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hippocampus">
+  <style>
+    .c1 { fill: var(--c1, #4A8AC8); }
+    .c2 { fill: var(--c2, #7AB8E8); }
+    .c3 { fill: var(--c3, #F0F8FF); }
+    .c4 { fill: var(--c4, #1A3A6A); }
+    .c5 { fill: var(--c5, #F0D870); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(200 200) scale(0.9896) translate(-196.0 -191.0)">
+  <!-- tail fin -->
+    <polygon class="c5" points="62,238 60,234 9,271 10,304"/>
+  <polygon class="c2" points="60,234 57,230 7,237 9,271"/>
+  <polygon class="c5" points="57,230 55,226 6,204 7,237"/>
+  <polygon class="c2" points="55,226 52,222 4,170 6,204"/>
+  <!-- fish body -->
+    <polygon class="c1" points="299,218 258,261 222,219 265,182"/>
+  <polygon class="c2" points="299,218 258,261 243,243 285,203"/>
+  <polygon class="c3" points="265,182 222,219 233,232 275,193"/>
+  <polygon class="c1" points="258,261 202,302 178,258 222,219"/>
+  <polygon class="c2" points="258,261 202,302 195,290 248,249"/>
+  <polygon class="c3" points="222,219 178,258 188,277 237,237"/>
+  <polygon class="c1" points="202,302 130,322 130,282 178,258"/>
+  <polygon class="c2" points="202,302 130,322 130,305 192,283"/>
+  <polygon class="c3" points="178,258 130,282 130,294 185,271"/>
+  <polygon class="c1" points="130,322 73,292 91,272 130,282"/>
+  <polygon class="c2" points="130,322 73,292 78,287 130,311"/>
+  <polygon class="c3" points="130,282 91,272 83,280 130,299"/>
+  <polygon class="c1" points="73,292 45,236 59,228 91,272"/>
+  <polygon class="c2" points="73,292 45,236 51,233 81,284"/>
+  <polygon class="c3" points="91,272 59,228 55,230 86,278"/>
+  <polygon class="c4" points="230,230 240,222 250,230 240,240"/>
+  <polygon class="c4" points="188,266 198,258 208,266 198,276"/>
+  <polygon class="c4" points="140,288 150,280 158,288 148,298"/>
+  <polygon class="c5" points="206,226 196,190 244,214"/>
+  <!-- fin-hooves -->
+  <polygon class="c1" points="270,242 300,262 312,300 296,304 284,274 264,258"/>
+  <polygon class="c5" points="296,298 326,304 316,322 290,312"/>
+  <polygon class="c1" points="292,230 322,250 340,290 322,296 306,262 288,246"/>
+  <polygon class="c5" points="322,288 352,296 342,314 316,306"/>
+  <!-- mane fins, neck and head -->
+  <polygon class="c5" points="290,152 268,122 300,130"/>
+  <polygon class="c5" points="306,128 290,92 320,112"/>
+  <polygon class="c5" points="322,102 330,66 342,98"/>
+    <polygon class="c1" points="247,184 278,135 314,157 293,208"/>
+  <polygon class="c2" points="247,184 278,135 293,144 266,194"/>
+  <polygon class="c3" points="293,208 314,157 303,150 279,201"/>
+  <polygon class="c1" points="278,135 307,103 333,121 314,157"/>
+  <polygon class="c2" points="278,135 307,103 314,108 288,141"/>
+  <polygon class="c3" points="314,157 333,121 322,113 299,148"/>
+  <polygon class="c1" points="310,84 346,80 384,104 388,126 360,142 318,130"/>
+  <polygon class="c2" points="310,84 346,80 384,104 346,96"/>
+  <polygon class="c3" points="388,126 360,142 318,130 350,126"/>
+  <polygon class="c5" points="322,86 328,60 342,84"/>
+  <polygon class="eye" points="336,96 352,98 352,110 336,108"/>
+  <circle class="pupil" cx="344" cy="103" r="3"/>
+  <polygon class="c4" points="378,112 386,116 380,124"/>
+  </g>
+</svg>

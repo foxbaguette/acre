@@ -1,0 +1,40 @@
+<palette name="Totem gorilla" c1="#4A4A5A" c2="#6E6E82" c3="#D8D0B8" c4="#1A1A24" c5="#E8A838"/>
+  <!-- totem pole -->
+  <polygon class="c3" points="178,18 222,18 222,168 178,168"/>
+  <polygon class="c5" points="184,24 216,24 216,60 184,60"/>
+  <polygon class="c4" points="190,34 198,34 198,42 190,42"/>
+  <polygon class="c4" points="202,34 210,34 210,42 202,42"/>
+  <polygon class="c4" points="190,50 210,50 210,54 190,54"/>
+  <polygon class="c5" points="184,70 216,70 216,106 184,106"/>
+  <polygon class="c4" points="190,80 198,80 198,88 190,88"/>
+  <polygon class="c4" points="202,80 210,80 210,88 202,88"/>
+  <polygon class="c4" points="190,96 210,96 210,100 190,100"/>
+  <polygon class="c3" points="178,40 146,50 174,66"/>
+  <polygon class="c3" points="222,40 254,50 226,66"/>
+  <polygon class="c5" points="146,50 138,44 150,58"/>
+  <polygon class="c5" points="254,50 262,44 250,58"/>
+  <sym>
+  <!-- legs -->
+  <polygon class="c1" points="150,292 196,292 192,342 140,342"/>
+  <polygon class="c4" points="136,336 194,336 196,352 130,352"/>
+  <!-- arm to the ground -->
+  <polygon class="c1" points="122,164 70,204 54,292 60,332 112,332 118,280 138,214"/>
+  <polygon class="c2" points="122,164 70,204 100,196 136,184"/>
+  <polygon class="c2" points="54,320 118,320 124,352 48,352"/>
+  </sym>
+  <!-- torso -->
+  <polygon class="c1" points="120,152 280,152 310,232 270,302 130,302 90,232"/>
+  <polygon class="c2" points="160,172 240,172 250,232 200,262 150,232"/>
+  <polygon class="c5" points="196,196 204,208 196,220 188,208"/>
+  <!-- head -->
+  <polygon class="c1" points="160,112 240,112 252,152 240,192 160,192 148,152"/>
+  <polygon class="c1" points="170,112 200,88 230,112"/>
+  <polygon class="c4" points="156,126 244,126 240,140 160,140"/>
+  <polygon class="c2" points="172,158 228,158 232,188 200,198 168,188"/>
+  <polygon class="c4" points="186,162 194,162 192,170 188,170"/>
+  <polygon class="c4" points="206,162 214,162 212,170 208,170"/>
+  <sym>
+  <polygon class="eye" points="164,130 188,132 186,144 166,142"/>
+  <circle class="pupil" cx="176" cy="137" r="3"/>
+  </sym>
+</svg>

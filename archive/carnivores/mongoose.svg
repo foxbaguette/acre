@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mongoose">
+  <style>
+    .c1 { fill: var(--c1, #8A7860); }
+    .c2 { fill: var(--c2, #B09C80); }
+    .c3 { fill: var(--c3, #E4D8C0); }
+    .c4 { fill: var(--c4, #2E241A); }
+    .c5 { fill: var(--c5, #6A5A44); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-5 -43)">
+    <polygon class="c1" points="142,357 89,373 91,355 138,343"/>
+  <polygon class="c2" points="142,357 89,373 90,365 140,351"/>
+  <polygon class="c4" points="138,343 91,355 90,360 139,347"/>
+  <polygon class="c1" points="89,373 54,347 62,341 91,355"/>
+  <polygon class="c2" points="89,373 54,347 56,345 90,368"/>
+  <polygon class="c4" points="91,355 62,341 59,343 90,363"/>
+  <polygon class="c1" points="54,347 40,309 44,307 62,341"/>
+  <polygon class="c2" points="54,347 40,309 42,308 57,345"/>
+  <polygon class="c4" points="62,341 44,307 43,308 60,343"/>
+  <polygon class="c4" points="42,308 34,292 52,300"/>
+  <polygon class="c1" points="140,350 160,290 190,240 236,210 268,230 274,300 262,350 220,374 150,372"/>
+  <polygon class="c2" points="160,290 190,240 236,210 268,230 224,246 186,288"/>
+  <polygon class="c3" points="262,350 220,374 150,372 140,350 190,336 250,320"/>
+  <polygon class="c5" points="190,270 206,260 214,276 198,286"/>
+  <polygon class="c5" points="210,306 226,298 232,314 216,322"/>
+  <polygon class="c1" points="120,340 190,350 184,376 100,378"/>
+  <polygon class="c4" points="96,370 188,370 190,382 94,382"/>
+  <polygon class="c1" points="240,220 276,230 300,262 290,290 270,262"/>
+  <polygon class="c4" points="288,282 300,262 308,280 296,296"/>
+  <polygon class="c1" points="236,212 238,172 262,136 296,124 320,140 322,176 296,206 262,232"/>
+  <polygon class="c2" points="238,172 262,136 296,124 280,160"/>
+  <polygon class="c3" points="296,206 322,176 358,184 372,196 340,214 304,222"/>
+  <polygon class="c4" points="364,190 376,196 366,204"/>
+  <polygon class="c1" points="270,134 262,110 290,122"/>
+  <polygon class="c4" points="274,128 270,116 286,124"/>
+  <polygon class="c1" points="300,124 316,104 322,134"/>
+  <polygon class="c3" points="338,214 344,214 341,224"/>
+  <polygon class="eye" points="290,152 308,150 308,164 292,166"/>
+  <circle class="pupil" cx="299" cy="158" r="3.2"/>
+  </g>
+</svg>

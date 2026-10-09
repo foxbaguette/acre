@@ -1,0 +1,25 @@
+<palette name="Llama" c1="#E8DCC4" c2="#F8F0E0" c3="#C8B090" c4="#3A2A1C" c5="#A08060"/>
+  <polygon class="c1" points="230,262 262,262 266,330 268,372 246,372 246,334"/>
+  <polygon class="c1" points="138,262 172,262 164,330 166,372 146,372 148,334"/>
+  <polygon class="c1" points="96,246 120,200 186,184 252,196 280,230 278,274 260,298 134,302 100,280"/>
+  <polygon class="c2" points="120,200 186,184 252,196 280,230 278,274 226,224 150,232"/>
+  <polygon class="c3" points="260,298 134,302 100,280 170,284 250,276"/>
+  <polygon class="c5" points="140,232 156,226 164,244 148,250"/>
+  <polygon class="c1" points="246,262 284,264 290,330 292,372 270,372 268,336"/>
+  <polygon class="c1" points="106,278 150,284 140,332 142,372 118,372 118,336"/>
+  <polygon class="c4" points="266,362 296,362 296,374 264,374"/>
+  <polygon class="c4" points="116,362 146,362 146,374 114,374"/>
+  <polygon class="c1" points="258,208 274,160 292,100 308,72 334,64 346,84 336,120 318,190 290,250"/>
+  <polygon class="c2" points="274,160 292,100 308,72 334,64 318,120 296,176"/>
+  <polygon class="c5" points="288,150 304,110 312,140 300,176"/>
+  <polygon class="c1" points="332,62 364,66 384,84 384,110 352,114 336,92"/>
+  <polygon class="c2" points="332,62 364,66 384,84 350,72"/>
+  <polygon class="c3" points="384,110 352,114 340,100 380,98"/>
+  <polygon class="c4" points="378,94 388,100 380,106"/>
+  <polygon class="c1" points="326,64 318,30 340,58"/>
+  <polygon class="c5" points="328,58 322,38 336,56"/>
+  <polygon class="c1" points="348,60 360,34 362,64"/>
+  <polygon class="c5" points="352,58 358,42 358,60"/>
+  <polygon class="eye" points="338,76 354,78 352,90 338,90"/>
+  <circle class="pupil" cx="345" cy="83" r="3"/>
+</svg>

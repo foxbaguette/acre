@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aurora pterosaur">
+  <style>
+    .c1 { fill: var(--c1, #5A4A9A); }
+    .c2 { fill: var(--c2, #8A7AD0); }
+    .c3 { fill: var(--c3, #D8F0F0); }
+    .c4 { fill: var(--c4, #1A1440); }
+    .c5 { fill: var(--c5, #5AF0B8); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-10 34)">
+  <!-- far wing: aurora rays with a scalloped trailing edge -->
+  <polygon class="c5" points="232,196 236,195 290,44 284,34 270,20"/>
+  <polygon class="c2" points="236,195 240,194 308,68 302,58 290,44"/>
+  <polygon class="c3" points="240,194 244,193 327,91 320,82 308,68"/>
+  <polygon class="c5" points="244,193 248,192 345,114 339,105 327,91"/>
+  <polygon class="c2" points="248,192 252,191 363,138 357,128 345,114"/>
+  <polygon class="c3" points="252,191 256,190 380,160 375,151 363,138"/>
+  <!-- membrane fibres: thin dark ribs to each scallop point -->
+  <polygon class="c1" points="236,195 237,195 290,44 289,44"/>
+  <polygon class="c1" points="244,193 245,193 327,91 326,91"/>
+  <polygon class="c1" points="252,191 253,191 363,138 362,138"/>
+  <polygon class="c4" points="228,198 234,196 272,24 270,18 266,24"/>
+  <!-- legs trailing behind, with clawed three-toed feet -->
+  <polygon class="c4" points="212,246 220,254 200,280 176,300 162,306 160,300 172,292 194,274"/>
+  <polygon class="c4" points="162,306 148,314 152,308 146,308 156,302 150,298 160,300"/>
+  <polygon class="c4" points="200,250 208,258 184,280 156,294 138,298 138,292 152,288 178,272"/>
+  <polygon class="c4" points="138,298 124,304 128,298 122,296 132,293 128,288 138,292"/>
+  <!-- near wing: arm bone leading edge, aurora rays fanning to a scalloped edge -->
+  <polygon class="c5" points="206,198 26,42 35,61 36,74 205,203"/>
+  <polygon class="c2" points="205,203 36,74 45,92 46,104 205,209"/>
+  <polygon class="c3" points="205,209 46,104 56,122 58,134 204,214"/>
+  <polygon class="c2" points="204,214 58,134 69,150 72,162 203,219"/>
+  <polygon class="c5" points="203,219 72,162 84,178 88,190 203,225"/>
+  <polygon class="c2" points="203,225 88,190 101,203 106,214 202,230"/>
+  <polygon class="c3" points="202,230 106,214 121,225 128,234 201,235"/>
+  <polygon class="c2" points="201,235 128,234 145,242 156,248 200,241"/>
+  <polygon class="c5" points="200,241 156,248 172,250 184,253 200,248"/>
+  <polygon class="c1" points="205,203 204,204 36,74 37,74"/>
+  <polygon class="c1" points="204,214 203,215 58,134 59,134"/>
+  <polygon class="c1" points="203,225 202,226 88,190 89,190"/>
+  <polygon class="c1" points="201,235 200,236 128,234 129,234"/>
+  <polygon class="c4" points="212,195 207,204 122,130 26,44 22,38 116,119"/>
+  <!-- body: sleek, lit along the back, with a fuzz of pycnofibres -->
+  <polygon class="c1" points="194,212 206,200 226,192 252,188 274,196 284,214 274,234 250,248 222,256 202,254 190,236"/>
+  <polygon class="c2" points="194,212 206,200 226,192 252,188 274,196 250,200 226,204 204,216"/>
+  <polygon class="c2" points="204,200 202,190 212,196"/>
+  <polygon class="c2" points="218,194 218,184 226,192"/>
+  <polygon class="c2" points="234,190 236,180 242,189"/>
+  <polygon class="c3" points="274,234 250,248 222,256 202,254 228,244 254,236"/>
+  <!-- neck: one smooth curve into the head -->
+  <polygon class="c1" points="250,192 266,176 282,160 300,146 316,156 302,174 288,192 276,214"/>
+  <polygon class="c2" points="250,192 266,176 282,160 300,146 306,150 288,166 272,182 258,198"/>
+  <polygon class="c3" points="276,214 288,192 302,174 316,156 310,154 294,174 282,196"/>
+  <!-- swept-back crest growing from the skull, streaked like the aurora -->
+  <polygon class="c5" points="312,140 288,124 256,106 214,92 248,116 276,136 304,152"/>
+  <polygon class="c3" points="312,140 288,124 256,106 214,92 262,114 290,130"/>
+  <polygon class="c2" points="300,145 272,128 236,104 276,132 302,150"/>
+  <!-- head and long beak -->
+  <polygon class="c1" points="300,144 312,134 330,130 356,132 380,140 398,148 396,152 360,154 330,158 310,160"/>
+  <polygon class="c2" points="312,134 330,130 356,132 380,140 398,148 356,140 326,138"/>
+  <polygon class="c3" points="314,160 344,156 372,154 396,152 372,159 346,164 324,165"/>
+  <polygon class="eye" points="318,142 326,138 334,140 334,150 326,154 318,150"/>
+  <circle class="pupil" cx="327" cy="146" r="3"/>
+  <circle class="eye" cx="326" cy="145" r="0.9"/>
+  </g>
+</svg>

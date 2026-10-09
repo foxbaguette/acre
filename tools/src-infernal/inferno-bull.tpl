@@ -1,0 +1,30 @@
+<palette name="Inferno bull" c1="#6A2A22" c2="#92402E" c3="#E8B890" c4="#1A0C08" c5="#FF7A1A"/>
+  <ribbon pts="92,236,8 60,252,10 48,290,5" cls="c5" top="c5" under="c4"/>
+  <polygon class="c4" points="48,290 38,314 58,304"/>
+  <polygon class="c1" points="230,280 268,280 274,340 276,370 248,372 244,336"/>
+  <polygon class="c1" points="130,282 168,282 160,340 162,370 138,372 140,336"/>
+  <polygon class="c1" points="86,250 116,206 176,170 250,160 300,190 310,250 290,300 130,306 92,286"/>
+  <polygon class="c2" points="116,206 176,170 250,160 300,190 310,250 240,200 150,226"/>
+  <polygon class="c3" points="170,170 220,136 270,150 290,190 250,160 200,168"/>
+  <polygon class="c1" points="250,280 292,280 300,340 304,370 274,372 270,336"/>
+  <polygon class="c1" points="98,284 148,292 138,340 142,370 112,372 112,336"/>
+  <polygon class="c4" points="270,360 306,360 308,374 268,374"/>
+  <polygon class="c4" points="110,360 146,360 148,374 108,374"/>
+  <polygon class="c5" points="280,200 300,150 340,140 380,170 392,226 372,276 320,288 290,260"/>
+  <polygon class="c3" points="300,150 340,140 380,170 340,166"/>
+  <polygon class="c1" points="330,208 370,200 386,240 366,274 330,274"/>
+  <polygon class="c4" points="376,236 390,246 378,258"/>
+  <polygon class="c3" points="340,140 334,110 356,138"/>
+  <polygon class="c4" points="334,114 332,98 342,112"/>
+  <polygon class="c3" points="368,160 388,128 386,168"/>
+  <polygon class="c4" points="384,132 392,118 390,138"/>
+  <polygon class="c3" points="318,270 300,300 340,300 360,276"/>
+  <polygon class="eye" points="346,208 362,206 362,218 348,220"/>
+  <circle class="pupil" cx="354" cy="213" r="3"/>
+  <polygon class="c5" points="162,168 166,132 178,168"/>
+  <polygon class="c5" points="182,168 194,124 198,168"/>
+  <polygon class="c5" points="202,168 206,115 218,168"/>
+  <polygon class="c5" points="222,168 234,132 238,168"/>
+  <polygon class="c5" points="242,168 246,124 258,168"/>
+  <polygon class="c5" points="262,168 274,115 278,168"/>
+</svg>

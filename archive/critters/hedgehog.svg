@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hedgehog">
+  <style>
+    .c1 { fill: var(--c1, #6A5440); }
+    .c2 { fill: var(--c2, #8E7458); }
+    .c3 { fill: var(--c3, #E8D4B8); }
+    .c4 { fill: var(--c4, #241810); }
+    .c5 { fill: var(--c5, #B89C78); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-13 -66)">
+  <polygon class="c1" points="60,330 70,260 110,210 170,184 240,186 300,214 330,262 336,316 310,350 120,356"/>
+  <polygon class="c2" points="70,260 110,210 170,184 240,186 300,214 330,262 250,224 170,230 110,270"/>
+  <polygon class="c4" points="90,236 70,214 108,220"/>
+  <polygon class="c4" points="124,206 112,176 150,196"/>
+  <polygon class="c4" points="160,190 160,160 192,184"/>
+  <polygon class="c4" points="204,186 214,156 232,186"/>
+  <polygon class="c4" points="246,194 270,168 276,204"/>
+  <polygon class="c4" points="286,214 316,198 306,236"/>
+  <polygon class="c4" points="318,246 346,240 330,274"/>
+  <polygon class="c4" points="64,290 38,296 64,316"/>
+  <polygon class="c5" points="110,270 150,250 200,258 250,244 300,266 280,300 140,310"/>
+  <polygon class="c1" points="240,300 280,296 310,320 340,340 330,352 296,350 250,334"/>
+  <polygon class="c1" points="290,250 330,262 372,284 386,306 372,326 330,322 296,300"/>
+  <polygon class="c3" points="372,284 386,306 372,326 346,320 350,298"/>
+  <polygon class="c4" points="376,298 388,306 376,314"/>
+  <polygon class="c5" points="296,250 300,224 322,240"/>
+  <polygon class="c3" points="130,350 160,350 150,372 118,372"/>
+  <polygon class="c3" points="236,350 270,350 266,372 232,372"/>
+  <polygon class="c4" points="116,368 152,368 152,376 114,376"/>
+  <polygon class="c4" points="232,368 268,368 268,376 230,376"/>
+  <polygon class="eye" points="336,284 352,282 352,296 338,298"/>
+  <circle class="pupil" cx="344" cy="290" r="3"/>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Hell stag">
+  <style>
+    .c1 { fill: var(--c1, #4A2A22); }
+    .c2 { fill: var(--c2, #7A4A38); }
+    .c3 { fill: var(--c3, #E8DCC8); }
+    .c4 { fill: var(--c4, #140A08); }
+    .c5 { fill: var(--c5, #FF7A1A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-55 38)">
+  <!-- burning antlers -->
+  <polygon class="c4" points="334,100 340,34 352,34 348,102"/>
+  <polygon class="c4" points="340,76 302,44 308,34 346,64"/>
+  <polygon class="c4" points="344,56 386,24 392,34 350,70"/>
+  <polygon class="c4" points="340,46 318,8 328,4 348,40"/>
+  <polygon class="c5" points="296,42 304,16 316,38"/>
+  <polygon class="c5" points="382,22 396,0 400,28"/>
+  <polygon class="c5" points="312,6 322,-20 334,2"/>
+  <polygon class="c5" points="338,32 346,2 358,30"/>
+  <!-- far legs -->
+  <polygon class="c1" points="238,232 266,236 270,300 268,340 246,340 248,300"/>
+  <polygon class="c1" points="140,234 176,240 170,300 168,340 146,340 150,300"/>
+  <polygon class="c4" points="246,330 268,330 270,344 244,344"/>
+  <polygon class="c4" points="146,330 168,330 170,344 144,344"/>
+  <!-- body with exposed ribs -->
+  <polygon class="c1" points="110,178 170,156 250,156 292,178 298,228 272,250 140,250 112,228"/>
+  <polygon class="c2" points="110,178 170,156 250,156 292,178 236,176 170,182 124,200"/>
+  <polygon class="c4" points="180,190 232,184 234,192 184,198"/>
+  <polygon class="c4" points="176,206 236,200 238,208 180,214"/>
+  <polygon class="c4" points="176,222 232,216 234,224 180,230"/>
+  <polygon class="c3" points="182,190 228,186 228,188 184,192"/>
+  <polygon class="c5" points="140,206 148,204 152,232 144,234"/>
+  <polygon class="c5" points="262,210 270,208 274,236 266,238"/>
+  <polygon class="c3" points="298,228 272,250 140,250 112,228 160,240 260,236"/>
+  <!-- near legs -->
+  <polygon class="c1" points="262,228 294,234 300,300 296,340 270,340 272,300"/>
+  <polygon class="c1" points="118,222 162,232 154,300 150,340 124,340 128,300"/>
+  <polygon class="c5" points="268,296 298,296 284,326"/>
+  <polygon class="c5" points="124,296 154,296 140,326"/>
+  <polygon class="c4" points="270,330 298,330 300,344 266,344"/>
+  <polygon class="c4" points="126,330 152,330 154,344 122,344"/>
+  <!-- neck and skull face -->
+  <polygon class="c1" points="272,162 300,112 330,92 350,114 330,144 296,206"/>
+  <polygon class="c2" points="272,162 300,112 330,92 316,124 292,162"/>
+  <polygon class="c3" points="326,96 362,102 392,126 384,150 346,154 326,132"/>
+  <polygon class="c3" points="326,96 362,102 392,126 352,118"/>
+  <polygon class="c4" points="334,108 354,108 356,126 336,128"/>
+  <polygon class="eye" points="338,112 352,112 352,124 338,124"/>
+  <circle class="pupil" cx="345" cy="118" r="2.8"/>
+  <polygon class="c4" points="380,128 392,132 386,142"/>
+  <polygon class="c4" points="352,142 380,142 376,152 354,152"/>
+  <polygon class="c5" points="330,100 326,78 342,96"/>
+  </g>
+</svg>

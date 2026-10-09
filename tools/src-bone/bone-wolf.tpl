@@ -1,0 +1,26 @@
+<palette name="Bone wolf" c1="#D8CCB0" c2="#F0E8D0" c3="#A89C80" c4="#1E1A16" c5="#7AE8D0"/>
+  <ribbon pts="116,226,6 74,244,8 44,282,6 40,320,3" cls="c1" top="c1" under="c4"/>
+  <polygon class="c1" points="236,266 252,266 262,320 268,358 252,358 248,324"/>
+  <polygon class="c1" points="150,270 166,270 160,320 164,358 148,358 148,322"/>
+  <polygon class="c4" points="112,232 150,200 220,196 270,214 292,250 276,282 150,288 118,266"/>
+  <polygon class="c5" points="160,236 250,230 240,262 170,268"/>
+  <polygon class="c2" points="112,232 150,200 220,196 270,214 292,250 270,226 220,214 150,218"/>
+  <polygon class="c1" points="156,214 164,214 170,272 160,274"/>
+  <polygon class="c1" points="184,208 192,208 198,276 188,278"/>
+  <polygon class="c1" points="212,206 220,206 226,274 216,276"/>
+  <polygon class="c1" points="240,212 248,214 252,270 242,270"/>
+  <polygon class="c1" points="258,274 276,274 288,322 296,358 278,358 272,324"/>
+  <polygon class="c1" points="118,274 138,276 128,322 134,358 116,358 114,324"/>
+  <polygon class="c3" points="272,350 300,350 302,360 270,360"/>
+  <polygon class="c3" points="112,350 140,350 142,360 110,360"/>
+  <polygon class="c1" points="278,230 292,190 320,166 352,172 380,196 390,226 360,244 320,250"/>
+  <polygon class="c2" points="292,190 320,166 352,172 380,196 330,190"/>
+  <polygon class="c4" points="316,186 336,184 338,206 318,208"/>
+  <polygon class="c4" points="352,206 388,222 376,236 348,226"/>
+  <polygon class="c2" points="354,222 360,222 357,232"/>
+  <polygon class="c2" points="368,226 374,226 371,234"/>
+  <polygon class="c1" points="300,184 296,152 322,172"/>
+  <polygon class="c1" points="346,174 360,148 366,182"/>
+  <polygon class="eye" points="320,190 332,190 332,202 322,203"/>
+  <circle class="pupil" cx="326" cy="196" r="2.6"/>
+</svg>

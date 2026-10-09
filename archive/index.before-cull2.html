@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animal Vectors</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #f3f1ec;
+    color: #2b2622;
+    padding: 24px 16px;
+  }
+  .app { max-width: 1100px; margin: 0 auto; display: grid; gap: 24px; }
+  .top {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(240px, 320px);
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 760px) { .top { grid-template-columns: 1fr; } }
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.06);
+  }
+  .stage svg { width: 100%; height: auto; display: block; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 8px 0 0; color: #6c655e; text-transform: uppercase; letter-spacing: .06em; }
+  .muted { margin: 0 0 16px; color: #6c655e; font-size: 14px; }
+  .row {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+    border-top: 1px solid #eee9e2;
+  }
+  .row:first-of-type { border-top: 0; }
+  .row label { font-weight: 600; font-size: 14px; }
+  .row small { display: block; font-weight: 400; color: #8a827a; font-size: 12px; }
+  .row input[type="color"] {
+    width: 44px; height: 44px; padding: 0; border: 0;
+    border-radius: 12px; background: none; cursor: pointer;
+  }
+  .row input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  .row input[type="color"]::-webkit-color-swatch { border: 2px solid #e5dfd6; border-radius: 12px; }
+  .row code { font-size: 12px; color: #8a827a; font-family: ui-monospace, Consolas, monospace; }
+  .actions { display: flex; gap: 8px; margin-top: 16px; }
+  button {
+    flex: 1; padding: 10px 14px; border: 0; border-radius: 12px;
+    font: inherit; font-weight: 600; font-size: 14px; cursor: pointer;
+    background: #ece7df; color: #2b2622;
+  }
+  button.primary { background: #2b2622; color: #fff; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .thumb {
+    background: #fff; border-radius: 16px; padding: 10px; cursor: pointer;
+    border: 2px solid transparent; text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.05);
+  }
+  .thumb.active { border-color: #2b2622; }
+  .thumb svg { width: 100%; height: auto; display: block; }
+  .thumb span { display: block; font-size: 13px; font-weight: 600; margin-top: 6px; }
+  .peek {
+    position: fixed; z-index: 50; display: none; pointer-events: none;
+    width: min(440px, 80vw); background: #fff; border-radius: 20px; padding: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.22);
+  }
+  .peek svg { width: 100%; height: auto; display: block; }
+  .peek b { display: block; text-align: center; font-size: 14px; margin-top: 4px; }
+  @media (hover: none) { .peek { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="card stage" id="stage"></div>
+    <div class="card panel">
+      <h1 id="title">Animal</h1>
+      <p class="muted">Five colors drive each drawing. Pick any color to update it live.</p>
+      <div class="row"><input type="color" id="c1" data-var="--c1"><label for="c1">Base<small>Main fur, feathers or shell</small></label><code data-hex="--c1"></code></div>
+      <div class="row"><input type="color" id="c2" data-var="--c2"><label for="c2">Light facets<small>Lit planes of the body</small></label><code data-hex="--c2"></code></div>
+      <div class="row"><input type="color" id="c3" data-var="--c3"><label for="c3">Cream<small>Belly, muzzle, pale markings</small></label><code data-hex="--c3"></code></div>
+      <div class="row"><input type="color" id="c4" data-var="--c4"><label for="c4">Dark<small>Nose, stripes, socks, mane</small></label><code data-hex="--c4"></code></div>
+      <div class="row"><input type="color" id="c5" data-var="--c5"><label for="c5">Accent<small>Eyes, horns, hooves, glow</small></label><code data-hex="--c5"></code></div>
+      <div class="actions">
+        <button id="reset">Reset</button>
+        <button id="download" class="primary">Download SVG</button>
+      </div>
+    </div>
+  </div>
+  <h2>Favorites</h2>
+  <div class="grid" id="grid-favorites"></div>
+  <h2>Animals</h2>
+  <div class="grid" id="grid-animals"></div>
+  <h2>Creatures</h2>
+  <div class="grid" id="grid-creatures"></div>
+  <h2>Flyers</h2>
+  <div class="grid" id="grid-flyers"></div>
+  <h2>Deep sea</h2>
+  <div class="grid" id="grid-deepsea"></div>
+  <h2>Felines</h2>
+  <div class="grid" id="grid-felines"></div>
+  <h2>Bugs</h2>
+  <div class="grid" id="grid-bugs"></div>
+  <h2>Beasts</h2>
+  <div class="grid" id="grid-beasts"></div>
+  <h2>Dinos</h2>
+  <div class="grid" id="grid-dinos"></div>
+  <h2>Yokai</h2>
+  <div class="grid" id="grid-yokai"></div>
+  <h2>European folklore</h2>
+  <div class="grid" id="grid-europe"></div>
+  <h2>Hell</h2>
+  <div class="grid" id="grid-hell"></div>
+  <h2>Mythical sea creatures</h2>
+  <div class="grid" id="grid-mythsea"></div>
+  <h2>Orochi variations</h2>
+  <div class="grid" id="grid-orochi"></div>
+  <h2>Carnivores</h2>
+  <div class="grid" id="grid-carnivores"></div>
+  <h2>Hoofed animals</h2>
+  <div class="grid" id="grid-hoofed"></div>
+  <h2>Small mammals and primates</h2>
+  <div class="grid" id="grid-critters"></div>
+  <h2>Birds</h2>
+  <div class="grid" id="grid-birds"></div>
+  <h2>Reptiles, sea life and insects</h2>
+  <div class="grid" id="grid-scaly"></div>
+  <h2>Bone and undead</h2>
+  <div class="grid" id="grid-bone"></div>
+  <h2>Heavenly</h2>
+  <div class="grid" id="grid-heaven"></div>
+  <h2>Infernal</h2>
+  <div class="grid" id="grid-infernal"></div>
+  <h2>Sci-fi and modern</h2>
+  <div class="grid" id="grid-scifi"></div>
+  <h2>Storybook</h2>
+  <div class="grid" id="grid-story"></div>
+  <h2>Sea turtles</h2>
+  <div class="grid" id="grid-turtles"></div>
+</div>
+<div class="peek" id="peek"></div>
+
+<script>
+  const SETS = [
+    { dir: 'animals', grid: 'grid-animals', items: [
+      ['fox', 'Fox'], ['deer', 'Deer'], ['owl', 'Owl'], ['redpanda', 'Red panda'],
+      ['raven', 'Raven'],
+    ]},
+    { dir: 'creatures', grid: 'grid-creatures', items: [
+      ['kitsune', 'Kitsune'], ['phoenix', 'Phoenix'], ['dragon', 'Dragon'], ['lancer-hornet', 'Lancer hornet'],
+      ['gem-scarab', 'Gem scarab'], ['crystal-spider', 'Crystal spider'], ['sea-serpent', 'Sea serpent'], ['fire-salamander', 'Fire salamander'],
+    ]},
+    { dir: 'flyers', grid: 'grid-flyers', items: [
+      ['pegasus', 'Pegasus'], ['aether-jelly', 'Aether jelly'], ['glass-dragonfly', 'Glass dragonfly'], ['simurgh', 'Simurgh'],
+      ['sky-squid', 'Sky squid'], ['crest-wyrm', 'Crest wyrm'],
+    ]},
+    { dir: 'deepsea', grid: 'grid-deepsea', items: [
+      ['crystal-crab', 'Crystal crab'], ['ember-octopus', 'Ember octopus'], ['leaf-dragon', 'Leaf dragon'],
+    ]},
+    { dir: 'felines', grid: 'grid-felines', items: [
+      ['moon-cat', 'Moon cat'], ['moss-ocelot', 'Moss ocelot'],
+    ]},
+    { dir: 'bugs', grid: 'grid-bugs', items: [
+      ['lantern-firefly', 'Lantern firefly'],
+    ]},
+    { dir: 'beasts', grid: 'grid-beasts', items: [
+      ['blossom-stag', 'Blossom stag'], ['frost-mammoth', 'Frost mammoth'], ['lantern-giraffe', 'Lantern giraffe'], ['bone-howler', 'Bone howler'],
+    ]},
+    { dir: 'dinos', grid: 'grid-dinos', items: [
+      ['aurora-pterosaur', 'Aurora pterosaur'], ['gem-parasaurolophus', 'Gem parasaurolophus'], ['thunder-diplodocus', 'Thunder diplodocus'],
+    ]},
+    { dir: 'yokai', grid: 'grid-yokai', items: [
+      ['baku', 'Baku'], ['kirin', 'Kirin'], ['shachihoko', 'Shachihoko'],
+    ]},
+    { dir: 'europe', grid: 'grid-europe', items: [
+      ['kraken', 'Kraken'], ['fenrir', 'Fenrir'], ['jormungandr', 'Jormungandr'], ['black-shuck', 'Black Shuck'],
+      ['nessie', 'Nessie'],
+    ]},
+    { dir: 'hell', grid: 'grid-hell', items: [
+      ['nightmare', 'Nightmare'], ['hellspinner', 'Hellspinner'], ['torment-ram', 'Torment Ram'], ['skull-crab', 'Skull Crab'],
+    ]},
+    { dir: 'mythsea', grid: 'grid-mythsea', items: [
+      ['cadborosaurus', 'Cadborosaurus'],
+    ]},
+    { dir: 'orochi', grid: 'grid-orochi', items: [
+      ['gold-orochi', 'Gold Orochi'],
+    ]},
+    { dir: 'carnivores', grid: 'grid-carnivores', items: [
+      ['badger', 'Badger'], ['brown-bear', 'Brown Bear'], ['cheetah', 'Cheetah'], ['cougar', 'Cougar'],
+      ['coyote', 'Coyote'], ['fennec-fox', 'Fennec Fox'], ['giant-panda', 'Giant Panda'], ['hyena', 'Hyena'],
+      ['jaguar', 'Jaguar'], ['leopard', 'Leopard'], ['lion', 'Lion'], ['lynx', 'Lynx'],
+      ['meerkat', 'Meerkat'], ['mongoose', 'Mongoose'], ['otter', 'Otter'], ['polar-bear', 'Polar Bear'],
+      ['snow-leopard', 'Snow Leopard'], ['tiger', 'Tiger'], ['wolf', 'Wolf'], ['wolverine', 'Wolverine'],
+    ]},
+    { dir: 'hoofed', grid: 'grid-hoofed', items: [
+      ['bighorn-sheep', 'Bighorn Sheep'], ['bison', 'Bison'], ['boar', 'Boar'], ['camel', 'Camel'],
+      ['elephant', 'Elephant'], ['elk', 'Elk'], ['gazelle', 'Gazelle'], ['giraffe', 'Giraffe'],
+      ['hippo', 'Hippo'], ['horse', 'Horse'], ['ibex', 'Ibex'], ['llama', 'Llama'],
+      ['moose', 'Moose'], ['mountain-goat', 'Mountain Goat'], ['okapi', 'Okapi'], ['oryx', 'Oryx'],
+      ['rhino', 'Rhino'], ['tapir', 'Tapir'], ['yak', 'Yak'], ['zebra', 'Zebra'],
+    ]},
+    { dir: 'critters', grid: 'grid-critters', items: [
+      ['anteater', 'Anteater'], ['armadillo', 'Armadillo'], ['bat', 'Bat'], ['beaver', 'Beaver'],
+      ['capybara', 'Capybara'], ['chipmunk', 'Chipmunk'], ['gorilla', 'Gorilla'], ['hare', 'Hare'],
+      ['hedgehog', 'Hedgehog'], ['kangaroo', 'Kangaroo'], ['koala', 'Koala'], ['lemur', 'Lemur'],
+      ['orangutan', 'Orangutan'], ['platypus', 'Platypus'], ['porcupine', 'Porcupine'], ['rabbit', 'Rabbit'],
+      ['raccoon', 'Raccoon'], ['skunk', 'Skunk'], ['sloth', 'Sloth'], ['squirrel', 'Squirrel'],
+    ]},
+    { dir: 'birds', grid: 'grid-birds', items: [
+      ['bald-eagle', 'Bald Eagle'], ['cardinal', 'Cardinal'], ['crane', 'Crane'], ['falcon', 'Falcon'],
+      ['flamingo', 'Flamingo'], ['heron', 'Heron'], ['hummingbird', 'Hummingbird'], ['kingfisher', 'Kingfisher'],
+      ['kiwi', 'Kiwi'], ['macaw', 'Macaw'], ['mallard', 'Mallard'], ['ostrich', 'Ostrich'],
+      ['peacock', 'Peacock'], ['pelican', 'Pelican'], ['penguin', 'Penguin'], ['puffin', 'Puffin'],
+      ['rooster', 'Rooster'], ['swan', 'Swan'], ['toucan', 'Toucan'], ['vulture', 'Vulture'],
+    ]},
+    { dir: 'scaly', grid: 'grid-scaly', items: [
+      ['axolotl', 'Axolotl'], ['chameleon', 'Chameleon'], ['clownfish', 'Clownfish'], ['cobra', 'Cobra'],
+      ['crocodile', 'Crocodile'], ['dolphin', 'Dolphin'], ['frog', 'Frog'], ['gecko', 'Gecko'],
+      ['great-white', 'Great White'], ['komodo-dragon', 'Komodo Dragon'], ['manta-ray', 'Manta Ray'], ['mantis', 'Mantis'],
+      ['monarch', 'Monarch'], ['octopus', 'Octopus'], ['orca', 'Orca'], ['python', 'Python'],
+      ['scorpion', 'Scorpion'], ['sea-turtle', 'Sea Turtle'], ['seahorse', 'Seahorse'], ['tortoise', 'Tortoise'],
+    ]},
+    { dir: 'bone', grid: 'grid-bone', items: [
+      ['bone-croc', 'Bone Croc'], ['bone-dragon', 'Bone Dragon'], ['bone-mammoth', 'Bone Mammoth'], ['bone-whale', 'Bone Whale'],
+      ['bone-wolf', 'Bone Wolf'], ['crypt-bat', 'Crypt Bat'], ['femur-spider', 'Femur Spider'], ['ghoul-boar', 'Ghoul Boar'],
+      ['grave-beetle', 'Grave Beetle'], ['grave-hound', 'Grave Hound'], ['horned-skull-bull', 'Horned Skull Bull'], ['lich-cat', 'Lich Cat'],
+      ['marrow-fox', 'Marrow Fox'], ['ossuary-serpent', 'Ossuary Serpent'], ['revenant-owl', 'Revenant Owl'], ['rib-stag', 'Rib Stag'],
+      ['skeletal-charger', 'Skeletal Charger'], ['skull-raven', 'Skull Raven'], ['skull-tortoise', 'Skull Tortoise'], ['vertebra-wyrm', 'Vertebra Wyrm'],
+    ]},
+    { dir: 'heaven', grid: 'grid-heaven', items: [
+      ['angel-hound', 'Angel Hound'], ['aurora-peacock', 'Aurora Peacock'], ['aurora-wolf', 'Aurora Wolf'], ['celestial-serpent', 'Celestial Serpent'],
+      ['cherub-bear', 'Cherub Bear'], ['choir-swan', 'Choir Swan'], ['cloud-whale', 'Cloud Whale'], ['comet-horse', 'Comet Horse'],
+      ['gilded-tiger', 'Gilded Tiger'], ['golden-ram', 'Golden Ram'], ['halo-stag', 'Halo Stag'], ['light-spider', 'Light Spider'],
+      ['moon-hare', 'Moon Hare'], ['nimbus-elephant', 'Nimbus Elephant'], ['pearl-dove', 'Pearl Dove'], ['radiant-koi', 'Radiant Koi'],
+      ['seraph-lion', 'Seraph Lion'], ['solar-lizard', 'Solar Lizard'], ['star-fox', 'Star Fox'], ['sun-eagle', 'Sun Eagle'],
+    ]},
+    { dir: 'infernal', grid: 'grid-infernal', items: [
+      ['abyss-angler', 'Abyss Angler'], ['ash-vulture', 'Ash Vulture'], ['blood-boar', 'Blood Boar'], ['brimstone-rhino', 'Brimstone Rhino'],
+      ['cinder-hyena', 'Cinder Hyena'], ['cinder-wolf', 'Cinder Wolf'], ['cursed-cat', 'Cursed Cat'], ['ember-gorilla', 'Ember Gorilla'],
+      ['hell-moth', 'Hell Moth'], ['inferno-bull', 'Inferno Bull'], ['magma-tortoise', 'Magma Tortoise'], ['nightmare-heron', 'Nightmare Heron'],
+      ['obsidian-gazelle', 'Obsidian Gazelle'], ['pit-crab', 'Pit Crab'], ['pit-yak', 'Pit Yak'], ['plague-porcupine', 'Plague Porcupine'],
+      ['shadow-panther', 'Shadow Panther'], ['thorn-elk', 'Thorn Elk'], ['tormentor-scorpion', 'Tormentor Scorpion'], ['void-spider', 'Void Spider'],
+    ]},
+    { dir: 'scifi', grid: 'grid-scifi', items: [
+      ['bio-drone', 'Bio Drone'], ['cyber-wolf', 'Cyber Wolf'], ['cyborg-raven', 'Cyborg Raven'], ['drone-falcon', 'Drone Falcon'],
+      ['dune-chameleon', 'Dune Chameleon'], ['glitch-fox', 'Glitch Fox'], ['gravity-manta', 'Gravity Manta'], ['hive-stalker', 'Hive Stalker'],
+      ['kaiju-lizard', 'Kaiju Lizard'], ['mecha-beetle', 'Mecha Beetle'], ['neon-jellyfish', 'Neon Jellyfish'], ['plasma-moth', 'Plasma Moth'],
+      ['quantum-squid', 'Quantum Squid'], ['rift-hound', 'Rift Hound'], ['robot-hound', 'Robot Hound'], ['sandworm', 'Sandworm'],
+      ['solar-mantis', 'Solar Mantis'], ['space-whale', 'Space Whale'], ['star-turtle', 'Star Turtle'], ['void-cat', 'Void Cat'],
+    ]},
+    { dir: 'story', grid: 'grid-story', items: [
+      ['clockwork-owl', 'Clockwork Owl'], ['coral-stag', 'Coral Stag'], ['crystal-armadillo', 'Crystal Armadillo'], ['dream-tapir', 'Dream Tapir'],
+      ['feather-snake', 'Feather Snake'], ['frost-wyvern', 'Frost Wyvern'], ['glacier-elephant', 'Glacier Elephant'], ['glass-scorpion', 'Glass Scorpion'],
+      ['golem-bear', 'Golem Bear'], ['honey-badger', 'Honey Badger'], ['moss-toad', 'Moss Toad'], ['mushroom-stag', 'Mushroom Stag'],
+      ['patchwork-cat', 'Patchwork Cat'], ['petal-gazelle', 'Petal Gazelle'], ['plant-sloth', 'Plant Sloth'], ['spore-bat', 'Spore Bat'],
+      ['storm-hawk', 'Storm Hawk'], ['storm-yak', 'Storm Yak'], ['tide-lion', 'Tide Lion'], ['wind-hare', 'Wind Hare'],
+    ]},
+    { dir: 'turtles', grid: 'grid-turtles', items: [
+      ['aurora-turtle', 'Aurora Turtle'], ['coral-turtle', 'Coral Turtle'], ['crystal-turtle', 'Crystal Turtle'], ['frost-turtle', 'Frost Turtle'],
+      ['green-sea-turtle', 'Green Sea Turtle'], ['hatchling', 'Hatchling'], ['hawksbill', 'Hawksbill'], ['leatherback', 'Leatherback'],
+      ['loggerhead', 'Loggerhead'], ['moss-elder-turtle', 'Moss Elder Turtle'],
+    ]},
+  ];
+  const VARS = ['--c1', '--c2', '--c3', '--c4', '--c5'];
+  const STORAGE_KEY = 'animal-colors';
+
+  const stage = document.getElementById('stage');
+  const title = document.getElementById('title');
+  const inputs = [...document.querySelectorAll('input[type="color"][data-var]')];
+
+  const markup = {};    // key -> svg source text
+  const labels = {};    // key -> display name
+  const defaults = {};  // key -> {--c1: '#..', ...}
+  let colors = {};      // key -> current colors
+  let current = 'animals/fox';
+
+  try { colors = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { colors = {}; }
+
+  function readDefaults(svgText) {
+    const out = {};
+    for (const v of VARS) {
+      const m = svgText.match(new RegExp('var\\(' + v + ',\\s*(#[0-9A-Fa-f]{6})\\)'));
+      out[v] = m ? m[1].toUpperCase() : '#888888';
+    }
+    return out;
+  }
+
+  function applyVars(el, c) {
+    for (const v of VARS) el.style.setProperty(v, c[v]);
+  }
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(colors)); } catch {}
+  }
+
+  function updatePanel() {
+    const c = colors[current];
+    title.textContent = labels[current];
+    for (const v of VARS) {
+      const input = inputs.find(i => i.dataset.var === v);
+      input.value = c[v].toLowerCase();
+      document.querySelector(`code[data-hex="${v}"]`).textContent = c[v].toUpperCase();
+    }
+    applyVars(stage, c);
+    document.querySelectorAll(`.thumb[data-animal="${current}"]`).forEach(t => applyVars(t, c));
+  }
+
+  function select(key) {
+    current = key;
+    stage.innerHTML = markup[key];
+    document.querySelectorAll('.thumb').forEach(t => t.classList.toggle('active', t.dataset.animal === key));
+    updatePanel();
+  }
+
+  const peek = document.getElementById('peek');
+
+  const FAVORITES = [
+    'flyers/pegasus', 'flyers/aether-jelly', 'flyers/glass-dragonfly', 'flyers/simurgh', 'flyers/sky-squid',
+    'flyers/crest-wyrm', 'creatures/fire-salamander', 'creatures/crystal-spider', 'creatures/sea-serpent',
+    'creatures/kitsune', 'creatures/phoenix', 'creatures/dragon', 'creatures/lancer-hornet', 'creatures/gem-scarab',
+    'animals/owl', 'animals/raven', 'animals/redpanda', 'animals/fox', 'animals/deer',
+    'deepsea/crystal-crab', 'deepsea/ember-octopus', 'deepsea/leaf-dragon',
+    'felines/moon-cat', 'felines/moss-ocelot', 'bugs/lantern-firefly', 'beasts/frost-mammoth', 'beasts/blossom-stag', 'beasts/bone-howler', 'beasts/lantern-giraffe', 'dinos/aurora-pterosaur', 'dinos/gem-parasaurolophus', 'dinos/thunder-diplodocus', 'yokai/baku', 'yokai/kirin', 'yokai/shachihoko', 'orochi/gold-orochi', 'europe/kraken', 'europe/fenrir', 'europe/jormungandr', 'europe/black-shuck', 'europe/nessie', 'hell/skull-crab', 'hell/nightmare', 'hell/torment-ram', 'hell/hellspinner', 'mythsea/cadborosaurus', 'carnivores/snow-leopard', 'hoofed/camel', 'hoofed/mountain-goat', 'bone/crypt-bat', 'story/wind-hare', 'turtles/crystal-turtle',
+  ];
+
+  function makeThumb(key) {
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb';
+    thumb.dataset.animal = key;
+    thumb.innerHTML = markup[key] + `<span>${labels[key]}</span>`;
+    applyVars(thumb, colors[key]);
+    thumb.addEventListener('click', () => select(key));
+    thumb.addEventListener('mouseenter', e => showPeek(key, e));
+    thumb.addEventListener('mousemove', movePeek);
+    thumb.addEventListener('mouseleave', () => { peek.style.display = 'none'; });
+    return thumb;
+  }
+
+  function showPeek(key, e) {
+    peek.innerHTML = markup[key] + `<b>${labels[key]}</b>`;
+    applyVars(peek, colors[key]);
+    peek.style.display = 'block';
+    movePeek(e);
+  }
+
+  function movePeek(e) {
+    const w = peek.offsetWidth, h = peek.offsetHeight, gap = 24;
+    let x = e.clientX + gap;
+    if (x + w > innerWidth - 8) x = e.clientX - gap - w;
+    x = Math.max(8, x);
+    const y = Math.min(Math.max(8, e.clientY - h / 2), innerHeight - h - 8);
+    peek.style.left = x + 'px';
+    peek.style.top = y + 'px';
+  }
+
+  async function init() {
+    for (const set of SETS) {
+      const grid = document.getElementById(set.grid);
+      for (const [name, label] of set.items) {
+        const key = `${set.dir}/${name}`;
+        const text = await (await fetch(`${key}.svg`)).text();
+        markup[key] = text.replace(/<\?xml[^>]*>\s*/, '');
+        labels[key] = label;
+        defaults[key] = readDefaults(text);
+        colors[key] = { ...defaults[key], ...(colors[key] || {}) };
+
+        grid.appendChild(makeThumb(key));
+      }
+    }
+    const favGrid = document.getElementById('grid-favorites');
+    FAVORITES.forEach(key => favGrid.appendChild(makeThumb(key)));
+    select(current);
+  }
+
+  inputs.forEach(input => {
+    input.addEventListener('input', () => {
+      colors[current][input.dataset.var] = input.value.toUpperCase();
+      updatePanel();
+      save();
+    });
+  });
+
+  document.getElementById('reset').addEventListener('click', () => {
+    colors[current] = { ...defaults[current] };
+    updatePanel();
+    save();
+  });
+
+  // Bakes the current colors into a standalone SVG file.
+  document.getElementById('download').addEventListener('click', () => {
+    let out = '<?xml version="1.0" encoding="UTF-8"?>\n' + markup[current];
+    for (const v of VARS) {
+      out = out.replace(new RegExp('var\\(' + v + ',\\s*#[0-9A-Fa-f]{6}\\)', 'g'), colors[current][v]);
+    }
+    const blob = new Blob([out], { type: 'image/svg+xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${current.split('/')[1]}.svg`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  init();
+</script>
+</body>
+</html>

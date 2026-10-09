@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Raven">
+  <style>
+    .c1 { fill: var(--c1, #2F333F); }
+    .c2 { fill: var(--c2, #4D5467); }
+    .c3 { fill: var(--c3, #7F8CA2); }
+    .c4 { fill: var(--c4, #121318); }
+    .c5 { fill: var(--c5, #90B2D2); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-55 -52)">
+  <!-- far leg -->
+  <polygon class="c4" points="225.5,321.7 227,343.8 227,361.8 233,362.2 235,344.2 238.5,322.3"/>
+  <polygon class="c4" points="226.9,360.4 226.8,362.9 231.2,365.1 233.1,363.6"/>
+  <polygon class="c4" points="228.6,367.5 240.7,369 248.9,369 249.1,367 241.3,365 229.4,362.5"/>
+  <polygon class="c4" points="228,367.3 235.4,369.9 240.8,370 241.2,368 236.6,366.1 230,362.7"/>
+  <polygon class="c4" points="228.5,362.6 219.6,365 213.8,367 214.2,369 220.4,369 229.5,367.4"/>
+  <polygon class="c4" points="248,366 253,369 248,369.5"/>
+  <polygon class="c4" points="215,366 210,369 215,369.5"/>
+  <!-- tail: wedge of long feathers -->
+  <polygon class="c4" points="204,312 238,334 170,368 140,378 124,374 132,358"/>
+  <polygon class="c1" points="204,312 132,358 124,374 140,366 214,326"/>
+  <polygon class="c2" points="204,312 132,358 138,356 208,316"/>
+  <polygon class="c4" points="214,326 140,366 150,366 222,330"/>
+  <polygon class="c1" points="170,368 140,378 150,370"/>
+  <!-- body -->
+  <polygon class="c1" points="276,196 256,200 236,210 214,232 200,262 198,292 208,318 236,336 268,326 290,300 302,268 302,236 290,214"/>
+  <polygon class="c2" points="290,214 302,236 302,268 290,300 268,326 262,296 274,246"/>
+  <polygon class="c3" points="290,214 302,236 294,240 284,222"/>
+  <polygon class="c4" points="236,336 268,326 262,296 240,304"/>
+  <!-- belly feathers ruffle over the legs -->
+  <polygon class="c1" points="244,322 250,334 256,324 262,334 266,322 262,312 248,314"/>
+  <!-- near leg -->
+  <polygon class="c4" points="249.5,321.7 251,343.8 251,361.8 257,362.2 259,344.2 262.5,322.3"/>
+  <polygon class="c4" points="250.9,360.4 250.8,362.9 255.2,365.1 257.1,363.6"/>
+  <polygon class="c4" points="252.6,367.5 264.7,369 272.9,369 273.1,367 265.3,365 253.4,362.5"/>
+  <polygon class="c4" points="252,367.3 259.4,369.9 264.8,370 265.2,368 260.6,366.1 254,362.7"/>
+  <polygon class="c4" points="252.5,362.6 243.6,365 237.8,367 238.2,369 244.4,369 253.5,367.4"/>
+  <polygon class="c4" points="272,366 277,369 272,369.5"/>
+  <polygon class="c4" points="239,366 234,369 239,369.5"/>
+  <!-- folded wing -->
+  <polygon class="c2" points="266,204 240,212 218,234 204,266 204,300 214,326 234,344 254,320 270,290 282,246"/>
+  <polygon class="c1" points="230,222 272,232 256,284 212,272"/>
+  <polygon class="c2" points="248,234 272,232 264,258"/>
+  <!-- primaries reach toward the tail -->
+  <polygon class="c4" points="212,272 256,284 244,316 234,344 214,326 204,300"/>
+  <polygon class="c1" points="212,272 232,278 222,306 228,334 214,326 204,300"/>
+  <polygon class="c1" points="232,278 246,282 236,312 240,328 234,344 226,316"/>
+  <polygon class="c4" points="222,306 228,334 230,336 226,312"/>
+  <polygon class="c4" points="244,316 270,290 282,296 262,322 234,344"/>
+  <polygon class="c5" points="266,204 240,212 256,230 274,222"/>
+  <polygon class="c3" points="240,212 218,234 206,262 226,250 256,230"/>
+  <!-- neck: thick, with shaggy throat hackles -->
+  <polygon class="c1" points="256,204 276,172 294,154 320,186 314,206 301,238 290,214 276,198"/>
+  <polygon class="c2" points="276,172 294,154 300,164 288,176 280,200 270,200"/>
+  <polygon class="c1" points="316,186 321,195 314,198 317,207 310,209 312,219 306,222 304,232 301,238 306,214"/>
+  <!-- head raised, cawing -->
+  <polygon class="c1" points="280,168 288,150 304,138 322,136 336,146 342,160 336,174 320,188 298,190"/>
+  <polygon class="c3" points="288,150 304,138 322,136 312,146 296,152"/>
+  <polygon class="c2" points="288,150 296,152 288,170 280,168"/>
+  <polygon class="c4" points="336,174 320,188 330,176"/>
+  <polygon class="c2" points="304,138 322,136 336,146 324,144 310,142"/>
+  <!-- open beak -->
+  <polygon class="c4" points="328,146 350,138 386,126 346,156 334,160"/>
+  <polygon class="c1" points="328,146 350,138 386,126 344,148"/>
+  <polygon class="c4" points="334,166 352,162 382,154 344,176 336,180"/>
+  <polygon class="c3" points="336,156 346,156 372,136 352,148"/>
+  <polygon class="c5" points="338,166 360,158 342,172"/>
+  <!-- eye -->
+  <polygon class="eye" points="299,157 306,152 313,155 312,163 303,165"/>
+  <circle class="pupil" cx="306" cy="159" r="2.7"/>
+  <circle class="eye" cx="305" cy="158" r="0.9"/>
+  </g>
+</svg>

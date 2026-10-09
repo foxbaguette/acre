@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Storm raptor">
+  <style>
+    .c1 { fill: var(--c1, #3A5A8A); }
+    .c2 { fill: var(--c2, #6A90C8); }
+    .c3 { fill: var(--c3, #E0ECF8); }
+    .c4 { fill: var(--c4, #14203A); }
+    .c5 { fill: var(--c5, #FFE45A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(200 200) scale(0.9794) translate(-202.0 -242.0)">
+  <!-- tail feathers -->
+    <polygon class="c1" points="102,242 102,247 8,230 8,212"/>
+  <polygon class="c2" points="102,247 102,252 8,248 8,230"/>
+  <polygon class="c1" points="102,252 102,258 8,266 8,248"/>
+  <polygon class="c2" points="102,258 102,263 8,284 8,266"/>
+  <polygon class="c1" points="102,263 102,268 8,302 8,284"/>
+  <!-- far leg -->
+  <polygon class="c1" points="150,258 190,268 130,300 100,312 94,302 126,288"/>
+  <polygon class="c4" points="94,302 100,312 78,316"/>
+  <!-- body -->
+  <polygon class="c1" points="90,250 130,210 210,190 280,200 310,230 290,262 210,276 120,276"/>
+  <polygon class="c2" points="130,210 210,190 280,200 310,230 240,214 160,226"/>
+  <polygon class="c3" points="290,262 210,276 120,276 170,262 260,250"/>
+  <polygon class="c5" points="180,200 196,200 190,216 204,216 176,250 182,226 170,226"/>
+  <!-- near hind leg with sickle claw -->
+  <polygon class="c1" points="170,258 220,278 232,330 216,336 200,298 160,282"/>
+  <polygon class="c4" points="216,336 232,330 242,340 220,346"/>
+  <polygon class="c5" points="232,300 266,290 240,314"/>
+  <!-- feathered arms -->
+    <polygon class="c2" points="268,214 275,216 346,162 330,150"/>
+  <polygon class="c3" points="275,216 282,218 362,174 346,162"/>
+  <polygon class="c2" points="282,218 289,220 378,186 362,174"/>
+  <polygon class="c3" points="289,220 296,222 394,198 378,186"/>
+  <!-- neck and head with feather crest -->
+  <polygon class="c1" points="290,210 318,188 342,184 336,214 306,236"/>
+  <polygon class="c1" points="326,176 370,170 396,194 384,212 344,214 326,200"/>
+  <polygon class="c2" points="326,176 370,170 396,194 358,188"/>
+  <polygon class="c4" points="346,210 390,204 384,214 350,218"/>
+  <polygon class="c3" points="356,208 361,208 358,216"/>
+  <polygon class="c3" points="370,206 375,206 372,214"/>
+  <polygon class="c5" points="334,176 330,146 348,172"/>
+  <polygon class="c5" points="344,172 352,138 360,170"/>
+  <polygon class="c5" points="354,172 374,144 372,176"/>
+  <polygon class="eye" points="346,182 362,182 362,194 346,194"/>
+  <polygon class="pupil" points="354,182 357,188 354,194 351,188"/>
+  </g>
+</svg>

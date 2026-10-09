@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Leviathan">
+  <style>
+    .c1 { fill: var(--c1, #1E4A6A); }
+    .c2 { fill: var(--c2, #3A7AA0); }
+    .c3 { fill: var(--c3, #E8E0C0); }
+    .c4 { fill: var(--c4, #0A1A2A); }
+    .c5 { fill: var(--c5, #FFC030); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(23.5 -6.5)">
+    <polygon class="c1" points="32,334 89,325 91,387 28,346"/>
+  <polygon class="c2" points="32,334 89,325 90,351 30,339"/>
+  <polygon class="c3" points="28,346 91,387 90,368 29,342"/>
+  <polygon class="c1" points="89,325 155,296 185,376 91,387"/>
+  <polygon class="c2" points="89,325 155,296 163,318 90,342"/>
+  <polygon class="c3" points="91,387 185,376 172,342 90,361"/>
+  <polygon class="c1" points="155,296 221,260 279,332 185,376"/>
+  <polygon class="c2" points="155,296 221,260 245,290 168,330"/>
+  <polygon class="c3" points="185,376 279,332 262,310 176,352"/>
+  <polygon class="c1" points="221,260 249,230 335,242 279,332"/>
+  <polygon class="c2" points="221,260 249,230 273,233 237,280"/>
+  <polygon class="c3" points="279,332 335,242 299,237 255,302"/>
+  <polygon class="c1" points="249,230 236,198 300,154 335,242"/>
+  <polygon class="c2" points="249,230 236,198 263,180 285,235"/>
+  <polygon class="c3" points="335,242 300,154 281,167 309,239"/>
+  <polygon class="c1" points="236,198 204,170 248,114 300,154"/>
+  <polygon class="c2" points="236,198 204,170 216,154 254,186"/>
+  <polygon class="c3" points="300,154 248,114 230,138 273,172"/>
+  <polygon class="c2" points="130,300 100,260 170,290"/>
+  <polygon class="c2" points="210,262 190,214 252,250"/>
+  <polygon class="c5" points="296,250 330,232 304,280"/>
+  <polygon class="c5" points="50,330 18,300 40,352"/>
+  <polygon class="c4" points="200,330 214,320 224,332 212,342"/>
+  <polygon class="c4" points="268,270 280,260 290,272 278,282"/>
+  <polygon class="c1" points="148,74 230,56 272,96 264,142 206,156 150,124"/>
+  <polygon class="c2" points="148,74 230,56 272,96 200,88"/>
+  <polygon class="c4" points="150,112 214,128 206,156 154,128"/>
+  <polygon class="c3" points="160,112 168,112 164,124"/>
+  <polygon class="c3" points="180,118 188,118 184,130"/>
+  <polygon class="c3" points="198,124 206,124 202,136"/>
+  <polygon class="c5" points="240,58 250,26 262,60"/>
+  <polygon class="c5" points="214,60 218,30 232,58"/>
+  <polygon class="eye" points="196,82 216,80 218,96 198,98"/>
+  <circle class="pupil" cx="207" cy="89" r="4"/>
+  </g>
+</svg>

@@ -1,0 +1,37 @@
+<palette name="Crystal crab" c1="#3E7FA6" c2="#7DC0DE" c3="#E4F6FC" c4="#153247" c5="#F2A6D8"/>
+  <!-- legs -->
+  <polygon class="c4" points="150,232 110,252 80,292 88,298 120,264 158,244"/>
+  <polygon class="c4" points="146,222 98,226 60,252 66,258 102,238 148,232"/>
+  <polygon class="c4" points="156,242 124,278 108,322 116,324 134,286 164,252"/>
+  <polygon class="c4" points="250,232 290,252 320,292 312,298 280,264 242,244"/>
+  <polygon class="c4" points="254,222 302,226 340,252 334,258 298,238 252,232"/>
+  <polygon class="c4" points="244,242 276,278 292,322 284,324 266,286 236,252"/>
+  <!-- claws -->
+  <polygon class="c1" points="146,198 118,174 96,184 126,216"/>
+  <polygon class="c1" points="96,184 80,156 106,136 122,168"/>
+  <polygon class="c1" points="80,156 52,118 62,76 102,98 110,144"/>
+  <polygon class="c2" points="62,76 52,34 90,66 102,98"/>
+  <polygon class="c3" points="52,118 28,92 42,68 62,76"/>
+  <polygon class="c5" points="66,100 76,112 66,124 56,112"/>
+  <polygon class="c1" points="254,198 282,174 304,184 274,216"/>
+  <polygon class="c1" points="304,184 320,156 294,136 278,168"/>
+  <polygon class="c1" points="320,156 348,118 338,76 298,98 290,144"/>
+  <polygon class="c2" points="338,76 348,34 310,66 298,98"/>
+  <polygon class="c3" points="348,118 372,92 358,68 338,76"/>
+  <polygon class="c5" points="334,100 324,112 334,124 344,112"/>
+  <!-- eye stalks -->
+  <polygon class="c4" points="176,150 184,150 182,124 176,124"/>
+  <polygon class="c4" points="224,150 216,150 218,124 224,124"/>
+  <!-- carapace -->
+  <polygon class="c1" points="130,194 160,150 240,150 270,194 250,244 150,244"/>
+  <polygon class="c2" points="160,150 240,150 270,194 200,178 130,194"/>
+  <polygon class="c3" points="150,244 250,244 238,230 162,230"/>
+  <polygon class="c5" points="200,164 216,190 200,218 184,190"/>
+  <polygon class="c5" points="150,170 140,148 162,164"/>
+  <polygon class="c5" points="250,170 260,148 238,164"/>
+  <!-- eyes -->
+  <polygon class="eye" points="166,112 184,110 186,126 168,128"/>
+  <circle class="pupil" cx="176" cy="119" r="3"/>
+  <polygon class="eye" points="234,112 216,110 214,126 232,128"/>
+  <circle class="pupil" cx="224" cy="119" r="3"/>
+</svg>

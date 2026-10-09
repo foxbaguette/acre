@@ -1,0 +1,19 @@
+<palette name="Flamingo" c1="#F07890" c2="#F8A0B0" c3="#FFE0E4" c4="#2A1018" c5="#F8C8D0"/>
+  <polygon class="c5" points="196,396 210,396 212,324 206,324"/>
+  <polygon class="c5" points="236,390 250,360 244,358 232,382"/>
+  <polygon class="c5" points="200,396 168,398 172,392 206,390"/>
+  <polygon class="c1" points="70,266 100,232 164,214 232,222 270,256 256,300 196,326 120,320"/>
+  <polygon class="c2" points="100,232 164,214 232,222 270,256 190,252 124,262"/>
+  <polygon class="c3" points="256,300 196,326 120,320 150,296 220,290"/>
+  <polygon class="c4" points="92,270 130,264 150,290 100,296"/>
+  <polygon class="c1" points="110,250 60,270 40,300 84,300"/>
+  <polygon class="c2" points="104,258 76,272 66,292 100,292"/>
+  <polygon class="c1" points="256,250 276,222 296,180 306,130 318,86 340,66 352,86 336,128 322,180 304,230 282,262"/>
+  <polygon class="c2" points="276,222 296,180 306,130 318,86 340,66 326,110 316,160 298,210"/>
+  <polygon class="c1" points="330,60 360,56 384,70 380,90 352,92 334,82"/>
+  <polygon class="c2" points="330,60 360,56 384,70 350,66"/>
+  <polygon class="c4" points="372,66 392,84 384,106 366,88 366,76"/>
+  <polygon class="c3" points="372,64 384,70 392,84 378,80"/>
+  <polygon class="eye" points="346,66 362,66 362,78 348,80"/>
+  <circle class="pupil" cx="354" cy="72" r="3"/>
+</svg>

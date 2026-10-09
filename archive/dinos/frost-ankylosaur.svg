@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Frost ankylosaur">
+  <style>
+    .c1 { fill: var(--c1, #7A90A8); }
+    .c2 { fill: var(--c2, #A8C0D8); }
+    .c3 { fill: var(--c3, #E8F4FF); }
+    .c4 { fill: var(--c4, #2A3A52); }
+    .c5 { fill: var(--c5, #7AE8FF); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(4 -39)">
+  <!-- tail with ice mace -->
+  <polygon class="c1" points="300,254 340,268 370,286 364,298 334,284 296,270"/>
+  <polygon class="c5" points="380,266 348,246 332,280 362,302 386,290"/>
+  <polygon class="c3" points="380,266 348,246 360,270"/>
+  <polygon class="c3" points="348,246 352,224 338,250"/>
+  <polygon class="c3" points="332,280 308,282 330,292"/>
+  <!-- far legs -->
+  <polygon class="c1" points="250,284 204,284 204,336 250,338"/>
+  <polygon class="c1" points="138,282 94,282 94,334 138,336"/>
+  <!-- icicle spikes -->
+  <polygon class="c5" points="270,204 288,168 254,194"/>
+  <polygon class="c5" points="230,184 240,146 206,178"/>
+  <polygon class="c5" points="176,176 168,136 150,176"/>
+  <polygon class="c5" points="120,186 96,152 96,194"/>
+  <polygon class="c5" points="74,224 44,204 62,236"/>
+  <!-- body armour -->
+  <polygon class="c1" points="300,240 270,190 200,170 120,180 70,220 60,266 100,292 270,292"/>
+  <polygon class="c2" points="270,190 200,170 120,180 70,220 150,196 230,204"/>
+  <polygon class="c3" points="250,198 230,186 210,198 220,216 240,216"/>
+  <polygon class="c3" points="198,190 176,180 156,192 164,212 188,212"/>
+  <polygon class="c3" points="146,198 126,190 106,204 116,220 138,220"/>
+  <polygon class="c2" points="240,226 218,218 200,232 212,250 234,248"/>
+  <polygon class="c2" points="186,232 164,224 146,238 156,256 180,254"/>
+  <polygon class="c3" points="100,292 270,292 300,240 250,274 120,272"/>
+  <!-- near legs -->
+  <polygon class="c1" points="130,282 84,282 82,336 130,338"/>
+  <polygon class="c1" points="268,284 216,284 216,336 266,338"/>
+  <polygon class="c3" points="130,330 80,330 78,342 132,342"/>
+  <polygon class="c3" points="268,330 214,330 212,342 270,342"/>
+  <!-- armoured head -->
+  <polygon class="c1" points="70,232 34,228 6,254 20,276 60,278 76,256"/>
+  <polygon class="c2" points="70,232 34,228 6,254 46,240"/>
+  <polygon class="c5" points="54,230 58,206 42,228"/>
+  <polygon class="c5" points="34,230 22,206 20,236"/>
+  <polygon class="c3" points="60,236 48,232 42,244 54,248"/>
+  <polygon class="eye" points="48,246 32,246 32,258 48,258"/>
+  <circle class="pupil" cx="40" cy="252" r="3"/>
+  <polygon class="c4" points="14,256 6,260 12,268"/>
+  </g>
+</svg>

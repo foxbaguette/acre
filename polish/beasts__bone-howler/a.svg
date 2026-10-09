@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bone howler">
+  <style>
+    .c1 { fill: var(--c1, #D8D0C0); }
+    .c2 { fill: var(--c2, #EEE8DC); }
+    .c3 { fill: var(--c3, #A89C88); }
+    .c4 { fill: var(--c4, #1E1A18); }
+    .c5 { fill: var(--c5, #6AF0C8); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-24 7)">
+  <!-- spirit flames along the spine -->
+  <polygon class="c5" points="262,178 252,156 250,138 262,152 272,170"/>
+  <polygon class="c5" points="240,198 228,176 224,158 238,172 250,190"/>
+  <polygon class="c5" points="282,172 284,152 290,134 294,156 296,174"/>
+  <!-- tail bones with flame -->
+  <polygon class="c5" points="80,320 64,316 52,308 62,326 72,338"/>
+  <polygon class="c1" points="134,314 98,326 82,314 74,320 90,338 130,324"/>
+  <polygon class="c2" points="134,314 98,326 82,314 80,318 98,330 132,318"/>
+  <!-- haunch and hind leg -->
+  <polygon class="c1" points="130,252 172,204 232,214 252,284 232,342 140,342 122,302"/>
+  <polygon class="c2" points="130,252 172,204 200,209 164,236 140,268 124,296"/>
+  <polygon class="c2" points="164,236 200,209 214,226 180,252"/>
+  <polygon class="c3" points="214,226 232,214 252,284 236,270"/>
+  <polygon class="c3" points="236,270 252,284 232,342 212,330"/>
+  <polygon class="c3" points="122,302 140,342 150,342 134,312"/>
+  <!-- hind paw -->
+  <polygon class="c3" points="140,330 232,330 232,342 140,342"/>
+  <polygon class="c2" points="140,330 232,330 228,334 142,334"/>
+  <polygon class="c1" points="148,334 160,334 160,342 148,342"/>
+  <!-- torso with ribs -->
+  <polygon class="c1" points="230,214 270,172 304,192 294,254 252,284"/>
+  <polygon class="c2" points="230,214 270,172 280,178 244,214 238,228"/>
+  <polygon class="c3" points="304,192 294,254 286,256 292,232 296,196"/>
+  <polygon class="c3" points="252,284 294,254 290,262 260,284"/>
+  <polygon class="c4" points="250,206 266,200 282,198 284,208 268,210 254,216"/>
+  <polygon class="c4" points="252,228 270,222 288,220 288,230 270,232 256,238"/>
+  <polygon class="c4" points="254,250 272,244 290,242 288,252 272,254 258,260"/>
+  <polygon class="c2" points="254,216 268,210 284,208 284,212 268,214 256,219"/>
+  <polygon class="c2" points="256,238 270,232 288,230 288,234 270,236 258,241"/>
+  <polygon class="c2" points="258,260 272,254 288,252 287,256 272,258 260,263"/>
+  <!-- front leg -->
+  <polygon class="c1" points="260,262 280,262 284,340 264,340"/>
+  <polygon class="c2" points="260,262 267,262 270,340 264,340"/>
+  <polygon class="c3" points="276,262 280,262 284,340 279,340"/>
+  <polygon class="c3" points="258,294 282,294 283,302 258,302"/>
+  <polygon class="c2" points="258,294 282,294 282,296 258,296"/>
+  <polygon class="c3" points="256,334 288,334 290,346 254,346"/>
+  <polygon class="c2" points="256,334 288,334 289,337 255,337"/>
+  <!-- neck vertebrae -->
+  <polygon class="c1" points="268,186 290,147 310,157 292,198"/>
+  <polygon class="c2" points="268,186 290,147 298,151 278,191"/>
+  <polygon class="c3" points="292,198 310,157 304,154 285,194"/>
+  <polygon class="c3" points="288,150 312,160 311,164 287,154"/>
+  <polygon class="c1" points="290,147 314,104 332,112 310,157"/>
+  <polygon class="c2" points="290,147 314,104 319,106 296,150"/>
+  <polygon class="c3" points="310,157 332,112 325,109 302,153"/>
+  <polygon class="c3" points="312,106 334,114 333,118 311,110"/>
+  <!-- howling skull -->
+  <polygon class="c1" points="316,86 340,60 380,40 396,52 380,78 350,100 330,108"/>
+  <polygon class="c2" points="316,86 340,60 380,40 360,70 336,78"/>
+  <polygon class="c2" points="380,40 396,52 386,56"/>
+  <polygon class="c3" points="386,56 396,52 380,78 372,74"/>
+  <polygon class="c3" points="330,108 350,100 380,78 372,74 346,92"/>
+  <polygon class="c1" points="322,86 316,60 338,76"/>
+  <polygon class="c2" points="322,86 316,60 326,72"/>
+  <!-- open jaw -->
+  <polygon class="c4" points="342,100 368,86 382,80 386,88 352,104"/>
+  <polygon class="c1" points="340,102 382,86 392,102 354,118"/>
+  <polygon class="c2" points="340,102 382,86 386,92 346,106"/>
+  <polygon class="c3" points="354,118 392,102 388,98 356,112"/>
+  <polygon class="c2" points="352,94 360,96 357,104"/>
+  <polygon class="c2" points="366,88 374,90 370,98"/>
+  <!-- eye socket -->
+  <polygon class="c4" points="328,78 346,72 348,88 332,92"/>
+  <polygon class="eye" points="333,79 342,76 343,85 335,87"/>
+  <circle class="pupil" cx="338" cy="82" r="1.8"/>
+  <polygon class="c5" points="318,98 306,84 324,92"/>
+  </g>
+</svg>

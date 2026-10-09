@@ -1,0 +1,22 @@
+<palette name="Polar bear" c1="#ECECF0" c2="#FFFFFF" c3="#C8D4E0" c4="#2A2E3A" c5="#A8B8CC"/>
+  <polygon class="c1" points="88,276 66,284 70,306 96,302"/>
+  <polygon class="c1" points="226,286 280,290 288,340 296,366 246,368 238,324"/>
+  <polygon class="c1" points="120,288 172,292 170,340 176,366 124,368 120,326"/>
+  <polygon class="c1" points="86,284 100,230 160,196 240,196 290,222 310,274 290,318 126,318 94,304"/>
+  <polygon class="c2" points="100,230 160,196 240,196 290,222 310,274 240,226 150,244"/>
+  <polygon class="c3" points="290,318 126,318 94,304 160,306 276,300"/>
+  <polygon class="c1" points="254,288 306,292 322,340 332,368 276,370 266,326"/>
+  <polygon class="c1" points="94,286 148,296 136,340 144,368 96,370 96,330"/>
+  <polygon class="c4" points="276,362 336,362 338,374 274,374"/>
+  <polygon class="c4" points="94,362 148,362 150,374 92,374"/>
+  <polygon class="c1" points="282,262 300,230 334,214 376,230 396,266 386,290 340,300 300,296"/>
+  <polygon class="c2" points="300,230 334,214 376,230 340,238"/>
+  <polygon class="c3" points="396,266 386,290 340,300 366,270"/>
+  <polygon class="c4" points="388,258 398,266 388,276"/>
+  <polygon class="c1" points="304,230 296,204 326,220"/>
+  <polygon class="c1" points="352,218 366,196 376,230"/>
+  <polygon class="c5" points="306,224 300,210 320,220"/>
+  <polygon class="c4" points="350,290 372,286 370,298 354,300"/>
+  <polygon class="eye" points="330,242 348,240 348,254 332,256"/>
+  <circle class="pupil" cx="339" cy="248" r="3"/>
+</svg>

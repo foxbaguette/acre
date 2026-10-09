@@ -1,0 +1,32 @@
+<palette name="Reef golem" c1="#7A7E9C" c2="#A8AEC8" c3="#E0E4F4" c4="#2E3050" c5="#F06A8A"/>
+  <!-- legs and feet -->
+  <polygon class="c1" points="164,296 196,296 192,360 156,360"/>
+  <polygon class="c1" points="204,296 236,296 244,360 208,360"/>
+  <polygon class="c4" points="148,360 194,360 198,378 140,378"/>
+  <polygon class="c4" points="206,360 252,360 260,378 202,378"/>
+  <!-- arms -->
+  <polygon class="c1" points="150,152 110,180 96,240 124,244 134,196"/>
+  <polygon class="c2" points="96,240 124,244 130,284 100,290 84,264"/>
+  <polygon class="c1" points="250,152 290,180 304,240 276,244 266,196"/>
+  <polygon class="c2" points="304,240 276,244 270,284 300,290 316,264"/>
+  <!-- torso -->
+  <polygon class="c1" points="150,150 250,150 270,230 240,300 160,300 130,230"/>
+  <polygon class="c2" points="150,150 250,150 240,190 200,202 160,190"/>
+  <polygon class="c3" points="172,212 228,212 220,272 180,272"/>
+  <polygon class="c4" points="150,226 164,222 166,238 152,242"/>
+  <polygon class="c3" points="182,166 192,162 198,170 188,178"/>
+  <polygon class="c3" points="212,168 222,164 228,172 218,180"/>
+  <!-- coral growth -->
+  <polygon class="c5" points="158,152 140,110 172,142"/>
+  <polygon class="c5" points="242,152 262,112 230,142"/>
+  <polygon class="c5" points="190,92 184,50 200,88"/>
+  <polygon class="c5" points="200,90 208,42 214,90"/>
+  <polygon class="c5" points="214,92 230,58 224,98"/>
+  <!-- head -->
+  <polygon class="c1" points="170,92 230,92 242,130 220,152 180,152 158,130"/>
+  <polygon class="c2" points="170,92 230,92 214,112 186,112"/>
+  <polygon class="eye" points="170,118 190,114 192,128 172,132"/>
+  <circle class="pupil" cx="181" cy="123" r="3.4"/>
+  <polygon class="eye" points="230,118 210,114 208,128 228,132"/>
+  <circle class="pupil" cx="219" cy="123" r="3.4"/>
+</svg>

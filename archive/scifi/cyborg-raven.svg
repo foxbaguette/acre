@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cyborg raven">
+  <style>
+    .c1 { fill: var(--c1, #38404C); }
+    .c2 { fill: var(--c2, #5A6A7C); }
+    .c3 { fill: var(--c3, #B8C8D8); }
+    .c4 { fill: var(--c4, #0A0E14); }
+    .c5 { fill: var(--c5, #40FFB0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-31 -58)">
+  <polygon class="c4" points="150,260 100,320 70,372 120,380 160,330 190,300"/>
+  <polygon class="c1" points="150,260 110,312 90,350 130,340 166,296"/>
+  <polygon class="c1" points="140,250 160,196 220,180 270,214 280,276 250,330 190,350 150,310"/>
+  <polygon class="c2" points="160,196 220,180 270,214 280,276 220,224 186,236"/>
+  <polygon class="c5" points="200,250 240,246 236,290 206,292"/>
+  <polygon class="c3" points="206,262 214,258 214,296 206,298"/>
+  <polygon class="c3" points="222,258 230,258 230,294 222,296"/>
+  <polygon class="c3" points="196,345 206,345 204,384 194,384"/>
+  <polygon class="c3" points="232,340 242,340 248,384 238,384"/>
+  <polygon class="c4" points="190,382 208,382 212,392 186,392"/>
+  <polygon class="c4" points="236,382 254,382 258,392 232,392"/>
+  <polygon class="c1" points="242,206 250,160 280,124 320,124 340,156 330,196 296,232"/>
+  <polygon class="c2" points="250,160 280,124 320,124 300,150"/>
+  <polygon class="c3" points="262,128 322,128 338,164 322,204 296,214 268,196 254,160"/>
+  <polygon class="c4" points="270,148 292,148 294,172 274,176"/>
+  <polygon class="c4" points="300,152 320,152 320,172 302,174"/>
+  <polygon class="c3" points="336,164 392,176 380,196 336,190"/>
+  <polygon class="c4" points="340,172 390,180 340,184"/>
+  <polygon class="c4" points="296,184 306,184 301,198"/>
+  <polygon class="c3" points="276,200 292,200 290,214 278,214"/>
+  <polygon class="c3" points="300,200 316,200 314,214 302,214"/>
+  <polygon class="eye" points="274,152 288,152 288,166 276,168"/>
+  <circle class="pupil" cx="281" cy="159" r="3"/>
+  <polygon class="eye" points="304,154 318,154 318,168 306,170"/>
+  <circle class="pupil" cx="311" cy="161" r="3"/>
+  <polygon class="c5" points="262,170 330,170 330,176 262,176"/>
+  </g>
+</svg>

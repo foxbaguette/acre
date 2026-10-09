@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dawn lion">
+  <style>
+    .c1 { fill: var(--c1, #E8B040); }
+    .c2 { fill: var(--c2, #F8D880); }
+    .c3 { fill: var(--c3, #FFF0C8); }
+    .c4 { fill: var(--c4, #B8501E); }
+    .c5 { fill: var(--c5, #FFF2A0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-44 -15)">
+  <!-- tail -->
+    <polygon class="c1" points="157,339 114,344 118,332 155,325"/>
+  <polygon class="c2" points="157,339 114,344 116,339 156,333"/>
+  <polygon class="c3" points="155,325 118,332 117,336 156,329"/>
+  <polygon class="c1" points="114,344 80,314 88,310 118,332"/>
+  <polygon class="c2" points="114,344 80,314 82,313 115,341"/>
+  <polygon class="c3" points="118,332 88,310 85,312 116,337"/>
+  <polygon class="c1" points="80,314 84,278 88,278 88,310"/>
+  <polygon class="c2" points="80,314 84,278 86,278 83,312"/>
+  <polygon class="c3" points="88,310 88,278 87,278 85,311"/>
+  <polygon class="c4" points="86,278 74,256 96,260"/>
+  <!-- sun rays mane -->
+    <polygon class="c4" points="262,120 270,130 218,48"/>
+  <polygon class="c5" points="270,130 277,141 243,63"/>
+  <polygon class="c4" points="277,141 285,151 267,78"/>
+  <polygon class="c5" points="285,151 292,162 292,93"/>
+  <polygon class="c4" points="292,162 300,172 316,108"/>
+  <polygon class="c5" points="300,172 307,183 340,123"/>
+  <polygon class="c4" points="307,183 315,193 365,138"/>
+  <polygon class="c5" points="315,193 322,204 389,153"/>
+  <polygon class="c4" points="322,204 330,214 414,168"/>
+  <polygon class="c4" points="258,168 266,104 316,66 366,90 380,146 354,200 302,214 272,200"/>
+  <!-- far arm raised -->
+  <polygon class="c1" points="262,204 296,172 318,130 334,138 314,186 284,224"/>
+  <polygon class="c3" points="318,130 334,138 340,120 326,114"/>
+  <!-- hind legs -->
+  <polygon class="c1" points="150,300 196,310 202,372 156,372"/>
+  <polygon class="c1" points="180,290 226,300 232,372 186,372"/>
+  <polygon class="c3" points="150,366 204,366 208,382 146,382"/>
+  <polygon class="c3" points="184,366 238,366 242,382 180,382"/>
+  <!-- body rearing -->
+  <polygon class="c1" points="140,330 168,250 210,190 270,150 312,172 302,232 250,284 200,340"/>
+  <polygon class="c2" points="168,250 210,190 270,150 312,172 262,176 214,214 180,262"/>
+  <polygon class="c3" points="302,232 250,284 200,340 220,300 270,246"/>
+  <!-- near arm raised -->
+  <polygon class="c1" points="292,196 330,164 360,122 378,134 350,180 310,218"/>
+  <polygon class="c2" points="292,196 330,164 338,174 300,206"/>
+  <polygon class="c3" points="360,122 378,134 386,114 370,106"/>
+  <polygon class="c1" points="288,108 282,88 304,98"/>
+  <polygon class="c1" points="308,98 316,80 330,96"/>
+  <polygon class="c1" points="280,116 306,98 340,100 364,118 368,142 352,162 320,168 292,154"/>
+  <polygon class="c2" points="280,116 306,98 340,100 364,118 330,118 300,126"/>
+  <polygon class="c3" points="364,118 368,142 352,162 338,152 352,132"/>
+  <polygon class="eye" points="318,122 334,120 336,130 320,132"/>
+  <circle class="pupil" cx="327" cy="126" r="3.6"/>
+  <polygon class="c4" points="362,124 370,126 366,134"/>
+  <polygon class="c5" points="300,98 306,80 316,96"/>
+  <polygon class="c5" points="316,94 324,72 332,94"/>
+  <polygon class="c5" points="332,96 344,80 346,102"/>
+  </g>
+</svg>

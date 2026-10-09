@@ -1,0 +1,41 @@
+<palette name="Cherub bear" c1="#F0D0B0" c2="#FFE8D0" c3="#FFF8F0" c4="#B88A60" c5="#FFD870"/>
+  <fan b="150,172 220,166" t="90,50 260,40" n="5" cls="c3 c2" shape="quad"/>
+  <polygon class="c1" points="76,254 56,264 60,288 84,284"/>
+  <polygon class="c1" points="230,280 280,282 286,336 292,364 244,366 240,320"/>
+  <polygon class="c1" points="126,280 176,284 172,336 178,364 128,366 124,320"/>
+  <polygon class="c1" points="80,266 100,206 160,160 240,164 292,200 304,264 284,310 126,312 88,294"/>
+  <polygon class="c2" points="100,206 160,160 240,164 292,200 304,264 240,208 150,222"/>
+  <polygon class="c5" points="160,160 190,126 230,134 240,164"/>
+  <polygon class="c4" points="284,310 126,312 88,294 160,300 270,296"/>
+  <polygon class="c1" points="250,280 300,284 314,338 322,366 270,368 262,322"/>
+  <polygon class="c1" points="94,274 150,286 138,336 146,366 98,368 96,326"/>
+  <polygon class="c4" points="272,358 326,358 328,372 270,372"/>
+  <polygon class="c4" points="96,358 150,358 152,372 94,372"/>
+  <polygon class="c3" points="276,364 282,372 288,364"/>
+  <polygon class="c3" points="296,366 302,374 308,366"/>
+  <polygon class="c1" points="276,230 290,184 330,160 376,176 394,220 380,262 330,282 290,268"/>
+  <polygon class="c2" points="290,184 330,160 376,176 340,190"/>
+  <polygon class="c3" points="344,222 394,224 384,268 340,274"/>
+  <polygon class="c4" points="384,214 398,224 386,236"/>
+  <polygon class="c1" points="298,176 286,142 322,162"/>
+  <polygon class="c1" points="352,164 372,136 380,176"/>
+  <polygon class="c4" points="352,258 376,254 372,266 356,270"/>
+  <polygon class="eye" points="326,196 344,194 344,208 328,210"/>
+  <circle class="pupil" cx="335" cy="202" r="3.2"/>
+  <polygon class="c5" points="374,152 371,156 366,155 368,152"/>
+  <polygon class="c5" points="371,156 364,159 360,157 366,155"/>
+  <polygon class="c5" points="364,159 353,161 351,158 360,157"/>
+  <polygon class="c5" points="353,161 340,162 340,159 351,158"/>
+  <polygon class="c5" points="340,162 327,161 329,158 340,159"/>
+  <polygon class="c5" points="327,161 316,159 320,157 329,158"/>
+  <polygon class="c5" points="316,159 309,156 314,155 320,157"/>
+  <polygon class="c5" points="309,156 306,152 312,152 314,155"/>
+  <polygon class="c5" points="306,152 309,148 314,149 312,152"/>
+  <polygon class="c5" points="309,148 316,145 320,147 314,149"/>
+  <polygon class="c5" points="316,145 327,143 329,146 320,147"/>
+  <polygon class="c5" points="327,143 340,142 340,145 329,146"/>
+  <polygon class="c5" points="340,142 353,143 351,146 340,145"/>
+  <polygon class="c5" points="353,143 364,145 360,147 351,146"/>
+  <polygon class="c5" points="364,145 371,148 366,149 360,147"/>
+  <polygon class="c5" points="371,148 374,152 368,152 366,149"/>
+</svg>

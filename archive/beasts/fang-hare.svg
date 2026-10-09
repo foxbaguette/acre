@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fang hare">
+  <style>
+    .c1 { fill: var(--c1, #A8A0B0); }
+    .c2 { fill: var(--c2, #CFC8D8); }
+    .c3 { fill: var(--c3, #F4F0F8); }
+    .c4 { fill: var(--c4, #3A3048); }
+    .c5 { fill: var(--c5, #9A6AF0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-12 25)">
+  <!-- tail -->
+  <polygon class="c3" points="112,226 92,214 88,238 108,242"/>
+  <!-- far hind leg -->
+  <polygon class="c1" points="150,244 100,282 52,306 50,296 92,270 140,230"/>
+  <!-- crystal studs -->
+  <polygon class="c5" points="190,188 182,152 210,184"/>
+  <polygon class="c5" points="230,184 240,152 254,190"/>
+  <polygon class="c5" points="152,200 140,170 172,194"/>
+  <!-- body -->
+  <polygon class="c1" points="110,232 150,192 230,182 290,202 310,242 270,272 170,276"/>
+  <polygon class="c2" points="150,192 230,182 290,202 310,242 230,214 160,222"/>
+  <polygon class="c3" points="270,272 170,276 110,232 160,258 250,252"/>
+  <!-- hind leg near -->
+  <polygon class="c1" points="140,252 190,264 120,284 64,308 62,298 108,276"/>
+  <polygon class="c3" points="62,298 64,308 36,312 38,300"/>
+  <!-- front legs stretched -->
+  <polygon class="c1" points="280,232 330,250 366,246 364,260 324,268 274,252"/>
+  <polygon class="c3" points="366,246 386,248 386,262 364,260"/>
+  <!-- ears with crystal tips -->
+  <polygon class="c1" points="308,178 280,110 244,66 258,120 296,186"/>
+  <polygon class="c5" points="244,66 228,38 264,74"/>
+  <polygon class="c1" points="292,176 266,122 230,92 246,138 282,186"/>
+  <polygon class="c5" points="230,92 214,66 244,98"/>
+  <!-- head with open fanged mouth -->
+  <polygon class="c1" points="300,180 340,170 376,190 380,222 350,240 310,230"/>
+  <polygon class="c2" points="300,180 340,170 376,190 346,188"/>
+  <polygon class="c4" points="350,214 382,214 378,238 346,232"/>
+  <polygon class="c3" points="354,214 360,214 357,234"/>
+  <polygon class="c3" points="366,214 372,214 369,234"/>
+  <polygon class="c5" points="378,194 388,198 382,206"/>
+  <polygon class="eye" points="322,188 340,186 342,198 324,200"/>
+  <circle class="pupil" cx="331" cy="193" r="3.4"/>
+  </g>
+</svg>

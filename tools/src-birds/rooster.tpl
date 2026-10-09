@@ -1,0 +1,22 @@
+<palette name="Rooster" c1="#C8501E" c2="#E88038" c3="#F8E0A0" c4="#2A1A10" c5="#D82828"/>
+  <polygon class="c4" points="96,230 50,180 30,100 48,80 70,130 110,190"/>
+  <polygon class="c1" points="110,230 70,170 62,100 84,96 96,160 130,214"/>
+  <polygon class="c2" points="110,230 82,170 78,112 86,110 98,160 124,214"/>
+  <polygon class="c5" points="90,230 40,160 24,110 36,104 60,150 100,206"/>
+  <polygon class="c1" points="110,250 180,210 250,220 280,270 260,330 190,350 130,330 100,290"/>
+  <polygon class="c2" points="180,210 250,220 280,270 226,260 180,248"/>
+  <polygon class="c4" points="160,260 230,250 244,296 184,310"/>
+  <polygon class="c3" points="170,264 224,254 232,290 184,300"/>
+  <polygon class="c3" points="196,350 206,350 210,392 198,392"/>
+  <polygon class="c3" points="236,340 246,340 252,392 240,392"/>
+  <polygon class="c4" points="190,390 208,390 214,398 186,398"/>
+  <polygon class="c4" points="236,390 254,390 260,398 232,398"/>
+  <polygon class="c1" points="250,230 270,180 286,140 306,110 340,102 354,124 344,160 320,200 290,250"/>
+  <polygon class="c2" points="270,180 286,140 306,110 340,102 320,140 296,190"/>
+  <polygon class="c5" points="300,106 304,78 316,96 322,70 332,94 346,84 342,106"/>
+  <polygon class="c3" points="342,126 380,142 370,152 342,148"/>
+  <polygon class="c5" points="334,150 354,152 346,176 332,166"/>
+  <polygon class="c5" points="326,114 350,114 346,132 330,130"/>
+  <polygon class="eye" points="320,116 334,116 334,128 322,130"/>
+  <circle class="pupil" cx="327" cy="122" r="2.8"/>
+</svg>

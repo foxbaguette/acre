@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bloom elephant">
+  <style>
+    .c1 { fill: var(--c1, #8A8CA0); }
+    .c2 { fill: var(--c2, #B0B2C6); }
+    .c3 { fill: var(--c3, #E0DCE8); }
+    .c4 { fill: var(--c4, #3A3C50); }
+    .c5 { fill: var(--c5, #F06AA8); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-39 -12)">
+  <!-- tail -->
+  <polygon class="c1" points="100,200 76,224 70,262 86,260 94,230 106,214"/>
+  <!-- far legs -->
+  <polygon class="c1" points="160,290 204,290 206,350 162,350"/>
+  <polygon class="c1" points="240,284 284,284 286,350 242,350"/>
+  <!-- stems -->
+  <polygon class="c4" points="196,140 204,140 206,160 194,160"/>
+  <polygon class="c4" points="254,150 262,150 264,166 252,166"/>
+  <polygon class="c4" points="148,150 156,150 158,168 146,168"/>
+  <!-- flowers -->
+  <polygon class="c5" points="200,130 184,86 200,72 216,86"/>
+  <polygon class="c5" points="200,130 244,106 258,122 236,142"/>
+  <polygon class="c5" points="200,130 156,106 142,122 164,142"/>
+  <polygon class="c5" points="200,130 170,150 200,160 230,150"/>
+  <polygon class="c3" points="190,118 210,118 210,138 190,138"/>
+  <polygon class="c5" points="258,148 250,124 262,118 274,128"/>
+  <polygon class="c5" points="258,148 286,140 292,152 276,164"/>
+  <polygon class="c5" points="258,148 232,140 228,154 244,164"/>
+  <polygon class="c3" points="252,140 264,140 264,152 252,152"/>
+  <polygon class="c5" points="152,150 146,132 156,126 166,136"/>
+  <polygon class="c5" points="152,150 174,146 178,158 164,166"/>
+  <polygon class="c5" points="152,150 132,148 130,160 142,168"/>
+  <!-- body -->
+  <polygon class="c1" points="100,166 160,138 250,138 310,166 320,240 290,300 120,300 90,236"/>
+  <polygon class="c2" points="100,166 160,138 250,138 310,166 250,160 170,166"/>
+  <polygon class="c3" points="290,300 120,300 90,236 120,276 280,276"/>
+  <polygon class="c4" points="140,200 154,194 160,212 146,218"/>
+  <!-- near legs -->
+  <polygon class="c1" points="262,284 312,284 318,350 264,350"/>
+  <polygon class="c1" points="120,284 172,284 178,350 124,350"/>
+  <polygon class="c3" points="266,340 316,340 318,352 262,352"/>
+  <polygon class="c3" points="126,340 176,340 178,352 122,352"/>
+  <!-- ear -->
+  <polygon class="c2" points="300,150 268,114 268,206 308,214"/>
+  <polygon class="c5" points="296,160 278,136 278,190 300,198"/>
+  <!-- head, tusk, trunk -->
+  <polygon class="c1" points="300,150 350,138 386,168 380,230 342,242 312,222"/>
+  <polygon class="c2" points="300,150 350,138 386,168 350,166"/>
+  <polygon class="eye" points="344,174 362,172 364,186 346,188"/>
+  <circle class="pupil" cx="353" cy="180" r="3.4"/>
+  <polygon class="c4" points="338,162 366,160 368,166 340,170"/>
+    <polygon class="c1" points="360,198 384,167 408,173 384,214"/>
+  <polygon class="c2" points="360,198 384,167 394,169 370,205"/>
+  <polygon class="c4" points="384,214 408,173 401,171 377,209"/>
+  <polygon class="c1" points="384,167 385,131 403,125 408,173"/>
+  <polygon class="c2" points="384,167 385,131 390,129 391,169"/>
+  <polygon class="c4" points="408,173 403,125 395,128 398,171"/>
+  <polygon class="c1" points="385,131 367,104 377,96 403,125"/>
+  <polygon class="c2" points="385,131 367,104 371,101 393,128"/>
+  <polygon class="c4" points="403,125 377,96 374,99 397,127"/>
+  <polygon class="c5" points="360,100 372,84 384,100 372,106"/>
+  <polygon class="c3" points="350,232 392,258 400,292 376,280 346,248"/>
+  <polygon class="c5" points="372,262 388,270 380,284 366,278"/>
+  </g>
+</svg>

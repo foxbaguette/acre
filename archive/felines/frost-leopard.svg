@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Frost leopard">
+  <style>
+    .c1 { fill: var(--c1, #B8CDE0); }
+    .c2 { fill: var(--c2, #DCEBF6); }
+    .c3 { fill: var(--c3, #F8FCFF); }
+    .c4 { fill: var(--c4, #34506E); }
+    .c5 { fill: var(--c5, #8FD8F0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(14.5 -15)">
+  <!-- ice crystals -->
+  <polygon class="c5" points="180,146 176,100 206,142"/>
+  <polygon class="c5" points="230,150 242,106 252,156"/>
+  <polygon class="c5" points="140,168 120,126 162,160"/>
+  <!-- body -->
+  <polygon class="c1" points="100,230 120,170 190,140 270,160 310,220 290,290 200,312 120,292"/>
+  <polygon class="c2" points="120,170 190,140 270,160 310,220 240,192 170,198"/>
+  <polygon class="c4" points="170,170 180,164 188,176 178,184"/>
+  <polygon class="c4" points="220,176 232,170 240,182 228,190"/>
+  <polygon class="c4" points="262,208 272,202 280,214 270,222"/>
+  <polygon class="c4" points="150,214 160,208 168,220 158,228"/>
+  <polygon class="c4" points="196,224 206,218 214,230 204,238"/>
+  <polygon class="c4" points="250,252 260,246 268,258 258,266"/>
+  <!-- tail wrapped round -->
+    <polygon class="c1" points="313,268 281,313 271,295 295,256"/>
+  <polygon class="c2" points="313,268 281,313 277,305 305,263"/>
+  <polygon class="c3" points="295,256 271,295 274,301 300,260"/>
+  <polygon class="c1" points="281,313 206,330 206,314 271,295"/>
+  <polygon class="c2" points="281,313 206,330 206,326 278,308"/>
+  <polygon class="c3" points="271,295 206,314 206,321 275,303"/>
+  <polygon class="c1" points="206,330 134,318 138,306 206,314"/>
+  <polygon class="c2" points="206,330 134,318 136,313 206,323"/>
+  <polygon class="c3" points="206,314 138,306 137,310 206,319"/>
+  <polygon class="c1" points="134,318 101,285 107,279 138,306"/>
+  <polygon class="c2" points="134,318 101,285 103,283 135,314"/>
+  <polygon class="c3" points="138,306 107,279 104,282 136,311"/>
+  <polygon class="c4" points="274,290 288,292 282,306 268,304"/>
+  <polygon class="c4" points="214,306 228,308 222,322 208,320"/>
+  <polygon class="c4" points="150,296 162,294 164,308 152,308"/>
+  <!-- tucked paws and head -->
+  <polygon class="c3" points="122,270 172,284 162,302 108,296"/>
+  <polygon class="c1" points="74,214 70,192 92,208"/>
+  <polygon class="c1" points="100,208 112,190 120,214"/>
+  <polygon class="c1" points="60,232 72,210 96,208 124,216 132,240 120,264 92,270 66,258"/>
+  <polygon class="c2" points="60,232 72,210 96,208 124,216 100,222 78,232"/>
+  <polygon class="c3" points="60,232 66,258 92,270 82,252 66,244"/>
+  <polygon class="pupil" points="84,238 104,236 104,240 84,242"/>
+  <polygon class="c4" points="58,240 66,238 64,246"/>
+  <polygon class="c4" points="104,252 112,250 110,258"/>
+  <polygon class="c4" points="92,216 100,214 100,222 92,222"/>
+  </g>
+</svg>

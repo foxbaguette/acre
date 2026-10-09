@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dragon">
+  <style>
+    .c1 { fill: var(--c1, #4A3F52); }
+    .c2 { fill: var(--c2, #7A6A86); }
+    .c3 { fill: var(--c3, #A8949C); }
+    .c4 { fill: var(--c4, #221A28); }
+    .c5 { fill: var(--c5, #C8352F); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-42 -29)">
+  <!-- body lying low -->
+  <polygon class="c1" points="250,230 210,196 150,192 100,220 86,264 104,300 160,318 230,318 262,296 268,262"/>
+  <polygon class="c2" points="210,196 150,192 100,220 112,228 154,206 206,210 246,236"/>
+  <polygon class="c3" points="104,300 160,318 230,318 262,296 248,300 226,308 164,308 118,290"/>
+  <polygon class="c4" points="246,236 206,210 154,206 112,228 120,246 160,226 210,228"/>
+  <!-- back spines -->
+  <polygon class="c4" points="210,196 206,180 196,200"/>
+  <polygon class="c4" points="176,192 172,176 162,196"/>
+  <polygon class="c4" points="140,194 134,180 124,200"/>
+  <polygon class="c4" points="108,214 98,204 94,222"/>
+  <!-- hind leg tucked -->
+  <polygon class="c1" points="120,266 176,274 170,310 116,304"/>
+  <polygon class="c2" points="120,266 176,274 172,286 122,278"/>
+  <polygon class="c1" points="116,304 170,310 186,322 110,322"/>
+  <polygon class="c4" points="186,322 200,328 184,332"/>
+  <polygon class="c4" points="160,324 172,332 156,334"/>
+  <polygon class="c4" points="134,324 146,332 130,334"/>
+  <!-- tail wrapped along the ground -->
+  <polygon class="c1" points="90,286 96,320 140,340 220,344 300,338 330,330 336,320 300,326 220,332 146,328 112,310 106,280"/>
+  <polygon class="c2" points="106,280 112,310 146,328 220,332 300,326 336,320 330,314 298,318 220,324 150,318 118,300 112,278"/>
+  <polygon class="c4" points="220,332 218,322 208,334"/>
+  <polygon class="c4" points="150,328 146,318 138,330"/>
+  <polygon class="c5" points="336,320 330,330 352,338 360,324 348,312"/>
+  <!-- neck curving down -->
+  <polygon class="c1" points="250,230 268,262 300,292 330,296 318,262 284,236"/>
+  <polygon class="c2" points="250,230 284,236 318,262 306,266 276,246"/>
+  <polygon class="c4" points="284,236 286,222 272,238"/>
+  <polygon class="c4" points="318,262 324,248 308,262"/>
+  <!-- head resting on the tail -->
+  <polygon class="c1" points="300,292 318,262 350,254 386,270 398,300 384,316 350,320 318,316"/>
+  <polygon class="c2" points="318,262 350,254 386,270 364,272 336,268"/>
+  <polygon class="c3" points="398,300 384,316 350,320 318,316 330,308 360,308 384,296"/>
+  <polygon class="c4" points="334,270 366,268 372,276 336,278"/>
+  <polygon class="pupil" points="338,282 366,280 366,284 338,286"/>
+  <polygon class="c4" points="388,290 394,294 388,298"/>
+  <polygon class="c3" points="346,310 352,310 349,316"/>
+  <polygon class="c3" points="366,306 372,306 369,312"/>
+  <polygon class="c4" points="322,266 292,236 300,232 336,262"/>
+  <polygon class="c4" points="344,258 330,218 338,216 356,256"/>
+  <!-- folded wing along the back -->
+  <polygon class="c4" points="240,226 210,130 150,150 100,186 92,220 130,222 190,224"/>
+  <polygon class="c5" points="210,130 150,150 164,160 204,142"/>
+  <polygon class="c1" points="238,228 242,224 212,128 206,132"/>
+  <polygon class="c1" points="208,132 212,136 104,188 98,184"/>
+  <polygon class="c1" points="208,134 212,140 96,222 90,218"/>
+  <polygon class="c3" points="210,130 216,114 220,132"/>
+  </g>
+</svg>

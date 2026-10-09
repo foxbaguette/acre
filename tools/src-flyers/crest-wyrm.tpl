@@ -1,0 +1,33 @@
+<palette name="Crest wyrm" c1="#C26A3C" c2="#E6A068" c3="#F5DEB9" c4="#3B2218" c5="#D8352F"/>
+  <!-- far wing -->
+  <polygon class="c2" points="232,186 200,110 140,10 150,96 196,164 268,190"/>
+  <polygon class="c4" points="232,186 226,190 194,114 202,108"/>
+  <polygon class="c4" points="200,110 206,114 144,16 138,10"/>
+  <polygon class="c3" points="200,110 140,10 170,40 204,92"/>
+  <!-- trailing legs and tail -->
+  <polygon class="c1" points="190,230 150,252 120,256 118,250 148,244 180,222"/>
+  <polygon class="c4" points="120,256 104,260 118,250"/>
+  <polygon class="c1" points="176,214 150,222 138,236 146,240 160,230 180,224"/>
+  <!-- body -->
+  <polygon class="c1" points="190,190 240,186 270,204 260,230 210,244 176,228"/>
+  <polygon class="c2" points="190,190 240,186 270,204 232,200 200,208"/>
+  <polygon class="c3" points="260,230 210,244 176,228 200,230 244,220"/>
+  <!-- neck, head, crest -->
+  <polygon class="c1" points="256,194 290,170 320,150 330,172 300,196 262,222"/>
+  <polygon class="c2" points="256,194 290,170 320,150 306,172 276,196"/>
+  <polygon class="c1" points="316,142 344,138 394,150 392,158 340,162 320,168"/>
+  <polygon class="c2" points="316,142 344,138 394,150 346,148"/>
+  <polygon class="c3" points="340,162 392,158 360,178 330,170"/>
+  <polygon class="c5" points="316,142 296,122 262,104 276,128 304,150"/>
+  <polygon class="c5" points="316,142 300,110 286,96 298,126 310,148"/>
+  <polygon class="eye" points="326,146 338,144 340,152 328,154"/>
+  <circle class="pupil" cx="332" cy="149" r="2.4"/>
+  <polygon class="c4" points="390,152 396,154 392,158"/>
+  <!-- near wing -->
+  <polygon class="c2" points="210,192 150,128 30,30 18,126 56,206 130,250 190,246"/>
+  <polygon class="c4" points="210,192 204,198 144,126 152,120"/>
+  <polygon class="c4" points="148,124 154,130 30,36 26,30"/>
+  <polygon class="c3" points="150,128 30,30 54,100 130,160"/>
+  <polygon class="c5" points="30,30 26,30 22,52 40,48"/>
+  <polygon class="c1" points="130,250 56,206 96,196"/>
+</svg>

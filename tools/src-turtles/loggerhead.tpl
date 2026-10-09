@@ -1,0 +1,37 @@
+<palette name="Loggerhead turtle" c1="#8A4A2E" c2="#B87048" c3="#F0DCA8" c4="#2A160C" c5="#D89040"/>
+  <polygon class="c1" points="168,262 130,292 126,340 150,366 164,352 160,308 190,282"/>
+  <polygon class="c1" points="310,262 330,292 354,306 360,290 340,262"/>
+  <polygon class="c3" points="322,270 252,284 150,282 90,266 98,284 150,298 252,298 316,286"/>
+  <polygon class="c1" points="338,264 314,206 258,160 188,148 118,170 76,222 82,264 150,280 252,282"/>
+  <polygon class="c2" points="314,206 258,160 188,148 118,170 76,222 122,196 196,180 270,186"/>
+  <polygon class="c4" points="338,264 252,282 150,280 82,264 84,272 150,290 252,290 336,272"/>
+  <polygon class="c5" points="262,184 296,196 308,226 280,240 252,224"/>
+  <polygon class="c5" points="190,170 232,164 252,180 244,218 204,226 186,202"/>
+  <polygon class="c5" points="124,184 164,172 184,182 180,220 142,232 118,212"/>
+  <polygon class="c5" points="316,232 332,258 304,262 290,244"/>
+  <polygon class="c5" points="90,234 118,232 128,264 94,264"/>
+  <polygon class="c5" points="148,242 190,234 198,266 154,270"/>
+  <polygon class="c5" points="208,236 250,230 262,262 218,268"/>
+  <polygon class="c4" points="204,182 218,178 222,194 210,200"/>
+  <polygon class="c4" points="144,194 158,190 160,206 148,212"/>
+  <polygon class="c4" points="272,200 284,204 284,218 274,220"/>
+  <polygon class="c1" points="152,248 108,260 66,254 40,274 66,294 114,292 150,276"/>
+  <polygon class="c2" points="152,248 108,260 66,254 40,274 78,262 120,264"/>
+  <polygon class="c1" points="76,258 34,284 20,322 46,324 70,296 96,286"/>
+  <polygon class="c1" points="124,256 80,246 60,236 70,262 108,270"/>
+  <polygon class="c1" points="120,200 30,192 24,268 124,274"/>
+  <polygon class="c2" points="120,200 30,192 40,206 120,214"/>
+  <polygon class="c3" points="24,268 124,274 108,288 28,282"/>
+  <polygon class="c1" points="52,198 8,170 -30,176 -44,208 -32,244 4,252 42,236"/>
+  <polygon class="c3" points="-32,230 -2,244 -32,252 -44,242"/>
+  <polygon class="c1" points="12,236 -36,226 -48,246 -38,276 -6,292 28,276"/>
+  <polygon class="c3" points="-30,266 0,284 -12,292 -36,278"/>
+  <polygon class="c2" points="52,198 8,170 -30,176 -44,208 -8,196 28,200"/>
+  <polygon class="c4" points="-44,212 -32,244 -18,240 -30,214"/>
+  <polygon class="c3" points="-38,232 -24,238 -34,246"/>
+  <polygon class="c4" points="-40,250 -14,258 -14,262 -40,254"/>
+  <polygon class="c4" points="-2,176 30,172 30,176 -2,180"/>
+  <polygon class="eye" points="4,190 24,188 26,204 6,206"/>
+  <circle class="pupil" cx="14" cy="197" r="4"/>
+  <polygon class="c4" points="-16,196 -8,200 -14,208"/>
+</svg>

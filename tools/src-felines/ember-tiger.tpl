@@ -1,0 +1,40 @@
+<palette name="Ember tiger" c1="#E8742A" c2="#F5A455" c3="#FFE8CC" c4="#2A1810" c5="#FFD84A"/>
+  <!-- tail with flames -->
+  <ribbon pts="100,262,10 70,232,8 42,204,6 30,166,4" cls="c1" top="c2" under="c4"/>
+  <polygon class="c5" points="30,166 12,142 38,148"/>
+  <polygon class="c5" points="30,166 40,130 48,158"/>
+  <!-- far legs -->
+  <polygon class="c1" points="282,214 322,214 360,206 366,220 330,238 290,242"/>
+  <polygon class="c3" points="360,206 388,204 390,222 366,220"/>
+  <polygon class="c1" points="122,276 90,300 52,324 60,336 100,316 134,290"/>
+  <polygon class="c3" points="52,324 30,330 34,346 60,336"/>
+  <!-- body -->
+  <polygon class="c1" points="80,262 120,210 200,180 280,170 330,196 320,236 250,262 140,292 96,292"/>
+  <polygon class="c2" points="120,210 200,180 280,170 330,196 250,196 170,214"/>
+  <polygon class="c3" points="320,236 250,262 140,292 96,292 150,270 240,244"/>
+  <polygon class="c4" points="150,204 166,198 158,236 144,230"/>
+  <polygon class="c4" points="190,188 206,184 198,226 184,220"/>
+  <polygon class="c4" points="230,180 246,178 238,220 224,214"/>
+  <polygon class="c4" points="268,176 284,176 276,214 262,208"/>
+  <polygon class="c4" points="110,230 124,226 118,258 106,252"/>
+  <!-- near legs -->
+  <polygon class="c1" points="292,198 332,184 372,168 382,182 342,208 302,226"/>
+  <polygon class="c3" points="372,168 396,164 398,184 382,182"/>
+  <polygon class="c1" points="110,268 78,294 40,318 48,332 90,312 124,284"/>
+  <polygon class="c3" points="40,318 18,326 22,342 48,332"/>
+  <polygon class="c1" points="330,166 328,138 352,160"/>
+  <polygon class="c5" points="332,160 332,144 346,158"/>
+  <polygon class="c1" points="356,160 372,138 378,164"/>
+  <polygon class="c3" points="322,172 304,194 322,210 340,206"/>
+  <polygon class="c1" points="322,172 346,158 380,160 404,176 408,196 392,212 360,216 330,204"/>
+  <polygon class="c2" points="322,172 346,158 380,160 404,176 366,174 340,184"/>
+  <polygon class="c3" points="404,176 408,196 392,212 372,208 378,186"/>
+  <polygon class="c4" points="388,206 408,204 402,226 380,222"/>
+  <polygon class="c3" points="394,206 399,206 397,220"/>
+  <polygon class="c3" points="384,208 388,208 386,220"/>
+  <polygon class="c4" points="346,160 352,160 350,176 344,174"/>
+  <polygon class="c4" points="360,160 366,162 362,178 356,176"/>
+  <polygon class="eye" points="352,178 372,176 374,188 354,190"/>
+  <polygon class="pupil" points="363,177 366,183 363,189 360,183"/>
+  <polygon class="c4" points="402,180 410,182 406,190"/>
+</svg>

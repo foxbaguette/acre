@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aurora nautilus">
+  <style>
+    .c1 { fill: var(--c1, #E8A86A); }
+    .c2 { fill: var(--c2, #F6CFA0); }
+    .c3 { fill: var(--c3, #FFF2DC); }
+    .c4 { fill: var(--c4, #7A3A30); }
+    .c5 { fill: var(--c5, #7FD8E0); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-47.5 -12)">
+  <!-- tentacles -->
+    <polygon class="c2" points="343,236 369,260 363,264 337,244"/>
+  <polygon class="c3" points="343,236 369,260 367,262 341,239"/>
+  <polygon class="c4" points="337,244 363,264 365,263 339,242"/>
+  <polygon class="c2" points="369,260 386,295 382,297 363,264"/>
+  <polygon class="c3" points="369,260 386,295 385,295 367,261"/>
+  <polygon class="c4" points="363,264 382,297 384,296 365,262"/>
+    <polygon class="c2" points="341,246 356,281 348,283 331,250"/>
+  <polygon class="c3" points="341,246 356,281 353,282 337,248"/>
+  <polygon class="c4" points="331,250 348,283 350,282 334,249"/>
+  <polygon class="c2" points="356,281 360,322 356,322 348,283"/>
+  <polygon class="c3" points="356,281 360,322 359,322 354,281"/>
+  <polygon class="c4" points="348,283 356,322 358,322 351,282"/>
+    <polygon class="c2" points="335,253 340,292 332,292 325,255"/>
+  <polygon class="c3" points="335,253 340,292 337,292 331,254"/>
+  <polygon class="c4" points="325,255 332,292 334,292 328,254"/>
+  <polygon class="c2" points="340,292 332,334 328,334 332,292"/>
+  <polygon class="c3" points="340,292 332,334 331,334 338,292"/>
+  <polygon class="c4" points="332,292 328,334 330,334 335,292"/>
+    <polygon class="c2" points="342,212 370,201 374,207 346,220"/>
+  <polygon class="c4" points="342,212 370,201 372,204 344,215"/>
+  <polygon class="c3" points="346,220 374,207 373,205 345,218"/>
+  <polygon class="c2" points="370,201 393,179 395,181 374,207"/>
+  <polygon class="c4" points="370,201 393,179 393,179 371,203"/>
+  <polygon class="c3" points="374,207 395,181 394,180 372,204"/>
+  <!-- shell -->
+  <polygon class="c3" points="100,200 120,130 180,90 250,100 300,150 310,220 270,280 200,300 130,270"/>
+  <polygon class="c1" points="210,192 130,270 100,200"/>
+  <polygon class="c1" points="210,192 120,130 180,90"/>
+  <polygon class="c1" points="210,192 250,100 300,150"/>
+  <polygon class="c1" points="210,192 310,220 270,280"/>
+  <polygon class="c1" points="210,192 200,300 130,270"/>
+  <polygon class="c2" points="120,130 180,90 250,100 210,134"/>
+  <polygon class="c4" points="210,192 226,178 242,192 232,212 210,216 196,202"/>
+  <polygon class="c5" points="160,160 168,168 160,176 152,168"/>
+  <polygon class="c5" points="250,240 258,248 250,256 242,248"/>
+  <polygon class="c5" points="240,130 246,136 240,142 234,136"/>
+  <!-- head and hood -->
+  <polygon class="c2" points="282,204 332,198 352,226 332,260 288,252"/>
+  <polygon class="c1" points="282,200 318,178 346,196 334,216 296,214"/>
+  <polygon class="c3" points="332,260 352,226 340,246 300,254"/>
+  <polygon class="eye" points="314,212 330,210 332,224 316,226"/>
+  <circle class="pupil" cx="323" cy="218" r="3.4"/>
+  </g>
+</svg>

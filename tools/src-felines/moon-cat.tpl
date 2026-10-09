@@ -1,0 +1,25 @@
+<palette name="Moon cat" c1="#5A6FA8" c2="#8294CC" c3="#E8EEFF" c4="#1E2A52" c5="#FFE08A"/>
+  <!-- tail curling around -->
+  <ribbon pts="140,336,22 108,338,20 78,318,14 82,284,8" cls="c1" top="c2" under="c4"/>
+  <polygon class="c5" points="82,284 72,262 92,268"/>
+  <!-- body -->
+  <polygon class="c1" points="150,192 210,162 262,182 272,262 252,340 140,340 128,262"/>
+  <polygon class="c2" points="150,192 210,162 262,182 232,186 190,204 142,230"/>
+  <polygon class="c2" points="128,262 140,340 176,340 170,280"/>
+  <polygon class="c3" points="228,200 262,190 270,262 252,336 232,336 236,262"/>
+  <polygon class="c1" points="226,262 258,262 262,340 228,340"/>
+  <polygon class="c3" points="220,332 264,332 268,346 218,346"/>
+  <polygon class="c5" points="174,214 182,226 174,238 166,226"/>
+  <polygon class="c5" points="196,262 202,272 196,282 190,272"/>
+  <polygon class="c1" points="224,116 220,84 248,108"/>
+  <polygon class="c1" points="250,106 270,82 276,112"/>
+  <polygon class="c4" points="226,106 224,92 240,106"/>
+  <polygon class="c4" points="254,100 266,88 268,106"/>
+  <polygon class="c1" points="216,130 232,108 262,108 284,124 290,148 276,172 244,178 220,162"/>
+  <polygon class="c2" points="216,130 232,108 262,108 284,124 262,126 236,134"/>
+  <polygon class="c3" points="290,148 276,172 244,178 256,160 276,152"/>
+  <polygon class="eye" points="256,134 272,132 274,144 258,146"/>
+  <polygon class="pupil" points="265,133 268,139 265,145 262,139"/>
+  <polygon class="c4" points="284,146 292,148 288,154"/>
+  <polygon class="c5" points="246,112 258,106 252,116 258,126 246,124 242,118"/>
+</svg>

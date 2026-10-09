@@ -1,0 +1,25 @@
+<palette name="Hafgufa" c1="#3A4A6A" c2="#6A7AA0" c3="#D8D0B8" c4="#10141E" c5="#F0A040"/>
+  <polygon class="c1" points="330,250 392,170 390,246 392,320"/>
+  <polygon class="c2" points="330,250 392,170 372,250"/>
+  <polygon class="c1" points="100,200 150,150 250,130 330,160 340,250 300,320 200,350 120,320 90,260"/>
+  <polygon class="c2" points="150,150 250,130 330,160 340,250 260,180 180,190"/>
+  <polygon class="c3" points="300,320 200,350 120,320 90,260 130,290 220,306"/>
+  <polygon class="c4" points="110,210 180,210 190,300 100,290"/>
+  <polygon class="c3" points="112,210 124,210 118,232"/>
+  <polygon class="c3" points="134,210 146,210 140,236"/>
+  <polygon class="c3" points="156,210 168,210 162,240"/>
+  <polygon class="c3" points="178,214 188,214 184,244"/>
+  <polygon class="c3" points="102,288 114,288 108,268"/>
+  <polygon class="c3" points="124,290 136,290 130,270"/>
+  <polygon class="c3" points="146,292 158,292 152,270"/>
+  <polygon class="c3" points="168,294 180,294 174,270"/>
+  <polygon class="c5" points="124,252 160,252 156,274 128,274"/>
+  <polygon class="c4" points="220,216 232,210 236,226 224,232"/>
+  <polygon class="c4" points="260,236 272,230 276,246 264,252"/>
+  <polygon class="c4" points="236,262 248,256 252,272 240,278"/>
+  <polygon class="c2" points="240,300 210,372 270,330"/>
+  <polygon class="eye" points="190,168 212,166 212,182 192,184"/>
+  <circle class="pupil" cx="202" cy="175" r="4"/>
+  <polygon class="c5" points="250,134 262,100 276,138"/>
+  <polygon class="c5" points="290,148 310,114 318,156"/>
+</svg>

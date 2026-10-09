@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Basilisk">
+  <style>
+    .c1 { fill: var(--c1, #6A8A3A); }
+    .c2 { fill: var(--c2, #98B860); }
+    .c3 { fill: var(--c3, #F0E8B0); }
+    .c4 { fill: var(--c4, #2A3A14); }
+    .c5 { fill: var(--c5, #D83A2A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(6.5 -8)">
+  <!-- small wing -->
+  <polygon class="c2" points="244,236 296,206 332,246 292,268"/>
+  <polygon class="c1" points="244,236 296,206 270,232"/>
+  <polygon class="c4" points="332,246 340,258 304,270"/>
+  <!-- coiled serpent body -->
+    <polygon class="c1" points="39,337 100,317 100,347 41,347"/>
+  <polygon class="c2" points="39,337 100,317 100,330 40,341"/>
+  <polygon class="c3" points="41,347 100,347 100,338 40,344"/>
+  <polygon class="c1" points="100,317 169,322 171,362 100,347"/>
+  <polygon class="c2" points="100,317 169,322 169,333 100,325"/>
+  <polygon class="c3" points="100,347 171,362 170,345 100,334"/>
+  <polygon class="c1" points="169,322 228,303 252,341 171,362"/>
+  <polygon class="c2" points="169,322 228,303 238,319 170,339"/>
+  <polygon class="c3" points="171,362 252,341 245,329 171,350"/>
+  <polygon class="c1" points="228,303 262,270 302,274 252,341"/>
+  <polygon class="c2" points="228,303 262,270 273,271 235,314"/>
+  <polygon class="c3" points="252,341 302,274 285,272 242,325"/>
+  <polygon class="c1" points="262,270 237,233 267,211 302,274"/>
+  <polygon class="c2" points="262,270 237,233 250,224 279,272"/>
+  <polygon class="c3" points="302,274 267,211 258,218 290,273"/>
+  <polygon class="c1" points="237,233 204,193 240,187 267,211"/>
+  <polygon class="c2" points="237,233 204,193 214,191 245,227"/>
+  <polygon class="c3" points="267,211 240,187 225,190 254,220"/>
+  <polygon class="c1" points="204,193 226,145 254,159 240,187"/>
+  <polygon class="c2" points="204,193 226,145 238,151 219,190"/>
+  <polygon class="c3" points="240,187 254,159 246,155 229,189"/>
+  <polygon class="c4" points="100,326 110,318 120,326 110,336"/>
+  <polygon class="c4" points="162,336 172,326 182,336 172,346"/>
+  <polygon class="c4" points="236,316 246,306 256,316 246,326"/>
+  <polygon class="c4" points="276,266 286,256 296,266 286,276"/>
+  <polygon class="c4" points="248,216 258,206 268,216 258,226"/>
+  <!-- rooster-snake head with a red crown -->
+  <polygon class="c1" points="224,104 270,86 312,102 316,136 288,158 240,150"/>
+  <polygon class="c2" points="224,104 270,86 312,102 268,108"/>
+  <polygon class="c3" points="316,136 288,158 240,150 280,142"/>
+  <polygon class="c5" points="232,104 236,64 252,90 262,54 278,88 296,60 298,98"/>
+  <polygon class="c4" points="238,70 246,76 242,90"/>
+  <polygon class="c5" points="300,136 314,136 310,164"/>
+  <polygon class="c5" points="308,112 348,124 310,134"/>
+  <polygon class="c4" points="308,124 342,126 310,130"/>
+  <polygon class="eye" points="270,108 288,108 288,122 270,122"/>
+  <polygon class="pupil" points="279,108 282,115 279,122 276,115"/>
+  <polygon class="c5" points="262,112 292,102 294,108 264,118"/>
+  </g>
+</svg>

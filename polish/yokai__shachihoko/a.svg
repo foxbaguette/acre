@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Shachihoko">
+  <style>
+    .c1 { fill: var(--c1, #E8A830); }
+    .c2 { fill: var(--c2, #F8D870); }
+    .c3 { fill: var(--c3, #FFF0C8); }
+    .c4 { fill: var(--c4, #6A3A1A); }
+    .c5 { fill: var(--c5, #3AA8C8); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(200 200) scale(0.9974) translate(-210.5 -203.0)">
+  <!-- arched tail fin -->
+    <polygon class="c5" points="84,134 88,132 48,39 20,44"/>
+  <polygon class="c2" points="88,132 92,131 76,34 48,39"/>
+  <polygon class="c5" points="92,131 96,129 104,30 76,34"/>
+  <polygon class="c2" points="96,129 100,128 132,25 104,30"/>
+  <polygon class="c5" points="100,128 104,126 160,20 132,25"/>
+  <!-- dorsal spines rising from the back -->
+  <polygon class="c4" points="206,290 232,294 234,262"/>
+  <polygon class="c4" points="150,256 174,272 178,238"/>
+  <polygon class="c4" points="108,210 126,232 140,198"/>
+  <polygon class="c4" points="96,172 100,196 124,168"/>
+  <!-- arched carp body -->
+    <polygon class="c1" points="319,341 245,365 247,291 301,279"/>
+  <polygon class="c3" points="319,341 245,365 246,334 311,315"/>
+  <polygon class="c2" points="301,279 247,291 246,313 307,298"/>
+  <polygon class="c1" points="245,365 161,334 191,278 247,291"/>
+  <polygon class="c3" points="245,365 161,334 169,318 246,344"/>
+  <polygon class="c2" points="247,291 191,278 178,302 246,322"/>
+  <polygon class="c1" points="161,334 93,270 131,238 191,278"/>
+  <polygon class="c3" points="161,334 93,270 109,257 174,310"/>
+  <polygon class="c2" points="191,278 131,238 120,247 182,295"/>
+  <polygon class="c1" points="93,270 62,197 98,191 131,238"/>
+  <polygon class="c3" points="93,270 62,197 72,195 104,261"/>
+  <polygon class="c2" points="131,238 98,191 83,193 115,251"/>
+  <polygon class="c1" points="62,197 78,132 102,136 98,191"/>
+  <polygon class="c3" points="62,197 78,132 88,134 77,195"/>
+  <polygon class="c2" points="98,191 102,136 95,135 87,193"/>
+  <polygon class="c3" points="190,296 202,306 190,316 178,306"/>
+  <polygon class="c3" points="226,320 238,330 226,340 214,330"/>
+  <polygon class="c3" points="140,262 152,272 140,282 128,272"/>
+  <polygon class="c3" points="270,340 282,350 270,360 258,350"/>
+  <polygon class="c4" points="204,326 214,320 222,330 212,338"/>
+  <polygon class="c4" points="164,288 172,282 180,290 172,298"/>
+  <!-- pectoral fin -->
+  <polygon class="c5" points="250,350 220,386 290,366"/>
+  <polygon class="c2" points="250,350 220,386 236,362"/>
+  <!-- tiger head -->
+  <polygon class="c4" points="304,264 296,232 332,242"/>
+  <polygon class="c1" points="300,262 346,240 388,264 392,312 360,344 306,336"/>
+  <polygon class="c2" points="300,262 346,240 388,264 350,260"/>
+  <polygon class="c2" points="300,262 350,260 330,286 302,300"/>
+  <polygon class="c1" points="388,264 392,312 372,296 368,268"/>
+  <polygon class="c4" points="326,250 338,246 334,272 322,270"/>
+  <polygon class="c4" points="346,246 358,248 352,274 342,272"/>
+  <polygon class="c3" points="388,300 392,312 360,344 340,334 372,318"/>
+  <polygon class="c3" points="356,320 364,320 360,340"/>
+  <polygon class="c3" points="372,314 380,314 376,334"/>
+  <polygon class="c5" points="316,310 332,302 334,322 320,328"/>
+  <polygon class="eye" points="340,278 360,278 360,292 340,292"/>
+  <circle class="pupil" cx="350" cy="285" r="3.6"/>
+    <polygon class="c4" points="389,305 401,318 399,318 387,307"/>
+  <polygon class="c4" points="401,318 397,338 395,338 399,318"/>
+  </g>
+</svg>

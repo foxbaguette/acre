@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Luna moth">
+  <style>
+    .c1 { fill: var(--c1, #9FCB8F); }
+    .c2 { fill: var(--c2, #C8E6B8); }
+    .c3 { fill: var(--c3, #EEF7E6); }
+    .c4 { fill: var(--c4, #4A5A3E); }
+    .c5 { fill: var(--c5, #D9A0C8); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(0 -39)">
+  <!-- hindwings with tails -->
+  <polygon class="c1" points="194,200 150,210 110,240 100,280 130,310 170,290 196,250"/>
+  <polygon class="c2" points="150,210 110,240 130,250 166,228"/>
+  <polygon class="c1" points="100,280 130,310 110,360 94,350"/>
+  <polygon class="c5" points="110,360 94,350 88,376 104,380"/>
+  <polygon class="c5" points="132,256 144,250 154,258 150,272 136,274 128,266"/>
+  <polygon class="c1" points="206,200 250,210 290,240 300,280 270,310 230,290 204,250"/>
+  <polygon class="c2" points="250,210 290,240 270,250 234,228"/>
+  <polygon class="c1" points="300,280 270,310 290,360 306,350"/>
+  <polygon class="c5" points="290,360 306,350 312,376 296,380"/>
+  <polygon class="c5" points="268,256 256,250 246,258 250,272 264,274 272,266"/>
+  <!-- forewings -->
+  <polygon class="c1" points="196,160 140,110 70,100 50,130 70,180 150,210 196,200"/>
+  <polygon class="c2" points="140,110 70,100 90,130 146,150"/>
+  <polygon class="c3" points="70,100 50,130 70,180 80,150"/>
+  <polygon class="c5" points="140,110 70,100 72,106 138,116"/>
+  <polygon class="c5" points="112,146 124,138 136,146 134,160 120,164 110,156"/>
+  <polygon class="c1" points="204,160 260,110 330,100 350,130 330,180 250,210 204,200"/>
+  <polygon class="c2" points="260,110 330,100 310,130 254,150"/>
+  <polygon class="c3" points="330,100 350,130 330,180 320,150"/>
+  <polygon class="c5" points="260,110 330,100 328,106 262,116"/>
+  <polygon class="c5" points="288,146 276,138 264,146 266,160 280,164 290,156"/>
+  <!-- body -->
+  <polygon class="c1" points="200,150 212,156 216,200 208,250 200,262 192,250 184,200 188,156"/>
+  <polygon class="c2" points="200,150 212,156 212,200 200,200"/>
+  <polygon class="c4" points="192,148 208,148 210,160 190,160"/>
+  <!-- antennae -->
+  <polygon class="c4" points="196,148 170,100 174,98 200,148"/>
+  <polygon class="c4" points="204,148 230,100 226,98 200,148"/>
+  <polygon class="c4" points="170,100 160,112 182,108"/>
+  <polygon class="c4" points="230,100 218,108 240,112"/>
+  </g>
+</svg>

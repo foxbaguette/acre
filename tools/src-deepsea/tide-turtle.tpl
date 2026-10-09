@@ -1,0 +1,29 @@
+<palette name="Tide turtle" c1="#4C8A5A" c2="#7DBB7E" c3="#EAE2B8" c4="#1F3F2E" c5="#F27A6A"/>
+  <!-- far flipper raised -->
+  <polygon class="c1" points="240,204 290,172 340,122 352,136 312,192 270,216"/>
+  <polygon class="c4" points="340,122 352,136 346,116"/>
+  <!-- tail and hind flipper -->
+  <polygon class="c1" points="112,214 76,220 62,232 100,232"/>
+  <polygon class="c2" points="132,226 112,262 82,292 98,298 132,278 152,242"/>
+  <polygon class="c1" points="82,292 98,298 76,308"/>
+  <!-- plastron and shell -->
+  <polygon class="c3" points="110,204 160,240 260,240 320,224 300,236 160,252 120,226"/>
+  <polygon class="c1" points="110,204 130,150 190,120 260,130 310,170 320,222 260,238 160,238"/>
+  <polygon class="c2" points="130,150 190,120 260,130 310,170 250,160 190,160"/>
+  <polygon class="c2" points="170,150 198,140 224,150 226,178 198,188 172,178"/>
+  <polygon class="c2" points="234,154 258,156 272,178 256,198 232,190 226,170"/>
+  <polygon class="c4" points="120,188 138,176 150,192 134,204"/>
+  <!-- coral on shell -->
+  <polygon class="c5" points="190,142 180,106 204,140"/>
+  <polygon class="c5" points="228,140 240,96 250,144"/>
+  <polygon class="c5" points="262,152 282,118 282,158"/>
+  <!-- neck and head -->
+  <polygon class="c2" points="296,190 330,196 340,228 316,238"/>
+  <polygon class="c2" points="320,190 352,190 376,208 372,232 340,240 316,230"/>
+  <polygon class="c3" points="372,208 392,222 372,232"/>
+  <polygon class="eye" points="338,202 352,200 354,214 340,216"/>
+  <circle class="pupil" cx="346" cy="208" r="3"/>
+  <!-- near front flipper -->
+  <polygon class="c2" points="250,232 290,252 342,302 324,312 272,278 240,246"/>
+  <polygon class="c1" points="290,252 342,302 330,296 284,258"/>
+</svg>

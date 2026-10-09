@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rat king">
+  <style>
+    .c1 { fill: var(--c1, #6A5A5A); }
+    .c2 { fill: var(--c2, #968484); }
+    .c3 { fill: var(--c3, #E8C8C0); }
+    .c4 { fill: var(--c4, #1E1616); }
+    .c5 { fill: var(--c5, #FFC030); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(0 -27)">
+  <!-- knotted tails -->
+    <polygon class="c3" points="178,333 120,374 120,366 174,327"/>
+  <polygon class="c3" points="178,333 120,374 120,371 176,331"/>
+  <polygon class="c3" points="174,327 120,366 120,368 175,329"/>
+  <polygon class="c3" points="120,374 86,328 94,332 120,366"/>
+  <polygon class="c3" points="120,374 86,328 88,329 120,372"/>
+  <polygon class="c3" points="120,366 94,332 91,330 120,369"/>
+  <polygon class="c3" points="86,328 151,302 149,310 94,332"/>
+  <polygon class="c3" points="86,328 151,302 150,305 89,330"/>
+  <polygon class="c3" points="94,332 149,310 150,308 91,331"/>
+  <polygon class="c3" points="151,302 203,347 197,353 149,310"/>
+  <polygon class="c3" points="151,302 203,347 201,349 150,304"/>
+  <polygon class="c3" points="149,310 197,353 200,350 150,307"/>
+    <polygon class="c3" points="226,327 280,366 280,374 222,333"/>
+  <polygon class="c3" points="226,327 280,366 280,369 224,329"/>
+  <polygon class="c3" points="222,333 280,374 280,372 223,331"/>
+  <polygon class="c3" points="280,366 306,332 314,328 280,374"/>
+  <polygon class="c3" points="280,366 306,332 308,331 280,368"/>
+  <polygon class="c3" points="280,374 314,328 311,330 280,371"/>
+  <polygon class="c3" points="306,332 251,310 249,302 314,328"/>
+  <polygon class="c3" points="306,332 251,310 250,307 309,330"/>
+  <polygon class="c3" points="314,328 249,302 250,304 311,329"/>
+  <polygon class="c3" points="251,310 203,353 197,347 249,302"/>
+  <polygon class="c3" points="251,310 203,353 201,351 250,308"/>
+  <polygon class="c3" points="249,302 197,347 200,350 250,305"/>
+    <!-- small attendant rat -->
+  <polygon class="c1" points="86,280 120,246 150,262 150,310 110,330 80,312"/>
+  <polygon class="c2" points="86,280 120,246 150,262 112,268"/>
+  <polygon class="c1" points="98,258 94,234 118,248"/>
+  <polygon class="c3" points="100,260 98,244 112,252"/>
+  <polygon class="eye" points="116,262 132,262 132,274 116,274"/>
+  <circle class="pupil" cx="124" cy="268" r="2.8"/>
+  <polygon class="c3" points="140,284 160,288 142,298"/>
+  <polygon class="c4" points="156,286 164,288 158,294"/>
+  <polygon class="c3" points="106,300 114,300 110,312"/>
+  <!-- paw -->
+  <polygon class="c3" points="140,336 190,336 192,356 136,356"/>
+  <polygon class="c4" points="140,352 148,364 154,352"/>
+  <polygon class="c4" points="162,354 170,366 176,354"/>
+    <!-- small attendant rat -->
+  <polygon class="c1" points="314,280 280,246 250,262 250,310 290,330 320,312"/>
+  <polygon class="c2" points="314,280 280,246 250,262 288,268"/>
+  <polygon class="c1" points="302,258 306,234 282,248"/>
+  <polygon class="c3" points="300,260 302,244 288,252"/>
+  <polygon class="eye" points="284,262 268,262 268,274 284,274"/>
+  <circle class="pupil" cx="276" cy="268" r="2.8"/>
+  <polygon class="c3" points="260,284 240,288 258,298"/>
+  <polygon class="c4" points="244,286 236,288 242,294"/>
+  <polygon class="c3" points="294,300 286,300 290,312"/>
+  <!-- paw -->
+  <polygon class="c3" points="260,336 210,336 208,356 264,356"/>
+  <polygon class="c4" points="260,352 252,364 246,352"/>
+  <polygon class="c4" points="238,354 230,366 224,354"/>
+    <!-- big king rat body -->
+  <polygon class="c1" points="150,200 250,200 276,270 262,336 138,336 124,270"/>
+  <polygon class="c3" points="172,232 228,232 232,320 168,320"/>
+  <polygon class="c2" points="150,200 250,200 240,222 160,222"/>
+  <polygon class="c2" points="130,240 106,230 108,262 130,266"/>
+  <polygon class="c2" points="270,240 294,230 292,262 270,266"/>
+  <polygon class="c3" points="108,262 100,282 118,274"/>
+  <polygon class="c3" points="292,262 300,282 282,274"/>
+  <!-- head with a golden crown -->
+  <polygon class="c1" points="160,120 240,120 262,158 240,204 160,204 138,158"/>
+  <polygon class="c2" points="160,120 240,120 226,140 174,140"/>
+  <polygon class="c3" points="176,170 224,170 230,196 200,210 170,196"/>
+  <polygon class="c4" points="192,174 208,174 200,184"/>
+  <polygon class="c3" points="170,188 178,188 174,206"/>
+  <polygon class="c3" points="222,188 230,188 226,206"/>
+  <polygon class="c1" points="150,134 128,96 170,122"/>
+  <polygon class="c3" points="148,128 136,106 162,122"/>
+  <polygon class="c1" points="250,134 272,96 230,122"/>
+  <polygon class="c3" points="252,128 264,106 238,122"/>
+  <polygon class="eye" points="170,140 190,140 190,154 172,154"/>
+  <circle class="pupil" cx="180" cy="147" r="3.4"/>
+  <polygon class="eye" points="230,140 210,140 210,154 228,154"/>
+  <circle class="pupil" cx="220" cy="147" r="3.4"/>
+  <polygon class="c5" points="162,124 164,92 180,110 200,80 220,110 236,92 238,124"/>
+  <polygon class="c4" points="176,118 184,118 184,124 176,124"/>
+  <polygon class="c4" points="216,118 224,118 224,124 216,124"/>
+  </g>
+</svg>

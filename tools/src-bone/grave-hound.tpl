@@ -1,0 +1,27 @@
+<palette name="Grave hound" c1="#C8BCA0" c2="#E8DEC4" c3="#8A7E64" c4="#16120E" c5="#E8483A"/>
+  <ribbon pts="150,350,7 100,366,7 66,342,6 56,300,3" cls="c1" top="c1" under="c4"/>
+  <polygon class="c3" points="56,300 46,286 66,290"/>
+  <polygon class="c4" points="130,350 130,270 172,214 226,206 262,250 268,320 244,366 150,366"/>
+  <polygon class="c5" points="170,262 230,252 240,300 182,316"/>
+  <polygon class="c1" points="136,326 150,326 150,364 138,364"/>
+  <polygon class="c1" points="150,260 160,256 168,330 158,334"/>
+  <polygon class="c1" points="182,238 192,234 200,330 190,334"/>
+  <polygon class="c1" points="212,232 222,230 228,328 218,332"/>
+  <polygon class="c2" points="130,300 172,214 226,206 262,250 214,230 170,240 150,286"/>
+  <polygon class="c1" points="240,320 272,322 280,366 252,370"/>
+  <polygon class="c3" points="250,364 284,364 286,376 248,376"/>
+  <polygon class="c3" points="130,360 170,360 170,376 128,376"/>
+  <polygon class="c1" points="240,230 252,170 270,120 276,84 306,64 330,76 332,120 316,170 290,230"/>
+  <polygon class="c2" points="252,170 270,120 276,84 306,64 292,112 276,170"/>
+  <polygon class="c2" points="296,60 346,50 392,68 396,92 340,100 304,92"/>
+  <polygon class="c1" points="304,92 340,100 396,92 392,108 346,120 310,112"/>
+  <polygon class="c4" points="316,96 392,96 346,108"/>
+  <polygon class="c2" points="324,96 332,96 328,106"/>
+  <polygon class="c2" points="348,96 356,96 352,106"/>
+  <polygon class="c2" points="372,96 380,96 376,104"/>
+  <polygon class="c4" points="306,70 330,68 330,86 308,88"/>
+  <polygon class="c1" points="290,70 284,38 308,60"/>
+  <polygon class="c1" points="326,66 340,40 340,72"/>
+  <polygon class="eye" points="310,72 324,72 324,84 312,85"/>
+  <circle class="pupil" cx="317" cy="78" r="2.8"/>
+</svg>

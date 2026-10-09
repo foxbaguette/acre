@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cockatrice">
+  <style>
+    .c1 { fill: var(--c1, #8C6E3C); }
+    .c2 { fill: var(--c2, #B8944F); }
+    .c3 { fill: var(--c3, #F1E3BE); }
+    .c4 { fill: var(--c4, #3A2A18); }
+    .c5 { fill: var(--c5, #C8372D); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-20 -11)">
+  <!-- serpent tail -->
+  <polygon class="c1" points="136,196 116,170 80,172 58,202 66,240 100,262 140,254 150,232 128,236 104,246 80,232 76,206 90,188 114,192 132,214"/>
+  <polygon class="c2" points="136,196 116,170 80,172 90,188 114,192"/>
+  <polygon class="c3" points="58,202 66,240 80,232 76,206"/>
+  <polygon class="c4" points="150,232 140,254 166,250"/>
+  <!-- far leg -->
+  <polygon class="c2" points="214,262 232,264 230,310 226,340 212,340 216,310"/>
+  <polygon class="c4" points="200,336 238,338 244,344 196,344"/>
+  <!-- body -->
+  <polygon class="c1" points="290,170 236,160 170,170 136,200 150,250 220,270 276,250 300,210"/>
+  <polygon class="c2" points="290,170 236,160 170,170 136,200 152,206 180,184 236,176 284,184"/>
+  <polygon class="c3" points="300,210 276,250 220,270 150,250 172,244 222,254 268,236 292,208"/>
+  <!-- wing -->
+  <polygon class="c1" points="270,190 200,180 160,190 130,170 100,150 120,142 170,160 236,170"/>
+  <polygon class="c2" points="270,190 236,170 170,160 120,142 140,150 190,172"/>
+  <polygon class="c4" points="130,170 100,150 112,146 138,164"/>
+  <polygon class="c4" points="160,190 130,170 138,164 166,184"/>
+  <!-- near leg -->
+  <polygon class="c2" points="238,266 256,268 254,310 250,340 236,340 240,310"/>
+  <polygon class="c4" points="224,336 262,338 268,344 220,344"/>
+  <!-- neck -->
+  <polygon class="c1" points="284,168 300,210 340,146 318,116"/>
+  <polygon class="c2" points="284,168 318,116 326,128 296,176"/>
+  <!-- head -->
+  <polygon class="c3" points="300,110 324,100 348,108 360,124 344,140 318,142 304,130"/>
+  <!-- comb -->
+  <polygon class="c5" points="300,108 306,84 314,102 322,78 332,100 338,84 344,106"/>
+  <!-- beak and wattle -->
+  <polygon class="c2" points="356,116 382,128 354,136"/>
+  <polygon class="c5" points="320,142 334,140 330,160 318,154"/>
+  <!-- eye -->
+  <polygon class="pupil" points="326,116 336,114 338,122 328,124"/>
+  <circle cx="331" cy="118" r="1.3" class="eye"/>
+  </g>
+</svg>

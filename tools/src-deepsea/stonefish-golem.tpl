@@ -1,0 +1,26 @@
+<palette name="Stonefish golem" c1="#7A6E64" c2="#A8998A" c3="#D8CDB8" c4="#3A322C" c5="#E0603A"/>
+  <!-- tail -->
+  <polygon class="c2" points="82,204 24,168 10,252 82,244"/>
+  <polygon class="c1" points="82,204 24,168 40,206"/>
+  <polygon class="c4" points="24,168 18,200 40,206"/>
+  <!-- poison spines -->
+  <polygon class="c5" points="130,150 118,100 150,144"/>
+  <polygon class="c5" points="172,136 166,84 194,132"/>
+  <polygon class="c5" points="212,130 216,76 238,130"/>
+  <polygon class="c5" points="250,134 262,84 280,142"/>
+  <polygon class="c5" points="288,144 308,102 310,154"/>
+  <!-- body -->
+  <polygon class="c1" points="70,200 120,150 200,126 290,140 340,190 330,250 260,280 170,282 100,250"/>
+  <polygon class="c2" points="120,150 200,126 290,140 340,190 240,162 180,172"/>
+  <polygon class="c3" points="330,250 260,280 170,282 100,250 170,258 250,254"/>
+  <polygon class="c4" points="160,204 172,192 186,208 172,218"/>
+  <polygon class="c4" points="210,196 224,186 236,200 222,212"/>
+  <polygon class="c3" points="236,222 246,216 252,228 242,234"/>
+  <polygon class="c3" points="128,226 138,220 144,232 134,238"/>
+  <!-- pectoral fin -->
+  <polygon class="c2" points="224,232 274,252 232,276 192,254"/>
+  <!-- face -->
+  <polygon class="c4" points="342,198 332,236 306,226"/>
+  <polygon class="eye" points="298,176 318,172 322,190 302,194"/>
+  <circle class="pupil" cx="310" cy="183" r="3.6"/>
+</svg>

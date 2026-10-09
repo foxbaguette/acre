@@ -1,0 +1,47 @@
+<palette name="Reef rex" c1="#3A7A8A" c2="#6AB0B8" c3="#E8F0E0" c4="#123038" c5="#FF7A6A"/>
+  <!-- tail with coral tip -->
+  <polygon class="c1" points="132,230 80,252 40,292 30,312 62,302 102,278 136,264"/>
+  <polygon class="c5" points="30,312 12,296 20,326"/>
+  <polygon class="c5" points="34,306 4,312 22,330"/>
+  <!-- far leg -->
+  <polygon class="c1" points="170,266 230,270 226,330 190,332"/>
+  <polygon class="c1" points="190,328 228,328 236,358 186,364"/>
+  <!-- coral garden -->
+  <polygon class="c5" points="176,176 168,124 176,120 186,170"/>
+  <polygon class="c5" points="172,152 150,138 154,130 176,144"/>
+  <polygon class="c5" points="182,146 200,126 206,132 188,156"/>
+  <polygon class="c5" points="226,172 232,108 242,110 238,174"/>
+  <polygon class="c5" points="234,142 262,122 266,130 238,152"/>
+  <polygon class="c5" points="230,126 206,106 212,100 234,116"/>
+  <polygon class="c3" points="172,122 180,118 182,128 174,130"/>
+  <polygon class="c3" points="234,106 242,106 242,116 234,116"/>
+  <!-- body -->
+  <polygon class="c1" points="130,204 180,172 240,172 280,202 276,260 240,292 150,292 120,252"/>
+  <polygon class="c2" points="180,172 240,172 280,202 276,260 240,210 190,206"/>
+  <polygon class="c3" points="240,292 150,292 120,252 160,274 230,270"/>
+  <polygon class="c3" points="200,220 210,214 220,222 212,230"/>
+  <polygon class="c3" points="240,238 250,234 256,244 246,250"/>
+  <polygon class="c3" points="160,236 170,230 178,240 168,246"/>
+  <!-- near leg -->
+  <polygon class="c1" points="190,274 252,276 246,332 208,336"/>
+  <polygon class="c2" points="190,274 252,276 250,290 192,288"/>
+  <polygon class="c1" points="208,332 246,330 256,360 204,366"/>
+  <polygon class="c4" points="204,358 258,356 262,368 200,370"/>
+  <!-- tiny arms -->
+  <polygon class="c1" points="264,214 292,224 298,242 290,246 274,234"/>
+  <!-- neck and roaring head -->
+  <polygon class="c1" points="256,194 282,150 314,118 330,150 296,200 280,214"/>
+  <polygon class="c1" points="300,100 340,80 390,96 398,128 372,148 316,140"/>
+  <polygon class="c2" points="300,100 340,80 390,96 350,100"/>
+  <polygon class="c4" points="330,138 394,132 388,158 332,150"/>
+  <polygon class="c1" points="330,148 384,154 396,176 340,178"/>
+  <polygon class="c3" points="344,136 350,136 347,148"/>
+  <polygon class="c3" points="362,134 368,134 365,146"/>
+  <polygon class="c3" points="378,132 384,132 381,144"/>
+  <polygon class="c3" points="356,152 362,152 359,142"/>
+  <polygon class="c5" points="312,98 306,64 322,92"/>
+  <polygon class="c5" points="328,88 336,54 344,88"/>
+  <polygon class="c4" points="326,98 360,92 360,100 328,106"/>
+  <polygon class="eye" points="334,104 352,102 352,114 334,116"/>
+  <circle class="pupil" cx="343" cy="109" r="3.4"/>
+</svg>

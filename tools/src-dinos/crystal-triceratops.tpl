@@ -1,0 +1,35 @@
+<palette name="Crystal triceratops" c1="#6A7A9A" c2="#8EA0C0" c3="#D8E4F4" c4="#2A3248" c5="#E86AF0"/>
+  <!-- tail -->
+  <polygon class="c1" points="100,246 60,262 36,290 50,292 76,276 104,266"/>
+  <!-- far legs -->
+  <polygon class="c1" points="270,292 306,294 330,332 322,348 290,334"/>
+  <polygon class="c1" points="150,294 190,296 186,342 190,356 150,356 146,326"/>
+  <!-- frill with crystal studs -->
+  <polygon class="c2" points="290,200 280,120 330,90 380,110 392,170 372,230 330,240"/>
+  <polygon class="c3" points="310,150 340,130 368,150 350,190 318,186"/>
+  <polygon class="c5" points="280,120 262,96 296,112"/>
+  <polygon class="c5" points="330,90 336,58 352,92"/>
+  <polygon class="c5" points="380,110 406,88 398,128"/>
+  <polygon class="c5" points="392,170 416,172 394,188"/>
+  <polygon class="c5" points="372,230 396,246 368,246"/>
+  <!-- body -->
+  <polygon class="c1" points="100,232 150,202 230,202 290,222 320,264 300,302 140,302 104,272"/>
+  <polygon class="c2" points="150,202 230,202 290,222 320,264 240,234 160,236"/>
+  <polygon class="c3" points="300,302 140,302 104,272 160,290 280,288"/>
+  <polygon class="c5" points="190,214 200,230 190,246 180,230"/>
+  <polygon class="c5" points="240,222 248,236 240,250 232,236"/>
+  <!-- near legs -->
+  <polygon class="c1" points="282,290 318,294 342,332 332,350 298,332"/>
+  <polygon class="c1" points="130,292 176,294 172,342 178,358 130,358 126,322"/>
+  <polygon class="c4" points="318,342 346,342 344,354 316,354"/>
+  <polygon class="c4" points="128,348 180,348 182,360 126,360"/>
+  <!-- head with beak and horns -->
+  <polygon class="c1" points="340,204 380,198 400,232 388,264 344,268 330,242"/>
+  <polygon class="c2" points="340,204 380,198 400,232 356,224"/>
+  <polygon class="c3" points="388,238 410,250 388,264"/>
+  <polygon class="c5" points="362,198 378,152 374,204"/>
+  <polygon class="c5" points="346,202 352,160 362,204"/>
+  <polygon class="c5" points="392,228 410,206 400,238"/>
+  <polygon class="eye" points="346,218 362,218 362,230 346,230"/>
+  <circle class="pupil" cx="354" cy="224" r="3.2"/>
+</svg>

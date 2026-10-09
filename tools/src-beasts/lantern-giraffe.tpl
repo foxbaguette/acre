@@ -1,0 +1,47 @@
+<palette name="Lantern giraffe" c1="#E8B040" c2="#F8D880" c3="#FFF0C8" c4="#6A3A1A" c5="#FFE060"/>
+  <!-- legs: tops tuck up inside the body so they are fully attached -->
+  <polygon class="c1" points="146,276 166,276 168,392 148,392"/>
+  <polygon class="c1" points="270,276 290,276 292,392 272,392"/>
+  <polygon class="c4" points="148,382 168,382 170,394 146,394"/>
+  <polygon class="c4" points="272,382 292,382 294,394 270,394"/>
+  <polygon class="c1" points="124,276 146,276 148,392 126,392"/>
+  <polygon class="c1" points="250,276 272,276 274,392 252,392"/>
+  <polygon class="c2" points="124,276 133,276 135,392 126,392"/>
+  <polygon class="c2" points="250,276 259,276 261,392 252,392"/>
+  <polygon class="c4" points="124,382 148,382 150,394 122,394"/>
+  <polygon class="c4" points="250,382 274,382 276,394 248,394"/>
+  <!-- tail with lantern -->
+  <polygon class="c4" points="114,266 100,300 98,326 106,326 110,302 120,278"/>
+  <polygon class="c5" points="92,322 108,316 112,334 96,342"/>
+  <!-- tall neck: the base runs down inside the shoulder -->
+  <polygon class="c1" points="224,266 244,196 262,100 270,66 300,48 318,68 308,120 292,196 282,266"/>
+  <polygon class="c2" points="224,266 244,196 262,100 270,66 300,48 286,100 266,200 250,266"/>
+  <polygon class="c4" points="262,150 282,146 280,176 266,180"/>
+  <polygon class="c4" points="270,100 290,96 290,120 274,124"/>
+  <polygon class="c4" points="256,196 276,192 276,220 258,224"/>
+  <polygon class="c5" points="268,154 278,152 276,168 270,170"/>
+  <!-- body -->
+  <polygon class="c1" points="110,252 150,232 240,232 282,252 286,302 250,322 140,322 112,298"/>
+  <polygon class="c2" points="150,232 240,232 282,252 286,302 240,262 160,266"/>
+  <polygon class="c3" points="250,322 140,322 112,298 160,310 240,308"/>
+  <polygon class="c4" points="160,246 190,240 196,270 170,282"/>
+  <polygon class="c4" points="206,250 232,246 234,276 208,284"/>
+  <polygon class="c5" points="170,252 184,250 186,266 174,270"/>
+  <polygon class="c5" points="214,256 226,254 226,268 216,272"/>
+  <!-- shoulder: blends the neck into the body -->
+  <polygon class="c1" points="226,244 246,198 290,214 286,264 244,268"/>
+  <polygon class="c2" points="226,244 246,198 262,208 244,246"/>
+  <!-- head and glowing lantern horns -->
+  <polygon class="c1" points="292,38 332,32 356,52 346,76 306,80 292,62"/>
+  <polygon class="c2" points="292,38 332,32 356,52 322,48"/>
+  <polygon class="c3" points="356,52 346,76 306,80 330,66"/>
+  <polygon class="c4" points="304,36 306,12 310,12 310,36"/>
+  <polygon class="c4" points="330,32 332,8 336,8 336,32"/>
+  <polygon class="c5" points="296,-8 320,-8 322,10 294,10"/>
+  <polygon class="c5" points="322,-14 346,-14 348,6 320,6"/>
+  <polygon class="c4" points="294,-10 322,-10 322,-6 294,-6"/>
+  <polygon class="c1" points="300,50 286,44 296,62"/>
+  <polygon class="eye" points="324,46 340,46 340,58 324,58"/>
+  <circle class="pupil" cx="332" cy="52" r="3"/>
+  <polygon class="c4" points="352,56 358,60 352,66"/>
+</svg>

@@ -1,0 +1,24 @@
+<palette name="Pristis" c1="#7A7A5A" c2="#AAAA80" c3="#F0ECD0" c4="#24241A" c5="#E86A4A"/>
+  <polygon class="c1" points="30,200 100,170 120,230 100,290 30,300"/>
+  <polygon class="c2" points="30,200 100,170 108,200 40,230"/>
+  <polygon class="c5" points="30,250 4,210 12,290"/>
+  <polygon class="c1" points="100,180 170,150 250,160 300,200 280,260 190,280 110,260"/>
+  <polygon class="c2" points="170,150 250,160 300,200 220,190 150,200"/>
+  <polygon class="c3" points="280,260 190,280 110,260 190,248 260,240"/>
+  <polygon class="c4" points="180,158 200,116 236,162"/>
+  <polygon class="c2" points="170,262 120,336 210,298"/>
+  <polygon class="c2" points="220,200 260,160 270,230"/>
+  <polygon class="c1" points="290,206 396,196 396,230 296,252"/>
+  <polygon class="c2" points="290,206 396,196 396,206 300,224"/>
+  <polygon class="c3" points="306,252 312,282 322,252"/>
+  <polygon class="c3" points="332,246 338,276 348,244"/>
+  <polygon class="c3" points="358,240 364,270 374,238"/>
+  <polygon class="c3" points="384,234 388,262 396,232"/>
+  <polygon class="c3" points="310,200 316,176 324,198"/>
+  <polygon class="c3" points="338,198 344,174 352,196"/>
+  <polygon class="c3" points="366,196 372,172 380,194"/>
+  <polygon class="c4" points="236,226 246,222 250,238 240,242"/>
+  <polygon class="c4" points="176,230 188,226 190,242 178,244"/>
+  <polygon class="eye" points="262,200 282,200 282,214 264,216"/>
+  <circle class="pupil" cx="272" cy="207" r="3.6"/>
+</svg>

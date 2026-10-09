@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aurora pterosaur">
+  <style>
+    .c1 { fill: var(--c1, #5A4A9A); }
+    .c2 { fill: var(--c2, #8A7AD0); }
+    .c3 { fill: var(--c3, #D8F0F0); }
+    .c4 { fill: var(--c4, #1A1440); }
+    .c5 { fill: var(--c5, #5AF0B8); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-12 35)">
+  <!-- far wing -->
+  <polygon class="c5" points="230,196 234,195 289,43 270,20"/>
+  <polygon class="c2" points="234,195 238,194 307,67 289,43"/>
+  <polygon class="c3" points="238,194 242,193 326,90 307,67"/>
+  <polygon class="c5" points="242,193 246,192 345,113 326,90"/>
+  <polygon class="c2" points="246,192 250,191 363,137 345,113"/>
+  <polygon class="c3" points="250,191 254,190 382,160 363,137"/>
+  <polygon class="c4" points="228,197 233,196 272,22 268,18"/>
+  <!-- legs trailing -->
+  <polygon class="c4" points="200,252 160,290 130,300 130,292 158,282 196,246"/>
+  <polygon class="c4" points="212,254 190,296 164,312 160,304 184,290 204,250"/>
+  <polygon class="c1" points="196,244 214,250 208,262 198,258"/>
+  <!-- near wing with aurora bands -->
+  <polygon class="c5" points="200,196 203,197 40,78 30,50"/>
+  <polygon class="c2" points="203,197 207,199 50,105 40,78"/>
+  <polygon class="c3" points="207,199 210,200 60,133 50,105"/>
+  <polygon class="c2" points="210,200 213,201 70,160 60,133"/>
+  <polygon class="c5" points="213,201 216,202 80,188 70,160"/>
+  <polygon class="c2" points="216,202 220,204 90,215 80,188"/>
+  <polygon class="c3" points="220,204 223,205 100,243 90,215"/>
+  <polygon class="c2" points="223,205 226,206 110,270 100,243"/>
+  <polygon class="c4" points="200,196 206,204 34,52 28,44"/>
+  <!-- body -->
+  <polygon class="c1" points="190,200 250,190 280,220 260,250 200,256"/>
+  <polygon class="c2" points="190,200 250,190 280,220 230,206"/>
+  <polygon class="c2" points="190,200 230,206 212,226 194,232"/>
+  <polygon class="c3" points="260,250 200,256 230,238"/>
+  <polygon class="c1" points="280,220 260,250 248,240 266,226"/>
+  <polygon class="c2" points="250,190 268,194 280,220 262,204"/>
+  <!-- neck, head and long crest -->
+  <polygon class="c1" points="249,191 278,163 298,181 275,213"/>
+  <polygon class="c2" points="249,191 278,163 286,171 260,200"/>
+  <polygon class="c3" points="275,213 298,181 292,176 267,206"/>
+  <polygon class="c1" points="278,163 301,145 315,159 298,181"/>
+  <polygon class="c2" points="278,163 301,145 305,149 284,168"/>
+  <polygon class="c3" points="298,181 315,159 309,153 290,173"/>
+  <polygon class="c5" points="300,140 250,100 214,92 262,126 304,152"/>
+  <polygon class="c3" points="300,140 250,100 214,92 264,118"/>
+  <polygon class="c1" points="300,138 350,130 396,148 394,156 346,160 306,162"/>
+  <polygon class="c2" points="300,138 350,130 396,148 350,142"/>
+  <polygon class="c2" points="300,138 350,142 318,150 304,156"/>
+  <polygon class="c3" points="346,160 394,156 360,178 336,168"/>
+  <polygon class="eye" points="318,142 334,140 334,152 318,154"/>
+  <circle class="pupil" cx="326" cy="147" r="3"/>
+  </g>
+</svg>

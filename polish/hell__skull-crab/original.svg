@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Skull crab">
+  <style>
+    .c1 { fill: var(--c1, #A83A2A); }
+    .c2 { fill: var(--c2, #D8604A); }
+    .c3 { fill: var(--c3, #F0E4D0); }
+    .c4 { fill: var(--c4, #2A100C); }
+    .c5 { fill: var(--c5, #FF8A2A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(0 20)">
+    <!-- legs -->
+  <polygon class="c4" points="150,232 110,252 80,292 88,298 120,264 158,244"/>
+  <polygon class="c4" points="146,222 98,226 60,252 66,258 102,238 148,232"/>
+  <polygon class="c4" points="156,242 124,278 108,322 116,324 134,286 164,252"/>
+  <!-- claws -->
+  <polygon class="c1" points="146,200 118,176 96,186 126,218"/>
+  <polygon class="c1" points="96,186 80,158 106,138 122,170"/>
+  <polygon class="c1" points="80,158 52,120 62,78 102,100 110,146"/>
+  <polygon class="c3" points="62,78 52,36 90,68 102,100"/>
+  <polygon class="c2" points="52,120 28,94 42,70 62,78"/>
+  <polygon class="c5" points="66,100 76,112 66,124 56,112"/>
+  <!-- eye stalks -->
+  <polygon class="c4" points="176,150 184,150 182,126 176,126"/>
+  <polygon class="eye" points="166,114 184,112 186,126 168,128"/>
+  <circle class="pupil" cx="176" cy="121" r="3"/>
+    <!-- legs -->
+  <polygon class="c4" points="250,232 290,252 320,292 312,298 280,264 242,244"/>
+  <polygon class="c4" points="254,222 302,226 340,252 334,258 298,238 252,232"/>
+  <polygon class="c4" points="244,242 276,278 292,322 284,324 266,286 236,252"/>
+  <!-- claws -->
+  <polygon class="c1" points="254,200 282,176 304,186 274,218"/>
+  <polygon class="c1" points="304,186 320,158 294,138 278,170"/>
+  <polygon class="c1" points="320,158 348,120 338,78 298,100 290,146"/>
+  <polygon class="c3" points="338,78 348,36 310,68 298,100"/>
+  <polygon class="c2" points="348,120 372,94 358,70 338,78"/>
+  <polygon class="c5" points="334,100 324,112 334,124 344,112"/>
+  <!-- eye stalks -->
+  <polygon class="c4" points="224,150 216,150 218,126 224,126"/>
+  <polygon class="eye" points="234,114 216,112 214,126 232,128"/>
+  <circle class="pupil" cx="224" cy="121" r="3"/>
+    <!-- shell shaped like a skull -->
+  <polygon class="c3" points="130,200 150,150 200,134 250,150 270,200 252,240 228,252 172,252 148,240"/>
+  <polygon class="c2" points="150,150 200,134 250,150 200,160"/>
+  <polygon class="c4" points="152,176 188,172 190,208 160,212"/>
+  <polygon class="c4" points="248,176 212,172 210,208 240,212"/>
+  <polygon class="c5" points="162,184 178,182 178,198 164,200"/>
+  <polygon class="c5" points="238,184 222,182 222,198 236,200"/>
+  <polygon class="c4" points="194,208 206,208 200,226"/>
+  <polygon class="c1" points="168,238 232,238 224,252 176,252"/>
+  <polygon class="c4" points="176,242 182,242 182,252 176,252"/>
+  <polygon class="c4" points="190,242 196,242 196,252 190,252"/>
+  <polygon class="c4" points="204,242 210,242 210,252 204,252"/>
+  <polygon class="c4" points="218,242 224,242 224,252 218,252"/>
+  </g>
+</svg>

@@ -1,0 +1,17 @@
+<palette name="Dolphin" c1="#6A8AA8" c2="#90AEC8" c3="#F0F6FA" c4="#1E2A3A" c5="#B8CCDC"/>
+  <polygon class="c1" points="64,330 30,380 74,372 100,352"/>
+  <polygon class="c1" points="64,330 44,300 20,320 30,380"/>
+  <polygon class="c1" points="90,336 120,280 180,220 260,176 330,160 376,180 368,220 320,244 250,284 180,334 130,362"/>
+  <polygon class="c2" points="120,280 180,220 260,176 330,160 376,180 300,190 220,234 160,290"/>
+  <polygon class="c3" points="368,220 320,244 250,284 180,334 130,362 150,330 220,290 300,236"/>
+  <polygon class="c4" points="238,180 276,126 296,176"/>
+  <polygon class="c2" points="244,178 272,142 282,176"/>
+  <polygon class="c1" points="220,268 190,330 170,360 216,326 244,290"/>
+  <polygon class="c5" points="224,276 202,320 224,296"/>
+  <polygon class="c1" points="360,180 396,200 394,214 366,214"/>
+  <polygon class="c3" points="394,214 366,214 340,224 390,222"/>
+  <polygon class="c4" points="390,200 398,204 392,210"/>
+  <polygon class="c4" points="346,214 366,214 362,218 348,220"/>
+  <polygon class="eye" points="326,182 342,182 342,194 328,196"/>
+  <circle class="pupil" cx="334" cy="188" r="3"/>
+</svg>

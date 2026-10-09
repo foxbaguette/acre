@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kirin">
+  <style>
+    .c1 { fill: var(--c1, #D8A840); }
+    .c2 { fill: var(--c2, #F0D070); }
+    .c3 { fill: var(--c3, #FFF4D0); }
+    .c4 { fill: var(--c4, #2A4A6A); }
+    .c5 { fill: var(--c5, #FF6A3A); }
+    .eye { fill: #fff; }
+    .pupil { fill: #000; }
+  </style>
+  <g transform="translate(-23 10)">
+  <!-- flame tail streaming back -->
+  <polygon class="c5" points="116,190 98,178 80,174 62,182 44,204 62,202 68,216 82,210 98,226 116,214"/>
+  <polygon class="c2" points="110,196 92,188 74,192 62,204 78,204 86,212 108,210"/>
+  <polygon class="c3" points="104,200 90,194 78,200 90,206 102,206"/>
+  <!-- far legs -->
+  <polygon class="c1" points="150,226 186,232 182,262 174,296 178,330 156,330 156,296 152,262"/>
+  <polygon class="c1" points="238,226 266,230 268,262 262,300 268,330 246,330 246,300 242,262"/>
+  <polygon class="c5" points="154,330 178,330 180,318 184,302 174,312 168,296 162,312 154,302 156,318"/>
+  <polygon class="c5" points="244,330 268,330 270,318 274,302 264,312 258,296 252,312 244,302 246,318"/>
+  <polygon class="c4" points="156,328 178,328 180,342 154,342"/>
+  <polygon class="c4" points="246,328 266,328 268,342 244,342"/>
+  <!-- body -->
+  <polygon class="c1" points="108,180 130,164 170,154 250,154 284,166 298,190 298,224 278,246 220,250 150,250 120,238 108,210"/>
+  <polygon class="c2" points="108,180 130,164 170,154 250,154 284,166 298,190 254,176 200,174 150,180 120,196 110,206"/>
+  <polygon class="c3" points="298,224 278,246 220,250 150,250 120,238 160,240 224,240 270,232"/>
+  <!-- scale band along the spine -->
+  <polygon class="c4" points="168,156 210,152 250,154 280,164 292,178 262,170 214,168 172,172"/>
+  <!-- flank scales -->
+  <polygon class="c4" points="144,198 158,190 172,198 158,210"/>
+  <polygon class="c4" points="180,186 194,178 208,186 194,198"/>
+  <polygon class="c4" points="216,186 230,178 244,186 230,198"/>
+  <polygon class="c4" points="166,214 174,210 182,214 174,220"/>
+  <polygon class="c4" points="204,206 212,202 220,206 212,212"/>
+  <polygon class="c4" points="246,202 254,198 262,202 254,208"/>
+  <!-- near legs with flaming fetlocks -->
+  <polygon class="c1" points="116,218 162,226 158,262 150,296 154,330 128,330 128,296 122,262"/>
+  <polygon class="c2" points="121,244 131,246 132,262 136,296 136,330 128,330 128,296 122,262"/>
+  <polygon class="c1" points="262,222 294,228 296,262 290,300 296,330 272,330 272,300 268,262"/>
+  <polygon class="c2" points="266,244 275,246 276,262 280,300 280,330 272,330 272,300 268,262"/>
+  <polygon class="c5" points="126,330 154,330 156,316 162,298 150,310 144,290 138,310 128,298 130,316"/>
+  <polygon class="c5" points="270,330 298,330 300,316 306,298 294,310 288,290 282,310 272,298 274,316"/>
+  <polygon class="c2" points="134,330 146,330 144,312 140,320"/>
+  <polygon class="c2" points="278,330 290,330 288,312 284,320"/>
+  <polygon class="c4" points="126,328 152,328 154,342 124,342"/>
+  <polygon class="c4" points="270,328 298,328 300,342 266,342"/>
+  <!-- flame mane growing from the neck -->
+  <polygon class="c5" points="270,168 256,132 284,150"/>
+  <polygon class="c5" points="286,144 276,104 304,128"/>
+  <polygon class="c5" points="304,120 302,82 324,104"/>
+  <polygon class="c2" points="270,166 264,146 278,156"/>
+  <polygon class="c2" points="286,142 282,120 296,132"/>
+  <polygon class="c2" points="304,118 304,98 316,108"/>
+  <!-- arched neck -->
+  <polygon class="c1" points="264,176 284,140 302,112 326,92 350,112 334,140 316,170 300,206 296,226"/>
+  <polygon class="c2" points="264,176 284,140 302,112 326,92 330,98 312,124 296,154 280,188"/>
+  <!-- antler growing from the crown -->
+  <polygon class="c3" points="334,94 330,52 338,48 346,92"/>
+  <polygon class="c3" points="334,70 312,44 318,38 338,60"/>
+  <polygon class="c3" points="340,80 352,64 356,68 342,86"/>
+  <!-- dragon head -->
+  <polygon class="c1" points="324,96 342,88 364,96 384,110 394,124 388,142 368,148 346,150 330,134"/>
+  <polygon class="c2" points="324,96 342,88 364,96 384,110 394,124 360,114 334,110"/>
+  <polygon class="c3" points="388,142 368,148 346,150 354,138 374,138"/>
+  <!-- flame beard and whisker -->
+  <polygon class="c5" points="346,148 338,176 358,150"/>
+  <polygon class="c5" points="386,130 402,140 388,144"/>
+  <polygon class="eye" points="342,108 350,105 358,108 358,118 350,121 342,118"/>
+  <circle class="pupil" cx="350" cy="113" r="3"/>
+  <circle class="eye" cx="349" cy="112" r="0.9"/>
+  </g>
+</svg>
