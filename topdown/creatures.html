@@ -28,13 +28,20 @@
   .bar label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
   .progress { font-variant-numeric: tabular-nums; }
   main { max-width: 1240px; margin: 0 auto; padding: 0 16px 40px;
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 16px; }
+  main.eggs { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
   .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
   .head h2 { margin: 0; font-size: 16px; }
   .badge { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
   .badge.done { color: var(--ok); } .badge.wait { color: var(--wait); }
-  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pair { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  main.eggs .pair { grid-template-columns: 1fr 1fr; }
+  main.eggs .creature { display: none; }
+  figure .art { width: 100%; aspect-ratio: 1; display: block; }
+  figure .art svg { width: 100%; height: 100%; display: block; }
+  .bar select, .bar button { font: inherit; padding: 3px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+  .bar button { cursor: pointer; }
   figure { margin: 0; background: var(--tile); border-radius: 10px; overflow: hidden; }
   figure img { width: 100%; aspect-ratio: 1; display: block; }
   figcaption { padding: 5px 9px; font-size: 12px; color: var(--muted); }
@@ -48,10 +55,13 @@
 <header>
   <p class="crumb"><a href="index.html">Sheets</a> / Creatures</p>
   <h1>Creatures</h1>
-  <p class="sub">Each favorite seen from the side and from above. New top-down drawings appear here by themselves as they are finished.</p>
+  <p class="sub">Each favorite from the side and from above, with its egg from the front and from above. New drawings appear here by themselves as they are finished. An egg must be recognisable by its style alone, so try them in other colours.</p>
   <div class="bar">
     <span class="progress" id="progress">Loading…</span>
-    <label><input type="checkbox" id="onlyDone"> Show finished only</label>
+    <label><input type="checkbox" id="onlyDone"> Show finished eggs only</label>
+    <label><input type="checkbox" id="eggsOnly"> Eggs only</label>
+    <label>Colours <select id="colours"><option value="own">Own colours</option><option value="shuffle">Shuffled for each</option><option value="same">One palette for all</option></select></label>
+    <button type="button" id="reroll">New colours</button>
   </div>
 </header>
 <main id="cards"></main>
@@ -67,8 +77,10 @@ function render() {
     <section class="card" data-key="${k}">
       <div class="head"><h2>${title(k)}</h2><span class="badge wait">Drawing…</span></div>
       <div class="pair">
-        <figure><img alt="${title(k)} from the side" src="${folder(k)}/side.svg"><figcaption>Side</figcaption></figure>
-        <figure class="pending"><a class="big" target="_blank" href="${folder(k)}/top.svg"><img alt="${title(k)} from above" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></a><figcaption>From above</figcaption></figure>
+        <figure class="pending creature" data-f="side"><a class="big" target="_blank" href="${folder(k)}/side.svg"><div class="art"></div></a><figcaption>Side</figcaption></figure>
+        <figure class="pending creature" data-f="top"><a class="big" target="_blank" href="${folder(k)}/top.svg"><div class="art"></div></a><figcaption>From above</figcaption></figure>
+        <figure class="pending" data-f="egg-front"><a class="big" target="_blank" href="${folder(k)}/egg-front.svg"><div class="art"></div></a><figcaption>Egg</figcaption></figure>
+        <figure class="pending" data-f="egg-top"><a class="big" target="_blank" href="${folder(k)}/egg-top.svg"><div class="art"></div></a><figcaption>Egg from above</figcaption></figure>
       </div>
     </section>`).join('');
   applyFilter();
@@ -76,29 +88,58 @@ function render() {
 
 function applyFilter() {
   const only = document.getElementById('onlyDone').checked;
-  document.querySelectorAll('.card').forEach(c => { c.hidden = only && !stamps[c.dataset.key]; });
+  document.querySelectorAll('.card').forEach(c => { c.hidden = only && !eggStamps[c.dataset.key]; });
 }
 
+// Every picture is placed inline so its colours can be swapped: its own, shuffled ones for each creature, or one
+// palette for all (the test that an egg is recognisable by its style alone).
+const SVG = {}, PAL = {}, eggStamps = {};
+function hsl(h, sat, l) {
+  sat /= 100; l /= 100; const a = sat * Math.min(l, 1 - l);
+  const f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
+  return '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+}
+function randomPalette() {
+  const h = Math.random() * 360, h2 = (h + 150 + Math.random() * 60) % 360, sat = 35 + Math.random() * 40;
+  return [hsl(h, sat, 52), hsl(h, sat, 66), hsl((h + 20) % 360, 30, 88), hsl(h, sat * 0.7, 20), hsl(h2, 70, 55)];
+}
+let SAME = randomPalette();
+function paint(k, f) {
+  const card = document.querySelector('.card[data-key="' + k + '"]'); if (!card) return;
+  const fg = card.querySelector('figure[data-f="' + f + '"]'), text = SVG[k + '|' + f]; if (!fg || !text) return;
+  const mode = document.getElementById('colours').value, art = fg.querySelector('.art');
+  art.innerHTML = text.replace(/<\?xml[^>]*>/, '');
+  const pal = mode === 'same' ? SAME : mode === 'shuffle' ? (PAL[k] = PAL[k] || randomPalette()) : null;
+  for (let i = 1; i <= 5; i++) art.style.removeProperty('--c' + i);
+  if (pal) pal.forEach((c, i) => art.style.setProperty('--c' + (i + 1), c));
+  else for (const m of text.matchAll(/--c(\d), (#[0-9A-Fa-f]{3,8})/g)) art.style.setProperty('--c' + m[1], m[2]);   // inline styles share the page, so each picture carries its own colours
+  fg.classList.remove('pending');
+}
+async function load(k, f, stamp) {
+  try { const r = await fetch(folder(k) + '/' + f + '.svg?t=' + encodeURIComponent(stamp), { cache: 'no-store' }); if (r.ok) { SVG[k + '|' + f] = await r.text(); paint(k, f); } } catch (e) {}
+}
+async function stampOf(k, file) {
+  try { const r = await fetch(folder(k) + '/' + file + '?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) return (await r.text()).trim(); } catch (e) {}
+  return '';
+}
 async function poll() {
-  let done = 0;
+  let eggs = 0;
   await Promise.all(keys.map(async k => {
-    let s = '';
-    try { const r = await fetch(`${folder(k)}/done.txt?t=${Date.now()}`, { cache: 'no-store' }); if (r.ok) s = (await r.text()).trim(); } catch (e) {}
-    if (s) done++;
-    if (s && s !== stamps[k]) {
-      stamps[k] = s;
-      const card = document.querySelector(`.card[data-key="${k}"]`);
-      if (card) {
-        const b = card.querySelector('.badge'); b.className = 'badge done'; b.textContent = 'Done';
-        const fig = card.querySelectorAll('figure')[1]; fig.classList.remove('pending');
-        fig.querySelector('img').src = `${folder(k)}/top.svg?t=${encodeURIComponent(s)}`;
-      }
-    }
+    const s1 = await stampOf(k, 'done.txt'), e = await stampOf(k, 'egg-done.txt');
+    if (e) eggs++;
+    if (!SVG[k + '|side']) load(k, 'side', 'side');
+    if (s1 && s1 !== stamps[k]) { stamps[k] = s1; load(k, 'top', s1); }
+    if (e && e !== eggStamps[k]) { eggStamps[k] = e; load(k, 'egg-front', e); load(k, 'egg-top', e); }
+    const card = document.querySelector('.card[data-key="' + k + '"]');
+    if (card) { const bd = card.querySelector('.badge'); bd.className = 'badge ' + (e ? 'done' : 'wait'); bd.textContent = e ? 'Egg done' : 'Egg pending'; }
   }));
-  document.getElementById('progress').textContent = `${done} of ${keys.length} drawn from above`;
+  document.getElementById('progress').textContent = eggs + ' of ' + keys.length + ' eggs drawn';
   applyFilter();
 }
-
+function repaint() { for (const id in SVG) { const [k, f] = id.split('|'); paint(k, f); } }
+document.getElementById('colours').addEventListener('change', repaint);
+document.getElementById('reroll').addEventListener('click', () => { SAME = randomPalette(); for (const k in PAL) delete PAL[k]; repaint(); });
+document.getElementById('eggsOnly').addEventListener('change', e => document.getElementById('cards').classList.toggle('eggs', e.target.checked));
 document.getElementById('onlyDone').addEventListener('change', applyFilter);
 fetch('favorites.txt?t=' + Date.now(), { cache: 'no-store' }).then(r => r.text()).then(t => {
   keys = t.split(/\r?\n/).map(s => s.trim()).filter(Boolean);

@@ -736,10 +736,12 @@ function through(ctx, draw, path, V, W, H, dy = 0, box = null) {
 function nearMaps() {
   const { cols, rows, cells } = MAP, elev = MAP_EXTRA.elev, near = { t: {}, l: {} };
   // Under the edge between two kinds of ground, grass must not peek through: below a sand, rock, field or path cell
-  // that borders another kind lies its own kind, and below water that borders such ground lies that ground.
+  // that borders another kind lies its own kind, and below water that borders such ground lies that ground; not where
+  // grass is also next door, since that border needs grass below its curve.
   const PREF = ['sand', 'rock', 'soil', 'path'];
   cells.forEach((c, i) => { if (c.type === 'grass') return; const x = i % cols, y = (i - x) / cols; let other = null;
     for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) { const X = x + k, Y = y + j; if ((j || k) && X >= 0 && Y >= 0 && X < cols && Y < rows) { const n = cells[Y * cols + X]; if (n.type !== 'grass' && n.type !== c.type && (!other || PREF.indexOf(n.type) < PREF.indexOf(other.type))) other = n; } }
+    if (other) { let grassNear = false; for (let j = -1; j <= 1 && !grassNear; j++) for (let k = -1; k <= 1; k++) { const X = x + k, Y = y + j; if (X >= 0 && Y >= 0 && X < cols && Y < rows && cells[Y * cols + X].type === 'grass') { grassNear = true; break; } } if (grassNear) return; }   // a grass border runs through here too: its curve needs grass below
     if (!other) { if (c.ocean) { let allSea = true; for (let j = -1; j <= 1 && allSea; j++) for (let k = -1; k <= 1; k++) { const X = x + k, Y = y + j; if (X >= 0 && Y >= 0 && X < cols && Y < rows && !cells[Y * cols + X].ocean) { allSea = false; break; } } if (allSea) c.under = c.tile; } return; }   // open sea lies on sea
     c.under = c.type === 'water' ? c.fill[other.type] : c.tile; });
   const widen = (src, r) => { const out = new Uint8Array(cols * rows);
@@ -1008,6 +1010,7 @@ function drawFoam(g, V, t, still) { const w = still ? 0 : Math.sin(t * 0.9);
 
 // ---------- living world: swaying crops, butterflies, cloud shadows ----------
 const LIVE = { crops: [], flies: [], cloud: null };
+const CLOUDS = { grow: 0, t: 0, canvas: null };              // how far the extra clouds of a cloudy sky have grown in
 function setupLive() {
   LIVE.crops = [];
   { const { forest, peaks } = MAP_EXTRA;                      // trees in the woods, peaks on the mountains (both taller than a tile)
@@ -1049,11 +1052,26 @@ function setupLive() {
     hr.addColorStop(0, 'rgba(0,0,0,1)'); hr.addColorStop(0.35, 'rgba(0,0,0,.75)'); hr.addColorStop(1, 'rgba(0,0,0,0)');
     hg.fillStyle = hr; hg.fillRect(0, 0, 128, 128); LIVE.cut = h;
   }
-  if (!LIVE.cloud) {                                            // one soft cloud-shadow sprite, drawn with even darkness
-    const c = document.createElement('canvas'); c.width = 512; c.height = 360; const g = c.getContext('2d');
-    g.filter = 'blur(30px)'; g.fillStyle = gradeHex('#0d1d33');
-    for (const [x, y, r] of [[256, 180, 95], [350, 190, 75], [165, 195, 70], [290, 125, 65], [210, 235, 60], [330, 245, 55]]) { g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill(); }
-    LIVE.cloud = c;
+  if (!LIVE.clouds) {                                           // a few soft cloud-shadow shapes, each drawn with even darkness
+    const R = seeded(4711);
+    LIVE.clouds = Array.from({ length: 6 }, (_, n) => {
+      const c = document.createElement('canvas'); c.width = 512; c.height = 360; const g = c.getContext('2d');
+      g.filter = 'blur(30px)'; g.fillStyle = gradeHex('#0d1d33');
+      const blobs = n === 0 ? [[256, 180, 95], [350, 190, 75], [165, 195, 70], [290, 125, 65], [210, 235, 60], [330, 245, 55]]   // the original
+        : Array.from({ length: 4 + Math.floor(R() * 5) }, (_, i) => { const along = (i + 0.5) / 5, wide = n % 2 ? 300 : 220;
+            return [256 - wide / 2 + R() * wide, 180 + (R() - 0.5) * (n % 3 === 0 ? 150 : 90), 45 + R() * 50]; });
+      for (const [x, y, r] of blobs) { g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill(); }
+      return c; });
+    LIVE.cloud = LIVE.clouds[0];
+    // the clouds of a cloudy sky: every one its own shape, a soft mass with lumps around it, some long, some round
+    LIVE.puffs = Array.from({ length: 28 }, () => {
+      const c = document.createElement('canvas'); c.width = 256; c.height = 192; const g = c.getContext('2d');
+      g.filter = 'blur(14px)'; g.fillStyle = gradeHex('#0d1d33');
+      const rx = 70 + R() * 40, ry = 35 + R() * 35, tilt = (R() - 0.5) * 0.6, n = 5 + Math.floor(R() * 9);
+      g.beginPath(); g.ellipse(128, 96, rx * 0.7, ry * 0.7, tilt, 0, 6.2832); g.fill();   // the body
+      for (let i = 0; i < n; i++) { const a = R() * 6.2832, d = 0.35 + R() * 0.65, x = 128 + Math.cos(a) * rx * d * Math.cos(tilt) - Math.sin(a) * ry * d * Math.sin(tilt), y = 96 + Math.cos(a) * rx * d * Math.sin(tilt) + Math.sin(a) * ry * d * Math.cos(tilt);
+        g.beginPath(); g.arc(x, y, 14 + R() * 30, 0, 6.2832); g.fill(); }   // lumps round its edge
+      return { c, w: 9 + R() * 20, tall: 0.6 + R() * 0.25, x: R(), y: R(), sp: 0.24 + R() * 0.14, phase: R() * 6.28, delay: R() * 0.5 }; });
   }
 }
 const FLY_SHADOW = `rgba(${gradeRgb([30, 50, 20]).join(',')},.18)`, FLY_BODY = gradeHex('#3A2A1E');
@@ -1092,14 +1110,28 @@ function drawLive(t, still) {
     const x = V.sx(wx), y = V.sy(wy), stage = Math.min(FLY_STAGES - 1, Math.floor(Math.abs(Math.sin(t * 11 + f.a)) * FLY_STAGES)), k = T * 0.075 / 32;
     g.drawImage(LIVE.flySprites[f.ci][stage], x - FLY_PX / 2 * k, y - FLY_PX / 4 * k, FLY_PX * k, FLY_PX * k);
   }
-  g.globalAlpha = wx().clouds * 1.3;                                // cloud shadows drift slowly across the whole world
+  // Cloud shadows drift slowly across the whole world. They are gathered on a small canvas first and laid down at
+  // one strength, so where clouds overlap the shade is no darker than a single cloud's. When the sky turns cloudy,
+  // more clouds grow in over a few seconds, and shrink away again when it clears.
+  const target = wx().more || 0; CLOUDS.grow = still ? target : CLOUDS.grow + Math.sign(target - CLOUDS.grow) * Math.min(Math.abs(target - CLOUDS.grow), Math.max(0, t - (CLOUDS.t || t)) / 2); CLOUDS.t = t;   // about two seconds to fill in or clear
   const M = Math.max(10, (view().clientWidth / zMin() - COLS) / 2 + 6);   // clouds appear and vanish beyond the widest view, out of sight, then drift in
-  for (let k = 0; k < 7 && !SKIP.clouds; k++) {              // the 7th is a rare giant that now and then covers most of the map
-    const w = [8, 14, 22, 10, 30, 12, 80][k], giant = k === 6, span = COLS + w + 2 * M + (giant ? 200 : 0);
-    const wx = ((t * (giant ? 0.2 : 0.3) + (giant ? 60 : k * span / 6)) % span) - w - M, wy = ((k * 7.3) % ROWS) + Math.sin(t * 0.05 + k) * 0.8 - w * 0.3;   // sizes vary, some are big
-    if (wx + w < CAM.x || wx > V.x1 + 2 || wy + w * 0.6 < CAM.y || wy > V.y1 + 2) continue;
-    g.drawImage(LIVE.cloud, V.sx(wx), V.sy(wy), w * T, w * 0.7 * T);
+  const cc = CLOUDS.canvas ??= document.createElement('canvas'), q = 4, cw = Math.ceil(W / q), chh = Math.ceil(H / q);
+  if (cc.width !== cw || cc.height !== chh) { cc.width = cw; cc.height = chh; }
+  const cg = cc.getContext('2d'); cg.clearRect(0, 0, cw, chh); let any = false;
+  const extra = CLOUDS.grow > 0.01 ? 28 : 0;
+  for (let k = 0; k < 7 + extra && !SKIP.clouds; k++) {      // the 7th is a rare giant that now and then covers most of the map; the rest come with cloudy skies
+    const more = k >= 7, j = k - 7, grow = more ? Math.min(1, Math.max(0, CLOUDS.grow * 1.5 - LIVE.puffs[j].delay)) : 1; if (grow <= 0) continue;
+    const p = more ? LIVE.puffs[j] : null;
+    const w = more ? p.w * (0.55 + 0.45 * grow) : [8, 14, 22, 10, 30, 12, 80][k], giant = k === 6, span = COLS + 30 + 2 * M + (giant ? 200 : 0);
+    const cx0 = more ? ((t * p.sp + p.x * span) % span) - 15 - M : ((t * (giant ? 0.2 : 0.3) + (giant ? 60 : k * span / 6)) % span) - 15 - M;
+    const cy0 = more ? p.y * (ROWS + 16) - 8 + Math.sin(t * 0.05 + p.phase) * 0.8 : ((k * 7.3) % ROWS) + Math.sin(t * 0.05 + k) * 0.8;
+    const wx = cx0 + 15 - w / 2, wy = cy0 - w * 0.35;          // grows from its middle
+    if (wx + w < CAM.x || wx > V.x1 + 2 || wy + w * 0.7 < CAM.y || wy > V.y1 + 2) continue;
+    const shape = more ? LIVE.puffs[j].c : LIVE.clouds[k % LIVE.clouds.length], tall = more ? LIVE.puffs[j].tall : 0.7;   // each its own shape and proportions
+    cg.globalAlpha = more ? grow * grow : 1; cg.drawImage(shape, V.sx(wx) / q, V.sy(wy) / q, w * T / q, w * tall * T / q); any = true;
   }
+  cg.globalAlpha = 1;
+  if (any) { g.globalAlpha = Math.min(1, wx().clouds * 1.3); g.imageSmoothingEnabled = true; g.drawImage(cc, 0, 0, cw * q, chh * q); }   // a single cloud looks exactly as before
   g.globalAlpha = 1;
   if (showCreatures()) for (const c of CRE.list) if (c.home === 'air' && inView(c.x, c.y, V, 3)) drawCreature(g, c, t, V, false);   // flyers above everything
 }
@@ -1293,7 +1325,7 @@ function flyerShadows(g, t, V, still) {                        // soft, blurry s
 const WEATHER = { kind: 'sun', parts: [], flash: 0, nextFlash: 0, last: 0 };
 const WX = {                                                   // per-weather settings used across the scene; sat/bri: the grade on the scene
   sun:    { gust: 1,   clouds: 0.3,  flies: 1,    tint: null,                 sat: 1,    bri: 1 },
-  cloudy: { gust: 1.2, clouds: 0.8,  flies: 0.6,  tint: 'rgba(96,108,128,.13)', sat: 0.86, bri: 0.93 },   // an overcast day: a grey veil, heavy cloud shadows, no rain
+  cloudy: { gust: 1.2, clouds: 0.3,  flies: 0.6,  tint: 'rgba(150,160,178,.07)', sat: 0.92, bri: 0.98, more: 1 },   // an overcast day: many more clouds, each no darker than on a sunny one, no rain
   storm:  { gust: 2.3, clouds: 0.5,  flies: 0,    tint: 'rgba(18,28,48,.38)', sat: 0.7,  bri: 0.82 },
   rain:   { gust: 1.3, clouds: 0.4,  flies: 0.15, tint: 'rgba(30,50,80,.16)', sat: 0.85, bri: 0.93 },
 };
