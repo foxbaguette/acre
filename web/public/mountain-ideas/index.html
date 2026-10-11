@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Island Mountains</title>
+<style>
+  :root { --bg: #efe6d2; --ink: #2f2a22; --muted: #7a6f5c; --card: #fbf7ee; --line: #d9ccb2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 Georgia, "Times New Roman", serif; }
+  header { padding: 28px 24px 8px; max-width: 1500px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  header p { margin: 0; color: var(--muted); max-width: 980px; }
+  main { display: grid; gap: 18px; padding: 18px 24px 40px; max-width: 1500px; margin: 0 auto; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--line); }
+  canvas { display: block; width: 100%; aspect-ratio: 3 / 2; }
+  figcaption { padding: 10px 14px 12px; }
+  figcaption b { font-size: 16px; }
+  figcaption b span { display: inline-block; min-width: 26px; color: #a0522d; }
+  figcaption div { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } main { padding: 12px 16px 32px; } header { padding: 20px 16px 4px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mountains for island 0, in the island's own style</h1>
+  <p>Each idea is drawn on the real island with its mountains removed: left, the big mountain's footprint; right, the small patch in the east. Everything is drawn like the trees and stones already there: flat low-poly shapes, no outlines, a soft shadow to the south-east.</p>
+</header>
+<main id="grid"></main>
+<script>
+const IDEAS = [
+  ['Peak sprites', 'The six peak drawings the game already has, grouped on the high ground, small rocks on the foothills. Small patch: two boulders.'],
+  ['One grand peak', 'A single big low-poly mountain with two smaller shoulders. Small patch: one big boulder and a few pebbles.'],
+  ['Mountain range', 'A row of peaks along the mountain\'s long side, tallest in the middle. Small patch: a short line of low rocks.'],
+  ['Boulder field', 'No peaks at all: boulders of every size, biggest where the ground is highest. Small patch: a scatter of stones.'],
+  ['Green hills', 'Low-poly grassy hills with a few rock faces showing. Small patch: one grassy knoll with a boulder on it.'],
+  ['Wooded peaks', 'Peaks with a skirt of pines around their feet. Small patch: a boulder in a ring of pines.'],
+  ['Plateau', 'A flat-topped block with a rocky cliff face and grass on top. Small patch: a low flat rock ledge.'],
+  ['Stone stacks', 'Stacks of rounded stones (tors), a few tall ones and some low. Small patch: one stack.'],
+  ['Rocky ground + peaks', 'The rock ground tile painted under the footprint, a couple of peaks rising from it. Small patch: rocky ground with a boulder.'],
+  ['Spires', 'A few tall, sharp rock spires with boulders at their feet. Small patch: one spire and some stones.'],
+];
+
+const C = { light: '#D4D0C9', mid: '#A9A49C', base: '#9C9890', dark: '#6C6861', darker: '#57534D', pl: '#C5C0B8', pd: '#7D7770',
+  snow: '#F3F5F7', snowS: '#C9D3DA', shadow: 'rgba(11,14,7,.28)', g1: '#6E8A45', g2: '#5C7738', g3: '#86A25A', g4: '#4B6430' };
+const img = n => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = `/art/tiles/${n}.svg?v=1`; });
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const poly = (g, pts, fill) => { g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1)) g.lineTo(p[0], p[1]); g.closePath(); g.fillStyle = fill; g.fill(); };
+
+// ---- drawn things: each returns { y, draw } so the scene can paint back to front
+function stone(x, y, r, R, tone = 1) {
+  return { y, draw(g) {
+    const n = 7 + Math.floor(R() * 3), pts = [];
+    for (let i = 0; i < n; i++) { const a = Math.PI * 2 * i / n + R() * .4; const rr = r * (.75 + R() * .3); pts.push([x + Math.cos(a) * rr * 1.25, y - r * .45 + Math.sin(a) * rr * .8]); }
+    poly(g, pts.map(([px, py]) => [px + r * .35, py + r * .35]), C.shadow);
+    poly(g, pts, tone === 1 ? C.base : C.mid);
+    const low = pts.filter(([, py]) => py > y - r * .5); if (low.length > 2) poly(g, [[x - r * 1.2, y - r * .35], ...low.sort((a, b) => a[0] - b[0]), [x + r * 1.2, y - r * .35]].filter(p => p), C.dark);
+    poly(g, [[x - r * .7, y - r * .7], [x - r * .2, y - r * 1.05], [x + r * .35, y - r * .95], [x + r * .1, y - r * .62]], C.light);
+  } };
+}
+function peak(x, y, w, h, R, snow = true) {
+  return { y, draw(g) {
+    const ax = x + (R() - .5) * w * .15, ay = y - h, l = x - w / 2, rt = x + w / 2, mid = ax + w * .06;
+    poly(g, [[l + w * .1, y], [rt + w * .25, y + h * .12], [rt + w * .45, y + h * .05], [rt, y - h * .05]], C.shadow);
+    poly(g, [[l, y], [ax, ay], [mid, y]], C.pl);
+    poly(g, [[mid, y], [ax, ay], [rt, y]], C.pd);
+    for (let i = 0; i < 3; i++) { const sx = l + w * (.15 + R() * .25), sh = h * (.25 + R() * .3); poly(g, [[sx, y], [sx + w * .03, y - sh], [sx + w * .06, y]], '#B3ADA4'); }
+    for (let i = 0; i < 3; i++) { const sx = mid + w * (.08 + R() * .3), sh = h * (.2 + R() * .35); poly(g, [[sx, y], [sx + w * .025, y - sh], [sx + w * .05, y]], C.darker); }
+    if (snow) {
+      const k = .3 + R() * .08, sl = ax + (l - ax) * k, sr = ax + (rt - ax) * k, sy = ay + h * k;
+      poly(g, [[sl, sy], [ax, ay], [mid + (ax - mid) * (1 - k), sy + h * .04], [sl + (ax - sl) * .45, sy - h * .06]], C.snow);
+      poly(g, [[mid + (ax - mid) * (1 - k), sy + h * .04], [ax, ay], [sr, sy], [sr - (sr - ax) * .4, sy - h * .07]], C.snowS);
+    }
+    poly(g, [[l - w * .04, y], [l + w * .2, y - h * .05], [rt - w * .1, y - h * .04], [rt + w * .05, y], [x, y + h * .03]], C.g4 + '99');
+  } };
+}
+function hill(x, y, w, h, R) {
+  return { y, draw(g) {
+    const pts = [[x - w / 2, y], [x - w * .35, y - h * .6], [x - w * .1, y - h], [x + w * .2, y - h * .9], [x + w * .45, y - h * .35], [x + w / 2, y]];
+    poly(g, [[x - w * .3, y + h * .05], [x + w * .7, y + h * .2], [x + w * .6, y - h * .2]], C.shadow);
+    poly(g, pts, C.g1);
+    poly(g, [[x - w / 2, y], [x - w * .35, y - h * .6], [x - w * .1, y - h], [x - w * .05, y]], C.g3);
+    poly(g, [[x + w * .05, y], [x + w * .2, y - h * .9], [x + w * .45, y - h * .35], [x + w / 2, y]], C.g2);
+    if (R() < .7) { const fx = x + w * .1; poly(g, [[fx, y], [fx + w * .08, y - h * .55], [fx + w * .28, y - h * .4], [fx + w * .32, y]], C.dark); poly(g, [[fx, y], [fx + w * .08, y - h * .55], [fx + w * .14, y]], C.base); }
+  } };
+}
+function mesa(x, y, w, h, R) {
+  return { y, draw(g) {
+    const top = y - h, d = h * .45;
+    poly(g, [[x - w * .4, y + 4], [x + w * .65, y + h * .25], [x + w * .6, y - h * .2], [x + w * .5, y]], C.shadow);
+    const front = [[x - w / 2, top + d], [x + w / 2, top + d * .9], [x + w * .48, y], [x - w * .47, y]];
+    poly(g, front, C.pd);
+    for (let i = 0; i < 6; i++) { const sx = x - w / 2 + w * (i + R() * .5) / 6; poly(g, [[sx, top + d], [sx + w * .04, y], [sx + w * .08, top + d]], i % 2 ? C.darker : C.pl); }
+    poly(g, [[x - w / 2, top + d], [x - w * .42, top], [x + w * .45, top + d * .05], [x + w / 2, top + d * .9]], C.g1);
+    poly(g, [[x - w / 2, top + d], [x - w * .42, top], [x - w * .1, top + d * .3]], C.g3);
+  } };
+}
+function spire(x, y, w, h, R) {
+  return { y, draw(g) {
+    poly(g, [[x, y], [x + w * 1.6, y + h * .15], [x + w * 1.4, y - h * .05]], C.shadow);
+    const ax = x + (R() - .5) * w * .3;
+    poly(g, [[x - w / 2, y], [x - w * .3, y - h * .55], [ax, y - h], [x, y]], C.pl);
+    poly(g, [[x, y], [ax, y - h], [x + w * .25, y - h * .5], [x + w / 2, y]], C.pd);
+  } };
+}
+function tor(x, y, r, R, n) {
+  const parts = []; let yy = y, rr = r;
+  for (let i = 0; i < n; i++) { parts.push(stone(x + (R() - .5) * r * .4, yy, rr, R, i % 2)); yy -= rr * .75; rr *= .78; }
+  return { y, draw(g) { for (const p of parts) p.draw(g); } };
+}
+function sprite(im, x, y, w) { return { y, draw(g) { if (im) g.drawImage(im, x - w / 2, y - w * .97, w, w); } }; }
+
+// ---- the ideas: from the footprint (cells in tiles, with levels) to the things drawn
+function plan(idea, cr, I, R) {
+  const cells = cr.rock, top = Math.max(...cells.map(c => c[2])), big = cells.length > 100;
+  const P = ([x, y]) => [(x + .5 - cr.cam.x) * cr.cam.z, (y + .5 - cr.cam.y) * cr.cam.z], Z = cr.cam.z * (big ? 1 : 1.5);   // small patch: things drawn a bit larger
+  const pick = (f) => cells.filter(f); const rand = (a) => a[Math.floor(R() * a.length)];
+  const cx = cells.reduce((s, c) => s + c[0], 0) / cells.length, cy = cells.reduce((s, c) => s + c[1], 0) / cells.length;
+  let sx = 0, sy = 0, sxy = 0; for (const [x, y] of cells) { sx += (x - cx) ** 2; sy += (y - cy) ** 2; sxy += (x - cx) * (y - cy); }
+  const ang = .5 * Math.atan2(2 * sxy, sx - sy), ext = Math.sqrt(Math.max(sx, sy) / cells.length) * 2;
+  const [CX, CY] = P([cx, cy]), out = [];
+  const spaced = (list, n, gap) => { const res = []; for (let t = 0; t < n * 20 && res.length < n; t++) { const c = rand(list); if (res.every(o => Math.hypot(o[0] - c[0], o[1] - c[1]) >= gap)) res.push(c); } return res; };
+  const rocks = (n, rMin, rMax, list = cells) => { for (const c of spaced(list, n, 1.6)) { const [x, y] = P(c); out.push(stone(x + (R() - .5) * Z * .5, y + (R() - .5) * Z * .5, Z * (rMin + R() * (rMax - rMin)), R)); } };
+  switch (idea) {
+    case 0: if (big) { for (const c of spaced(pick(c => c[2] >= 3), 6, 3)) { const [x, y] = P(c); out.push(sprite(rand(I.peaks), x, y + Z * .5, Z * (2.6 + c[2] * .55))); } rocks(10, .25, .45, pick(c => c[2] <= 2)); }
+      else { rocks(2, .55, .75); rocks(4, .15, .25); } break;
+    case 1: if (big) { out.push(peak(CX, CY + Z * 2.5, Z * 11, Z * 8.5, R)); out.push(peak(CX - Z * 5, CY + Z * 4, Z * 6, Z * 4, R, false)); out.push(peak(CX + Z * 5.5, CY + Z * 3.5, Z * 6.5, Z * 4.5, R, false)); rocks(8, .2, .35, pick(c => c[2] <= 1)); }
+      else { out.push(stone(CX, CY + Z, Z * 1.1, R)); rocks(5, .12, .22); } break;
+    case 2: { const n = big ? 5 : 3, ca = Math.cos(ang), sa = Math.sin(ang), list = [];
+      for (let i = 0; i < n; i++) { const t = (i / (n - 1) - .5) * ext * 1.6, k = 1 - Math.abs(i / (n - 1) - .5) * 1.1; list.push([CX + ca * t * Z, CY + sa * t * Z + Z * (big ? 2 : .5), k]); }
+      for (const [x, y, k] of list) out.push(big ? peak(x, y, Z * 6 * (.7 + k * .4), Z * 6.5 * k, R, k > .8) : stone(x, y, Z * .45 * (.7 + k * .5), R));
+      if (big) rocks(6, .2, .35, pick(c => c[2] <= 1)); } break;
+    case 3: { const n = big ? 40 : 10;
+      for (const c of spaced(cells, n, big ? 1.5 : 1.2)) { const [x, y] = P(c), lv = c[2] / Math.max(top, 1); out.push(stone(x + (R() - .5) * Z * .5, y + (R() - .5) * Z * .5, Z * ((big ? .3 : .25) + lv * .55 + R() * .15), R)); } } break;
+    case 4: if (big) { for (const c of spaced(pick(c => c[2] >= 1), 7, 3.4)) { const [x, y] = P(c); out.push(hill(x, y + Z, Z * (3.2 + c[2] * .5), Z * (1.4 + c[2] * .45), R)); } rocks(5, .2, .35); }
+      else { out.push(hill(CX, CY + Z * 1.2, Z * 4, Z * 2, R)); out.push(stone(CX + Z * .4, CY - Z * .2, Z * .45, R)); } break;
+    case 5: if (big) { out.push(peak(CX - Z * 2, CY + Z * 1.5, Z * 8, Z * 7, R)); out.push(peak(CX + Z * 3, CY + Z * 2.5, Z * 6, Z * 5, R, false));
+        for (let i = 0; i < 26; i++) { const a = R() * Math.PI * 2, rr = ext * (1.05 + R() * .5); out.push(sprite(I.pine, CX + Math.cos(a) * rr * Z * 1.2, CY + Math.sin(a) * rr * Z * .95 + Z * 1.5, Z * (1.3 + R() * .4))); } }
+      else { out.push(stone(CX, CY + Z * .5, Z * .7, R)); for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + R() * .3; out.push(sprite(I.pine, CX + Math.cos(a) * Z * 2.4, CY + Math.sin(a) * Z * 1.8 + Z * .5, Z * (1.2 + R() * .3))); } } break;
+    case 6: if (big) { out.push(mesa(CX, CY + Z * 3.5, Z * 12, Z * 5, R)); rocks(6, .2, .35, pick(c => c[2] <= 1)); out.push(sprite(I.pine, CX - Z * 2, CY - Z * 1.2, Z * 1.4)); out.push(sprite(I.oak, CX + Z * 2.5, CY - Z * .9, Z * 1.4)); }
+      else { out.push(mesa(CX, CY + Z * 1.2, Z * 4.5, Z * 1.6, R)); rocks(3, .15, .25); } break;
+    case 7: if (big) { for (const c of spaced(pick(c => c[2] >= 2), 6, 3)) { const [x, y] = P(c); out.push(tor(x, y + Z * .5, Z * (.55 + c[2] * .08), R, 2 + Math.round(c[2] / 2))); } rocks(10, .18, .32); }
+      else { out.push(tor(CX, CY + Z, Z * .6, R, 3)); rocks(4, .15, .25); } break;
+    case 8: if (big) { for (const c of spaced(pick(c => c[2] >= 4), 2, 4)) { const [x, y] = P(c); out.push(peak(x, y + Z * 1.5, Z * 6.5, Z * 6, R)); } rocks(8, .2, .4); }
+      else { out.push(stone(CX, CY + Z * .6, Z * .6, R)); rocks(4, .12, .22); } break;
+    case 9: if (big) { for (const c of spaced(pick(c => c[2] >= 3), 4, 3.5)) { const [x, y] = P(c); out.push(spire(x, y + Z, Z * (1.4 + R() * .6), Z * (4 + c[2] * .8 + R() * 2), R)); } rocks(14, .2, .4); }
+      else { out.push(spire(CX, CY + Z, Z * 1.2, Z * 3.2, R)); rocks(5, .15, .3); } break;
+  }
+  return out;
+}
+
+// the rock ground tile under the footprint, soft-edged (idea 9)
+function rockGround(g, cr, tile) {
+  const Z = cr.cam.z, m = document.createElement('canvas'); m.width = g.canvas.width; m.height = g.canvas.height; const mg = m.getContext('2d');
+  mg.filter = `blur(${Z * .35}px)`; mg.fillStyle = '#000';
+  for (const [x, y] of cr.rock) { mg.beginPath(); mg.arc((x + .5 - cr.cam.x) * Z, (y + .5 - cr.cam.y) * Z, Z * .75, 0, 7); mg.fill(); }
+  mg.filter = 'none';
+  const t = document.createElement('canvas'); t.width = m.width; t.height = m.height; const tg = t.getContext('2d');
+  for (let y = -Z; y < m.height + Z; y += Z) for (let x = -Z; x < m.width + Z; x += Z) tg.drawImage(tile, x - ((cr.cam.x % 1) * Z), y - ((cr.cam.y % 1) * Z), Z, Z);
+  tg.globalCompositeOperation = 'destination-in'; tg.drawImage(m, 0, 0);   // the tiles, kept only under the footprint
+  g.drawImage(t, 0, 0);
+}
+
+(async () => {
+  const crops = await (await fetch('crops.json')).json();
+  const [bg1, bg2, pine, oak, rockT, ...peaks] = await Promise.all([
+    new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = 'big.png'; }),
+    new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = 'small.png'; }),
+    img('tree-04'), img('tree-01'), img('rock-01'), ...[1, 2, 3, 4, 5, 6].map(i => img(`peak-0${i}`))]);
+  const I = { pine, oak, peaks };
+  const grid = document.getElementById('grid');
+  IDEAS.forEach(([name, note], idea) => {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<div class="pair"><canvas width="1200" height="800"></canvas><canvas width="1200" height="800"></canvas></div><figcaption><b><span>${idea + 1}</span>${name}</b><div>${note}</div></figcaption>`;
+    grid.appendChild(fig);
+    const [c1, c2] = fig.querySelectorAll('canvas');
+    for (const [cv, cr, bg] of [[c1, crops.big, bg1], [c2, crops.small, bg2]]) {
+      const g = cv.getContext('2d'); g.drawImage(bg, 0, 0);
+      if (idea === 8) rockGround(g, cr, rockT);
+      const things = plan(idea, cr, I, rng(1234 + idea * 77 + (cr === crops.big ? 0 : 999)));
+      things.sort((a, b) => a.y - b.y).forEach(t => t.draw(g));
+    }
+  });
+})();
+</script>
+</body>
+</html>

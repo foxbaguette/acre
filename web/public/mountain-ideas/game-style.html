@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game-Style Mountains</title>
+<style>
+  :root { --bg: #efe6d2; --ink: #2f2a22; --muted: #7a6f5c; --card: #fbf7ee; --line: #d9ccb2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 Georgia, "Times New Roman", serif; }
+  header { padding: 28px 24px 8px; max-width: 1500px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  header p { margin: 0; color: var(--muted); max-width: 980px; }
+  main { display: grid; gap: 18px; padding: 18px 24px 40px; max-width: 1500px; margin: 0 auto; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--line); }
+  canvas { display: block; width: 100%; aspect-ratio: 3 / 2; }
+  figcaption { padding: 10px 14px 12px; }
+  figcaption b { font-size: 16px; }
+  figcaption b span { display: inline-block; min-width: 26px; color: #a0522d; }
+  figcaption div { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } main { padding: 12px 16px 32px; } header { padding: 20px 16px 4px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mountains in the game's own style</h1>
+  <p>Ten mountains built on a height map but drawn the way the game draws its rocks and trees: flat low-poly facets, the game's rock palette, no outlines, soft shadows to the south-east. On island 0: left the big mountain, right the small patch in the east.</p>
+</header>
+<main id="grid"></main>
+<script>
+const STYLES = [
+  ['M1  Faceted massif', 'One broad mountain cut into low-poly facets, rock above, grass climbing the lower slopes.'],
+  ['M2  Big facets', 'The same with large, calm facets: very close to the game\'s own stone sprites.'],
+  ['M3  Fine facets', 'Smaller facets: more detail, a more jagged look.'],
+  ['M4  Twin peaks', 'Two summits of different height with a saddle between them.'],
+  ['M5  Spine', 'A single long crest running along the mountain\'s long side.'],
+  ['M6  Terraces', 'Stepped ledges: flat grassy shelves with short rock faces.'],
+  ['M7  Hill cluster', 'A family of rounded, grassy hills with a few rock faces showing.'],
+  ['M8  Mesa', 'A flat-topped block with steep rock sides and a grassy top.'],
+  ['M9  Craggy knobs', 'A lower, rugged mountain broken into several rocky knobs.'],
+  ['M10 Snow cap', 'A tall faceted peak with a small snow cap on the summit.'],
+];
+// facet size (tiles), height as a share of the footprint radius
+const VARS = [[.75, .55], [1.1, .55], [.5, .55], [.75, .6], [.75, .55], [.75, .55], [.75, .45], [.75, .55], [.6, .5], [.75, .75]];
+const VS = `#version 300 es
+in vec2 aPos; void main() { gl_Position = vec4(aPos, 0., 1.); }`;
+const FS = `#version 300 es
+precision highp float;
+uniform vec2 uRes, uSize, uC; uniform int uPass, uS; uniform float uR, uAxis, uSeed, uFacet, uTall;
+uniform sampler2D uHt, uBg, uMask;
+out vec4 o;
+const vec3 LIT = normalize(vec3(-.55, -.7, .6));
+const vec2 LD = normalize(vec2(-.55, -.7));
+vec3 rgb(float r, float g, float b) { return vec3(r, g, b) / 255.; }
+float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+vec2 grd(vec2 i) { float a = h12(i) * 6.2831853; return vec2(cos(a), sin(a)); }
+float gn(vec2 p) { vec2 i = floor(p), f = fract(p), u = f * f * f * (f * (f * 6. - 15.) + 10.);
+  float a = dot(grd(i), f), b = dot(grd(i + vec2(1., 0.)), f - vec2(1., 0.)), c = dot(grd(i + vec2(0., 1.)), f - vec2(0., 1.)), d = dot(grd(i + 1.), f - 1.);
+  return .5 + .7 * mix(mix(a, b, u.x), mix(c, d, u.x), u.y); }
+float smax(float a, float b, float k) { float h = clamp(.5 + .5 * (a - b) / k, 0., 1.); return mix(b, a, h) + k * h * (1. - h); }
+float cone(vec2 p, vec2 c, float r, float e) { return pow(max(1. - length(p - c) / r, 0.), e); }
+// the height, per style: a shape over the footprint
+float shape(vec2 p) {
+  vec2 d = p - uC; float R = uR, r = length(d) / R;
+  float warp = (gn(p * .22 + uSeed) - .5) * .25;
+  if (uS <= 2) return pow(max(1. - r * (1. + warp), 0.), 1.25);
+  if (uS == 3) return smax(cone(p, uC + vec2(-.38, .05) * R, R * .72, 1.3), .8 * cone(p, uC + vec2(.4, .1) * R, R * .62, 1.3), .12);
+  if (uS == 4) { vec2 u = vec2(cos(uAxis), sin(uAxis)), v = vec2(-u.y, u.x); float al = dot(d, u) / R, pe = dot(d, v) / R;
+    return exp(-pe * pe * 5.) * pow(max(1. - abs(al) / 1.25, 0.), .8) * (.85 + .15 * gn(p * .3)); }
+  if (uS == 5) { float q = pow(max(1. - r * (1. + warp), 0.), 1.1); float t = q * 4.5; return (floor(t) + smoothstep(.55, .85, fract(t))) / 4.5; }
+  if (uS == 6) { float h = 0.;
+    for (int i = 0; i < 6; i++) { float fi = float(i) + uSeed * 9.; vec2 o2 = i == 0 ? vec2(0.) : vec2(cos(fi * 2.4), sin(fi * 2.4)) * R * (.4 + .35 * h12(vec2(fi, 1.)));
+      h = smax(h, (i == 0 ? 1. : .55 + .35 * h12(vec2(fi, 2.))) * cone(p, uC + o2, R * (i == 0 ? .8 : .45 + .2 * h12(vec2(fi, 3.))), .8), .15); }
+    return h; }
+  if (uS == 7) return smoothstep(.36, .5, 1. - r * (1. + warp)) * .75 + pow(max(1. - r, 0.), 1.2) * .25;
+  if (uS == 8) { float h = .25 * max(1. - r, 0.);
+    for (int i = 0; i < 7; i++) { float fi = float(i) + uSeed * 9.; vec2 o2 = vec2(cos(fi * 2.4), sin(fi * 2.4)) * R * (.15 + .6 * h12(vec2(fi, 1.)));
+      h = smax(h, (.55 + .45 * h12(vec2(fi, 2.))) * cone(p, uC + o2, R * (.3 + .2 * h12(vec2(fi, 3.))), .75), .08); }
+    return h; }
+  return pow(max(1. - r * (1. + warp), 0.), 1.7);
+}
+float H(vec2 p) {
+  float f = texture(uMask, p / uSize).r + (gn(p * .6) - .5) * .25;
+  float body = smoothstep(.3, .4, f);                                      // a crisp outline: the mountain starts where the footprint does
+  return body * shape(p) * uTall * 1.25;
+}
+float T(vec2 q) {
+  vec2 st = q / uSize * uRes - .5; st.y = uRes.y - 1. - st.y; ivec2 i = ivec2(floor(st)), m = ivec2(uRes) - 1; vec2 f = fract(st);
+  float a = texelFetch(uHt, clamp(i, ivec2(0), m), 0).r, b = texelFetch(uHt, clamp(i + ivec2(1, 0), ivec2(0), m), 0).r;
+  float c = texelFetch(uHt, clamp(i + ivec2(0, 1), ivec2(0), m), 0).r, d = texelFetch(uHt, clamp(i + 1, ivec2(0), m), 0).r;
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+// low-poly: heights taken at the corners of a triangle grid; each triangle is one flat face
+vec3 facet(vec2 p, float F) {
+  vec2 q = p / F; q.x += q.y * .5; vec2 i = floor(q), f = fract(q);
+  vec2 a = i, b = f.x > f.y ? i + vec2(1., 0.) : i + vec2(0., 1.), c = i + 1.;
+  vec2 pa = vec2(a.x - a.y * .5, a.y) * F, pb = vec2(b.x - b.y * .5, b.y) * F, pc = vec2(c.x - c.y * .5, c.y) * F;
+  // each corner nudged up or down by its own amount, more on higher ground: no two faces alike, like cut stone
+  float ha = T(pa), hb = T(pb), hc = T(pc);
+  ha += (h12(a + uSeed) - .5) * uTall * .07 * smoothstep(.05, .35, ha / uTall);
+  hb += (h12(b + uSeed) - .5) * uTall * .07 * smoothstep(.05, .35, hb / uTall);
+  hc += (h12(c + uSeed) - .5) * uTall * .07 * smoothstep(.05, .35, hc / uTall);
+  vec3 A = vec3(pa, ha), B = vec3(pb, hb), C = vec3(pc, hc);
+  vec3 n = normalize(cross(B - A, C - A)); return n.z < 0. ? -n : n;
+}
+void main() {
+  vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y), p = px / uRes * uSize, uv = px / uRes;
+  if (uPass == 0) { o = vec4(H(p), 0., 0., 1.); return; }
+  vec3 bg = texture(uBg, uv).rgb;
+  float h = T(p);
+  vec3 N = facet(p, uFacet);
+  float sh = 1., tanA = LIT.z / length(LIT.xy);
+  for (int i = 1; i <= 40; i++) { float d = float(i) * .16; sh = min(sh, 1. - smoothstep(0., .22, T(p + LD * d) - (h + d * tanA))); }
+  float hr = h / uTall;
+  float slope = 1. - N.z;
+  // the game's rock palette in flat tones; the light picks the tone, the facet picks the light
+  float l = dot(N, LIT) * mix(.55, 1., sh);
+  vec3 rock = l > .82 ? rgb(197., 192., 184.) : l > .62 ? rgb(170., 165., 157.) : l > .42 ? rgb(149., 143., 135.) : l > .24 ? rgb(125., 119., 112.) : rgb(102., 97., 91.);
+  // grass where it is low and gentle, in the game's greens
+  vec3 grass = bg * (l > .62 ? 1.08 : l > .4 ? .95 : .78);              // the island's own grass, lit by the facets
+  float gz = (1. - smoothstep(.14, .32, slope)) * (1. - smoothstep(.1, .35, hr)) + (1. - smoothstep(.0, .06, hr)) * .8;
+  if (uS == 5) gz = max(gz, (1. - smoothstep(.2, .45, slope)) * (1. - smoothstep(.55, .8, hr)));
+  if (uS == 6 || uS == 7) gz = max(gz, (1. - smoothstep(.04, .1, slope)) * .95);
+  vec3 col = mix(rock, grass, clamp(gz, 0., 1.));
+  if (uS == 9) { float sn = smoothstep(.72, .8, hr) * (1. - smoothstep(.2, .3, slope)); col = mix(col, l > .5 ? rgb(243., 245., 247.) : rgb(201., 211., 218.), sn); }
+  // flat ground keeps the island's own look, shaded only where the mountain casts onto it
+  vec3 flat_ = bg * mix(.62, 1., sh);
+  col = mix(flat_, col, smoothstep(.015, .16, h));
+  o = vec4(col, 1.);
+}`;
+
+(async () => {
+  const crops = await (await fetch('crops.json')).json();
+  const load = (src) => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+  const bgs = { big: await load('big.png'), small: await load('small.png') };
+  const W = 1200, Hh = 800, glc = document.createElement('canvas'); glc.width = W; glc.height = Hh;
+  const gl = glc.getContext('webgl2', { preserveDrawingBuffer: true }); gl.getExtension('EXT_color_buffer_float');
+  const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(x)); return x; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) console.error(gl.getProgramInfoLog(pr));
+  gl.useProgram(pr);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  const U = n => gl.getUniformLocation(pr, n);
+  const tex = (src) => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+    if (src) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src); else gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, W, Hh, 0, gl.RED, gl.FLOAT, null);
+    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, src ? gl.LINEAR : gl.NEAREST], [gl.TEXTURE_MAG_FILTER, src ? gl.LINEAR : gl.NEAREST], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v); return t; };
+  const ht = tex(null), fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, ht, 0); gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  const setup = {};
+  for (const k of ['big', 'small']) {
+    const cr = crops[k], Z = cr.cam.z, m = document.createElement('canvas'); m.width = W; m.height = Hh; const g = m.getContext('2d');
+    g.fillStyle = '#000'; g.fillRect(0, 0, W, Hh); g.filter = 'blur(' + Z * 1.2 + 'px)'; g.fillStyle = '#fff';
+    for (const [x, y] of cr.rock) g.fillRect((x - cr.cam.x) * Z - Z * .15, (y - cr.cam.y) * Z - Z * .15, Z * 1.3, Z * 1.3);
+    const cx = cr.rock.reduce((s, c) => s + c[0] + .5, 0) / cr.rock.length - cr.cam.x, cy = cr.rock.reduce((s, c) => s + c[1] + .5, 0) / cr.rock.length - cr.cam.y;
+    const R = Math.sqrt(cr.rock.length / Math.PI);
+    let sxx = 0, syy = 0, sxy = 0; for (const [x, y] of cr.rock) { const dx = x + .5 - cx - cr.cam.x, dy = y + .5 - cy - cr.cam.y; sxx += dx * dx; syy += dy * dy; sxy += dx * dy; }
+    setup[k] = { bg: tex(bgs[k]), mask: tex(m), c: [cx, cy], R, axis: .5 * Math.atan2(2 * sxy, sxx - syy), seed: k === 'big' ? .31 : .77 };
+  }
+  const grid = document.getElementById('grid');
+  STYLES.forEach(([name, note], i) => {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<div class="pair"><canvas width="${W}" height="${Hh}"></canvas><canvas width="${W}" height="${Hh}"></canvas></div><figcaption><b><span></span>${name}</b><div>${note}</div></figcaption>`;
+    grid.appendChild(fig);
+    fig.querySelectorAll('canvas').forEach((cv, j) => {
+      const S = setup[j ? 'small' : 'big'];
+      gl.uniform2f(U('uRes'), W, Hh); gl.uniform2f(U('uSize'), W / 40, Hh / 40); gl.uniform2f(U('uC'), S.c[0], S.c[1]);
+      gl.uniform1f(U('uR'), S.R); gl.uniform1f(U('uAxis'), S.axis); gl.uniform1f(U('uSeed'), S.seed); gl.uniform1i(U('uS'), i); gl.uniform1f(U('uFacet'), VARS[i][0]); gl.uniform1f(U('uTall'), S.R * VARS[i][1]);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, S.bg); gl.uniform1i(U('uBg'), 1);
+      gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, S.mask); gl.uniform1i(U('uMask'), 2);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, null);
+      gl.viewport(0, 0, W, Hh); gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.uniform1i(U('uPass'), 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.bindTexture(gl.TEXTURE_2D, ht); gl.uniform1i(U('uHt'), 0);
+      gl.uniform1i(U('uPass'), 1); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      cv.getContext('2d').drawImage(glc, 0, 0);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anno Mountains</title>
+<style>
+  :root { --bg: #efe6d2; --ink: #2f2a22; --muted: #7a6f5c; --card: #fbf7ee; --line: #d9ccb2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 Georgia, "Times New Roman", serif; }
+  header { padding: 28px 24px 8px; max-width: 1500px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: .02em; }
+  header p { margin: 0; color: var(--muted); max-width: 900px; }
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 18px; padding: 18px 24px 40px; max-width: 1500px; margin: 0 auto; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  canvas { display: block; width: 100%; aspect-ratio: 24 / 16; }
+  figcaption { padding: 10px 14px 12px; }
+  figcaption b { font-size: 16px; }
+  figcaption b span { display: inline-block; min-width: 26px; color: #a0522d; }
+  figcaption div { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  @media (max-width: 480px) { main { grid-template-columns: 1fr; padding: 12px 16px 32px; } header { padding: 20px 16px 4px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Anno-style mountains</h1>
+  <p>Ten mountains in the spirit of Anno, seen from above under the island's north-west sun. As in Anno, the ground follows the shape: grass on flat ground and ledges, bare rock only on steep faces, snow where it is high and flat, darker creases in the gullies.</p>
+</header>
+<main id="grid"></main>
+<script>
+const STYLES = [
+  ['Classic massif', 'One broad mountain, a clear summit, a few big gullies. Grass climbs high on the gentle parts.'],
+  ['Alpine snowfields', 'Taller, with snow lying in the high hollows and on the ledges, rock showing between.'],
+  ['Forested foothills', 'Dense forest wrapping the lower slopes, rock and a little snow above the tree line.'],
+  ['Layered cliffs', 'Rock in horizontal layers: green ledges with short rocky steps between them.'],
+  ['Twin summits', 'Two peaks of different height with a grassy saddle between them.'],
+  ['Long ridge', 'A range: one long crest with spurs running down both sides.'],
+  ['Mesa', 'A wide grassy tableland on rocky walls, with soft slopes at its foot.'],
+  ['Craggy outcrops', 'A lower, rugged mountain broken into a few big rocky knobs, green between.'],
+  ['Volcanic cone', 'A dormant cone with a crater lake, smooth flanks and a few ravines.'],
+  ['Mountain lake', 'A massif with a small lake in a high basin and a stream falling down the slope.'],
+];
+
+const VS = `#version 300 es
+in vec2 aPos; void main() { gl_Position = vec4(aPos, 0., 1.); }`;
+const FS = `#version 300 es
+precision highp float;
+uniform vec2 uRes; uniform int uS; uniform int uPass; uniform sampler2D uHt;
+out vec4 o;
+const vec2 SIZE = vec2(24., 16.);
+const vec2 C = vec2(12., 8.2);
+const vec3 LIT = normalize(vec3(-.55, -.7, .62));
+const vec2 LD = vec2(-.6181, -.7861);
+vec3 rgb(float r, float g, float b) { return vec3(r, g, b) / 255.; }
+float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+vec2 grd(vec2 i) { float a = h12(i) * 6.2831853; return vec2(cos(a), sin(a)); }
+float gn(vec2 p) { vec2 i = floor(p), f = fract(p), u = f * f * f * (f * (f * 6. - 15.) + 10.);
+  float a = dot(grd(i), f), b = dot(grd(i + vec2(1., 0.)), f - vec2(1., 0.)), c = dot(grd(i + vec2(0., 1.)), f - vec2(0., 1.)), d = dot(grd(i + 1.), f - 1.);
+  return .5 + .7 * mix(mix(a, b, u.x), mix(c, d, u.x), u.y); }
+float fbm(vec2 p) { return gn(p) * .57 + gn(p * 2.03 + 17.1) * .29 + gn(p * 4.1 + 9.2) * .14; }
+float smax(float a, float b, float k) { float h = clamp(.5 + .5 * (a - b) / k, 0., 1.); return mix(b, a, h) + k * h * (1. - h); }
+float smin(float a, float b, float k) { return -smax(-a, -b, k); }
+// eroded detail: ridged noise whose finer octaves fade where the slope is already steep, so gullies stay big and calm
+float eroded(vec2 p, int oct) {
+  float s = 0., a = .5, w = 1.; vec2 q = p;
+  for (int i = 0; i < 5; i++) {
+    if (i >= oct) break;
+    float n = 1. - abs(gn(q) * 2. - 1.); n *= n;
+    s += n * a * w; w = clamp(n * 1.4, 0., 1.);
+    a *= .45; q = mat2(.8, -.6, .6, .8) * q * 2.1 + 3.7;
+  }
+  return s;
+}
+// a footprint 0..1: lumpy oval
+float foot(vec2 p, vec2 c, vec2 r, float seed) {
+  vec2 d = (p - c) / r; float a = atan(d.y, d.x);
+  float k = length(d) * (1. + .2 * (gn(vec2(cos(a), sin(a)) * 1.3 + seed) - .5));
+  return clamp(1. - k, 0., 1.);
+}
+float dome(float f, float e) { return pow(f, e); }
+
+float H(vec2 p) {
+  vec2 w = p + (vec2(gn(p * .2 + 1.), gn(p * .2 + 9.)) - .5) * 1.4;      // a gentle warp: nothing is a perfect circle
+  if (uS == 0) { float f = foot(w, C, vec2(8.5, 6.5), 1.); return dome(f, 1.6) * 3.2 + eroded(w * .22, 3) * 1.1 * smoothstep(.1, .7, f); }
+  if (uS == 1) { float f = foot(w, C, vec2(8.8, 6.8), 4.); return dome(f, 1.5) * 4.2 + eroded(w * .25, 4) * 1.4 * smoothstep(.15, .7, f); }
+  if (uS == 2) { float f = foot(w, C, vec2(9., 7.), 2.); return dome(f, 1.7) * 3.6 + eroded(w * .22, 3) * 1.2 * smoothstep(.2, .7, f); }
+  if (uS == 3) { float f = foot(w, C, vec2(8.5, 6.4), 6.); float h = dome(f, 1.3) * 3. + eroded(w * .2, 2) * .6 * f;
+    float st = .55, t = h / st, fl = floor(t); return (fl + smoothstep(.55, .85, t - fl)) * st * .9 + h * .1; }
+  if (uS == 4) { float a = dome(foot(w, C + vec2(-3.6, -.5), vec2(5.5, 5.), 3.), 1.6) * 3.6, b = dome(foot(w, C + vec2(4., 1.), vec2(4.8, 4.4), 8.), 1.6) * 2.6;
+    return smax(a, b, .9) + eroded(w * .25, 3) * .9 * smoothstep(.2, 1.5, max(a, b)); }
+  if (uS == 5) { float x = w.x - C.x, cy = C.y + 1.5 * sin(x * .28);
+    float along = clamp(1. - x * x / 110., 0., 1.), d = abs(w.y - cy) / (3.6 + .8 * gn(w * .2));
+    float f = clamp(along * (1. - d), 0., 1.); return dome(f, 1.5) * 3.2 + eroded(w * vec2(.32, .2), 3) * 1.1 * smoothstep(.1, .6, f); }
+  if (uS == 6) { float f = foot(w, C, vec2(8., 6.), 5.); float top = smoothstep(.32, .5, f + (gn(w * .5) - .5) * .08);
+    return top * 2.2 + smoothstep(0., .4, f) * .5 + eroded(w * .3, 3) * .35 * smoothstep(.2, .4, f) * (1. - top * .8); }
+  if (uS == 7) { float h = 0.;
+    for (int i = 0; i < 5; i++) { float fi = float(i); vec2 c = C + vec2(cos(fi * 2.4 + .5), sin(fi * 2.4 + .5)) * vec2(4.5, 3.2) * (i == 0 ? 0. : 1.);
+      float f = foot(w, c, vec2(3.4, 3.) * (i == 0 ? 1.3 : .9 + .2 * h12(vec2(fi))), fi * 3.); h = smax(h, dome(f, 1.4) * (i == 0 ? 2.4 : 1.4 + .6 * h12(vec2(fi, 2.))), .4); }
+    float f = foot(w, C, vec2(9., 7.), 7.); return h + dome(f, 1.2) * .6 + eroded(w * .4, 3) * .5 * smoothstep(.5, 1.5, h); }
+  if (uS == 8) { float r = length((w - C) / vec2(1., .9)); float f = clamp(1. - r / 8.5, 0., 1.);
+    float cone = dome(f, 1.4) * 4.; float crater = smoothstep(2.3, 1.2, r) * (cone - 2.7); float h = cone - max(crater, 0.) * .9;
+    float a = atan(w.y - C.y, w.x - C.x); float rav = pow(abs(sin(a * 3.5 + gn(w * .3) * 1.5)), 6.) * smoothstep(.2, .6, f) * (1. - smoothstep(.8, .95, f));
+    return h - rav * .35 + (gn(w * .6) - .5) * .15 * f; }
+  // 9: mountain lake
+  float f = foot(w, C, vec2(8.8, 6.8), 9.); float h = dome(f, 1.5) * 3.8 + eroded(w * .22, 3) * 1.2 * smoothstep(.1, .7, f);
+  float basin = exp(-pow(length((p - C - vec2(1.6, -.6)) / vec2(2., 1.5)), 2.) * 1.6);
+  return h - basin * 1.3;
+}
+
+// the shade pass reads the heights the first pass stored
+float T(vec2 q) {                                                          // bilinear by hand: float textures need not filter
+  vec2 st = q / SIZE * uRes - .5; st.y = uRes.y - 1. - st.y; ivec2 i = ivec2(floor(st)), m = ivec2(uRes) - 1; vec2 f = fract(st);
+  float a = texelFetch(uHt, clamp(i, ivec2(0), m), 0).r, b = texelFetch(uHt, clamp(i + ivec2(1, 0), ivec2(0), m), 0).r;
+  float c = texelFetch(uHt, clamp(i + ivec2(0, 1), ivec2(0), m), 0).r, d = texelFetch(uHt, clamp(i + 1, ivec2(0), m), 0).r;
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+void main() {
+  vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y), p = px / uRes * SIZE;
+  if (uPass == 0) { o = vec4(H(p), 0., 0., 1.); return; }
+  float e = SIZE.x / uRes.x * 1.5, h = T(p), hx = T(p + vec2(e, 0.)), hy = T(p + vec2(0., e)), hx2 = T(p - vec2(e, 0.)), hy2 = T(p - vec2(0., e));
+  vec3 N = normalize(vec3(-(hx - hx2) / (2. * e), -(hy - hy2) / (2. * e), 1.));
+  float slope = 1. - N.z;                                                   // 0 flat, ~.3 steep
+  float cav = (hx + hx2 + hy + hy2 - 4. * h) / (e * e);                     // + in hollows, - on crests
+  // cast shadows and a soft occlusion from what is around
+  float sh = 1., tanA = LIT.z / length(LIT.xy);
+  for (int i = 1; i <= 32; i++) { float d = float(i) * .2; sh = min(sh, 1. - smoothstep(0., .25, T(p + LD * d) - (h + d * tanA))); }
+  float ao = 0.;
+  for (int i = 0; i < 8; i++) { float a = float(i) * .785; vec2 q = p + vec2(cos(a), sin(a)) * .9; ao += max(0., T(q) - h); }
+  ao = clamp(1. - ao * .09, .55, 1.);
+  float n = fbm(p * .6), n2 = gn(p * 3.2);
+  int s = uS;
+  // grass on the flat, rock on the steep, snow up high where it can lie
+  float hmax = s == 1 ? 4.6 : s == 8 ? 4. : s == 6 ? 2.7 : 3.6;
+  float hr = h / hmax;
+  vec3 grass = mix(rgb(96., 132., 58.), rgb(128., 160., 76.), n) * (.92 + .14 * n2);
+  vec3 grassHigh = mix(rgb(118., 138., 74.), rgb(142., 150., 92.), n);       // drier, paler alpine grass
+  grass = mix(grass, grassHigh, smoothstep(.35, .75, hr));
+  vec3 rock = mix(rgb(120., 112., 100.), rgb(168., 158., 140.), gn(p * 1.4)) * (.88 + .2 * n2);
+  if (s == 3 || s == 6) rock = mix(rgb(150., 118., 88.), rgb(186., 154., 116.), gn(p * 1.4)) * (.88 + .2 * n2);   // warmer, sandstone layers
+  if (s == 8) rock = mix(rgb(92., 84., 80.), rgb(130., 120., 112.), gn(p * 1.4)) * (.9 + .18 * n2);
+  float rockT = (s == 3 || s == 6) ? .1 : .16;
+  float rockA = smoothstep(rockT - .03, rockT + .05, slope + (n - .5) * .08 + hr * .08);
+  if (s == 7) rockA = max(rockA, smoothstep(.45, .6, hr + (n - .5) * .1));
+  vec3 col = mix(grass, rock, rockA);
+  // snow: high and not too steep, gathering in hollows
+  float snowLine = s == 1 ? .55 : s == 2 ? .78 : s == 0 ? .8 : s == 4 ? .82 : s == 9 ? .8 : s == 5 ? .82 : 9.;
+  float snow = smoothstep(snowLine, snowLine + .06, hr + cav * .02 + (n - .5) * .08) * (1. - smoothstep(.2, .32, slope));
+  col = mix(col, rgb(238., 242., 247.), snow);
+  // forest on the gentle lower slopes
+  if (s == 2 || s == 0 || s == 9) {
+    float band = (s == 2 ? 1. : .45) * smoothstep(.05, .12, hr) * (1. - smoothstep(s == 2 ? .48 : .35, s == 2 ? .56 : .42, hr + (n - .5) * .12)) * (1. - rockA);
+    vec2 g = floor(p * 2.6); vec2 fc = fract(p * 2.6) - .5 + (vec2(h12(g), h12(g + 7.)) - .5) * .45;
+    float tree = step(length(fc), .38) * step(.2, h12(g + 3.));
+    vec3 canopy = mix(rgb(46., 82., 44.), rgb(66., 104., 52.), h12(g + 11.)) * (1. - .3 * smoothstep(0., .38, length(fc + vec2(.14, .17))));
+    col = mix(col, rgb(62., 92., 48.), band * .55);
+    col = mix(col, canopy, band * tree);
+  }
+  // water: the crater lake, the high lake and its stream
+  float water = 0.;
+  if (s == 8) water = smoothstep(.15, .05, h - 2.6) * step(length(p - C), 2.4);
+  if (s == 9) {
+    vec2 lc = C + vec2(1.6, -.6);
+    water = smoothstep(.1, -.05, h - (3.8 * .0 + T(lc) + .45)) * step(length((p - lc) / vec2(2.2, 1.7)), 1.);
+    // the stream: from the lake's lip down the slope to the south-east
+    float t = clamp(dot(p - lc, normalize(vec2(.55, 1.))) / 7., 0., 1.);
+    vec2 sp = lc + normalize(vec2(.55, 1.)) * t * 7. + vec2(sin(t * 9.) * .35, 0.);
+    water = max(water, (1. - smoothstep(.05, .14, length(p - sp))) * step(.18, t));
+  }
+  // light
+  float diff = max(dot(N, LIT), 0.) * sh;
+  vec3 lit = col * (vec3(.42, .47, .58) + vec3(1.05, .99, .88) * diff * 1.08) * ao;
+  lit *= 1. - clamp(-cav * .012, 0., .12) * -1.;                            // crests a touch brighter
+  lit *= 1. - clamp(cav * .03, 0., .18);                                    // creases darker
+  if (water > 0.) lit = mix(lit, mix(rgb(54., 120., 136.), rgb(110., 170., 176.), n2) * (.85 + .2 * sh), water * .95);
+  o = vec4(lit, 1.);
+}`;
+
+const grid = document.getElementById('grid');
+STYLES.forEach(([name, note], i) => {
+  const fig = document.createElement('figure');
+  fig.innerHTML = `<canvas></canvas><figcaption><b><span>${i + 1}</span>${name}</b><div>${note}</div></figcaption>`;
+  grid.appendChild(fig);
+  const cv = fig.querySelector('canvas');
+  setTimeout(() => draw(cv, i), 120 * i);
+});
+function draw(cv, style) {
+  const dpr = Math.min(1.5, window.devicePixelRatio || 1), w = Math.round(cv.clientWidth * dpr), h = Math.round(w * 16 / 24);
+  cv.width = w; cv.height = h;
+  const gl = cv.getContext('webgl2', { antialias: false, preserveDrawingBuffer: true });
+  if (!gl) { cv.replaceWith(Object.assign(document.createElement('p'), { textContent: 'WebGL2 is not available.' })); return; }
+  const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(x)); return x; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) console.error(gl.getProgramInfoLog(pr));
+  gl.useProgram(pr);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.getExtension('EXT_color_buffer_float');
+  const ht = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, ht);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, w, h, 0, gl.RED, gl.FLOAT, null);
+  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.NEAREST], [gl.TEXTURE_MAG_FILTER, gl.NEAREST], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+  const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, ht, 0);
+  gl.uniform2f(gl.getUniformLocation(pr, 'uRes'), w, h); gl.uniform1i(gl.getUniformLocation(pr, 'uS'), style);
+  gl.viewport(0, 0, w, h);
+  gl.bindTexture(gl.TEXTURE_2D, null);                   // never sample a texture while drawing into it (WebGL drops the draw)
+  gl.uniform1i(gl.getUniformLocation(pr, 'uPass'), 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.bindTexture(gl.TEXTURE_2D, ht); gl.uniform1i(gl.getUniformLocation(pr, 'uHt'), 0);
+  gl.uniform1i(gl.getUniformLocation(pr, 'uPass'), 1); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+</script>
+</body>
+</html>

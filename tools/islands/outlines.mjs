@@ -1,4 +1,4 @@
-// Reads every map of the unclaimedlnd contract from WAX and writes island-select/assets/islands.json:
+// Reads every map of the land.acre contract from WAX and writes island-select/assets/islands.json:
 // for each map its coastline as an SVG path (tile units 0-100) and its land, forest, mountain, beach and
 // fresh-water shares. Same outline method as web/src/lib/outline.ts. Run: node tools/islands/outlines.mjs
 import { writeFileSync, mkdirSync } from 'node:fs'
@@ -9,7 +9,7 @@ const SIZE = 100
 async function table(table, scope) {
   for (const node of NODES) {
     try {
-      const r = await fetch(`${node}/v1/chain/get_table_rows`, { method: 'POST', body: JSON.stringify({ json: true, code: 'unclaimedlnd', scope: String(scope), table, limit: 1000 }) })
+      const r = await fetch(`${node}/v1/chain/get_table_rows`, { method: 'POST', body: JSON.stringify({ json: true, code: 'land.acre', scope: String(scope), table, limit: 1000 }) })
       const j = await r.json()
       if (Array.isArray(j.rows) && j.rows.length) return j.rows
     } catch {}
@@ -97,7 +97,7 @@ function stats(t) {
   return { land: p(land), forest: p(forest), mountain: p(mountain), beach: p(beach), freshWater: p(fresh) }
 }
 
-const maps = await table('maps', 'unclaimedlnd')
+const maps = await table('maps', 'land.acre')
 const out = []
 for (const m of maps) {
   const tiles = decode(await table('chunks', m.map_id))

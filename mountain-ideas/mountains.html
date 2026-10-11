@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mountain Styles</title>
+<style>
+  :root { --bg: #f1e9d8; --ink: #2f2a22; --muted: #7a6f5c; --card: #fbf7ee; --line: #d9ccb2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 Georgia, "Times New Roman", serif; }
+  header { padding: 28px 24px 8px; max-width: 1500px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: .02em; }
+  header p { margin: 0; color: var(--muted); }
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 18px; padding: 18px 24px 40px; max-width: 1500px; margin: 0 auto; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  canvas { display: block; width: 100%; aspect-ratio: 24 / 16; }
+  figcaption { padding: 10px 14px 12px; }
+  figcaption b { font-size: 16px; }
+  figcaption b span { display: inline-block; min-width: 26px; color: #a0522d; }
+  figcaption div { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  @media (max-width: 480px) { main { grid-template-columns: 1fr; padding: 12px 16px 32px; } header { padding: 20px 16px 4px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mountain styles for Unclaimed Acres</h1>
+  <p>Ten ways to draw a mountain from the same footprint, lit by the island's north-west sun. Pick a number (or mix two).</p>
+</header>
+<main id="grid"></main>
+<script>
+const STYLES = [
+  ['Soft peak', 'One smooth summit rising slowly from the grass, rock only near the top, a small snow cap.'],
+  ['Few broad ridges', 'The soft peak with four wide, gentle ridges running down. No small detail.'],
+  ['Cozy terraces', 'Four wide grassy steps with soft rocky risers, like a stepped hill. Snow on the top step.'],
+  ['Twin peaks', 'Two soft summits joined by a grassy saddle.'],
+  ['Low-poly', 'Flat-shaded facets, like the creature art: a cut-gem mountain.'],
+  ['Painted bands', 'The soft peak lit in three soft bands of light, like a painted map.'],
+  ['Hill cluster', 'A family of round hills, the middle one tallest. Rolling and friendly.'],
+  ['Table mountain', 'A grassy top on steep rocky sides, gentle slopes at the foot.'],
+  ['Mountain range', 'One long curving spine with a couple of short spurs, rather than one peak.'],
+  ['Wooded slopes', 'The soft peak with forest climbing the lower half, rock and snow above.'],
+];
+
+const VS = `#version 300 es
+in vec2 aPos; void main() { gl_Position = vec4(aPos, 0., 1.); }`;
+const FS = `#version 300 es
+precision highp float;
+uniform vec2 uRes; uniform int uStyle;
+out vec4 o;
+const vec2 SIZE = vec2(24., 16.);          // tiles shown
+const vec2 C = vec2(12., 8.2);
+const vec3 LIT = vec3(-.507, -.645, .5715);
+const vec2 LD = vec2(-.6181, -.7861);
+const float HS = 1.;
+const float HMAX = 3.2;                    // the tallest summit, in tiles
+vec3 rgb(float r, float g, float b) { return vec3(r, g, b) / 255.; }
+float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+vec2 grd(vec2 i) { float a = h12(i) * 6.2831853; return vec2(cos(a), sin(a)); }
+float gn(vec2 p) { vec2 i = floor(p), f = fract(p), u = f * f * f * (f * (f * 6. - 15.) + 10.);
+  float a = dot(grd(i), f), b = dot(grd(i + vec2(1., 0.)), f - vec2(1., 0.)), c = dot(grd(i + vec2(0., 1.)), f - vec2(0., 1.)), d = dot(grd(i + 1.), f - 1.);
+  return .5 + .7 * mix(mix(a, b, u.x), mix(c, d, u.x), u.y); }
+float fbm(vec2 p) { return gn(p) * .57 + gn(p * 2.03 + 17.1) * .29 + gn(p * 4.1 + 9.2) * .14; }
+
+// the footprint: a lumpy oval, 1 in the middle, 0 at its edge
+float foot(vec2 p, vec2 c, vec2 r) {
+  vec2 d = (p - c) / r; float a = atan(d.y, d.x);
+  float k = length(d) * (1. + .22 * (gn(vec2(cos(a), sin(a)) * 1.4 + 3.) - .5) + .08 * (gn(p * .6) - .5));
+  return clamp(1. - k, 0., 1.);
+}
+// a real mountain's profile: a long, slow rise at the foot that steepens toward a rounded peak
+float soft(float f) { return pow(f, 1.7) * (1. - .12 * smoothstep(.85, 1., f)); }
+float smax(float a, float b, float k) { float h = clamp(.5 + .5 * (a - b) / k, 0., 1.); return mix(b, a, h) + k * h * (1. - h); }
+
+float shape(vec2 p) {
+  float f = foot(p, C, vec2(8.6, 6.6));
+  if (uStyle == 1) {
+    float a = atan(p.y - C.y, p.x - C.x) + (gn(p * .22) - .5) * 1.2;
+    float rid = pow(.5 + .5 * cos(a * 4. + .6), 2.);
+    return soft(f) * 1.05 + rid * .14 * smoothstep(.1, .6, f) * (1. - smoothstep(.75, 1., f));
+  }
+  if (uStyle == 2) {
+    float b = soft(f) * 1.0 * 4., fl = floor(b);
+    return (fl + smoothstep(.62, .95, b - fl)) / 4. * 1.05;
+  }
+  if (uStyle == 3) {
+    float a = soft(foot(p, C + vec2(-3.2, -.4), vec2(4.8, 4.2))) * 1.05;
+    float b = soft(foot(p, C + vec2(3.6, .8), vec2(4.2, 3.8))) * .85;
+    return smax(a, b, .25);
+  }
+  if (uStyle == 6) {
+    float h = 0.;
+    for (int i = 0; i < 7; i++) {
+      float fi = float(i);
+      vec2 c = C + (i == 0 ? vec2(0.) : vec2(cos(fi * 1.1 + .4), sin(fi * 1.1 + .4)) * vec2(5., 3.6) * (.8 + .2 * h12(vec2(fi, 3.))));
+      float r = i == 0 ? 3.6 : 2. + h12(vec2(fi, 7.)) * 1.;
+      float hh = i == 0 ? .95 : .38 + .22 * h12(vec2(fi, 9.));
+      float d = length(p - c) / r;
+      h = smax(h, hh * exp(-d * d * 1.6), .12);
+    }
+    return h;
+  }
+  if (uStyle == 7) {
+    float top = smoothstep(.18, .42, f);
+    return top * .62 + smoothstep(0., .18, f) * .08;
+  }
+  if (uStyle == 8) {
+    float x = p.x - C.x, cy = C.y + 1.6 * sin(x * .32) - .2;
+    float along = clamp(1. - (x * x) / 72., 0., 1.);
+    float d = (p.y - cy) / (1.9 + .3 * gn(p * .3));
+    float spine = along * exp(-d * d * 1.2) * (1. + .08 * (gn(p * .4) - .5));
+    float spur1 = exp(-pow((p.x - C.x + 3.) / 1.2, 2.) - pow(max(0., p.y - cy) / 3., 2.)) * .45 * step(cy, p.y) * along;
+    float spur2 = exp(-pow((p.x - C.x - 3.5) / 1.2, 2.) - pow(max(0., cy - p.y) / 3., 2.)) * .4 * step(p.y, cy) * along;
+    return smax(spine * .95, max(spur1, spur2) * (1. - abs(d) * .2), .2);
+  }
+  return soft(f) * 1.05;                                   // 0 soft peak, 4 low-poly base, 5 painted, 9 wooded
+}
+float height(vec2 p) { return shape(p) * HMAX; }
+
+// low-poly: the soft peak sampled at the corners of a triangle grid, each triangle a flat facet
+vec3 facet(vec2 p, out float hc) {
+  const float S = .95;
+  vec2 q = p / S; q.x += q.y * .5;
+  vec2 i = floor(q), f = fract(q);
+  vec2 a = i, b = f.x > f.y ? i + vec2(1., 0.) : i + vec2(0., 1.), c = i + 1.;
+  vec3 v[3];
+  vec2 pts[3] = vec2[3](a, b, c);
+  for (int k = 0; k < 3; k++) { vec2 g = pts[k]; vec2 w = vec2(g.x - g.y * .5, g.y) * S; float hw = height(w); v[k] = vec3(w, hw + (h12(g) - .5) * .25 * step(.05, hw)); }
+  hc = (v[0].z + v[1].z + v[2].z) / 3.;
+  vec3 n = normalize(cross(vec3(v[1].xy - v[0].xy, (v[1].z - v[0].z) * HS), vec3(v[2].xy - v[0].xy, (v[2].z - v[0].z) * HS)));
+  return n.z < 0. ? -n : n;
+}
+
+void main() {
+  vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);
+  vec2 p = px / uRes * SIZE;
+  float e = .03, H = height(p);
+  vec3 N = normalize(vec3(-(height(p + vec2(e, 0.)) - height(p - vec2(e, 0.))) / (2. * e) * HS, -(height(p + vec2(0., e)) - height(p - vec2(0., e))) / (2. * e) * HS, 1.));
+  float hc = H;
+  if (uStyle == 4) N = facet(p, hc);
+  float slope = length(N.xy) / max(N.z, .01);
+  float li = dot(N, LIT) / LIT.z;
+  // shadows cast toward the south-east
+  float s = 1., tanA = LIT.z / length(LIT.xy) / HS;
+  for (int i = 1; i <= 28; i++) { float d = float(i) * .22; s = min(s, 1. - smoothstep(0., .05, height(p + LD * d) - (H + d * tanA))); }
+  // ground: grass, then rock up high or where steep, snow on the top
+  float n = fbm(p * .5);
+  vec3 grass = mix(rgb(104., 140., 64.), rgb(126., 158., 76.), n) * (.94 + .12 * gn(p * 3.));
+  vec3 rock = mix(rgb(132., 124., 112.), rgb(170., 162., 148.), gn(p * 1.6));
+  vec3 snow = rgb(238., 242., 246.);
+  float hh = (uStyle == 4 ? hc : H) / HMAX;
+  float rockA = smoothstep(.36, .56, hh + (n - .5) * .1) + smoothstep(.9, 1.4, slope) * .8;
+  float snowA = smoothstep(.78, .83, hh + (n - .5) * .06);
+  if (uStyle == 2) { rockA = smoothstep(1.2, 2., slope) * .9 + smoothstep(.75, .8, hh) * .6; snowA = smoothstep(.98, 1.0, hh); }
+  if (uStyle == 6) { rockA = smoothstep(.78, .9, hh) * .5; snowA = 0.; }
+  if (uStyle == 7) { rockA = smoothstep(1., 1.8, slope); snowA = 0.; }
+  if (uStyle == 8) { rockA = smoothstep(.55, .7, hh + (n - .5) * .1) + smoothstep(1., 1.6, slope) * .6; snowA = smoothstep(.84, .88, hh); }
+  vec3 col = mix(grass, rock, clamp(rockA, 0., 1.));
+  if (uStyle == 9) {                                         // forest: dark canopy dots on the lower slopes
+    float band = smoothstep(.04, .12, hh) * (1. - smoothstep(.38, .5, hh + (n - .5) * .12));
+    vec2 g = floor(p * 2.4); vec2 fc = fract(p * 2.4) - .5 + (vec2(h12(g), h12(g + 7.)) - .5) * .5;
+    float tree = step(length(fc), .36) * step(.25, h12(g + 3.));
+    vec3 canopy = mix(rgb(52., 86., 46.), rgb(70., 108., 54.), h12(g + 11.)) * (1. - .25 * smoothstep(.0, .36, length(fc + vec2(.12, .15))));
+    col = mix(col, rgb(70., 98., 52.), band * .5);
+    col = mix(col, canopy, band * tree);
+  }
+  col = mix(col, snow, snowA);
+  // light: a soft, cozy curve; the painted style uses three gentle bands
+  // sun and sky: slopes facing the sun glow warm, the far sides fall into cool shade
+  float diff = max(dot(N, LIT), 0.) * s;
+  if (uStyle == 5) diff = .15 + .45 * smoothstep(.3, .36, diff) + .45 * smoothstep(.78, .84, diff);
+  vec3 lit = col * (vec3(.4, .45, .56) + vec3(1.04, .98, .88) * diff * 1.05);
+  o = vec4(pow(lit, vec3(1.)), 1.);
+}`;
+
+const grid = document.getElementById('grid');
+STYLES.forEach(([name, note], i) => {
+  const fig = document.createElement('figure');
+  fig.innerHTML = `<canvas></canvas><figcaption><b><span>${i + 1}</span>${name}</b><div>${note}</div></figcaption>`;
+  grid.appendChild(fig);
+  const cv = fig.querySelector('canvas');
+  requestAnimationFrame(() => draw(cv, i));
+});
+
+function draw(cv, style) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1), w = Math.round(cv.clientWidth * dpr), h = Math.round(w * 16 / 24);
+  cv.width = w; cv.height = h;
+  const gl = cv.getContext('webgl2', { antialias: false, preserveDrawingBuffer: true });
+  if (!gl) { cv.replaceWith(Object.assign(document.createElement('p'), { textContent: 'WebGL2 is not available.' })); return; }
+  const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(x)); return x; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) console.error(gl.getProgramInfoLog(pr));
+  gl.useProgram(pr);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  gl.uniform2f(gl.getUniformLocation(pr, 'uRes'), w, h); gl.uniform1i(gl.getUniformLocation(pr, 'uStyle'), style);
+  gl.viewport(0, 0, w, h); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+</script>
+</body>
+</html>

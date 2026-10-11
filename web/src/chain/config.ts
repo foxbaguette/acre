@@ -3,7 +3,10 @@ export const CHAIN_ID = '1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44
 export const APP_NAME = 'Unclaimed Acres'
 
 /** The game contract: table maps (scope = contract) and one chunks table per map (scope = map id). */
-export const CONTRACT = 'unclaimedlnd'
+export const CONTRACT = 'land.acre'
+
+/** The creatures contract: table creatures (scope = contract), secondary index 3 = by_map (map_id). */
+export const LIFE_CONTRACT = 'life.acre'
 
 /** WAX API nodes (CORS verified), one per operator. Reads try them in turn. */
 export const RPC_NODES: readonly string[] = [

@@ -76,7 +76,7 @@
 <main>
   <section class="card">
     <h2>Field preview</h2>
-    <p>Islands saved on the WAX blockchain (contract unclaimedlnd). Pick one under Map: its ground, mountains, water and forests come straight from the tiles stored on the chain, and the small details, grass colour and life are added here, the same way on every visit. The last entry, Random island, builds a random farm here instead, with crops growing on the soil. "Natural edges" rounds and softens where soil, path and water meet the grass, worked out in code from the same square tiles. "Animation" adds small, cheap touches of life: glinting water, crops swaying in wind gusts, drifting cloud shadows and a few butterflies. "Creatures" lets the favourites live here: land creatures in the fenced paddocks and on open grass, sea creatures in the ponds, flyers in the sky. Pick the weather below the toggles. Scroll, pinch or double-click to zoom, drag to look around, Shuffle for another random farm.</p>
+    <p>Islands saved on the WAX blockchain (contract land.acre). Pick one under Map: its ground, mountains, water and forests come straight from the tiles stored on the chain, and the small details, grass colour and life are added here, the same way on every visit. The last entry, Random island, builds a random farm here instead, with crops growing on the soil. "Natural edges" rounds and softens where soil, path and water meet the grass, worked out in code from the same square tiles. "Animation" adds small, cheap touches of life: glinting water, crops swaying in wind gusts, drifting cloud shadows and a few butterflies. "Creatures" lets the favourites live here: land creatures in the fenced paddocks and on open grass, sea creatures in the ponds, flyers in the sky. Pick the weather below the toggles. Scroll, pinch or double-click to zoom, drag to look around, Shuffle for another random farm.</p>
     <div class="bar" role="group" aria-label="Map">
       <label class="wlabel" for="chainMap">Map</label>
       <select id="chainMap" disabled><option>Loading maps…</option></select>
@@ -211,7 +211,7 @@ function buildPanel() {
   document.getElementById('cfgReset').addEventListener('click', () => { CFG = { ...CFG_DEFAULT }; cfgSave(); buildPanel(); applyLook(); build(); });
 }
 const COLS = 100, ROWS = 100;                                  // the world: 10,000 tiles
-const CHAIN = { contract: 'unclaimedlnd', nodes: ['https://wax.greymass.com', 'https://api.wax.alohaeos.com', 'https://wax.eosphere.io', 'https://api.waxsweden.org'], maps: [], map: null, raw: null, cache: new Map(), ask: 0 };
+const CHAIN = { contract: 'land.acre', nodes: ['https://wax.greymass.com', 'https://api.wax.alohaeos.com', 'https://wax.eosphere.io', 'https://api.waxsweden.org'], maps: [], map: null, raw: null, cache: new Map(), ask: 0 };
 let mode = 'mixed', MAP = null; let MAP_DECOR = { decor: [], tint: null }; let MAP_EXTRA = { forest: [], peaks: [], elev: [] }; let MAP_SHAPE = '';
 
 // ---------- world generation: roads, ponds and planted plots ----------
@@ -975,11 +975,21 @@ function paintChunk(cx, cy, L) {
   const c = takeCanvas(S0);
   paintGround(c.getContext('2d'), V, S0, S0, L, true);
   if (MISSING) { giveCanvas(c); NOT_READY.set(key, RASTER.gen); return null; }
+  c.shownBlank = ON_SCREEN.delete(key);
   NOT_READY.delete(key);                                                          // a texture was still loading: try again later
-  CHUNKS.set(cx + ',' + cy + ',' + L, c); CHUNK_PX += S0 * S0;
+  CHUNKS.set(cx + ',' + cy + ',' + L, c); CHUNK_PX += S0 * S0; c.bornAt = performance.now();
   for (const [k, old] of CHUNKS) { if (CHUNK_PX < cachePx()) break; CHUNKS.delete(k); CHUNK_PX -= old.width * old.height; giveCanvas(old); PERF.evicted++; }   // keep memory bounded
   return c;
 }
+// The same ground from another detail level (whose chunks may be a different size), or else the overview, drawn into
+// the chunk's place; false when there is nothing to stand in.
+function drawStandIn(ctx, ox, oy, ch, L, x, y, s) {
+  for (const l of [L / 2, L * 2, L / 4, L * 4]) { const c2 = chunkTiles(l); if (c2 < ch) continue; const a = CHUNKS.get(Math.floor(ox / c2) + ',' + Math.floor(oy / c2) + ',' + l);
+    if (a) { ctx.drawImage(a, (ox - Math.floor(ox / c2) * c2) * l, (oy - Math.floor(oy / c2) * c2) * l, ch * l, ch * l, Math.floor(x), Math.floor(y), Math.ceil(s) + 1, Math.ceil(s) + 1); return true; } }
+  if (OV.ready) { ctx.drawImage(OV.canvas, ox * OV.P, oy * OV.P, ch * OV.P, ch * OV.P, x, y, s, s); return true; }
+  return false;
+}
+const FADE_MS = 220, ON_SCREEN = new Set();                   // ON_SCREEN: chunks whose stand-in was drawn in the last frame                                            // a newly painted chunk fades in over its stand-in rather than snapping
 function drawChunks(ctx, V) {
   const L = Math.min(maxLevel(), tileLevel(CAM.z)), ch = chunkTiles(L), T = V.k, t0 = performance.now(); let pending = false, tries = 0;
   ctx.imageSmoothingQuality = 'low';                          // 'high' makes the GPU rebuild mip levels for every chunk, every frame: 50 ms a frame at medium zoom
@@ -988,14 +998,15 @@ function drawChunks(ctx, V) {
     let c = chunkCanvas(cx, cy, L);
     if (!c && !ZOOM.raf && PAINT.credit > 0 && tries < 3 && performance.now() - t0 < 2.5) { tries++; c = paintChunk(cx, cy, L); if (c) { PAINT.credit -= chunkCost(L); PERF.painted++; } }   // within budget (a paint that waits for textures costs nothing); the rest come from idle time
     const ox = cx * ch, oy = cy * ch, x = V.sx(ox), y = V.sy(oy), s = ch * T;
-    if (c) { ctx.drawImage(c, Math.floor(x), Math.floor(y), Math.ceil(s) + 1, Math.ceil(s) + 1); continue; }
+    if (c) {
+      const age = t0 - (c.bornAt || 0);
+      if (age < FADE_MS && c.shownBlank && drawStandIn(ctx, ox, oy, ch, L, x, y, s)) { ctx.globalAlpha = Math.max(0.05, age / FADE_MS); pending = true; }
+      ctx.drawImage(c, Math.floor(x), Math.floor(y), Math.ceil(s) + 1, Math.ceil(s) + 1); ctx.globalAlpha = 1; continue;
+    }
     pending = true;
-    let alt = null;                                             // the same ground at another detail level, whose chunks may be a different size
-    for (const l of [L / 2, L * 2, L / 4, L * 4]) { const c2 = chunkTiles(l); if (c2 < ch) continue; const a = CHUNKS.get(Math.floor(ox / c2) + ',' + Math.floor(oy / c2) + ',' + l);
-      if (a) { alt = [a, (ox - Math.floor(ox / c2) * c2) * l, (oy - Math.floor(oy / c2) * c2) * l, ch * l]; break; } }
-    if (alt) { ctx.drawImage(alt[0], alt[1], alt[2], alt[3], alt[3], Math.floor(x), Math.floor(y), Math.ceil(s) + 1, Math.ceil(s) + 1); continue; }
-    if (OV.ready) ctx.drawImage(OV.canvas, ox * OV.P, oy * OV.P, ch * OV.P, ch * OV.P, x, y, s, s);
+    if (drawStandIn(ctx, ox, oy, ch, L, x, y, s)) ON_SCREEN.add(cx + ',' + cy + ',' + L);
   }
+  if (ON_SCREEN.size > 400) ON_SCREEN.clear();
   VIEW_PENDING = pending; if (pending) queue();
   warmSoon(V, L);
 }
@@ -1340,6 +1351,89 @@ function setupCreatures() {
   const sky = { ok: (x, y) => x > 1 && y > 1 && x < COLS - 1 && y < ROWS - 1 };
   for (let k = 0; k < Math.round(4 * COLS * ROWS / 1344) && air.length; k++) add(air.pop(), 2 + Math.random() * (COLS - 4), 2 + Math.random() * (ROWS - 4), sky);
 }
+// ---------- lifeforms from the chain: each creature in its own colours, as big and as quick as its stats say ----------
+// list: [{ id, species, colors: [5 hex strings], size, speed }]; size and speed are per mille of the species' standard
+// (1000 = standard, 500 = half, 2000 = double). The species name picks the sprite. Each creature is placed where it
+// lives (land creatures on open grass, swimmers in ponds and lakes, flyers anywhere), at a spot seeded by its id so it
+// starts in the same place every visit.
+const RECOLOURED = new Map();
+function recolouredUrl(key, colors) {                           // the sprite with the creature's own five colours as its defaults
+  const id = key + '|' + colors.join(','); if (RECOLOURED.has(id)) return RECOLOURED.get(id);
+  const p = fetch(spriteUrl(key)).then(r => r.text()).then(t => {
+    colors.forEach((c, i) => { if (/^[0-9a-f]{6}$/i.test(c || '')) t = t.replace(new RegExp('(--c' + (i + 1) + ',\\s*)#[0-9A-Fa-f]{3,8}'), '$1#' + c); });
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(t);
+  });
+  RECOLOURED.set(id, p); return p;
+}
+const speciesKey = name => { const slug = String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return BEASTS.find(b => b[0].split('__')[1] === slug || b[0].split('__')[1] === slug + '-polished') || null; };
+let LIFE_ASK = 0;
+// Selecting a creature: a click or tap on it (not a drag) picks it, a click elsewhere lets it go. The page hears about
+// it through SELECT.on(id or null) and can choose one itself with selectCreature(id).
+const SELECT = { c: null, on: null };
+function selectCreature(id) {
+  const c = id === null || id === undefined ? null : CRE.list.find(q => q.chain && String(q.id) === String(id)) || null;
+  if (c === SELECT.c) return;
+  SELECT.c = c; redraw();
+  if (SELECT.on) SELECT.on(c ? c.id : null);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && SELECT.c) selectCreature(null); });
+function creatureAt(px, py) {                                   // view pixels to the nearest chain creature under them
+  const k = CAM.z; let best = null, bd = Infinity;
+  for (const c of CRE.list) { if (!c.chain) continue;
+    const lift = c.home === 'air' ? 0.9 * 0.15 : 0, sx = (c.x - CAM.x) * k, sy = (c.y - lift - CAM.y) * k;
+    const d = Math.hypot(px - sx, py - sy), reach = Math.max(18, c.size * k * 0.55);   // generous for small ones
+    if (d < reach && d < bd) { bd = d; best = c; } }
+  return best;
+}
+function drawHalo(g, x, y, size, t, still) {                    // a strategy-game marker: glow, a ring, sweeping arcs, ticks turning the other way
+  const rx = size * 0.62, ry = rx * 0.82, breathe = still ? 1 : 1 + 0.035 * Math.sin(t * 2.4), spin = still ? 0 : t * 0.9, glow = still ? 1 : 0.8 + 0.2 * Math.sin(t * 2.4);
+  const lw = Math.max(1.5, size * 0.028);
+  g.save(); g.translate(x, y);
+  g.save(); g.scale(1, ry / rx);                                // soft light on the ground
+  const gr = g.createRadialGradient(0, 0, rx * 0.3, 0, 0, rx * 1.25);
+  gr.addColorStop(0, 'rgba(255,220,130,0)'); gr.addColorStop(0.7, `rgba(255,214,110,${0.28 * glow})`); gr.addColorStop(0.84, `rgba(255,232,160,${0.5 * glow})`); gr.addColorStop(1, 'rgba(255,214,110,0)');
+  g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rx * 1.25, 0, 6.2832); g.fill(); g.restore();
+  const R = rx * breathe, Q = ry * breathe;
+  g.lineCap = 'round';
+  g.strokeStyle = `rgba(255,240,196,${0.55 * glow})`; g.lineWidth = lw * 0.6;   // the thin full ring
+  g.beginPath(); g.ellipse(0, 0, R * 0.92, Q * 0.92, 0, 0, 6.2832); g.stroke();
+  g.strokeStyle = `rgba(255,250,226,${0.95 * glow})`; g.lineWidth = lw * 1.4;   // three bright arcs sweeping round
+  for (let k = 0; k < 3; k++) { const a = spin + k * 2.0944; g.beginPath(); g.ellipse(0, 0, R, Q, 0, a, a + 0.95); g.stroke(); }
+  g.strokeStyle = `rgba(255,214,120,${0.8 * glow})`; g.lineWidth = lw;         // small ticks turning the other way, just outside
+  for (let k = 0; k < 12; k++) { const a = -spin * 0.6 + k * 0.5236, c = Math.cos(a), sn = Math.sin(a);
+    g.beginPath(); g.moveTo(c * R * 1.1, sn * Q * 1.1); g.lineTo(c * R * 1.2, sn * Q * 1.2); g.stroke(); }
+  g.restore();
+}
+async function setLifeforms(list) {
+  const ask = ++LIFE_ASK, map = MAP;
+  const typeAt = (x, y) => { if (x < 0 || y < 0 || x >= COLS || y >= ROWS) return 'edge'; const c = map.cells[Math.floor(y) * COLS + Math.floor(x)]; return c.ocean ? 'sea' : c.type; };
+  const ringOk = (x, y, r, ok) => { for (let a = 0; a < 6.28; a += 0.785) if (!ok(x + Math.cos(a) * r, y + Math.sin(a) * r)) return false; return ok(x, y); };
+  const fenceAt = (x, y) => x >= 0 && y >= 0 && x < COLS && y < ROWS && map.cells[Math.floor(y) * COLS + Math.floor(x)].fence;
+  const woods = (x, y) => MAP_EXTRA.forest[Math.floor(y) * COLS + Math.floor(x)];   // trees would hide them
+  const grassOk = (x, y) => typeAt(x, y) === 'grass' && !fenceAt(x, y) && !woods(x, y);
+  const areas = {
+    land: { ok: (x, y, r) => x > 1 + r && y > 1 + r && x < COLS - 1 - r && y < ROWS - 1 - r && ringOk(x, y, r, grassOk) },
+    water: { ok: (x, y, r) => ringOk(x, y, r * 1.1, (a, b) => typeAt(a, b) === 'water') },
+    air: { ok: (x, y) => x > 1 && y > 1 && x < COLS - 1 && y < ROWS - 1 },
+  };
+  const made = [];
+  for (const f of list || []) {
+    const b = speciesKey(f.species); if (!b) { console.warn('No sprite for species', f.species); continue; }
+    const scale = Math.max(0.2, (Number(f.size) || 1000) / 1000), quick = Math.max(0.1, (Number(f.speed) || 1000) / 1000);
+    const size = b[2] * scale, r = size * 0.36, area = areas[b[1]], rnd = seeded(Number(f.id) * 7919 + 101);
+    let x = COLS / 2, y = ROWS / 2;
+    for (let k = 0; k < 6000; k++) { const tx = 2 + rnd() * (COLS - 4), ty = 2 + rnd() * (ROWS - 4); if (area.ok(tx, ty, r)) { x = tx; y = ty; break; } }
+    made.push({ chain: true, id: f.id, url: await recolouredUrl(b[0], f.colors || []), home: b[1], size, r, x, y, area, tx: x, ty: y,
+      head: rnd() * 6.28, wait: b[1] === 'air' ? 0 : rnd() * 3, phase: rnd() * 6.28, speed: (b[1] === 'air' ? 1.3 : 0.5) * quick, moving: false });
+    if (ask !== LIFE_ASK || map !== MAP) return 0;                 // a newer list or another island took over
+  }
+  CRE.list = CRE.list.filter(c => !c.chain).concat(made);
+  if (SELECT.c && !CRE.list.includes(SELECT.c)) selectCreature(null);
+  if (made.length) document.getElementById('creatures').checked = true;
+  redraw();
+  return made.length;
+}
 function flyStep(c, dt) {                                      // flyers glide on without ever stopping, curving gently towards a new goal
   c.wait = 0; c.moving = true;
   let dx = c.tx - c.x, dy = c.ty - c.y;
@@ -1410,6 +1504,7 @@ function drawCreature(g, c, t, V, still) {
   const T = V.k, size = c.size * T, b = bitmapNear(c.url, tileLevel(CAM.z * c.size), c.home !== 'water'); if (!b) return;   // swimmers are drawn on the water layer, ungraded
   const breathe = still ? 1 : 1 + 0.015 * Math.sin(t * 2 + c.phase), bob = still || !c.moving ? 0 : Math.abs(Math.sin(t * 8 + c.phase));
   const sx = breathe * (1 - bob * 0.03), sy = breathe * (1 + bob * 0.05), x = V.sx(c.x), y = V.sy(c.y);
+  if (c === SELECT.c) drawHalo(g, x, y, size, t, still);       // the selected one stands in a glowing ring
   if (c.home === 'water') {                                   // swimming: tinted by the water, ripples around the body
     wet ??= document.createElement('canvas'); const n = Math.ceil(size * 1.45);   // room for the sprite at any angle
     if (wet.width < n || wet.height < n) { wet.width = wet.height = n; }
@@ -1641,7 +1736,9 @@ view().addEventListener('dblclick', e => {                     // double-click z
 });
 view().addEventListener('wheel', e => { e.preventDefault(); const r = view().getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
 const ptrs = new Map(); let pinch = 0;
-view().addEventListener('pointerdown', e => { view().setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); view().classList.add('drag'); });
+let press = null;                                               // where a single-finger press started, to tell a click from a drag
+view().addEventListener('pointerdown', e => { view().setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); view().classList.add('drag');
+  press = ptrs.size === 1 ? { x: e.clientX, y: e.clientY, id: e.pointerId } : null; });
 view().addEventListener('pointermove', e => {
   if (!ptrs.has(e.pointerId)) return;
   const [px, py] = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
@@ -1651,8 +1748,19 @@ view().addEventListener('pointermove', e => {
   }
   CAM.x -= (e.clientX - px) / CAM.z; CAM.y -= (e.clientY - py) / CAM.z; clampCam(); queue();
 });
-const up = e => { ptrs.delete(e.pointerId); pinch = 0; if (!ptrs.size) view().classList.remove('drag'); };
+const up = e => {
+  if (e.type === 'pointerup' && press && press.id === e.pointerId && Math.hypot(e.clientX - press.x, e.clientY - press.y) < 6) {   // a click, not a drag
+    const r = view().getBoundingClientRect(), c = creatureAt(e.clientX - r.left, e.clientY - r.top);
+    if (c) selectCreature(c.id);                                  // clicking the map does not let go: only the card's close button or Esc
+  }
+  press = null; ptrs.delete(e.pointerId); pinch = 0; if (!ptrs.size) view().classList.remove('drag'); };
 view().addEventListener('pointerup', up); view().addEventListener('pointercancel', up);
+let hover = { at: null, raf: 0, cur: '' };
+view().addEventListener('pointermove', e => {
+  if (ptrs.size) return; hover.at = [e.clientX, e.clientY];
+  if (!hover.raf) hover.raf = requestAnimationFrame(() => { hover.raf = 0; const r = view().getBoundingClientRect(), want = creatureAt(hover.at[0] - r.left, hover.at[1] - r.top) ? 'pointer' : '';
+    if (want !== hover.cur) { hover.cur = want; view().style.cursor = want; } });
+});
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (CAM.z < zMin()) CAM.z = zMin(); clampCam(); redraw(); }, 150); });
 if (CAN_GRADE) document.getElementById('live').style.filter = 'none';   // the grade is in the sprites
 document.getElementById('weather').style.display = WEATHER.kind === 'sun' ? 'none' : '';

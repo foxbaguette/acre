@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
+import { fetchLifeforms, type Creature } from '@/chain/life'
+import { CreatureCard } from '@/components/CreatureCard'
 import { fetchMapTiles, fetchPlayerMaps, mapStats, type MapStats } from '@/chain/maps'
-import { startIsland, type IslandView } from '@/game/renderer'
+import { startEngine } from '@/engine'
+import { loadBuilds as readBuilds, saveForm } from '@/engine/build'
+import { CROPS } from '@/engine/crops'
+import type { Builds, BuildTool, IslandView } from '@/engine/types'
 import { AccountTag } from '@/journal/Header'
 
 type Load = { state: 'reading' } | { state: 'drawing' } | { state: 'ready' } | { state: 'error'; message: string }
@@ -16,6 +21,38 @@ const seenHint = () => {
 }
 
 const pct = (v: number) => `${Math.round(v * 1000) / 10}%`
+
+// The player's builds on each island. The contract has no action for them yet, so for now they live in this browser.
+const buildKey = (mapId: string) => `ua-builds-${mapId}`
+const loadBuilds = (mapId: string): Builds => {
+  try {
+    return readBuilds(JSON.parse(localStorage.getItem(buildKey(mapId)) ?? 'null'), 100)
+  } catch {
+    return {}
+  }
+}
+const saveBuilds = (mapId: string, builds: Builds) => {
+  try {
+    localStorage.setItem(buildKey(mapId), JSON.stringify(saveForm(builds)))
+  } catch {
+    /* kept for this visit only */
+  }
+}
+const cropName = (c: string) => c.replace(/-/g, ' ')
+/** Everyone living in the island's farmhouses: one farmer per stage. */
+const farmersIn = (b: Builds) => Object.values(b).reduce((n, c) => n + (c.s === 'farmhouse' ? c.lv ?? 1 : 0), 0)
+
+const TOOLS: { id: BuildTool; label: string; hint: string; icon: string }[] = [
+  { id: 'fence', label: 'enclosure', hint: 'Drag to draw a fence, any shape; close the loop and it is an enclosure. To enlarge one, draw the new side out from the old fence and erase the old stretch. Shift + drag: a rectangle.', icon: 'M3 20V8l2-3 2 3v12M17 20V8l2-3 2 3v12M3 11h18M3 16h18' },
+  { id: 'path', label: 'path', hint: 'Drag to lay a path where you go, over grass, soil or sand; trees in the way make room. Shift + drag: a whole area.', icon: 'M7 21c0-4 3-5 3-9S7 7 7 3M17 21c0-4-3-5-3-9s3-5 3-9M12 6v1M12 11v1M12 16v1' },
+  { id: 'soil', label: 'soil', hint: 'Drag over open grass to turn it into soil, ready for sowing.', icon: 'M3 17c3-2 6-2 9 0s6 2 9 0M3 12c3-2 6-2 9 0s6 2 9 0M8 7l1-3M15 7l1-3' },
+  { id: 'crop', label: 'crops', hint: 'Pick a crop, then drag over soil to sow it. It grows from seed to harvest in about ten minutes.', icon: 'M12 21V10M12 14c-4 0-6-3-6-6 3 0 6 2 6 6zM12 11c0-4 2-7 6-7 0 4-2 7-6 7z' },
+  { id: 'farmhouse', label: 'farmhouse', hint: 'Click to put up a farmhouse (3 × 4 tiles) on open grass. One farmer moves in; upgrade it for more.', icon: 'M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6' },
+  { id: 'upgrade', label: 'upgrade', hint: 'Click a farmhouse to raise it a stage: each stage houses one more farmer, up to five.', icon: 'M12 20V6M6 12l6-6 6 6M5 21h14' },
+  { id: 'lab', label: 'lab', hint: 'Click to put up a research lab (4 × 4 tiles) on open grass.', icon: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M7 15h10' },
+  { id: 'nest', label: 'nest', hint: 'Click to lay a straw hatching nest (2 × 2 tiles) on open grass.', icon: 'M3 13c0 4 4 7 9 7s9-3 9-7M3 13c3 2 15 2 18 0M9 11a3 4 0 1 0 6 0a3 4 0 1 0-6 0' },
+  { id: 'erase', label: 'erase', hint: 'Drag to clear tiles. Start on a fence and only fences go; start on a tree and only trees and plants go (the same for buildings, crops, paths and soil).', icon: 'M15 4l5 5-9 9H6l-2-2 11-12zM9 9l6 6M4 20h16' },
+]
 
 /**
  * The island itself, full screen. The journal only shows up in small pieces around the edges: the island's
@@ -32,8 +69,17 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
   const [name, setName] = useState(`Island ${mapId}`)
   const [stats, setStats] = useState<MapStats | null>(null)
   const [notesOpen, setNotesOpen] = useState(false)
+  const [lifeforms, setLifeforms] = useState<number | null>(null)
+  const [creatures, setCreatures] = useState<Creature[]>([])
+  const [selected, setSelected] = useState<string | null>(null)
   const [hint, setHint] = useState(!seenHint())
+  const [buildOpen, setBuildOpen] = useState(false)
+  const [tool, setTool] = useState<BuildTool | null>(null)
+  const [undoable, setUndoable] = useState(false)
+  const [farmers, setFarmers] = useState(0)
+  const [crop, setCrop] = useState<string>('wheat')
   const started = useRef<IslandView | null>(null)
+  const selectedCreature = selected === null ? null : creatures.find((c) => String(c.id) === selected) ?? null
 
   useEffect(() => {
     let live = true
@@ -50,9 +96,21 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
         setTimeout(() => {
           if (!live || started.current) return
           try {
-            started.current = startIsland({ tiles, mapId })
+            const saved = loadBuilds(mapId)
+            started.current = startEngine({ tiles, mapId, builds: saved })
             if (import.meta.env.DEV) (window as unknown as { __island: IslandView }).__island = started.current
-            started.current.ready.then(() => live && setLoad({ state: 'ready' }))
+            const view = started.current
+            view.ready.then(() => {
+              if (!live) return
+              setLoad({ state: 'ready' })
+              // the creatures living here, from life.acre; the island stays usable if this read fails
+              view.onSelect((id) => setSelected(id === null ? null : String(id)))
+              setFarmers(farmersIn(saved))
+              view.onBuild((builds, canUndo) => { saveBuilds(mapId, builds); setUndoable(canUndo); setFarmers(farmersIn(builds)) })
+              fetchLifeforms(mapId)
+                .then((list) => { if (live) setCreatures(list); return view.setLifeforms(list) })
+                .then((n) => live && setLifeforms(n), (err) => { console.warn('Could not load the lifeforms', err); if (live) setLifeforms(null) })
+            })
           } catch (err) {
             setLoad({ state: 'error', message: err instanceof Error ? err.message : String(err) })
           }
@@ -64,6 +122,15 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
       live = false
     }
   }, [account, mapId])
+
+  // the picked tool goes to the island; Esc puts it away
+  useEffect(() => { started.current?.setBuildTool(tool, crop) }, [tool, crop])
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setTool(null) }
+    document.addEventListener('keydown', key)
+    return () => document.removeEventListener('keydown', key)
+  }, [])
+  const closeBuild = () => { setTool(null); setBuildOpen(false) }
 
   const closeHint = () => {
     setHint(false)
@@ -78,28 +145,6 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
     <div className="game">
       <h1 className="sr-only">{name}</h1>
       <div className="view" id="view" aria-label={`${name}, seen from above. Drag to look around, scroll or pinch to zoom.`} role="img">
-        {/* the scene canvases form one group, so a weather grade is a single filter pass; the weather layer sits above */}
-        <div className="scene">
-          <canvas className="field" id="field" />
-          <canvas className="fx" id="fx" aria-hidden="true" />
-          <canvas className="fx" id="live" aria-hidden="true" />
-        </div>
-        <canvas className="fx" id="weather" aria-hidden="true" />
-      </div>
-
-      {/* switches the renderer reads; the game keeps them at these settings */}
-      <div hidden aria-hidden="true">
-        <input type="checkbox" id="animate" defaultChecked />
-        <input type="checkbox" id="creatures" />
-        <input type="checkbox" id="natural" defaultChecked />
-        <input type="checkbox" id="letters" />
-        <div id="legend" />
-        <button type="button" id="copyMap" />
-        <span id="copied" />
-        <select id="chainMap" />
-        <button type="button" id="chainRefresh" />
-        <span id="chainStatus" />
-        <button type="button" id="shuffle" />
       </div>
 
       {load.state !== 'ready' && (
@@ -138,6 +183,46 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
           </svg>
           back to the journal
         </button>
+        {load.state === 'ready' && (
+          <div className="build">
+            <button type="button" className="wx-tag build-toggle" aria-expanded={buildOpen} aria-controls="build-card" onClick={() => (buildOpen ? closeBuild() : setBuildOpen(true))}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M14 6l4 4M3 21l9-9M12.5 4.5l3-1.5 5.5 5.5-1.5 3-3-3-1 1-3-3 1-1z" />
+              </svg>
+              build
+            </button>
+            {buildOpen && (
+              <div className="build-card" id="build-card">
+                <div className="build-tools" role="group" aria-label="What to build">
+                  {TOOLS.map((t) => (
+                    <button key={t.id} type="button" className="build-tool" aria-pressed={tool === t.id} onClick={() => setTool(tool === t.id ? null : t.id)}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d={t.icon} />
+                      </svg>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="build-hint hand">{tool ? TOOLS.find((t) => t.id === tool)!.hint : 'Pick what to build, then drag across the island.'}</p>
+                {tool === 'crop' && (
+                  <div className="crop-pick" role="radiogroup" aria-label="Which crop to sow">
+                    {CROPS.map((c) => (
+                      <button key={c} type="button" role="radio" aria-checked={crop === c} className="crop-seed" title={cropName(c)} onClick={() => setCrop(c)}>
+                        <img src={`/art/crops/${c}/7-harvest-front.svg?v=1`} alt={cropName(c)} loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {tool === 'crop' && <p className="crop-name">{cropName(crop)}</p>}
+                <div className="build-actions">
+                  <button type="button" className="build-link" disabled={!undoable} onClick={() => started.current?.undoBuild()}>undo</button>
+                  <button type="button" className="build-link" onClick={closeBuild}>done</button>
+                </div>
+                <p className="rec-foot">Kept on this device for now; right-drag still moves the map.</p>
+              </div>
+            )}
+          </div>
+        )}
         <span className="hud-fps" id="fps" aria-live="off" />
       </div>
 
@@ -229,6 +314,9 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
 
       {/* ---------- field notes, bottom right ---------- */}
       <div className="hud hud-br">
+        {selectedCreature ? (
+          <CreatureCard creature={selectedCreature} art={started.current?.spriteFor(selectedCreature.speciesName) ?? null} onClose={() => started.current?.selectCreature(null)} />
+        ) : (
         <div className={`notes-card${notesOpen ? ' is-open' : ''}`}>
           <button type="button" className="notes-toggle" aria-expanded={notesOpen} aria-controls="field-notes" onClick={() => setNotesOpen((o) => !o)}>
             <span>Field notes</span>
@@ -256,8 +344,13 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
               <p className="hand">Reading the survey…</p>
             )}
             <p className="rec-foot">Shares of the whole chart, sea included.</p>
+            {farmers > 0 && <p className="rec-foot">{farmers === 1 ? 'One farmer lives here.' : `${farmers} farmers live here.`}</p>}
+            {lifeforms !== null && (
+              <p className="rec-foot">{lifeforms === 0 ? 'No creatures live here yet.' : lifeforms === 1 ? 'One creature lives here.' : `${lifeforms} creatures live here.`}</p>
+            )}
           </div>
         </div>
+        )}
       </div>
 
       {hint && load.state === 'ready' && (
