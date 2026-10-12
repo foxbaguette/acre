@@ -236,21 +236,17 @@ export function startEngine(opts: EngineOptions): IslandView {
   const clearTo = (x: number, y: number, tx: number, ty: number) => { const n = Math.ceil(Math.hypot(tx - x, ty - y) * 2); for (let k = 1; k <= n; k++) if (!deepAt(x + (tx - x) * k / n, y + (ty - y) * k / n)) return false; return true }
   const retarget = (w: { x: number; y: number; tx: number; ty: number }) => { for (let k = 0; k < 40; k++) { const [tx, ty] = pickDeep(); if (Math.hypot(tx - w.x, ty - w.y) > 6 && clearTo(w.x, w.y, tx, ty)) { w.tx = tx; w.ty = ty; return } } }
   whales.forEach(retarget)
-  // ice floes for winter: a few on the open sea, drifting with the wind and turning slowly; one that runs aground
-  // starts again somewhere else
-  const seaAt = (x: number, y: number) => { const X = Math.floor(x), Y = Math.floor(y); return X >= 0 && Y >= 0 && X < COLS && Y < ROWS && world.ocean[Y * COLS + X] === 1 }
+  // ice floes for winter: a few on the open sea, each bobbing where it lies, clear of the shore
+  const seaAt = (x: number, y: number) => { const X = Math.floor(x), Y = Math.floor(y); return X < 0 || Y < 0 || X >= COLS || Y >= ROWS || world.ocean[Y * COLS + X] === 1 }   // beyond the map it is all sea
+  const fl0 = (r: number) => r + 0.6   // room to bob without touching land
   const floeFits = (x: number, y: number, r: number) => seaAt(x, y) && [0, 1, 2, 3, 4, 5].every((k) => seaAt(x + Math.cos(k * 1.047) * (r + 0.4), y + Math.sin(k * 1.047) * (r + 0.4)))
-  const floes: { x: number; y: number; r: number; rot: number; spin: number; seed: number; vx: number; vy: number }[] = []
-  { let sea = 0; for (let i = 0; i < COLS * ROWS; i++) if (world.ocean[i]) sea++
-    const R = seeded(Number(opts.mapId) * 31 + 977), n = Math.min(140, Math.round(sea / 45))
-    for (let k = 0, tries = 0; k < n && tries < n * 30; tries++) { const r = 0.3 + R() * R() * 1.1, x = R() * COLS, y = R() * ROWS
-      if (floeFits(x, y, r)) { floes.push({ x, y, r, rot: R() * 6.28, spin: (R() - 0.5) * 0.04, seed: R(), vx: 0.03 + R() * 0.05, vy: (R() - 0.5) * 0.03 }); k++ } } }
-  const stepFloes = (dt: number) => {
-    const g = WX[state.weather].gust
-    for (const fl of floes) { const nx = fl.x + fl.vx * g * dt, ny = fl.y + fl.vy * g * dt; fl.rot += fl.spin * dt
-      if (floeFits(nx, ny, fl.r)) { fl.x = nx; fl.y = ny; continue }
-      for (let k = 0; k < 40; k++) { const x = Math.random() * COLS, y = Math.random() * ROWS; if (floeFits(x, y, fl.r)) { fl.x = x; fl.y = y; break } } }
-  }
+  const floes: { x: number; y: number; r: number; rot: number; seed: number }[] = []
+  { const M = 40   // the sea round the map, as far as the view can show it, gets floes too
+    let sea = 0; for (let i = 0; i < COLS * ROWS; i++) if (world.ocean[i]) sea++
+    sea += (COLS + 2 * M) * (ROWS + 2 * M) - COLS * ROWS
+    const R = seeded(Number(opts.mapId) * 31 + 977), n = Math.min(420, Math.round(sea / 45))
+    for (let k = 0, tries = 0; k < n && tries < n * 30; tries++) { const r = 0.3 + R() * R() * 1.1, x = -M + R() * (COLS + 2 * M), y = -M + R() * (ROWS + 2 * M)
+      if (floeFits(x, y, fl0(r))) { floes.push({ x, y, r, rot: R() * 6.28, seed: R() }); k++ } } }
   const stepWhales = (dt: number) => {
     for (const w of whales) {
       if (Math.hypot(w.tx - w.x, w.ty - w.y) < 2) retarget(w)
@@ -373,7 +369,9 @@ export function startEngine(opts: EngineOptions): IslandView {
       if (!still) { const k = (t * 0.6 + c.phase) % 1; sprites.shape(SHAPE.ripple, c.x, c.y, c.size * (0.35 + k * 0.3) / 0.92, c.size * (0.25 + k * 0.2) / 0.92, [225 / 255, 245 / 255, 1, (1 - k) * 0.6], FLAG.water) }
     }
     // winter: ice floes drifting on the sea
-    if (winter()) for (const fl of floes) if (seen(fl.x, fl.y, 2)) sprites.shape(SHAPE.ice, fl.x, fl.y, fl.r, fl.r, [fl.seed, 0, 0, 1], 0, fl.rot)
+    // (each bobs and turns a little where it lies: they do not drift)
+    if (winter()) for (const fl of floes) { if (!seen(fl.x, fl.y, 2)) continue; const ph = fl.seed * 40, m = still ? 0 : 1
+      sprites.shape(SHAPE.ice, fl.x + Math.sin(t * 0.21 + ph) * 0.07 * m, fl.y + Math.sin(t * 0.17 + ph * 1.3) * 0.05 * m, fl.r, fl.r, [fl.seed, 0, 0, 1], 0, fl.rot + Math.sin(t * 0.13 + ph) * 0.06 * m) }
     const landAt = sprites.n
     // standing on the ground, back to front: trees and land creatures
     const items: [number, number, number, number][] = []        // [depth, kind 0 tree / 1 creature / 2 post / 3 crop / 4 rail / 5 building, index, 0 standing / 1 planned / 2 to be erased]
@@ -631,7 +629,7 @@ export function startEngine(opts: EngineOptions): IslandView {
       const ratio = ZOOM.target / CAM.z
       if (Math.abs(Math.log(ratio)) < 0.003) { ZOOM.active = false; zoomNow(ratio, ZOOM.px, ZOOM.py) } else zoomNow(ratio ** (1 - Math.exp(-dt / 80)), ZOOM.px, ZOOM.py)
     }
-    if (state.motion) { herd.step(dt / 1000); stepWhales(dt / 1000); if (winter()) stepFloes(dt / 1000) }
+    if (state.motion) { herd.step(dt / 1000); stepWhales(dt / 1000) }
     farmers.step(dt / 1000); if (farmers.list.length || farmers.claimed.size) kick()   // the harvest goes on even when motion is reduced
     placeTokens()
     placePens()
@@ -653,12 +651,12 @@ export function startEngine(opts: EngineOptions): IslandView {
     // the scene: ground, swimmers, the water's life, what stands on the ground, cloud shadows, flyers
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, sky.scene!.fb); gl!.viewport(0, 0, W, H)
     const pending = ground.draw(cam, W, H)
-    sp(0, landAt)
     const still = !state.motion
+    const farZ = cam.z / d, far = 1 - Math.min(1, Math.max(0, (farZ - 11) / 22)), cover = ({ sun: -0.1, cloudy: 0.03, rain: 0.08, storm: 0.14 } as Record<string, number>)[state.weather] ?? 0, wet = state.weather === 'rain' || state.weather === 'storm' ? 1 : 0
+    sp(0, landAt, { cloud: [far, cover, still ? 0 : t, 0] })
     sky.water(ground.height, ground.fieldSize, [world.cols, world.rows], cam, W, H, t, winter() ? 0 : state.weather === 'storm' ? 2 : state.weather === 'rain' ? 1 : 0, cam.z > 6 ? (still ? 2 : 1) : 0, !still && cam.z > 14, ground.level(cam.z))
     sp(landAt, flyAt)
     // the weather: whole cloud systems as on the planet map; their shadows at every zoom, the clouds themselves from far out
-    const farZ = cam.z / d, far = 1 - Math.min(1, Math.max(0, (farZ - 11) / 22)), cover = ({ sun: -0.1, cloudy: 0.03, rain: 0.08, storm: 0.14 } as Record<string, number>)[state.weather] ?? 0, wet = state.weather === 'rain' || state.weather === 'storm' ? 1 : 0
     sky.farClouds(cam, W, H, still ? 0 : t, far, cover, wet, 0)
     sp(flyAt, cloudAt)
     sky.farClouds(cam, W, H, still ? 0 : t, far, cover, wet, 1)

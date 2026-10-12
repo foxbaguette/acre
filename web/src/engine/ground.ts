@@ -179,6 +179,7 @@ void main() {
   float bw = .2 + .14 * gnoise(p * 1.6 + 3.);
   float beach = max(1. - smoothstep(bw * .6, bw, t.x), smoothstep(.15, .4, f0.g) * (1. - smoothstep(.8, 1.6, t.x)));   // the sand reaches the water
   beach *= 1. - mtn;
+  if (uLook.w > 2.5) sand = mix(sand * vec3(.86, .9, .98), vec3(.86, .9, .95), .45 * smoothstep(.0, .5, gnoise(p * 2.7 + 4.) + .25));   // winter: frost on the sand, drifted in patches
   vec3 land = mix(col, sand, beach);
   // mountains, as on the planet map: bare rock where it is steep or high, snow above the snow line (thinner on the
   // steepest faces); version 1 lets the grass climb higher under a smaller cap
@@ -214,6 +215,7 @@ void main() {
                    : mix(rgb(32., 72., 92.), rgb(18., 44., 66.), smoothstep(.15, .75, depth)) * (.94 + .12 * gnoise(p * .07 + 3.));
   vec3 water = bed * trans + deep * (1. - trans);
   water = cozy(mix(water, water * vec3(.78, 1.04, 1.12), .55) * 1.18);   // clearer, more turquoise, as on the planet map
+  if (uLook.w > 2.5) { float wl = dot(water, vec3(.3, .55, .15)); water = mix(water, vec3(wl) * vec3(.82, .94, 1.08), .5) * vec3(.92, .96, 1.); }   // winter: the shallows colder, steel rather than turquoise
   o = vec4(mix(land, water, clamp(wet * uPx + .5, 0., 1.)), 1.);   // a soft edge one pixel wide at any zoom
 }`
 

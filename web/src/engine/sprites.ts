@@ -48,6 +48,7 @@ uniform vec2 uHSize, uMap;
 uniform vec3 uCam;
 uniform float uTime, uGust;
 uniform float uSeason;             // 0 spring, 1 summer, 2 autumn, 3 winter
+uniform vec4 uCloud;               // the far clouds (sky.ts): how far out (0 none), cover, their time
 in vec2 vUV; in vec2 vLocal; in vec2 vWorld; flat in float vLayer; flat in vec4 vColor; flat in float vFlags; flat in vec4 vRegion;
 out vec4 o;
 ${GLSL_TERRAIN}
@@ -88,6 +89,20 @@ vec4 bareTree(vec2 p, float seed, float aa) {
   float a = max(cov, haze);
   return vec4(mix(vec3(.3, .26, .22), col, cov) * a, a);
 }
+// the far clouds' cover at a world point, exactly as sky.ts works it out (its own noise), so what lies on the water can
+// hide under them
+float cHash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+vec2 cGrd(vec2 i) { float a = cHash(i) * 6.2831853; return vec2(cos(a), sin(a)); }
+float cNoise(vec2 p) { vec2 i = floor(p), f = fract(p), u = f * f * f * (f * (f * 6. - 15.) + 10.);
+  float a = dot(cGrd(i), f), b = dot(cGrd(i + vec2(1., 0.)), f - vec2(1., 0.)), c = dot(cGrd(i + vec2(0., 1.)), f - vec2(0., 1.)), d = dot(cGrd(i + 1.), f - 1.);
+  return .5 + .7 * mix(mix(a, b, u.x), mix(c, d, u.x), u.y); }
+float cloudCover(vec2 P) {
+  if (uCloud.x <= 0.) return 0.;
+  vec2 p = P * .16; float t = uCloud.z;
+  float cl = cNoise(p * .32 + vec2(t * .045, t * .016)) * .5 + cNoise(mat2(.8, -.6, .6, .8) * p * .8 + 7. + vec2(t * .1, -t * .03)) * .28
+    + cNoise(p * 2. + 3. + vec2(t * .2, t * .06)) * .17 + cNoise(mat2(.8, .6, -.6, .8) * p * 4.6 + vec2(t * .34, 0.)) * .05 + uCloud.y;
+  return cl > .5 ? smoothstep(.55, .7, cl) * .93 * uCloud.x : 0.;
+}
 vec4 treeCol(vec2 p, float seed, float kind, float hue, float aa) {
   if (kind < .5 && uSeason > 2.5) return bareTree(p, seed, aa);
   vec3 L = normalize(TL);
@@ -127,7 +142,8 @@ vec4 treeCol(vec2 p, float seed, float kind, float hue, float aa) {
   dark *= tint; mid *= tint; light *= tint;
   if (kind < .5 && uSeason > 1.5 && uSeason < 2.5) {               // autumn: gold, orange or rust, a few still turning
     float pick = fract(seed * 7.31 + hue * .37);
-    vec3 leaf = pick < .38 ? vec3(.86, .62, .16) : pick < .72 ? vec3(.88, .44, .12) : pick < .9 ? vec3(.64, .25, .1) : vec3(.62, .62, .2);
+    vec3 leaf = pick < .38 ? vec3(.76, .6, .26) : pick < .72 ? vec3(.74, .46, .22) : pick < .9 ? vec3(.56, .3, .18) : vec3(.56, .56, .27);
+    leaf = mix(leaf, vec3(dot(leaf, vec3(.3, .55, .15))), .15);   // a little muted, as on the rest of the island
     dark = leaf * vec3(.32, .26, .22); mid = leaf * .72; light = min(leaf * 1.18 + .06, vec3(1.));
   }
   if (h < -.5) return vec4(0.);
@@ -287,7 +303,7 @@ void main() {
     vec3 face = mix(vec3(.82, .88, .93), vec3(.96, .98, 1.), smoothstep(.3, -.6, q.x + q.y));          // lit from the upper left
     face *= 1. - .06 * gnoise(q * 4. + sd * 7.);
     vec3 col = mix(vec3(.55, .78, .82), face, top);
-    c = vec4(col, 1.) * vColor.a * max(top, sunk * .55);
+    c = vec4(col, 1.) * vColor.a * max(top, sunk * .55) * (1. - cloudCover(vWorld));   // hidden under the clouds like the sea round it
   } else if (vLayer < -11.5) {       // a flame (seed, how lively, -, alpha): tongues licking upward, white-hot at the root
     vec2 q = vLocal; float sd = vColor.x * 17., tm = uTime * (1.6 + vColor.y);
     float h = clamp((.9 - q.y) / 1.8, 0., 1.);                                   // 0 at the root, 1 at the top of the quad
@@ -398,7 +414,7 @@ export class Sprites {
   /** Draws instances [from, to) with the camera (x, y, device pixels per tile) into a view of W x H pixels. */
   /** the season the trees are painted in: 0 spring, 1 summer, 2 autumn, 3 winter */
   season = 1
-  draw(atlas: WebGLTexture, field: WebGLTexture, fieldSize: [number, number], map: [number, number], cam: { x: number; y: number; z: number }, W: number, H: number, o: { flip?: boolean; time?: number; gust?: number; from?: number; to?: number; blend?: 'premult' | 'max' | 'light'; soil?: WebGLTexture } = {}) {
+  draw(atlas: WebGLTexture, field: WebGLTexture, fieldSize: [number, number], map: [number, number], cam: { x: number; y: number; z: number }, W: number, H: number, o: { flip?: boolean; time?: number; gust?: number; from?: number; to?: number; blend?: 'premult' | 'max' | 'light'; soil?: WebGLTexture; cloud?: number[] } = {}) {
     const from = o.from ?? 0, to = o.to ?? this.n; if (to <= from) return
     const gl = this.gl, P = this.P
     gl.useProgram(P.p); gl.bindVertexArray(this.vao)
@@ -409,7 +425,7 @@ export class Sprites {
     gl.activeTexture(gl.TEXTURE9); gl.bindTexture(gl.TEXTURE_2D, o.soil ?? field); gl.uniform1i(P.u.uSoil, 9); gl.activeTexture(gl.TEXTURE0)   // a unit of its own: the ground bake keeps its textures on the low ones
     gl.uniform2f(P.u.uHSize, fieldSize[0], fieldSize[1]); gl.uniform2f(P.u.uMap, map[0], map[1])
     gl.uniform3f(P.u.uCam, cam.x, cam.y, cam.z); gl.uniform2f(P.u.uView, W, H)
-    gl.uniform1f(P.u.uFlip, o.flip === false ? 1 : -1); gl.uniform1f(P.u.uTime, o.time ?? 0); gl.uniform1f(P.u.uGust, o.gust ?? 1); gl.uniform1f(P.u.uSeason, this.season)
+    gl.uniform1f(P.u.uFlip, o.flip === false ? 1 : -1); gl.uniform1f(P.u.uTime, o.time ?? 0); gl.uniform1f(P.u.uGust, o.gust ?? 1); gl.uniform1f(P.u.uSeason, this.season); gl.uniform4f(P.u.uCloud, ...(o.cloud ?? [0, 0, 0, 0]) as [number, number, number, number])
     gl.enable(gl.BLEND)
     if (o.blend === 'max') gl.blendEquation(gl.MAX)
     else if (o.blend === 'light') gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA)   // light adds up; the dark's remaining strength multiplies down
