@@ -64,6 +64,7 @@ const TOOLS: { id: BuildTool; label: string; hint: string; icon: string }[] = [
   { id: 'lab', label: 'observatory', hint: 'Click to put up an observatory (4 × 4 tiles) on open grass; R turns it. Its door must reach a path: one up to two tiles away is joined to it.', icon: 'M4 20h16M5 20v-6h14v6M5 14a7 7 0 0 1 14 0M12 7l5-4M10 20v-3h4v3' },
   { id: 'silo', label: 'silo', hint: 'Click to put up a silo (2 × 2 tiles) on open grass, to store the harvest.', icon: 'M7 21V9a5 5 0 0 1 10 0v12M7 21h10M7 13h10M7 17h10M12 4V2' },
   { id: 'bakery', label: 'bakery', hint: 'Click to put up a bakery (2 × 2 tiles) on open grass; R turns it. Its door must reach a path: one up to two tiles away is joined to it.', icon: 'M4 20h16M5 20v-7l7-5 7 5v7M15 9V5h2v5.5M9 20v-4h3v4' },
+  { id: 'market', label: 'market', hint: 'Click to lay out a market (4 × 5 tiles) on open grass: a market hall with a cobbled square, stalls and a fountain; R turns it. Its square must reach a path: one up to two tiles away is joined to it.', icon: 'M4 21V11M20 21V11M3 11l3-6h12l3 6zM3 11h18M8 21v-5h8v5M12 5V3' },
   { id: 'kitchen', label: 'kitchen', hint: 'Click to lay out an outdoor kitchen (3 × 2 tiles) on open grass: a bread oven, a hearth and a table; R turns it.', icon: 'M4 20h16M6 20v-6a6 6 0 0 1 12 0v6M10 20v-3h4v3M17 8c0-2 1-3 0-5' },
   { id: 'torch', label: 'torch', hint: 'Click to set up a torch (1 tile). It burns through the evening and the night.', icon: 'M12 21v-9M8 8h8l-1.5 4h-5zM12 8c-2-2-1-4 0-6 1 2 2 4 0 6' },
   { id: 'nest', label: 'nest', hint: 'Click to lay a straw hatching nest (2 × 2 tiles) on open grass.', icon: 'M3 13c0 4 4 7 9 7s9-3 9-7M3 13c3 2 15 2 18 0M9 11a3 4 0 1 0 6 0a3 4 0 1 0-6 0' },
@@ -281,7 +282,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
                   </div>
                 )}
                 {tool === 'crop' && <p className="crop-name">{cropName(crop)}</p>}
-                {(tool === 'farmhouse' || tool === 'lab' || tool === 'nest' || tool === 'silo' || tool === 'bakery' || tool === 'kitchen') && <button type="button" className="build-link" onClick={() => started.current?.rotateBuild()}>rotate (R)</button>}
+                {(tool === 'farmhouse' || tool === 'lab' || tool === 'nest' || tool === 'silo' || tool === 'bakery' || tool === 'kitchen' || tool === 'market') && <button type="button" className="build-link" onClick={() => started.current?.rotateBuild()}>rotate (R)</button>}
                 <div className="build-actions">
                   <button type="button" className="build-link" disabled={!undoable} onClick={() => started.current?.undoBuild()}>undo</button>
                   <button type="button" className="build-link" onClick={closeBuild}>done</button>

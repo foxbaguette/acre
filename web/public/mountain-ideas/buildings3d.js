@@ -4,7 +4,7 @@
 import * as THREE from 'three'
 
 export const TILT = 18 * Math.PI / 180            // the game's camera: tipped this far from straight down, toward the north
-export const FOOT = { farmhouse: [3, 4], lab: [4, 4], bakery: [2, 2], silo: [2, 2], kitchen: [3, 2], nest: [2, 2] }
+export const FOOT = { farmhouse: [3, 4], lab: [4, 4], bakery: [2, 2], silo: [2, 2], kitchen: [3, 2], nest: [2, 2], market: [4, 5] }
 
 let S = 7
 const rnd = () => (S = S * 16807 % 2147483647) / 2147483647
@@ -319,13 +319,197 @@ function nest(ctx, g) {
   add(g, new THREE.Mesh(new THREE.TorusGeometry(.55, .26, 14, 32), M(rep(T.straw(), 4, 1))), 0, .2, 0).rotation.x = Math.PI / 2
   add(g, box(.5, .28, .32, M(T.straw())), .62, .14, .62).rotation.y = .4
 }
-const BUILD = { farmhouse, lab, bakery, silo, kitchen, nest }
+// ---------- the market (4 x 5 tiles: x -2..2, z -2.5..2.5; open to the south) ----------
+// Canvas in muted, sun-faded colours (no stripes): from above, the awnings and the goods are what tell a market apart.
+const CLOTH = ['#b49a62', '#8a9468', '#6e7e8a', '#9a6248', '#cfc2a2', '#7a6a8a']
+const GOODS = ['#c88a3a', '#9aaa4a', '#b8463a', '#d8c070', '#6e8a3a', '#c86a2a', '#8a5a7a', '#e2d8b8']
+function crate(h, x, z, a = 0, fill) { const c = add(h, box(.3, .2, .24, M(rep(T.planks(), .3, .2))), x, .1, z); c.rotation.y = a
+  if (fill) for (let k = 0; k < 4; k++) add(h, new THREE.Mesh(new THREE.SphereGeometry(.06, 8, 6), flat(fill)), x - .08 + (k % 2) * .16, .22, z - .05 + Math.floor(k / 2) * .1) }
+function barrel(h, x, z) { add(h, new THREE.Mesh(new THREE.CylinderGeometry(.13, .13, .32, 14), M(rep(T.planks(), 1.2, .4))), x, .16, z)
+  for (const y of [.06, .26]) add(h, new THREE.Mesh(new THREE.TorusGeometry(.135, .012, 4, 18), flat('#3a3632', { metalness: .4 })), x, y, z).rotation.x = Math.PI / 2 }
+function sack(h, x, z) { add(h, new THREE.Mesh(new THREE.SphereGeometry(.12, 10, 8), flat('#d2c6a8')), x, .1, z).scale.set(1, .85, .9) }
+// a stall: a trestle table under a canvas sloping to the front (local +z), its goods heaped on the table
+function stall(ctx, h, x, z, a, k) {
+  const s2 = new THREE.Group(); s2.position.set(x, 0, z); s2.rotation.y = a; h.add(s2)
+  const wood = flat('#5a4634'), cloth = flat(CLOTH[k % CLOTH.length], { side: THREE.DoubleSide })
+  add(s2, box(.86, .05, .42, M(rep(T.planks(), .9, .4))), 0, .44, .05)
+  for (const [px, pz, ht] of [[-.44, -.24, 1.0], [.44, -.24, 1.0], [-.44, .32, .78], [.44, .32, .78]]) add(s2, box(.04, ht, .04, wood), px, ht / 2, pz)
+  const c = add(s2, box(1.0, .025, .7, cloth), 0, .9, .04); c.rotation.x = .32
+  add(s2, box(1.0, .1, .015, cloth), 0, .74, .38)
+  for (let j = 0; j < 7; j++) add(s2, new THREE.Mesh(new THREE.SphereGeometry(.055, 8, 6), flat(GOODS[(k * 3 + j) % GOODS.length])), -.33 + j * .11, .5, .02 + (j % 2) * .1)
+  add(s2, new THREE.Mesh(new THREE.CylinderGeometry(.11, .08, .1, 12), M(rep(T.straw(), .5, .2))), .3, .52, .12)
+  crate(s2, -.3, .5, .2, GOODS[(k + 2) % GOODS.length])
+}
+// a cobbled square laid stone by stone, so its edge can fray into the grass: each stone is kept by how far it lies inside
+// the square (corners rounded by r), give or take a wobble; near the edge the mortar stops and single stones lie loose in
+// the grass, a few strays beyond. kerb: a row of long kerb stones round the edge instead of the fraying.
+function paving(g, w, d, o = {}) {
+  const PU = 128, ext = .3, W2 = w + ext * 2, D2 = d + ext * 2, r = o.r ?? .45, fray = o.kerb ? 0 : (o.fray ?? .38)
+  const wob = (x, z) => .5 + .3 * Math.sin(x * 2.3 + z * 1.3) + .2 * Math.sin(x * 5.3 - z * 4.1 + 1.3) + .12 * Math.sin(z * 9.9 + x * 2.2)
+  const inside = (x, z) => { const qx = Math.max(Math.abs(x) - (w / 2 - r), 0), qz = Math.max(Math.abs(z) - (d / 2 - r), 0)
+    const ex = w / 2 - Math.abs(x), ez = d / 2 - Math.abs(z); return qx > 0 && qz > 0 ? r - Math.hypot(qx, qz) : Math.min(ex, ez) }
+  const tex = canvasTex(Math.round(W2 * PU), Math.round(D2 * PU), (c, cw, ch) => {
+    const px = (x) => (x + W2 / 2) * PU, pz = (z) => (z + D2 / 2) * PU
+    // mortar where the square is whole
+    const img = c.createImageData(cw, ch)
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) { const x = i / PU - W2 / 2, z = j / PU - D2 / 2, e = inside(x, z) - fray * wob(x, z) - .04
+      if (e > 0) { const k = (j * cw + i) * 4, v = 96 + ((i * 7 + j * 13) % 11); img.data[k] = v; img.data[k + 1] = v - 8; img.data[k + 2] = v - 22; img.data[k + 3] = 255 } }
+    c.putImageData(img, 0, 0)
+    const SW = .19, SD = .15
+    for (let row = 0, z = -D2 / 2; z < D2 / 2; row++, z += SD) for (let x = -W2 / 2 - (row % 2) * SW / 2; x < W2 / 2; x += SW) {
+      const cx = x + SW / 2 + (rnd() - .5) * .02, cz = z + SD / 2 + (rnd() - .5) * .02, e = inside(cx, cz), edge = fray * wob(cx, cz)
+      let keep = e > edge ? 1 : e > -ext * .8 ? Math.max(0, .75 - (edge - e) * 1.8) : 0
+      if (o.kerb && e < .2) keep = 0
+      if (rnd() >= keep) continue
+      const loose = e < edge, sw = (SW - .025) * (loose ? .75 + rnd() * .2 : 1), sd = (SD - .025) * (loose ? .75 + rnd() * .2 : 1)
+      c.save(); c.translate(px(cx), pz(cz)); c.rotate((rnd() - .5) * (loose ? .9 : .12))
+      c.fillStyle = mix(mix('#8e877a', '#b0a690', rnd()), '#9a8a6e', rnd() * .4); c.beginPath(); c.roundRect(-sw / 2 * PU, -sd / 2 * PU, sw * PU, sd * PU, 5); c.fill()
+      c.fillStyle = 'rgba(255,250,235,.16)'; c.fillRect(-sw / 2 * PU + 2, -sd / 2 * PU + 2, sw * PU - 4, 3)
+      c.fillStyle = 'rgba(30,24,16,.22)'; c.fillRect(-sw / 2 * PU + 2, sd / 2 * PU - 4, sw * PU - 4, 3)
+      c.restore()
+    }
+    if (o.kerb) { // long kerb stones laid round the rounded edge
+      const per = 2 * (w + d - 4 * r) + 2 * Math.PI * r, n = Math.round(per / .42)
+      for (let k = 0; k < n; k++) { let t = (k + .5) / n * per, x, z, a
+        const sides = [[w - 2 * r, (t2) => [-w / 2 + r + t2, -d / 2 + .09, 0]], [Math.PI * r / 2, (t2) => { const q = -Math.PI / 2 + t2 / r; return [w / 2 - r + Math.cos(q) * (r - .09), -d / 2 + r + Math.sin(q) * (r - .09), q + Math.PI / 2] }],
+          [d - 2 * r, (t2) => [w / 2 - .09, -d / 2 + r + t2, Math.PI / 2]], [Math.PI * r / 2, (t2) => { const q = t2 / r; return [w / 2 - r + Math.cos(q) * (r - .09), d / 2 - r + Math.sin(q) * (r - .09), q + Math.PI / 2] }],
+          [w - 2 * r, (t2) => [w / 2 - r - t2, d / 2 - .09, 0]], [Math.PI * r / 2, (t2) => { const q = Math.PI / 2 + t2 / r; return [-w / 2 + r + Math.cos(q) * (r - .09), d / 2 - r + Math.sin(q) * (r - .09), q + Math.PI / 2] }],
+          [d - 2 * r, (t2) => [-w / 2 + .09, d / 2 - r - t2, Math.PI / 2]], [Math.PI * r / 2, (t2) => { const q = Math.PI + t2 / r; return [-w / 2 + r + Math.cos(q) * (r - .09), -d / 2 + r + Math.sin(q) * (r - .09), q + Math.PI / 2] }]]
+        for (const [len, at] of sides) { if (t <= len) { [x, z, a] = at(t); break } t -= len }
+        c.save(); c.translate(px(x), pz(z)); c.rotate(a); c.fillStyle = mix('#a49c8a', '#c4bca6', rnd()); c.beginPath(); c.roundRect(-.19 * PU, -.075 * PU, .38 * PU, .15 * PU, 4); c.fill()
+        c.fillStyle = 'rgba(30,24,16,.25)'; c.fillRect(-.19 * PU, .045 * PU, .38 * PU, 3); c.restore() }
+    }
+  })
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(W2, D2), new THREE.MeshStandardMaterial({ map: tex, roughness: .95, alphaTest: .5 }))
+  plane.rotation.x = -Math.PI / 2; plane.position.set(o.x ?? 0, .012, o.z ?? 0); plane.receiveShadow = true; g.add(plane)
+}
+function cobbles(g, w, d, x = 0, z = 0) { add(g, box(w, .05, d, M(rep(T.flag(), w * 1.4, d * 1.4))), x, .025, z) }
+function fountain(ctx, h, x, z) {
+  // where the water plays, for the game to animate: the basin's water and the spout on top
+  const water = new THREE.Object3D(), top = new THREE.Object3D(); water.position.set(x, .25, z); top.position.set(x, 1.0, z); h.add(water, top); ctx.fountains.push([water, top])
+  add(h, new THREE.Mesh(new THREE.CylinderGeometry(.52, .56, .26, 8), M(rep(T.stone(), 2.5, .3))), x, .13, z)
+  add(h, new THREE.Mesh(new THREE.CylinderGeometry(.44, .44, .02, 24), flat('#3e5e66', { roughness: .15, metalness: .1 })), x, .25, z)
+  add(h, new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, .7, 10), M(rep(T.stone(), .3, .7))), x, .55, z)
+  add(h, new THREE.Mesh(new THREE.CylinderGeometry(.18, .06, .1, 14), M(rep(T.stone(), .6, .1))), x, .9, z)
+  add(h, new THREE.Mesh(new THREE.SphereGeometry(.07, 10, 8), M(T.stone())), x, 1.0, z)
+}
+function lantern(ctx, h, x, z) { add(h, box(.05, 1.1, .05, flat('#2e2a26', { metalness: .4 })), x, .55, z); ctx.glow.push(add(h, box(.13, .16, .13, new THREE.MeshStandardMaterial({ color: '#3a3020' })), x, 1.15, z)); add(h, new THREE.Mesh(new THREE.ConeGeometry(.12, .1, 4), flat('#2e2a26', { metalness: .4 })), x, 1.28, z).rotation.y = Math.PI / 4 }
+
+// A. a market hall at the back (an open stone arcade below, a half-timbered floor above, clay roof, a bell turret) and
+//    a cobbled square in front of it with stalls and a fountain
+function marketHall(ctx, g, edge = 'worn') {
+  if (edge === 'hard') cobbles(g, 4, 5)
+  else paving(g, edge === 'kerb' ? 3.9 : 3.7, edge === 'kerb' ? 4.9 : 4.7, { kerb: edge === 'kerb', r: edge === 'kerb' ? .5 : .6, fray: edge === 'green' ? .45 : .6 })
+  const w = 3.6, d = 2.0, h = new THREE.Group(); h.position.set(0, 0, -1.4); g.add(h)
+  const up = .95, wh = 1.85, rise = .85
+  add(h, box(w + .06, .06, d + .06, M(rep(T.flag(), w, d))), 0, .06, 0)
+  add(h, box(w - .1, .02, d - .1, flat('#2e2620')), 0, .1, 0)                             // the shade under the arcade
+  for (const x of [-1.75, -.875, 0, .875, 1.75]) for (const z of [-.95, .95]) add(h, box(.2, up, .2, M(rep(T.stone(), .2, 1))), x, up / 2, z)
+  for (const z of [-.3, .3]) for (const x of [-1.75, 1.75]) add(h, box(.2, up, .2, M(rep(T.stone(), .2, 1))), x, up / 2, z)
+  for (const x of [-.44, .44]) { stall(ctx, h, x * 2.2, .35, 0, x > 0 ? 1 : 3) }
+  add(h, box(w + .1, .1, d + .1, flat('#4a3a2a')), 0, up + .05, 0)
+  add(h, box(w, wh - up - .1, d, M(rep(T.plaster(), w, .8))), 0, up + .1 + (wh - up - .1) / 2, 0)
+  const beam = flat('#3e2e22'), fr = d / 2 + .012
+  for (let k = 0; k <= 6; k++) add(h, box(.06, wh - up - .1, .02, beam), -w / 2 + .03 + k * (w - .06) / 6, up + .1 + (wh - up - .1) / 2, fr)
+  for (let k = 0; k < 6; k += 2) { const x = -w / 2 + (k + 1) * (w - .06) / 6; add(h, box(.05, .62, .02, beam), x - .14, up + .5, fr).rotation.z = .6; add(h, box(.05, .62, .02, beam), x + .14, up + .5, fr).rotation.z = -.6 }
+  for (let k = 0; k < 6; k += 2) opening(ctx, h, -w / 2 + (k + 1.5) * (w - .06) / 6 + .02, up + .48, d / 2, .26, .3)
+  const roof = new THREE.Group(); roof.rotation.y = Math.PI / 2; h.add(roof)
+  gableEnds(roof, d, w, wh, rise, M(rep(T.plaster(), d, .6)))
+  gableRoof(roof, d, w, wh, rise, () => M(T.clay()), .16)
+  // the bell turret on the ridge
+  add(h, box(.42, .5, .42, M(rep(T.planks(), .4, .5))), 0, wh + rise + .1, 0)
+  add(h, new THREE.Mesh(new THREE.ConeGeometry(.38, .55, 4), M(rep(T.slate(), .5, .5))), 0, wh + rise + .62, 0).rotation.y = Math.PI / 4
+  add(h, box(.02, .35, .02, flat('#2e2a26', { metalness: .5 })), 0, wh + rise + 1.05, 0)
+  // the square: stalls down both sides, a fountain in the middle, the way in from the south kept open
+  stall(ctx, g, -1.45, .55, Math.PI / 2, 0); stall(ctx, g, -1.45, 1.65, Math.PI / 2, 2)
+  stall(ctx, g, 1.45, .55, -Math.PI / 2, 4); stall(ctx, g, 1.45, 1.65, -Math.PI / 2, 5)
+  fountain(ctx, g, 0, .95)
+  barrel(g, -1.8, -.15); barrel(g, -1.6, -.2); sack(g, 1.75, -.15); sack(g, 1.6, -.25)
+  lantern(ctx, g, -.55, 2.2); lantern(ctx, g, .55, 2.2)
+  if (edge === 'green') {   // softened with green: low box hedges along the sides, a small tree at each front corner, planters by the stalls
+    for (const sx of [-1, 1]) { add(g, box(.18, .26, 1.5, M(rep(T.hedge(), .4, 1.6))), sx * 1.92, .13, 1.0)
+      add(g, new THREE.Mesh(new THREE.CylinderGeometry(.04, .05, .7, 8), M(T.bark())), sx * 1.72, .35, 2.2)
+      for (const [dx, dy, dz, rr] of [[0, .85, 0, .34], [.12, .78, .1, .26], [-.1, .8, -.08, .24]]) add(g, new THREE.Mesh(new THREE.IcosahedronGeometry(rr, 1), flat(mix('#4e6a30', '#6e8a40', rr))), sx * 1.72 + dx, dy, 2.2 + dz)
+      add(g, box(.3, .2, .3, M(rep(T.planks(), .3, .2))), sx * 1.75, .1, -.15); add(g, new THREE.Mesh(new THREE.IcosahedronGeometry(.17, 1), flat('#5a7a36')), sx * 1.75, .3, -.15) }
+  }
+  if (edge === 'wall') {    // a knee-high stone wall round the square's sides, gaps at the front corners, a stone post at each end
+    const st = (x, z, w, d) => add(g, box(w, .3, d, M(rep(T.stone(), Math.max(w, d), .3))), x, .15, z)
+    for (const sx of [-1, 1]) { st(sx * 1.93, .9, .14, 2.3); st(sx * 1.45, 2.43, .8, .14); for (const z of [-.25, 2.05]) add(g, box(.2, .42, .2, M(rep(T.stone(), .2, .4))), sx * 1.93, .21, z) }
+  }
+  ctx.lights.push([-.55, 2.2, 1.6, 0, .8], [.55, 2.2, 1.6, 0, .8], [0, -.3, 2.2, 1, .6])
+}
+
+// B. an open market square: cobbles over the whole plot, stalls all round, a fountain in the middle, low posts at the edge
+function marketSquare(ctx, g) {
+  cobbles(g, 4, 5)
+  add(g, box(4, .08, .14, M(rep(T.stone(), 4, .1))), 0, .04, -2.43)
+  stall(ctx, g, -1.0, -1.95, 0, 0); stall(ctx, g, 0, -1.95, 0, 1); stall(ctx, g, 1.0, -1.95, 0, 2)
+  stall(ctx, g, -1.55, -.6, Math.PI / 2, 3); stall(ctx, g, -1.55, .45, Math.PI / 2, 5)
+  stall(ctx, g, 1.55, -.6, -Math.PI / 2, 4); stall(ctx, g, 1.55, .45, -Math.PI / 2, 0)
+  stall(ctx, g, -1.2, 1.75, Math.PI, 2); stall(ctx, g, 1.2, 1.75, Math.PI, 1)
+  fountain(ctx, g, 0, -.1)
+  for (const x of [-1.9, -.5, .5, 1.9]) add(g, new THREE.Mesh(new THREE.CylinderGeometry(.06, .07, .3, 10), M(rep(T.stone(), .3, .3))), x, .15, 2.4)
+  barrel(g, -1.85, 1.0); barrel(g, -1.65, 1.1); crate(g, 1.8, 1.05, .3, '#c88a3a'); crate(g, 1.75, 1.3, -.2); sack(g, .5, 1.0); sack(g, .62, 1.12)
+  cart(g, -.5, 1.05, .4)
+  lantern(ctx, g, -.5, 2.25); lantern(ctx, g, .5, 2.25)
+  ctx.lights.push([-.5, 2.25, 1.6, 0, .8], [.5, 2.25, 1.6, 0, .8], [0, -.1, 2.4, 0, .5])
+}
+
+// C. a covered market: one long open roof of shingles on timber posts, ridge north to south, its south gable open, the
+//    stalls in its shade and spilling out in front
+function marketCovered(ctx, g) {
+  cobbles(g, 4, 5)
+  const w = 3.3, d = 3.9, z0 = -.45, ht = 1.15, rise = 1.0, h = new THREE.Group(); h.position.set(0, 0, z0); g.add(h)
+  add(h, box(w - .2, .02, d - .2, flat('#3e342a')), 0, .06, 0)
+  for (const x of [-w / 2 + .08, w / 2 - .08]) for (let k = 0; k <= 4; k++) add(h, box(.13, ht, .13, flat('#4e3a28')), x, ht / 2, -d / 2 + .08 + k * (d - .16) / 4)
+  for (const x of [-w / 2 + .08, w / 2 - .08]) add(h, box(.14, .12, d, flat('#4a3626')), x, ht, 0)
+  for (let k = 0; k <= 4; k++) { const z = -d / 2 + .08 + k * (d - .16) / 4; add(h, box(w, .1, .1, flat('#4a3626')), 0, ht + .02, z)
+    for (const sd of [-1, 1]) add(h, box(.08, .55, .06, flat('#4a3626')), sd * w * .3, ht + .25, z).rotation.z = sd * .9 }
+  gableRoof(h, w, d, ht + .05, rise, () => M(T.shingle()), .25)
+  const back = new THREE.Shape(); back.moveTo(-w / 2, 0); back.lineTo(w / 2, 0); back.lineTo(0, rise * .96); back.closePath()
+  add(h, new THREE.Mesh(new THREE.ShapeGeometry(back), M(rep(T.boards(), w, 1), { side: THREE.DoubleSide })), 0, ht + .05, -d / 2)
+  for (const [x, z, a, k] of [[-.95, -1.2, Math.PI / 2, 0], [-.95, .1, Math.PI / 2, 3], [.95, -1.2, -Math.PI / 2, 1], [.95, .1, -Math.PI / 2, 4]]) stall(ctx, h, x, z, a, k)
+  stall(ctx, g, -1.3, 2.0, 0, 2); stall(ctx, g, 1.3, 2.0, 0, 5)
+  barrel(g, -1.85, 1.15); barrel(g, 1.85, 1.15); crate(g, -.3, 2.15, .2, '#9aaa4a'); sack(g, .25, 2.1); sack(g, .38, 2.2)
+  ctx.glow.push(add(h, box(.14, .16, .14, new THREE.MeshStandardMaterial({ color: '#3a3020' })), 0, ht - .1, d / 2 - .1))
+  ctx.lights.push([0, 1.5, 2.2, 0, .8], [0, -.5, 2.0, 0, .55])
+}
+
+// D. a trading house: a two-floor merchant house across the back with a hoist on its front and a loading door above,
+//    a walled yard in front with a cart, crates, sacks, barrels, a weighing beam and two stalls by the gate
+function marketTrader(ctx, g) {
+  cobbles(g, 4, 3.0, 0, 1.0)
+  houseBody(ctx, g, { x: 0, z: -1.55, w: 3.7, d: 1.8, floors: 2, ridgeX: true, door: true, wall: 'plaster', roof: 'clay', chimneys: [[-.7, -.3], [.7, -.3]], rise: .8 })
+  // the loading door above the door and the hoist beam over it
+  opening(ctx, g, 0, 1.55, -.64, .46, .52, true)
+  add(g, box(.1, .1, .7, flat('#3e2e22')), 0, 2.0, -.35)
+  add(g, box(.01, .6, .01, flat('#c8b88a')), 0, 1.68, -.04)
+  add(g, box(.2, .12, .16, flat('#d2c6a8')), 0, 1.32, -.04)
+  // the yard wall, open to the south
+  const st = (x, z, w, d) => add(g, box(w, .45, d, M(rep(T.stone(), Math.max(w, d), .45))), x, .225, z)
+  st(-1.93, .95, .14, 3.0); st(1.93, .95, .14, 3.0); st(-1.35, 2.43, 1.3, .14); st(1.35, 2.43, 1.3, .14)
+  for (const x of [-.7, .7]) add(g, box(.2, .7, .2, M(rep(T.stone(), .2, .7))), x, .35, 2.43)
+  cart(g, -1.1, .2, .6)
+  for (const [x, z, a] of [[1.2, -.25, .1], [1.52, -.2, -.15], [1.35, .05, .3]]) crate(g, x, z, a, GOODS[Math.round(x * 7) % GOODS.length])
+  crate(g, 1.35, -.12, .1); for (const [x, z] of [[-1.6, .9], [-1.45, 1.05], [-1.62, 1.18]]) sack(g, x, z)
+  barrel(g, 1.65, .75); barrel(g, 1.65, 1.05); barrel(g, 1.4, .9)
+  // the weighing beam
+  add(g, box(.06, .9, .06, flat('#4e3a28')), .2, .45, .75); add(g, box(.8, .04, .04, flat('#4e3a28')), .2, .92, .75)
+  for (const dx of [-.38, .38]) { add(g, box(.01, .35, .01, flat('#2e2a26')), .2 + dx, .74, .75); add(g, new THREE.Mesh(new THREE.CylinderGeometry(.12, .1, .03, 14), flat('#8a6a3a', { metalness: .6 })), .2 + dx, .56, .75) }
+  stall(ctx, g, -1.2, 1.85, 0, 1); stall(ctx, g, 1.2, 1.85, 0, 3)
+  lantern(ctx, g, -.7, 2.6); lantern(ctx, g, .7, 2.6)
+  ctx.lights.push([0, -.6, 1.6, 1], [-.7, 2.6, 1.4, 0, .7], [.7, 2.6, 1.4, 0, .7])
+}
+const MARKETS = { hall: marketHall, square: marketSquare, covered: marketCovered, trader: marketTrader }
+function market(ctx, g, stage, variant = 'hall-green') { const [kind, edge] = variant.split('-'); MARKETS[kind](ctx, g, edge) }
+
+const BUILD = { farmhouse, lab, bakery, silo, kitchen, nest, market }
 
 /** A building's model: its group, the meshes that glow after dark, chimney tops (model space), where its lights fall
  *  on the ground ([x, z, reach, forward-only, brightness] from its centre). */
 export function build(kind, stage = 1, variant) {
   reseed(kind.length * 31 + stage)
-  const ctx = { group: new THREE.Group(), glow: [], smoke: [], lights: [] }
+  const ctx = { group: new THREE.Group(), glow: [], smoke: [], lights: [], fountains: [] }
   BUILD[kind](ctx, ctx.group, stage, variant)
   return ctx
 }

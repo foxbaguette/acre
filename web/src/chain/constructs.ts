@@ -7,7 +7,7 @@ import { readTable } from './rpc'
 // row id = chunk id (cy * 10 + cx), 4 bytes per tile (tile = ty * 10 + tx), row by row:
 //   byte 0  flags: bits 0-1 ground (0 none, 1 soil, 2 path), bit 2 fence, bit 3 a building's top-left tile, bit 4 a planted tree
 //   byte 1  the planted tree's kind
-//   byte 2  building kind (bits 0-3) and stage (bits 4-6), on its top-left tile
+//   byte 2  building kind (bits 0-3) and stage (bits 4-6), on its top-left tile (kinds as in buildcfg: 1 farmhouse ... 8 market)
 //   byte 3  building rotation (bits 0-1), on its top-left tile
 // Crops are not constructions: they stay on this device for now.
 
@@ -15,7 +15,7 @@ const TILE_BYTES = 4
 const CELLS = CHUNK * CHUNK
 const PER_ROW = MAP_SIZE / CHUNK
 /** Building kinds on chain (0: none). Only ever append: the numbers are stored. */
-const KINDS: Building[] = ['farmhouse', 'lab', 'nest', 'silo', 'bakery', 'kitchen', 'torch']
+const KINDS: Building[] = ['farmhouse', 'lab', 'nest', 'silo', 'bakery', 'kitchen', 'torch', 'market']
 
 /** A map tile index (y * 100 + x) as the contract names it: chunk id * 100 + tile in the chunk. */
 export const chainTile = (i: number) => {

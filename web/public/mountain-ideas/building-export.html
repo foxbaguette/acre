@@ -44,8 +44,8 @@ const shoot = (s) => { renderer.render(s.scene, s.cam); return renderer.domEleme
 const toPicture = (p, w, h) => [+(p.x + w / 2).toFixed(2), +(p.z + h / 2 - p.y * Math.tan(TILT)).toFixed(2)]
 
 window.exportAll = async () => {
-  const files = {}, meta = { pad: PAD, shpad: SHPAD, chimneys: {}, lights: {}, lit: [] }
-  const jobs = [...[1, 2, 3, 4, 5].map((s) => ['farmhouse', s]), ['lab', 1], ['bakery', 1], ['silo', 1], ['kitchen', 1], ['nest', 1]]
+  const files = {}, meta = { pad: PAD, shpad: SHPAD, chimneys: {}, fountains: {}, lights: {}, lit: [] }
+  const jobs = [...[1, 2, 3, 4, 5].map((s) => ['farmhouse', s]), ['lab', 1], ['bakery', 1], ['silo', 1], ['kitchen', 1], ['nest', 1], ['market', 1]]
   for (const [kind, st] of jobs) {
     const base = kind === 'farmhouse' ? `building-farmhouse-${st}` : `building-${kind}`
     for (let o = 0; o < 4; o++) {
@@ -65,6 +65,8 @@ window.exportAll = async () => {
       }
       renderer.setSize(Math.round((w + PAD[0] + PAD[2]) * PX), Math.round((h + PAD[1] + PAD[3]) * PX), false)
       meta.chimneys[name] = m.smoke.map((p) => toPicture(p.isObject3D ? p.getWorldPosition(new THREE.Vector3()) : p.clone().applyMatrix4(m.group.matrixWorld), w, h))
+      // a fountain: its basin's middle in the picture, its radius, and how far above that its spout shows (tiles)
+      if (m.fountains.length) meta.fountains[name] = m.fountains.map(([wa, tp]) => { const a = wa.getWorldPosition(new THREE.Vector3()), b = tp.getWorldPosition(new THREE.Vector3()); return [...toPicture(a, w, h), .44, +((b.y - a.y) * Math.tan(TILT)).toFixed(2)] })
       if (o === 0) { meta.lights[base] = m.lights.map(([x, z, ...r]) => [+(x + fw / 2).toFixed(2), +(z + fh / 2).toFixed(2), ...r]) }
       // the glow layer: everything else only hides what is behind it
       if (m.glow.length) {

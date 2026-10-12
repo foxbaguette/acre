@@ -5,7 +5,7 @@
 import { PATH, T, tileIndex, type World } from './world'
 
 export type BuildTool = 'fence' | 'path' | 'soil' | 'crop' | 'tree' | 'erase' | 'harvest' | Building | 'upgrade'
-export type Building = 'farmhouse' | 'lab' | 'nest' | 'silo' | 'bakery' | 'kitchen' | 'torch'
+export type Building = 'farmhouse' | 'lab' | 'nest' | 'silo' | 'bakery' | 'kitchen' | 'torch' | 'market'
 /** The buildings: footprint in tiles (w across, h down, as drawn: entrance facing south), how many stages they can be
  *  upgraded through, and for those with a door, the column of the tile just in front of it (that tile must reach a path). */
 export const BUILDINGS: Record<Building, { w: number; h: number; stages: number; art: (stage: number) => string; door?: number; doorY?: number }> = {
@@ -16,6 +16,7 @@ export const BUILDINGS: Record<Building, { w: number; h: number; stages: number;
   bakery: { w: 2, h: 2, stages: 1, art: () => 'building-bakery', door: 1, doorY: 1.8 },
   kitchen: { w: 3, h: 2, stages: 1, art: () => 'building-kitchen' },
   torch: { w: 1, h: 1, stages: 1, art: () => 'building-torch' },
+  market: { w: 4, h: 5, stages: 1, art: () => 'building-market', door: 2, doorY: 4.9 },   // open to the south: the path comes into its square
 }
 
 /** What the player made on one tile. */

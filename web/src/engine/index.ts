@@ -9,7 +9,7 @@
 import type { Daytime, IslandView, Lifeform, Weather } from '@/engine/types'
 import { Atlas } from './atlas'
 import { applyBuilds, BUILDINGS, buildingTiles, cropStage, dims, entrance, erasable, erase, eraseKindAt, footprint, placeBuilding, turn, type Building, type EraseKind, MIN_ENCLOSURE, pristineOf, ring, rules, type Builds, type BuildTool } from './build'
-import { CHIMNEYS, LIGHTS, LIT, PAD, RENDERED, SHPAD } from './buildingArt'
+import { CHIMNEYS, FOUNTAINS, LIGHTS, LIT, PAD, RENDERED, SHPAD } from './buildingArt'
 import { CROPS } from './crops'
 import { Farmers } from './farmers'
 import { BEASTS, Herd, speciesKey } from './creatures'
@@ -459,6 +459,19 @@ export function startEngine(opts: EngineOptions): IslandView {
       const k = -w.blow / 3, hx = w.x + Math.cos(w.head) * 1.1, hy = w.y + Math.sin(w.head) * 1.1
       for (let j = 0; j < 6; j++) { const a = (k * 1.6 + j / 6) % 1, rr = 0.15 + a * 0.5
         sprites.shape(SHAPE.puff, hx + Math.sin(j * 2.1) * a * 0.3, hy - a * 1.4, rr, rr, [0.95, 0.97, 1, (1 - a) * 0.55 * Math.sin(Math.min(1, k) * Math.PI)]) }
+    }
+    // fountains: water welling from the spout, falling in arcs all round into the basin, rings spreading on the water
+    for (const [name, bx, by, , bo] of homes) for (const [fx, fy, fr, fh] of FOUNTAINS[`${name}-o${bo}`] ?? []) {
+      const cx = bx + fx, cy = by + fy, ty = cy - fh
+      if (!seen(cx, cy, 2)) continue
+      for (let k = 0; k < 3; k++) { const a = still ? (k + 0.5) / 3 : (t * 0.45 + k / 3) % 1
+        sprites.shape(SHAPE.ripple, cx, cy, fr * (0.25 + a * 0.68), fr * (0.25 + a * 0.68) * 0.92, [0.86, 0.95, 1, (1 - a) * 0.5]) }
+      for (let j = 0; j < 8; j++) { const dir = j / 8 * Math.PI * 2 + 0.2
+        for (let k = 0; k < 5; k++) { const a = still ? (k + 0.5) / 5 : (t * 1.1 + k / 5 + j * 0.13) % 1
+          const r = 0.06 + a * fr * 0.62   // out over the spout's bowl, falling ever faster into the basin
+          sprites.shape(SHAPE.dot, cx + Math.cos(dir) * r, ty + (cy - ty) * a * a + Math.sin(dir) * r * 0.92, 0.022, 0.026, [0.86, 0.94, 1, 0.75 * (1 - a * 0.6)]) } }
+      const bob = still ? 0 : Math.sin(t * 5) * 0.012
+      sprites.shape(SHAPE.dot, cx, ty - 0.06 + bob, 0.035, 0.05, [0.92, 0.97, 1, 0.8])   // the water welling up from the top
     }
     // chimney smoke: soft puffs rising, swelling and thinning as the wind takes them east
     const wind = WX[state.weather].gust

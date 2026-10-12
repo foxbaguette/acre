@@ -25,13 +25,16 @@ export const PAD: [number, number, number, number] = ${JSON.stringify(meta.pad)}
 export const SHPAD: [number, number, number, number] = ${JSON.stringify(meta.shpad)}
 /** Where smoke rises from each picture's chimneys, in tiles from the (turned) footprint's top-left. */
 export const CHIMNEYS: Record<string, [number, number][]> = ${JSON.stringify(meta.chimneys)}
+/** Where water plays in each picture's fountains: [x, y of the basin's middle (tiles from the turned footprint's top-left),
+ *  the basin's radius, how far above that the spout shows]. */
+export const FOUNTAINS: Record<string, number[][]> = ${JSON.stringify(meta.fountains)}
 /** The buildings that light their windows after dark (a "<picture>-lights" layer). */
 export const LIT = new Set(${JSON.stringify([...meta.lit, 'building-torch'])})
 /** Where each building's lights fall on the ground: [x, y (tiles from its top-left, entrance south), reach (tiles), 1 if
  *  it shines only forward or 0 all round, and how bright (1 if left out)]. Turned with the building. */
 export const LIGHTS: Record<string, number[][]> = ${JSON.stringify({ ...meta.lights, 'building-torch': oldLights['building-torch'] })}
 /** The kinds drawn from rendered pictures (the rest are single drawings, turned whole). */
-export const RENDERED = new Set(['farmhouse', 'lab', 'bakery', 'silo', 'kitchen', 'nest'])
+export const RENDERED = new Set(['farmhouse', 'lab', 'bakery', 'silo', 'kitchen', 'nest', 'market'])
 `)
 console.log(Object.keys(files).length + ' pictures rendered')
 ws.close()
