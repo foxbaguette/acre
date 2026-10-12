@@ -232,3 +232,4 @@
 .pen-tag small { top: 8px; color: #fbf7ee; font-family: var(--hand); font-size: 1rem; text-shadow: 0 1px 3px rgba(0, 0, 0, .7); }
 .pen-tags.far .pen-tag small { display: none; }
 .pen-tags.far .pen-tag b { font-size: .65rem; padding: 1px 6px 0; }
+.pen-tag.pond b { color: #2e4a6e; }

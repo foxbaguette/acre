@@ -50,7 +50,7 @@ void main() {
   uvec4 c = cell0(p);
   int type = int(c.b & 7u);
   if (uPass == 0) {                                   // grass everywhere, as on the planet map, with the island's lush and dry patches over it
-    vec4 tint = texture(uTint, p / uMap) * .5;
+    vec4 tint = texture(uTint, p / uMap) * (uLook.w > 2.5 ? .08 : .5);   // (under snow the lush and dry patches barely show)
     o = vec4(over(vec4(grassCol(p, uPx), 1.), tint).rgb, 0.);  // alpha 0: the mountain pass marks its cover there
     return;
   }
@@ -200,6 +200,7 @@ void main() {
   float lit = clamp(liM, 0., 2.) * (.3 + .7 * s);
   land *= mix(vec3(.38, .42, .5), vec3(1.12, 1.07, .98), smoothstep(0., 1.5, lit));
   land = cozy(land);
+  if (uLook.w > 2.5) land *= vec3(.95, .99, 1.07);                          // winter: a colder light
   if (wet <= 0.) { o = vec4(land, 1.); return; }
   // water: the bed (whatever is painted beneath, lit) seen through it; red fades first, so shallows turn teal
   float depth = t.w;
@@ -282,7 +283,7 @@ export class Ground {
   maxLevel: number
   stats = { baked: 0, bakeMs: 0 }
   /** which path, soil and rock look to draw (see look.ts) */
-  look: [number, number, number, number] = [0, 0, 1, 0]   // worn earth paths, furrowed soil, greener mountains (the painted look)
+  look: [number, number, number, number] = [0, 0, 1, 1]   // worn earth paths, furrowed soil, greener mountains (the painted look), the season (0 spring ... 3 winter)
   /** Paints decor into a chunk while it is being baked: stage 0 after the grass (meadow carpets), 1 after the other
    *  grounds, 2 on top of the finished relief (lilies, which float on the water). */
   decor: ((stage: 0 | 1 | 2, region: [number, number, number], L: number, S: number) => void) | null = null
@@ -333,6 +334,9 @@ export class Ground {
     const [x0, y0, x1, y1] = [box[0] - 2, box[1] - 2, box[2] + 3, box[3] + 3]   // edges are soft: a little round the box too
     for (const c of this.chunks.values()) { const ch = chunkTiles(c.L), cx = c.cx * ch, cy = c.cy * ch; if (cx < x1 && cy < y1 && cx + ch > x0 && cy + ch > y0) c.stale = true }
   }
+
+  /** The look changed (a new season): every chunk is drawn again (the old pictures stay on screen until then). */
+  restyle() { for (const c of this.chunks.values()) c.stale = true }
 
   /** Rasterises every ground tile into the texture array, with mip levels. */
   private async loadTiles(size: number) {

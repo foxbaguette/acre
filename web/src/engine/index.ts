@@ -6,7 +6,7 @@
 //   atlas.ts      sprite pictures rasterised on demand into texture-array pages
 //   sprites.ts    one instanced batch for everything standing or moving
 //   creatures.ts  the chain's creatures: placement, wandering, selection
-import type { Daytime, IslandView, Lifeform, Weather } from '@/engine/types'
+import type { Daytime, IslandView, Lifeform, Weather, Season } from '@/engine/types'
 import { Atlas } from './atlas'
 import { applyBuilds, BUILDINGS, buildingTiles, cropStage, dims, entrance, erasable, erase, eraseKindAt, footprint, placeBuilding, turn, type Building, type EraseKind, MIN_ENCLOSURE, pristineOf, ring, rules, type Builds, type BuildTool } from './build'
 import { CHIMNEYS, FOUNTAINS, LIGHTS, LIT, PAD, RENDERED, SHPAD } from './buildingArt'
@@ -19,7 +19,7 @@ import { cloudShapes, DAYS, Sky, WX } from './sky'
 import { FIELD, FIELD_REACH, FLAG, SHAPE, Sprites } from './sprites'
 import { buildWorld, COLS, ROWS, seeded, T, type World } from './world'
 
-export interface EngineOptions { tiles: Uint8Array; mapId: string | number; weather?: Weather; daytime?: Daytime; view?: HTMLElement; /** the player's builds, laid over the map */ builds?: Builds }
+export interface EngineOptions { tiles: Uint8Array; mapId: string | number; weather?: Weather; daytime?: Daytime; season?: Season; view?: HTMLElement; /** the player's builds, laid over the map */ builds?: Builds }
 
 /** Small machines get fewer pixels and a smaller cache from the start. */
 const LOW = !!(((navigator as { deviceMemory?: number }).deviceMemory ?? 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 2)
@@ -136,20 +136,22 @@ export function startEngine(opts: EngineOptions): IslandView {
   // found from its first tile over what stands now (not reached past a fence); one that is not closed here is not shown.
   const penLayer = document.createElement('div'); penLayer.className = 'pen-tags'; view.append(penLayer)
   let pens: { id: string; tiles: number; at: number; el: HTMLDivElement; x: number; y: number }[] = []
-  function penMiddle(at: number): [number, number] | null {
-    if (done[at]?.f) return null
+  /** The middle of an enclosure: over what stands now, inside its fence (null if it is open here); a pond's, over its water. */
+  function penMiddle(at: number, water = false): [number, number] | null {
+    const pondAt = (k: number) => world.type[k] === T.water && !world.ocean[k]
+    if (water ? !pondAt(at) : done[at]?.f) return null
     const seenP = new Set([at]), st = [at]; let sx = 0, sy = 0, n = 0
     while (st.length) { const j = st.pop()!, x = j % COLS, y = (j - x) / COLS; sx += x; sy += y; n++
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= COLS || Y >= ROWS) return null   // it reaches the edge: open
-        const k = Y * COLS + X; if (!seenP.has(k) && !done[k]?.f) { seenP.add(k); st.push(k) } } }
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= COLS || Y >= ROWS) { if (water) continue; return null }   // it reaches the edge: open
+        const k = Y * COLS + X; if (!seenP.has(k) && (water ? pondAt(k) : !done[k]?.f)) { seenP.add(k); st.push(k) } } }
     return [sx / n + 0.5, sy / n + 0.5]
   }
-  const setEnclosures = (list: { id: string; tiles: number; at: number }[]) => {
+  const setEnclosures = (list: { id: string; tiles: number; at: number; water?: boolean }[]) => {
     for (const p of pens) p.el.remove()
     pens = []
-    for (const e of list) { const m = penMiddle(e.at); if (!m) continue
-      const el = document.createElement('div'); el.className = 'pen-tag'
-      el.innerHTML = '<b></b><small></small>'; el.querySelector('b')!.textContent = 'enclosure no. ' + e.id; el.querySelector('small')!.textContent = e.tiles + ' tile' + (e.tiles === 1 ? '' : 's')
+    for (const e of list) { const m = penMiddle(e.at, e.water); if (!m) continue
+      const el = document.createElement('div'); el.className = 'pen-tag' + (e.water ? ' pond' : '')
+      el.innerHTML = '<b></b><small></small>'; el.querySelector('b')!.textContent = (e.water ? 'pond no. ' : 'enclosure no. ') + e.id; el.querySelector('small')!.textContent = e.tiles + ' tile' + (e.tiles === 1 ? '' : 's')
       penLayer.append(el); pens.push({ ...e, el, x: m[0], y: m[1] }) }
     kick()
   }
@@ -172,7 +174,10 @@ export function startEngine(opts: EngineOptions): IslandView {
   const sky = new Sky(gl)
   const CLOUD = cloudShapes()
   const stats = { worldMs: t1 - t0, fieldsMs: t2 - t1, fps: 0, frames: 0, at: 0, frameMs: 0, sprites: 0 }
-  const state = { weather: (opts.weather ?? 'sun') as Weather, daytime: (opts.daytime ?? 'day') as Daytime, motion: !matchMedia('(prefers-reduced-motion: reduce)').matches }
+  // the season: the one it is now (northern months) unless told
+  const SEASONS: Season[] = ['spring', 'summer', 'autumn', 'winter'], month = new Date().getMonth()
+  const state = { weather: (opts.weather ?? 'sun') as Weather, daytime: (opts.daytime ?? 'day') as Daytime, season: (opts.season ?? SEASONS[Math.floor(((month + 10) % 12) / 3)]) as Season, motion: !matchMedia('(prefers-reduced-motion: reduce)').matches }
+  const winter = () => state.season === 'winter'
 
   // ---------- the sea floor: coral reefs in the shallows, now and then a shipwreck further out. Not every island has
   // them; whether it does, how many and where all follow from the map id, so they can always be worked out again. ----------
@@ -231,6 +236,21 @@ export function startEngine(opts: EngineOptions): IslandView {
   const clearTo = (x: number, y: number, tx: number, ty: number) => { const n = Math.ceil(Math.hypot(tx - x, ty - y) * 2); for (let k = 1; k <= n; k++) if (!deepAt(x + (tx - x) * k / n, y + (ty - y) * k / n)) return false; return true }
   const retarget = (w: { x: number; y: number; tx: number; ty: number }) => { for (let k = 0; k < 40; k++) { const [tx, ty] = pickDeep(); if (Math.hypot(tx - w.x, ty - w.y) > 6 && clearTo(w.x, w.y, tx, ty)) { w.tx = tx; w.ty = ty; return } } }
   whales.forEach(retarget)
+  // ice floes for winter: a few on the open sea, drifting with the wind and turning slowly; one that runs aground
+  // starts again somewhere else
+  const seaAt = (x: number, y: number) => { const X = Math.floor(x), Y = Math.floor(y); return X >= 0 && Y >= 0 && X < COLS && Y < ROWS && world.ocean[Y * COLS + X] === 1 }
+  const floeFits = (x: number, y: number, r: number) => seaAt(x, y) && [0, 1, 2, 3, 4, 5].every((k) => seaAt(x + Math.cos(k * 1.047) * (r + 0.4), y + Math.sin(k * 1.047) * (r + 0.4)))
+  const floes: { x: number; y: number; r: number; rot: number; spin: number; seed: number; vx: number; vy: number }[] = []
+  { let sea = 0; for (let i = 0; i < COLS * ROWS; i++) if (world.ocean[i]) sea++
+    const R = seeded(Number(opts.mapId) * 31 + 977), n = Math.min(140, Math.round(sea / 45))
+    for (let k = 0, tries = 0; k < n && tries < n * 30; tries++) { const r = 0.3 + R() * R() * 1.1, x = R() * COLS, y = R() * ROWS
+      if (floeFits(x, y, r)) { floes.push({ x, y, r, rot: R() * 6.28, spin: (R() - 0.5) * 0.04, seed: R(), vx: 0.03 + R() * 0.05, vy: (R() - 0.5) * 0.03 }); k++ } } }
+  const stepFloes = (dt: number) => {
+    const g = WX[state.weather].gust
+    for (const fl of floes) { const nx = fl.x + fl.vx * g * dt, ny = fl.y + fl.vy * g * dt; fl.rot += fl.spin * dt
+      if (floeFits(nx, ny, fl.r)) { fl.x = nx; fl.y = ny; continue }
+      for (let k = 0; k < 40; k++) { const x = Math.random() * COLS, y = Math.random() * ROWS; if (floeFits(x, y, fl.r)) { fl.x = x; fl.y = y; break } } }
+  }
   const stepWhales = (dt: number) => {
     for (const w of whales) {
       if (Math.hypot(w.tx - w.x, w.ty - w.y) < 2) retarget(w)
@@ -254,8 +274,21 @@ export function startEngine(opts: EngineOptions): IslandView {
   for (const d of new Set(world.decor.map(decorArt))) atlas.add(d, `art/tiles/${d}.svg?v=2`)
   FLY_COLOURS.forEach((c, ci) => { for (let i = 0; i < FLY_STAGES; i++) atlas.add(`fly-${ci}-${i}`, (g, px) => paintFly(g, px, 0.25 + 0.75 * (i + 0.5) / FLY_STAGES, c)) })
 
+  // decor by season: in spring more flowers and flower carpets come up on open grass (the same every time, from the
+  // tile); in winter flowers, carpets and lilies are gone under the snow and ice
+  const springDecor: typeof world.decor = []
+  { const has = new Set(world.decor.map((d) => Math.round(d.y) * COLS + Math.round(d.x)))
+    const meadowKinds = ['meadow-yellow', 'meadow-white', 'meadow-purple', 'meadow-clover']
+    for (let i = 0; i < COLS * ROWS; i++) { if (world.type[i] !== T.grass || world.forest[i] || has.has(i)) continue
+      const x = i % COLS, y = (i - x) / COLS, h = spot({ x, y }, 9)
+      if (h < 0.1) springDecor.push({ x: x + (spot({ x, y }, 10) - 0.5) * 0.5, y: y + (spot({ x, y }, 11) - 0.5) * 0.5, name: 'decor-flowers-' + (h < 0.05 ? 1 : 2), sc: 0.45 + spot({ x, y }, 12) * 0.3, under: false })
+      else if (h < 0.22) springDecor.push({ x, y, name: 'decor-' + meadowKinds[Math.floor(spot({ x, y }, 13) * meadowKinds.length)], sc: 1.05 + spot({ x, y }, 14) * 0.15, under: true }) } }
+  for (const d of new Set(springDecor.map(decorArt))) atlas.add(d, `art/tiles/${d}.svg?v=2`)
+  const UNDER_SNOW = /^decor-(flowers|meadow|lily)/
+  const springOk = (d: { x: number; y: number }) => { const i = Math.round(d.y) * COLS + Math.round(d.x), b = done[i]; return world.type[i] === T.grass && !world.forest[i] && !(b && (b.g || b.f || b.c || b.p || b.x || b.u !== undefined)) }
+  const decorNow = () => state.season === 'winter' ? world.decor.filter((d) => !UNDER_SNOW.test(d.name)) : state.season === 'spring' ? [...world.decor, ...springDecor.filter(springOk)] : world.decor
   // decor is baked into the ground: meadow carpets after the grass, the rest after the other grounds
-  const decorIn = (region: [number, number, number]) => { const [x0, y0, n] = region; return world.decor.filter((d) => d.x > x0 - 2 && d.x < x0 + n + 2 && d.y > y0 - 2 && d.y < y0 + n + 2) }
+  const decorIn = (region: [number, number, number]) => { const [x0, y0, n] = region; return decorNow().filter((d) => d.x > x0 - 2 && d.x < x0 + n + 2 && d.y > y0 - 2 && d.y < y0 + n + 2) }
   ground.canBake = (region, L) => { let ok = true; for (const d of decorIn(region)) if (!atlas.ready(decorArt(d), d.sc * L)) ok = false; return ok }
   ground.decor = (stage, region, L, S) => {
     sprites.begin()
@@ -339,6 +372,8 @@ export function startEngine(opts: EngineOptions): IslandView {
       body(c, c.y, FLAG.water)
       if (!still) { const k = (t * 0.6 + c.phase) % 1; sprites.shape(SHAPE.ripple, c.x, c.y, c.size * (0.35 + k * 0.3) / 0.92, c.size * (0.25 + k * 0.2) / 0.92, [225 / 255, 245 / 255, 1, (1 - k) * 0.6], FLAG.water) }
     }
+    // winter: ice floes drifting on the sea
+    if (winter()) for (const fl of floes) if (seen(fl.x, fl.y, 2)) sprites.shape(SHAPE.ice, fl.x, fl.y, fl.r, fl.r, [fl.seed, 0, 0, 1], 0, fl.rot)
     const landAt = sprites.n
     // standing on the ground, back to front: trees and land creatures
     const items: [number, number, number, number][] = []        // [depth, kind 0 tree / 1 creature / 2 post / 3 crop / 4 rail / 5 building, index, 0 standing / 1 planned / 2 to be erased]
@@ -387,12 +422,12 @@ export function startEngine(opts: EngineOptions): IslandView {
     for (const [, kind, i, st] of items) if (kind === 5 && st !== PLAN) { const b = done[i], [w, h] = dims(b.s!, b.o), x = i % COLS, y = (i - x) / COLS, sq = 0.62
       if (b.s === 'torch') sprites.shape(SHAPE.softShadow, x + 0.6, y + 0.64, 0.13, 0.06, [...SHADE, 0.4])
       else if (!RENDERED.has(b.s!)) sprites.shape(SHAPE.softShadow, x + w / 2 + 0.3, y + h / 2 + 0.4, w * sq, h * sq, [...SHADE, 0.42]) }
-    for (const [, kind, i, st] of items) if (kind === 0 && st !== PLAN) { const tr = trees[i], rr = tr.sc * 0.55
+    for (const [, kind, i, st] of items) if (kind === 0 && st !== PLAN) { const tr = trees[i], bare = winter() && Number(tr.name.slice(-2)) < 4, rr = tr.sc * (bare ? 0.4 : 0.55), aB = bare ? 0.45 : 1
       // cast by the sun the way the buildings' are: the crown's shadow thrown out to the lower right by the tree's height,
       // stretched a little along the light, and a small dark patch at the foot of the trunk
       const hgt = tr.sc * 1.25, ox = hgt * sunX, oy = hgt * sunZ, kS = sunL
-      sprites.shape(SHAPE.softShadow, tr.x + 0.5 + ox, tr.y + 0.5 + oy, rr * (1.25 + (kS - 1) * 0.5), rr * 1.0, [...SHADE, 0.36 * aS], 0, sunA)   // soft: a crown lets light through
-      sprites.shape(SHAPE.softShadow, tr.x + 0.5 + ox * .9, tr.y + 0.5 + oy * .9, rr * (.85 + (kS - 1) * 0.35), rr * .68, [...SHADE, 0.22 * aS], 0, sunA)
+      sprites.shape(SHAPE.softShadow, tr.x + 0.5 + ox, tr.y + 0.5 + oy, rr * (1.25 + (kS - 1) * 0.5), rr * 1.0, [...SHADE, 0.36 * aS * aB], 0, sunA)   // soft: a crown lets light through (a bare one more)
+      sprites.shape(SHAPE.softShadow, tr.x + 0.5 + ox * .9, tr.y + 0.5 + oy * .9, rr * (.85 + (kS - 1) * 0.35), rr * .68, [...SHADE, 0.22 * aS * aB], 0, sunA)
       sprites.shape(SHAPE.softShadow, tr.x + 0.5 + rr * 0.15, tr.y + 0.5 + rr * 0.2, rr * 0.55, rr * 0.45, [...SHADE, 0.3]) }
     for (const [, kind, i, st] of items) {
       if (kind === 0) {
@@ -493,7 +528,7 @@ export function startEngine(opts: EngineOptions): IslandView {
     }
     // butterflies: fewer in bad weather, none at night, too small to see from far out
     if (!still && z >= 14) {
-      const n = world.flies.length * WX[state.weather].flies * DAYS[state.daytime].flies
+      const n = world.flies.length * WX[state.weather].flies * DAYS[state.daytime].flies * (winter() ? 0 : 1)
       for (let fi = 0; fi < n; fi++) {
         const f = world.flies[fi]
         const wx = f.cx + Math.sin(t * f.sp + f.a) * 2.2 + Math.sin(t * f.sp * 2.3 + f.b) * 0.8, wy = f.cy + Math.cos(t * f.sp * 1.3 + f.b) * 1.6 + Math.sin(t * f.sp * 3.1 + f.a) * 0.5
@@ -546,7 +581,7 @@ export function startEngine(opts: EngineOptions): IslandView {
     for (const [bx, by, rx, ry, soft, a, tilt] of blobs) sprites.shape(SHAPE.cloud, bx, by, rx, ry, [0, soft, 0, a], 0, tilt)
     // fireflies after dark: little swarms on the banks, each light circling slowly; their light, then their glow
     const lightAt = sprites.n, glows: [number, number, number][] = []
-    const nf = z < 8 ? 0 : Math.round(world.swarms.length * DAYS[state.daytime].fireflies * WX[state.weather].flies)
+    const nf = z < 8 || winter() ? 0 : Math.round(world.swarms.length * DAYS[state.daytime].fireflies * WX[state.weather].flies)
     const far = Math.min(1, Math.max(0.12, (z - 8) / 40))           // seen from afar, only faint specks
     for (let i = 0; i < nf; i++) {
       const sw = world.swarms[i], cx = sw.cx + Math.sin(tt * sw.sp + sw.a) * 0.4, cy = sw.cy + Math.cos(tt * sw.sp * 0.8 + sw.a) * 0.3
@@ -596,7 +631,7 @@ export function startEngine(opts: EngineOptions): IslandView {
       const ratio = ZOOM.target / CAM.z
       if (Math.abs(Math.log(ratio)) < 0.003) { ZOOM.active = false; zoomNow(ratio, ZOOM.px, ZOOM.py) } else zoomNow(ratio ** (1 - Math.exp(-dt / 80)), ZOOM.px, ZOOM.py)
     }
-    if (state.motion) { herd.step(dt / 1000); stepWhales(dt / 1000) }
+    if (state.motion) { herd.step(dt / 1000); stepWhales(dt / 1000); if (winter()) stepFloes(dt / 1000) }
     farmers.step(dt / 1000); if (farmers.list.length || farmers.claimed.size) kick()   // the harvest goes on even when motion is reduced
     placeTokens()
     placePens()
@@ -620,7 +655,7 @@ export function startEngine(opts: EngineOptions): IslandView {
     const pending = ground.draw(cam, W, H)
     sp(0, landAt)
     const still = !state.motion
-    sky.water(ground.height, ground.fieldSize, [world.cols, world.rows], cam, W, H, t, state.weather === 'storm' ? 2 : state.weather === 'rain' ? 1 : 0, cam.z > 6 ? (still ? 2 : 1) : 0, !still && cam.z > 14, ground.level(cam.z))
+    sky.water(ground.height, ground.fieldSize, [world.cols, world.rows], cam, W, H, t, winter() ? 0 : state.weather === 'storm' ? 2 : state.weather === 'rain' ? 1 : 0, cam.z > 6 ? (still ? 2 : 1) : 0, !still && cam.z > 14, ground.level(cam.z))
     sp(landAt, flyAt)
     // the weather: whole cloud systems as on the planet map; their shadows at every zoom, the clouds themselves from far out
     const farZ = cam.z / d, far = 1 - Math.min(1, Math.max(0, (farZ - 11) / 22)), cover = ({ sun: -0.1, cloudy: 0.03, rain: 0.08, storm: 0.14 } as Record<string, number>)[state.weather] ?? 0, wet = state.weather === 'rain' || state.weather === 'storm' ? 1 : 0
@@ -628,9 +663,9 @@ export function startEngine(opts: EngineOptions): IslandView {
     sp(flyAt, cloudAt)
     sky.farClouds(cam, W, H, still ? 0 : t, far, cover, wet, 1)
     // graded onto the canvas, then what glows and falls on top
-    sky.final(state.weather, state.daytime, W, H, true)
+    sky.final(state.weather, state.daytime, W, H, true, winter())
     sp(glowAt, end)
-    if (!still) sky.rain(state.weather, W, H, d, t, dt / 1000)
+    if (!still) sky.rain(state.weather, W, H, d, t, dt / 1000, winter())
     stats.sprites = sprites.n
     stats.frameMs = performance.now() - f0
     stats.frames++
@@ -940,6 +975,12 @@ export function startEngine(opts: EngineOptions): IslandView {
   // the page's weather and time-of-day buttons
   const setWeather = (k: Weather) => { if (!WX[k]) return; state.weather = k; sky.nextFlash = performance.now() / 1000 + 3; document.querySelectorAll<HTMLElement>('[data-weather]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.weather === k))); kick() }
   const setDaytime = (k: Daytime) => { if (!DAYS[k]) return; state.daytime = k; document.querySelectorAll<HTMLElement>('[data-daytime]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.daytime === k))); kick() }
+  const setSeason = (k: Season) => { const n = SEASONS.indexOf(k); if (n < 0) return
+    state.season = k; sprites.season = n
+    if (ground.look[3] !== n) { ground.look[3] = n; ground.restyle() }
+    document.querySelectorAll<HTMLElement>('[data-season]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.season === k))); kick() }
+  document.querySelectorAll<HTMLElement>('[data-season]').forEach((b) => b.addEventListener('click', () => setSeason(b.dataset.season as Season)))
+  setSeason(state.season)
   document.querySelectorAll<HTMLElement>('[data-weather]').forEach((b) => b.addEventListener('click', () => setWeather(b.dataset.weather as Weather)))
   document.querySelectorAll<HTMLElement>('[data-daytime]').forEach((b) => b.addEventListener('click', () => setDaytime(b.dataset.daytime as Daytime)))
   if (opts.weather) setWeather(opts.weather); if (opts.daytime) setDaytime(opts.daytime)
@@ -970,6 +1011,6 @@ export function startEngine(opts: EngineOptions): IslandView {
     harvest,
     unharvest,
     onStore: (fn) => { onStore = fn; fn({ ...store }) },
-    debug: { farmers, seabed, sky, whales, CAM, stats, ground, world, fields, atlas, sprites, herd, state, BEASTS, setBuilds: (b: Builds) => { const old = done; done = b; builds = JSON.parse(JSON.stringify(b)); history.length = 0; relay(groundDiff(old, done)) } },
+    debug: { farmers, seabed, sky, whales, floes, CAM, stats, ground, world, fields, atlas, sprites, herd, state, BEASTS, setBuilds: (b: Builds) => { const old = done; done = b; builds = JSON.parse(JSON.stringify(b)); history.length = 0; relay(groundDiff(old, done)) } },
   }
 }

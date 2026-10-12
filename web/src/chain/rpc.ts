@@ -61,3 +61,18 @@ export async function readTable<T>(table: string, scope: string, complete: (rows
   }
   throw lastError
 }
+
+/** The fields an action of a contract takes, as its deployed ABI says (to keep working across a contract update). */
+export async function actionFields(action: string, code = CONTRACT): Promise<string[]> {
+  for (let n = 0; n < RPC_NODES.length; n++) {
+    const node = RPC_NODES[(preferred + n) % RPC_NODES.length]
+    try {
+      const response = await fetch(`${node}/v1/chain/get_abi`, { method: 'POST', headers: { 'Content-Type': CONTENT_TYPE }, signal: AbortSignal.timeout(10_000), body: JSON.stringify({ account_name: code }) })
+      if (!response.ok) continue
+      const abi = (await response.json()).abi as { actions: { name: string; type: string }[]; structs: { name: string; fields: { name: string }[] }[] }
+      const type = abi.actions.find((a) => a.name === action)?.type ?? action
+      return abi.structs.find((s) => s.name === type)?.fields.map((f) => f.name) ?? []
+    } catch { /* the next node */ }
+  }
+  return []
+}

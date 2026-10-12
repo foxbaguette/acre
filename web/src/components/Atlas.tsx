@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 
-import { CONTRACT } from '@/chain/config'
-import { fetchMapTiles, fetchPlayerMaps, mapStats, type MapStats, type PlayerMap } from '@/chain/maps'
+import { CONTRACT, GEN_CONFIG } from '@/chain/config'
+import { actionFields } from '@/chain/rpc'
+import { fetchMapTiles, fetchPlayerMaps, mapStats, type MapStats, type PlayerMap, fetchGenConfigs, type GenConfig } from '@/chain/maps'
 import { friendlyError, signer, transact } from '@/wallet/session'
 import { coastlinePath } from '@/lib/outline'
 import { ArrowLeft, ArrowRight, Book, type Bookmark, type Spread } from '@/journal/Book'
@@ -126,6 +127,18 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
   const [sketched, setSketched] = useState<number | null>(null) // the line rested on long enough to load its chart
   const [seed, setSeed] = useState(rollSeed)
   const [charting, setCharting] = useState<Charting>({ phase: 'idle' })
+  // the generator configs the contract has, and the one this island is charted with
+  const [configs, setConfigs] = useState<GenConfig[] | null>(null)
+  const [gen, setGen] = useState(GEN_CONFIG)
+  useEffect(() => {
+    let live = true
+    fetchGenConfigs().then((list) => {
+      if (!live) return
+      setConfigs(list)
+      if (list.length && !list.some((c) => c.index === GEN_CONFIG)) setGen(list[0].index)
+    }, () => live && setConfigs([]))
+    return () => { live = false }
+  }, [])
   const dwell = useRef<ReturnType<typeof setTimeout>>()
 
   useEffect(() => {
@@ -398,7 +411,9 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
     }
     setCharting({ phase: 'signing' })
     try {
-      await transact([{ account: CONTRACT, name: 'createmap', authorization: [who], data: { wallet: who.actor, seed } }])
+      // the generator config goes along once the contract takes one (createmap with genconfig_id)
+      const takesConfig = (await actionFields('createmap')).includes('genconfig_id')
+      await transact([{ account: CONTRACT, name: 'createmap', authorization: [who], data: { wallet: who.actor, seed, ...(takesConfig ? { genconfig_id: gen } : {}) } }])
     } catch (err) {
       setCharting({ phase: 'error', message: friendlyError(err) })
       return
@@ -447,6 +462,18 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
                 roll another
               </button>
             </div>
+            {configs && configs.length > 1 && (
+              <label className="seed-box gen-box">
+                <span className="seed-lbl">generator</span>
+                <select className="gen-pick hand" value={gen} onChange={(e) => setGen(e.target.value)} disabled={busy}>
+                  {configs.map((c) => (
+                    <option key={c.index} value={c.index}>
+                      no. {c.index} · {c.width} × {c.height}, land {c.land_min}–{c.land_max}%, {c.ponds_min}–{c.ponds_max} ponds
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <p className="index-note">
               <svg viewBox="0 0 34 30" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
                 <path d="M3 4c2 10 9 18 26 20M22 18c3 2 5 4 7 6-3 1-6 2-8 4" />
@@ -498,7 +525,7 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
     out.push(newSpread())
     return out
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list, pages, previewIndex, previewChart, openChart, isleIndex, account, seed, charting])
+  }, [list, pages, previewIndex, previewChart, openChart, isleIndex, account, seed, charting, configs, gen])
 
   const bookmarks: Bookmark[] = [
     { id: 'contents-1', label: 'Contents', active: (c) => c.startsWith('contents-') },

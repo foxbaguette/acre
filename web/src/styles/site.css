@@ -145,6 +145,9 @@
 .seed-no { font-size: 1.45rem; letter-spacing: .02em; word-break: break-all; }
 .seed-roll { margin-left: auto; font-family: var(--hand); font-size: 1.3rem; color: var(--blue); background: none; border: 0; cursor: pointer; padding: 0; }
 .seed-roll:hover { text-decoration: underline; text-underline-offset: 4px; }
+.gen-box { margin-top: 0; align-items: center; }
+.gen-pick { flex: 1 1 14rem; min-width: 0; font-size: 1.15rem; color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--rule); padding: 2px 0; cursor: pointer; }
+.gen-pick:disabled { opacity: .5; cursor: default; }
 .seed-roll:disabled { opacity: .5; cursor: default; text-decoration: none; }
 .charting-note { font-size: 1.3rem; margin: 14px 0 0; }
 .charting-error { margin: 14px 0 0; padding: 8px 12px; border-left: 3px solid var(--rust); background: rgba(165, 69, 45, .07); font-family: var(--hand); color: var(--rust); font-size: 1.3rem; line-height: 1.2; }

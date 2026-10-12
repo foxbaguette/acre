@@ -5,6 +5,9 @@ export const APP_NAME = 'Unclaimed Acres'
 /** The game contract: table maps (scope = contract) and one chunks table per map (scope = map id). */
 export const CONTRACT = 'land.acre'
 
+/** The generator config (land.acre table genconfig) the atlas picks first for a new island. */
+export const GEN_CONFIG = '0'
+
 /** The creatures contract: table creatures (scope = contract), secondary index 3 = by_map (map_id). */
 export const LIFE_CONTRACT = 'life.acre'
 

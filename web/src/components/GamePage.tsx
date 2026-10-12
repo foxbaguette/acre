@@ -337,8 +337,36 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
         </button>
       </div>
 
-      {/* ---------- time of day and weather, bottom left ---------- */}
+      {/* ---------- season, time of day and weather, bottom left ---------- */}
       <div className="hud hud-bl">
+        <div className="hud-row" role="group" aria-label="Season">
+          <span className="hud-label">season</span>
+          <button type="button" className="wx-tag" data-season="spring" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+              <circle cx="12" cy="9" r="2" />
+              <path d="M12 7c0-3 3-4 3-4s1 3-1.5 4.5M14 9c3 0 4 3 4 3s-3 1-4.5-1.5M10 9c-3 0-4 3-4 3s3 1 4.5-1.5M12 11v10M12 17c-2-2-5-2-5-2s1 3 5 3" />
+            </svg>
+            spring
+          </button>
+          <button type="button" className="wx-tag" data-season="summer" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 20h16M6 20c1-5 3-8 6-8s5 3 6 8M12 8V3M8 9 6 6M16 9l2-3" />
+            </svg>
+            summer
+          </button>
+          <button type="button" className="wx-tag" data-season="autumn" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M5 19C5 10 10 4 20 4c0 10-6 15-15 15zM5 19l9-9M9 15h4M11 13V9" />
+            </svg>
+            autumn
+          </button>
+          <button type="button" className="wx-tag" data-season="winter" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 4l3 2 3-2M9 20l3-2 3 2M4 10.5l3.4-.4L6.6 7M20 13.5l-3.4.4.8 3.1M4 13.5l3.4.4-.8 3.1M20 10.5l-3.4-.4.8-3.1" />
+            </svg>
+            winter
+          </button>
+        </div>
         <div className="hud-row" role="group" aria-label="Time of day">
           <span className="hud-label">daytime</span>
           <button type="button" className="wx-tag" data-daytime="morning" aria-pressed="false">

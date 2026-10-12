@@ -183,8 +183,8 @@ void main() { o = texture(uTex, vUV); }`
 // ---- rain and storm streaks, made from their index and the time
 const RAIN_VS = `#version 300 es
 in vec2 aPos;
-uniform vec2 uView; uniform float uT, uDpr, uStorm;
-flat out float vA;
+uniform vec2 uView; uniform float uT, uDpr, uStorm, uSnow;
+flat out float vA; out vec2 vQ;
 float h(float i, float s) { return fract(sin(i * 12.9898 + s * 78.233) * 43758.5453); }
 void main() {
   float i = float(gl_InstanceID);
@@ -195,13 +195,22 @@ void main() {
   float x = mod(h(i, 4.) * uView.x * 1.2 - fall * .28, uView.x * 1.2), y = fall - 20. * uDpr;
   vec2 a = vec2(x, y), b = a + vec2(len * .28, -len), dir = normalize(b - a), n = vec2(-dir.y, dir.x) * max(1., uDpr * (uStorm > .5 ? 1.1 : .8)) * .5;
   vec2 pos = mix(a, b, aPos.y) + n * (aPos.x * 2. - 1.);
-  vA = 1.;
+  vA = 1.; vQ = aPos * 2. - 1.;
+  if (uSnow > .5) {                       // snow: flakes drifting down and swaying; in a storm, driven hard across the view
+    float fs = (uStorm > .5 ? 260. + h(i, 1.) * 220. : 38. + h(i, 1.) * 34.) * uDpr;
+    float fallS = mod(h(i, 3.) * span + uT * fs, span);
+    float sway = sin(uT * (.8 + h(i, 5.)) + i) * (uStorm > .5 ? 6. : 14.) * uDpr;
+    float xs = mod(h(i, 4.) * uView.x * 1.4 - fallS * (uStorm > .5 ? 1.1 : .12) + sway, uView.x * 1.4) - uView.x * .2;
+    float sz = (uStorm > .5 ? 1.4 + h(i, 2.) * 1.6 : 1.3 + h(i, 2.) * 2.2) * uDpr;
+    pos = vec2(xs, fallS - 20. * uDpr) + vQ * sz;
+    vA = .55 + .45 * h(i, 6.);
+  }
   gl_Position = vec4(pos / uView * 2. - 1., 0., 1.) * vec4(1., -1., 1., 1.);
 }`
 const RAIN_FS = `#version 300 es
 precision highp float;
-uniform vec4 uColor; flat in float vA; out vec4 o;
-void main() { o = vec4(uColor.rgb * uColor.a, uColor.a) * vA; }`
+uniform vec4 uColor; uniform float uSnow; flat in float vA; in vec2 vQ; out vec4 o;
+void main() { float a = uSnow > .5 ? smoothstep(1., .35, length(vQ)) : 1.; o = vec4(uColor.rgb * uColor.a, uColor.a) * vA * a; }`
 
 const FLASH_FS = `#version 300 es
 precision highp float; uniform float uA; out vec4 o;
@@ -316,8 +325,10 @@ export class Sky {
     gl.disable(gl.BLEND)
   }
 
-  final(weather: Weather, daytime: Daytime, W: number, H: number, look: boolean) {
-    const gl = this.gl, P = this.finalP, w = WX[weather], d = DAYS[daytime]
+  final(weather: Weather, daytime: Daytime, W: number, H: number, look: boolean, winter = false) {
+    const gl = this.gl, P = this.finalP, d = DAYS[daytime]
+    // in winter the rain falls as snow: a snowstorm is a pale whiteout, not a dark sky
+    const w = winter && weather === 'storm' ? { ...WX.storm, tint: [214, 222, 234, 0.34], sat: 0.72, bri: 0.98 } : winter && weather === 'rain' ? { ...WX.rain, tint: [200, 210, 226, 0.12], sat: 0.85, bri: 0.99 } : WX[weather]
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H)
     gl.useProgram(P.p); gl.bindVertexArray(this.vao)
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.scene!.tex); gl.uniform1i(P.u.uScene, 0)
@@ -330,16 +341,17 @@ export class Sky {
   }
 
   /** Streaks of rain and, in a storm, lightning; on the canvas, over everything. dt in seconds. */
-  rain(weather: Weather, W: number, H: number, dpr: number, t: number, dt: number) {
+  rain(weather: Weather, W: number, H: number, dpr: number, t: number, dt: number, snow = false) {   // snow: in winter, light snow and a snowstorm instead
     if (weather !== 'rain' && weather !== 'storm') return
     const gl = this.gl, P = this.rainP, storm = weather === 'storm'
-    const area = W * H / (dpr * dpr), n = storm ? Math.round(area / 2600) : Math.round(area / 7000)
+    const area = W * H / (dpr * dpr), n = snow ? (storm ? Math.round(area / 900) : Math.round(area / 3200)) : storm ? Math.round(area / 2600) : Math.round(area / 7000)
     gl.useProgram(P.p); gl.bindVertexArray(this.vao)
-    gl.uniform2f(P.u.uView, W, H); gl.uniform1f(P.u.uT, t); gl.uniform1f(P.u.uDpr, dpr); gl.uniform1f(P.u.uStorm, storm ? 1 : 0)
-    gl.uniform4f(P.u.uColor, storm ? 205 / 255 : 210 / 255, storm ? 222 / 255 : 225 / 255, 245 / 255, storm ? 0.45 : 0.32)
+    gl.uniform2f(P.u.uView, W, H); gl.uniform1f(P.u.uT, t); gl.uniform1f(P.u.uDpr, dpr); gl.uniform1f(P.u.uStorm, storm ? 1 : 0); gl.uniform1f(P.u.uSnow, snow ? 1 : 0)
+    if (snow) gl.uniform4f(P.u.uColor, 0.97, 0.98, 1, storm ? 0.8 : 0.85)
+    else gl.uniform4f(P.u.uColor, storm ? 205 / 255 : 210 / 255, storm ? 222 / 255 : 225 / 255, 245 / 255, storm ? 0.45 : 0.32)
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n)
-    if (storm) {
+    if (storm && !snow) {
       if (t > this.nextFlash) { this.flash = 1; this.nextFlash = t + 5 + Math.random() * 9; this.double = Math.random() < 0.5 ? t + 0.18 : 0 }
       if (this.double && t > this.double) { this.flash = 0.8; this.double = 0 }
       if (this.flash > 0.01) {

@@ -73,6 +73,26 @@ export function fetchMapTiles(mapId: string): Promise<Uint8Array> {
 /** Reads the map's tiles anew next time (after clearnature changed them). */
 export const forgetMapTiles = (mapId: string) => { tileCache.delete(mapId) }
 
+/** A generator config (land.acre table genconfig): createmap is told which one to chart an island with. */
+export interface GenConfig {
+  index: string
+  width: number
+  height: number
+  land_min: number
+  land_max: number
+  mountain_chance: number
+  lake_chance: number
+  river_chance: number
+  ponds_min: number
+  ponds_max: number
+}
+
+/** The generator configs the contract has, by index. */
+export async function fetchGenConfigs(): Promise<GenConfig[]> {
+  const rows = await readTable<GenConfig & { index: number | string }>('genconfig', CONTRACT)
+  return rows.map((r) => ({ ...r, index: String(r.index) })).sort((a, b) => Number(a.index) - Number(b.index))
+}
+
 export interface MapStats {
   land: number
   forest: number

@@ -7,7 +7,7 @@ import type { Region } from './atlas'
 
 /** Floats per instance. */
 export const STRIDE = 21
-export const SHAPE = { softShadow: -1, shadow: -2, halo: -3, glow: -4, ripple: -5, cloud: -6, light: -7, dot: -8, tile: -9, puff: -10, tree: -11, flame: -12 } as const
+export const SHAPE = { softShadow: -1, shadow: -2, halo: -3, glow: -4, ripple: -5, cloud: -6, light: -7, dot: -8, tile: -9, puff: -10, tree: -11, flame: -12, ice: -13 } as const
 export const FLAG = { graded: 1, water: 2, field: 4, seabed: 4194304 } as const   // seabed: on the sea floor, seen through the water by its depth
 /** A field tile's flags: wind on; which of its 8 neighbours (row by row, from the upper left) count as field for its outline
  *  (the same crop, or no soil: there the soil's own edge shapes it); which of them carry the same crop (they draw their own
@@ -47,6 +47,7 @@ uniform sampler2D uSoil;           // the ground's field 0 (fields.ts): b is the
 uniform vec2 uHSize, uMap;
 uniform vec3 uCam;
 uniform float uTime, uGust;
+uniform float uSeason;             // 0 spring, 1 summer, 2 autumn, 3 winter
 in vec2 vUV; in vec2 vLocal; in vec2 vWorld; flat in float vLayer; flat in vec4 vColor; flat in float vFlags; flat in vec4 vRegion;
 out vec4 o;
 ${GLSL_TERRAIN}
@@ -59,7 +60,36 @@ vec3 grade(vec3 c) {                // the sprite layer's look: a touch less sat
 // Broadleaf: a canopy of leafy lumps, each a little dome covered in leaf clusters, lit from the upper left.
 // Conifer: tiers of boughs radiating from the top, the higher tiers smaller and on top.
 const vec3 TL = vec3(-.5, -.62, .6);
+// the distance from p to the segment a-b, and how far along it the nearest point lies
+vec2 seg(vec2 p, vec2 a, vec2 b) { vec2 ab = b - a; float t = clamp(dot(p - a, ab) / dot(ab, ab), 0., 1.); return vec2(length(p - a - ab * t), t); }
+// a broadleaf tree in winter, from above: bare boughs reaching out from the trunk, twigs off them, snow caught along them
+vec4 bareTree(vec2 p, float seed, float aa) {
+  float cov = 0., snow = 0.;
+  for (int k = 0; k < 7; k++) {
+    float fk = float(k), a = seed * 6.2832 + fk * .8976 + (th12(vec2(fk, seed)) - .5) * .5, L = .72 + .2 * th12(vec2(seed, fk + 3.));
+    vec2 dir = vec2(cos(a), sin(a)), nr = vec2(-dir.y, dir.x);
+    float bend = (th12(vec2(fk * 1.7, seed * 2.)) - .5) * .3;
+    vec2 m = dir * L * .5 + nr * bend * .4, e = dir * L + nr * bend;
+    vec2 s1 = seg(p, vec2(0.), m), s2 = seg(p, m, e);
+    float w1 = mix(.075, .045, s1.y), w2 = mix(.045, .014, s2.y);
+    cov = max(cov, clamp((w1 - s1.x) / aa + .5, 0., 1.)); cov = max(cov, clamp((w2 - s2.x) / aa + .5, 0., 1.));
+    snow = max(snow, clamp((w1 * .55 - length(p - (vec2(0.) + (m) * s1.y) - vec2(-.012, -.016))) / aa + .5, 0., 1.) * step(.5, th12(vec2(fk, seed * 5.))));
+    for (int j = 0; j < 2; j++) {                                   // twigs off each bough
+      float fj = float(j), sd = fj < .5 ? 1. : -1.;
+      vec2 o = mix(m, e, .2 + .4 * fj), td = normalize(dir * .8 + nr * sd * .6) * (.22 + .1 * th12(vec2(fk + fj, seed)));
+      vec2 s3 = seg(p, o, o + td);
+      cov = max(cov, clamp((mix(.022, .008, s3.y) - s3.x) / aa + .5, 0., 1.));
+    }
+  }
+  cov = max(cov, clamp((.11 - length(p)) / aa + .5, 0., 1.));      // the trunk's top
+  float haze = smoothstep(.95, .4, length(p)) * (.55 + .45 * gnoise(p * 7. + seed * 3.)) * .22;   // the fine twigs, a faint mesh
+  vec3 bark = mix(vec3(.22, .18, .15), vec3(.36, .31, .26), smoothstep(.1, -.4, p.x + p.y));     // lit from the upper left
+  vec3 col = mix(bark, vec3(.9, .92, .95), max(snow, step(.55, cov) * smoothstep(.2, .9, gnoise(p * 11. + seed * 7.)) * .5));
+  float a = max(cov, haze);
+  return vec4(mix(vec3(.3, .26, .22), col, cov) * a, a);
+}
 vec4 treeCol(vec2 p, float seed, float kind, float hue, float aa) {
+  if (kind < .5 && uSeason > 2.5) return bareTree(p, seed, aa);
   vec3 L = normalize(TL);
   float h = -1., edge = 9.; vec3 n = vec3(0., 0., 1.);
   float det = 1. - smoothstep(.03, .09, aa);           // leaf detail fades when the tree is small on screen
@@ -95,6 +125,11 @@ vec4 treeCol(vec2 p, float seed, float kind, float hue, float aa) {
   // each tree its own shade: some yellower, some bluer and darker
   vec3 tint = mix(vec3(.9, .96, 1.08), vec3(1.1, 1.05, .82), hue);
   dark *= tint; mid *= tint; light *= tint;
+  if (kind < .5 && uSeason > 1.5 && uSeason < 2.5) {               // autumn: gold, orange or rust, a few still turning
+    float pick = fract(seed * 7.31 + hue * .37);
+    vec3 leaf = pick < .38 ? vec3(.86, .62, .16) : pick < .72 ? vec3(.88, .44, .12) : pick < .9 ? vec3(.64, .25, .1) : vec3(.62, .62, .2);
+    dark = leaf * vec3(.32, .26, .22); mid = leaf * .72; light = min(leaf * 1.18 + .06, vec3(1.));
+  }
   if (h < -.5) return vec4(0.);
   // the whole crown is one rounded form too: its lower right falls into shade
   n = normalize(mix(n, normalize(vec3(p * .85, 1.)), .4));
@@ -121,6 +156,14 @@ vec4 treeCol(vec2 p, float seed, float kind, float hue, float aa) {
   col *= mix(1., .76 + .24 * smoothstep(0., .3, d2 - d1), det);          // soft crevices between clusters
   col *= .62 + .38 * smoothstep(.0, .3, h);                              // deeper where lumps meet and toward the rim
   col *= 1. + (th12(floor(p * 40.) + seed) - .5) * .12 * det;            // a painterly speckle
+  if (kind > .5 && uSeason > 2.5) {                                // winter: snow on the conifers' boughs, thickest where the light falls
+    float sn = smoothstep(.0, .55, lit + (gnoise(p * 7. + seed * 4.) - .5) * .7) * .8;
+    col = mix(col, vec3(.86, .9, .95) * (.78 + .3 * smoothstep(-.2, .9, lit)), sn);
+  }
+  if (kind < .5 && uSeason < .5 && fract(seed * 13.7) < .3) {      // spring: some trees in blossom
+    vec2 bc = floor(p * 15. + seed * 3.);
+    if (th12(bc) > .72 && lit > -.1) col = mix(col, th12(bc + 2.) < .5 ? vec3(.97, .93, .94) : vec3(.95, .76, .84), .75 * det);
+  }
   float a = clamp(-edge / max(aa, 1e-4) * .8 + .5, 0., 1.);
   return vec4(col * a, a);
 }
@@ -226,6 +269,25 @@ void main() {
     float r = length(vLocal), a = smoothstep(1., .1, r);
     vec3 col = vColor.rgb * (1.04 - .1 * clamp(vLocal.x + vLocal.y, -1., 1.));
     c = vec4(col, 1.) * vColor.a * a * a;
+  } else if (vLayer < -12.5) {       // an ice floe (seed, -, -, alpha): an angular plate, white on top, its sunk rim showing turquoise through the water
+    vec2 q = vLocal; float sd = vColor.x, r = length(q), ang = atan(q.y, q.x);
+    // an irregular plate: 5-8 corners at uneven angles and distances; the rim is the nearest edge along the ray from the
+    // middle (the plate is convex), a little broken
+    float n = 5. + floor(sd * 4.), sec = 6.2832 / n, R = 9.; vec2 dr = vec2(cos(ang), sin(ang));
+    for (int k = 0; k < 8; k++) { if (float(k) >= n) break;
+      float fk = float(k), fk1 = mod(fk + 1., n);
+      float b0 = (fk + (th12(vec2(fk, sd * 7.)) - .5) * .5) * sec + sd * 6.2832, b1 = (fk + 1. + (th12(vec2(fk1, sd * 7.)) - .5) * .5) * sec + sd * 6.2832;
+      vec2 v0 = vec2(cos(b0), sin(b0)) * (.55 + .4 * th12(vec2(fk, sd * 3.1))), v1 = vec2(cos(b1), sin(b1)) * (.55 + .4 * th12(vec2(fk1, sd * 3.1)));
+      vec2 e01 = v1 - v0, nrm = normalize(vec2(e01.y, -e01.x)); float dd = dot(v0, nrm), dn = dot(dr, nrm);
+      if (dd < 0.) { nrm = -nrm; dd = -dd; dn = -dn; }
+      if (dn > 1e-3) R = min(R, dd / dn); }
+    R *= .95 + .08 * gnoise(vec2(ang * 6. + sd * 9., sd * 3.));
+    R = clamp(R, .2, .97);
+    float e = fwidth(r), top = clamp((R - .09 - r) / e + .5, 0., 1.), sunk = clamp((R - r) / e + .5, 0., 1.);
+    vec3 face = mix(vec3(.82, .88, .93), vec3(.96, .98, 1.), smoothstep(.3, -.6, q.x + q.y));          // lit from the upper left
+    face *= 1. - .06 * gnoise(q * 4. + sd * 7.);
+    vec3 col = mix(vec3(.55, .78, .82), face, top);
+    c = vec4(col, 1.) * vColor.a * max(top, sunk * .55);
   } else if (vLayer < -11.5) {       // a flame (seed, how lively, -, alpha): tongues licking upward, white-hot at the root
     vec2 q = vLocal; float sd = vColor.x * 17., tm = uTime * (1.6 + vColor.y);
     float h = clamp((.9 - q.y) / 1.8, 0., 1.);                                   // 0 at the root, 1 at the top of the quad
@@ -334,6 +396,8 @@ export class Sprites {
   }
 
   /** Draws instances [from, to) with the camera (x, y, device pixels per tile) into a view of W x H pixels. */
+  /** the season the trees are painted in: 0 spring, 1 summer, 2 autumn, 3 winter */
+  season = 1
   draw(atlas: WebGLTexture, field: WebGLTexture, fieldSize: [number, number], map: [number, number], cam: { x: number; y: number; z: number }, W: number, H: number, o: { flip?: boolean; time?: number; gust?: number; from?: number; to?: number; blend?: 'premult' | 'max' | 'light'; soil?: WebGLTexture } = {}) {
     const from = o.from ?? 0, to = o.to ?? this.n; if (to <= from) return
     const gl = this.gl, P = this.P
@@ -345,7 +409,7 @@ export class Sprites {
     gl.activeTexture(gl.TEXTURE9); gl.bindTexture(gl.TEXTURE_2D, o.soil ?? field); gl.uniform1i(P.u.uSoil, 9); gl.activeTexture(gl.TEXTURE0)   // a unit of its own: the ground bake keeps its textures on the low ones
     gl.uniform2f(P.u.uHSize, fieldSize[0], fieldSize[1]); gl.uniform2f(P.u.uMap, map[0], map[1])
     gl.uniform3f(P.u.uCam, cam.x, cam.y, cam.z); gl.uniform2f(P.u.uView, W, H)
-    gl.uniform1f(P.u.uFlip, o.flip === false ? 1 : -1); gl.uniform1f(P.u.uTime, o.time ?? 0); gl.uniform1f(P.u.uGust, o.gust ?? 1)
+    gl.uniform1f(P.u.uFlip, o.flip === false ? 1 : -1); gl.uniform1f(P.u.uTime, o.time ?? 0); gl.uniform1f(P.u.uGust, o.gust ?? 1); gl.uniform1f(P.u.uSeason, this.season)
     gl.enable(gl.BLEND)
     if (o.blend === 'max') gl.blendEquation(gl.MAX)
     else if (o.blend === 'light') gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA)   // light adds up; the dark's remaining strength multiplies down

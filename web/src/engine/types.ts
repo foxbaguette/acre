@@ -3,6 +3,7 @@ import type { Building, Builds, BuildTool } from './build'
 export type { Building, Builds, BuildTool }
 export type Weather = 'sun' | 'cloudy' | 'storm' | 'rain'
 export type Daytime = 'morning' | 'day' | 'evening' | 'night'
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter'
 
 /** A creature from the chain. size and speed are per mille of the species' standard (1000 = standard). */
 export interface Lifeform {
@@ -20,7 +21,7 @@ export interface IslandView {
   /** Shows these creatures on the island (replacing any shown before); resolves to how many could be placed. */
   setLifeforms(list: Lifeform[]): Promise<number>
   /** The enclosures the chain keeps: a tag with their number over each (id, tiles inside, first tile as a map index). */
-  setEnclosures(list: { id: string; tiles: number; at: number }[]): void
+  setEnclosures(list: { id: string; tiles: number; at: number; water?: boolean }[]): void
   /** Selects the creature with this id (a glowing ring beneath it), or none with null. */
   selectCreature(id: number | string | null): void
   /** Flies to a creature and selects it. */

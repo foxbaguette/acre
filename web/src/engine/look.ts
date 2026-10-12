@@ -33,8 +33,25 @@ vec3 grassCol(vec2 p, float px) {
   float bl = vnoise(bp) * .6 + vnoise(bp * 2.1 + 3.) * .4;
   c *= 1. + (bl - .5) * .16 * det;
   c *= 1. + (vnoise(p * 5.) - .5) * .12 * det;
+  int sn = int(uLook.w + .5);                                                          // the season: 0 spring, 1 summer, 2 autumn, 3 winter
+  if (sn == 3) {                                                                       // winter: snow over everything that was grass
+    float drift = fbm3(p * .12 + 5.), fine = vnoise(p * 6.);
+    vec3 snow = mix(rgbL(196., 210., 232.), rgbL(238., 244., 252.), smoothstep(.15, .85, drift * .7 + mid * .3));
+    snow *= 1. + (fine - .5) * .06 * det;
+    snow = mix(snow, c * .75, smoothstep(.78, .92, gnoise(p * 2.3 + 9.)) * .22 * smoothstep(14., 45., px));   // a few tufts poking through, close up
+    if (th12(floor(p * 23.)) > .986) snow = mix(snow, vec3(1.), .6 * det);           // glints
+    return snow;
+  }
+  if (sn == 0) c = mix(c, c * vec3(.94, 1.08, .92), .6);                               // spring: fresh
+  if (sn == 1) { c = mix(c, rgbL(160., 148., 78.), .24 + dry * .22); c *= vec3(1.04, 1., .9); }   // summer: sun-dried, strawier
+  if (sn == 2) c = mix(c, rgbL(132., 116., 58.), .22);                                 // autumn: tired, browner
   vec2 fc = floor(p * 7.);
-  if (th12(fc) > .982 && length(fract(p * 7.) - .5) < .22) c = mix(c, rgbL(214., 206., 150.), .55 * det);   // a few pale flowers
+  float fl = sn == 0 ? .935 : .982;                                                    // spring: flowers everywhere in the grass
+  if (th12(fc) > fl && length(fract(p * 7.) - .5) < .22) {
+    vec3 fc2 = sn == 0 ? (th12(fc + 7.) < .35 ? rgbL(236., 232., 214.) : th12(fc + 7.) < .6 ? rgbL(232., 196., 70.) : th12(fc + 7.) < .82 ? rgbL(214., 140., 170.) : rgbL(150., 130., 200.)) : rgbL(214., 206., 150.);
+    c = mix(c, fc2, (sn == 0 ? .75 : .55) * det);
+  }
+  if (sn == 2) { vec2 lc = floor(p * 9. + 3.); if (th12(lc) > .93 && length(fract(p * 9. + 3.) - .5) < .2) c = mix(c, th12(lc + 1.) < .5 ? rgbL(196., 110., 40.) : rgbL(214., 168., 60.), .6 * det); }   // fallen leaves
   return c;
 }
 // sand, as the planet map's beaches
