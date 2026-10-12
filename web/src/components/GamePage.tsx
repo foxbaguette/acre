@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
-import { chainPart, fetchConstructs, saveActions } from '@/chain/constructs'
+import { chainPart, fetchConstructs, fetchEnclosures, saveActions } from '@/chain/constructs'
 import { fetchLifeforms, type Creature } from '@/chain/life'
 import { Bestiary, noteSeen } from '@/components/Bestiary'
 import { CreatureCard } from '@/components/CreatureCard'
@@ -140,6 +140,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
               setFarmers(farmersIn(saved))
               view.onStore(setStore)
               view.onBuild((builds, canUndo, planned, kind) => { saveBuilds(mapId, builds); setUndoable(canUndo); setPending(planned); setPlanKind(kind); setFarmers(farmersIn(builds)) })
+              fetchEnclosures(mapId).then((list) => live && view.setEnclosures(list), (err) => console.warn('Could not read the enclosures', err))
               fetchLifeforms(mapId)
                 .then((list) => { if (live) setCreatures(list); noteSeen(list.map((c) => view.spriteFor(c.speciesName)).filter((k): k is string => !!k)); return view.setLifeforms(list) })
                 .then((n) => live && setLifeforms(n), (err) => { console.warn('Could not load the lifeforms', err); if (live) setLifeforms(null) })
@@ -188,9 +189,12 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
       setSave({ state: 'error', message: friendlyError(err) })
       return
     }
+    const fenced = Object.keys({ ...onChain.current, ...next }).some((k) => !!onChain.current![Number(k)]?.f !== !!next[Number(k)]?.f)
     onChain.current = next
     if (actions.some((a) => a.name === 'clearnature')) forgetMapTiles(mapId)
     view.confirmBuild(); setSave({ state: 'idle' })
+    // the contract counts the enclosures anew when fences change: read them once a node has the block
+    if (fenced) { view.setEnclosures([]); setTimeout(() => fetchEnclosures(mapId).then((list) => view.setEnclosures(list), () => undefined), 2500) }
   }
   const confirmLabel = save.state === 'signing' ? 'signing…' : confirmWords
   const saveNote = save.state === 'error' ? <p className="build-error" role="alert">{save.message}</p> : null

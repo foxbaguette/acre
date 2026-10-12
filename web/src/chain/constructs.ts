@@ -102,3 +102,19 @@ export function saveActions(mapId: string, who: { actor: string; permission: str
   }
   return actions
 }
+
+/** An enclosure land.acre keeps (table enclosures, scope = map id): its id, how many tiles lie inside the fence, and its
+ *  first tile as a map index (y * 100 + x). */
+export interface Enclosure { id: string; tiles: number; at: number }
+
+interface EnclosureRow {
+  id: number | string
+  tile_count: number
+  anchor: number
+}
+
+/** The enclosures land.acre counted on a map. */
+export async function fetchEnclosures(mapId: string): Promise<Enclosure[]> {
+  const rows = await readTable<EnclosureRow>('enclosures', mapId)
+  return rows.map((r) => ({ id: String(r.id), tiles: Number(r.tile_count), at: mapTile(Math.floor(r.anchor / CELLS), r.anchor % CELLS) }))
+}

@@ -225,3 +225,10 @@
 @keyframes token-bob { 50% { translate: 0 -5px; } }
 @media (prefers-reduced-motion: reduce) { .field-token .tok, .field-token .n { animation: none; } }
 .build-error { margin: 6px 0 0; font-size: .85rem; color: var(--rust); max-width: 30ch; }
+.pen-tags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4; }
+.pen-tag { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+.pen-tag b, .pen-tag small { position: absolute; left: 0; transform: translateX(-50%); white-space: nowrap; }
+.pen-tag b { top: -14px; padding: 2px 9px 1px; border-radius: 3px; background: rgba(251, 247, 238, .92); color: var(--ink); font: 400 .78rem var(--sc); letter-spacing: .1em; box-shadow: 0 3px 8px rgba(20, 14, 4, .3); }
+.pen-tag small { top: 8px; color: #fbf7ee; font-family: var(--hand); font-size: 1rem; text-shadow: 0 1px 3px rgba(0, 0, 0, .7); }
+.pen-tags.far .pen-tag small { display: none; }
+.pen-tags.far .pen-tag b { font-size: .65rem; padding: 1px 6px 0; }

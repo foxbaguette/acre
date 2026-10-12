@@ -132,6 +132,30 @@ export function startEngine(opts: EngineOptions): IslandView {
     }
     for (const [k, el] of tokens) if (!live.has(k)) { el.remove(); tokens.delete(k); if (hoverField?.key === k) hoverField = null }
   }
+  // the enclosures land.acre keeps: a small paper tag in the middle of each, with its number and size. Its tiles are
+  // found from its first tile over what stands now (not reached past a fence); one that is not closed here is not shown.
+  const penLayer = document.createElement('div'); penLayer.className = 'pen-tags'; view.append(penLayer)
+  let pens: { id: string; tiles: number; at: number; el: HTMLDivElement; x: number; y: number }[] = []
+  function penMiddle(at: number): [number, number] | null {
+    if (done[at]?.f) return null
+    const seenP = new Set([at]), st = [at]; let sx = 0, sy = 0, n = 0
+    while (st.length) { const j = st.pop()!, x = j % COLS, y = (j - x) / COLS; sx += x; sy += y; n++
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= COLS || Y >= ROWS) return null   // it reaches the edge: open
+        const k = Y * COLS + X; if (!seenP.has(k) && !done[k]?.f) { seenP.add(k); st.push(k) } } }
+    return [sx / n + 0.5, sy / n + 0.5]
+  }
+  const setEnclosures = (list: { id: string; tiles: number; at: number }[]) => {
+    for (const p of pens) p.el.remove()
+    pens = []
+    for (const e of list) { const m = penMiddle(e.at); if (!m) continue
+      const el = document.createElement('div'); el.className = 'pen-tag'
+      el.innerHTML = '<b></b><small></small>'; el.querySelector('b')!.textContent = 'enclosure no. ' + e.id; el.querySelector('small')!.textContent = e.tiles + ' tile' + (e.tiles === 1 ? '' : 's')
+      penLayer.append(el); pens.push({ ...e, el, x: m[0], y: m[1] }) }
+    kick()
+  }
+  function placePens() { const z = CAM.z
+    penLayer.classList.toggle('far', z < 10)
+    for (const p of pens) p.el.style.transform = `translate(${(p.x - CAM.x) * z}px, ${(p.y - CAM.y) * z}px)` }
   const harvestTiles = (tiles: number[]) => { both((b) => { for (const i of tiles) if (b[i]?.c && ripe(i)) b[i].h = 1 }); relay(null) }
   const harvest = (tile: number, whole: boolean) => { const tiles = whole ? fieldOf(tile) : [tile]
     both((b) => { for (const i of tiles) if (b[i]?.c) b[i].h = 1 }); relay(null) }
@@ -562,6 +586,7 @@ export function startEngine(opts: EngineOptions): IslandView {
     if (state.motion) { herd.step(dt / 1000); stepWhales(dt / 1000) }
     farmers.step(dt / 1000); if (farmers.list.length || farmers.claimed.size) kick()   // the harvest goes on even when motion is reduced
     placeTokens()
+    placePens()
     resize()
     const d = dpr(), cam = { x: CAM.x, y: CAM.y, z: CAM.z * d }, W = size[0], H = size[1], t = now / 1000
     const f0 = performance.now()
@@ -910,6 +935,7 @@ export function startEngine(opts: EngineOptions): IslandView {
     setWeather,
     setDaytime,
     setLifeforms: async (list: Lifeform[]) => { const n = await herd.set(list, (name, url) => atlas.add(name, url)); kick(); return n },
+    setEnclosures,
     selectCreature: select,
     showCreature: (id: number | string) => {
       const c = herd.list.find((q) => String(q.id) === String(id)); if (!c) return

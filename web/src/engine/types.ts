@@ -19,6 +19,8 @@ export interface IslandView {
   setDaytime(kind: Daytime): void
   /** Shows these creatures on the island (replacing any shown before); resolves to how many could be placed. */
   setLifeforms(list: Lifeform[]): Promise<number>
+  /** The enclosures the chain keeps: a tag with their number over each (id, tiles inside, first tile as a map index). */
+  setEnclosures(list: { id: string; tiles: number; at: number }[]): void
   /** Selects the creature with this id (a glowing ring beneath it), or none with null. */
   selectCreature(id: number | string | null): void
   /** Flies to a creature and selects it. */
