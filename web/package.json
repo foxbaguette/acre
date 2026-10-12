@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "build:pages": "tsc -b && vite build --base=/acre/"
   },
   "dependencies": {
     "@fontsource/caveat": "^5.3.0",
