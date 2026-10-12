@@ -76,7 +76,12 @@
 .build-tool:hover { background: var(--paper); }
 .build-tool[aria-pressed="true"] { background: var(--paper); color: var(--ink); border-color: var(--rust); box-shadow: inset 0 -3px 0 var(--rust); }
 .build-hint { margin: 10px 0 6px; color: var(--blue); font-size: 1.2rem; line-height: 1.2; }
-.build-actions { display: flex; justify-content: space-between; }
+.build-actions { display: flex; justify-content: space-between; align-items: center; }
+.build-plan { margin: 10px 0 6px; color: var(--ink-soft); font-size: .95rem; }
+.build-confirm { border: 0; border-radius: 6px; padding: 7px 12px; cursor: pointer; font-family: var(--sc); font-size: .8rem; letter-spacing: .12em; background: var(--rust); color: #fbf7ee; }
+.build-confirm:disabled { opacity: .4; cursor: default; }
+.build-confirm:not(:disabled):hover { filter: brightness(1.08); }
+.build-pending { margin-top: 8px; display: flex; gap: 12px; align-items: center; padding: 8px 12px; border-radius: 8px; background: rgba(251, 247, 238, .94); box-shadow: 0 4px 14px rgba(40, 30, 20, .18); width: max-content; }
 .build-link { border: 0; background: none; padding: 2px 0; cursor: pointer; font-family: var(--sc); font-size: .82rem; letter-spacing: .14em; color: var(--rust); }
 .build-link:disabled { color: var(--ink-soft); opacity: .45; cursor: default; }
 .build-link:not(:disabled):hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -158,3 +163,43 @@
 .splash { position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; background-color: #d8c59c; background-image: var(--noise); }
 .splash svg { width: 140px; height: 140px; color: var(--rust); opacity: .8; transform: rotate(-12deg); animation: veil-breathe 2.4s ease-in-out infinite; }
 .splash p { font-family: var(--hand); color: var(--blue); font-size: 1.7rem; margin: 0; }
+
+/* ---------- the bestiary: every species on the pages of the field journal ---------- */
+.bestiary-toggle svg, .build-toggle svg { width: 16px; height: 16px; }
+.bestiary-shade { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; background: rgba(20, 16, 8, .45); animation: shade-in .2s ease-out; }
+@keyframes shade-in { from { opacity: 0; } }
+.bestiary { width: min(980px, 100%); max-height: min(86vh, 900px); display: flex; flex-direction: column; background: var(--card); background-image: var(--noise); border-radius: 4px;
+  box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 22px 50px -12px rgba(10, 8, 2, .7); padding: 18px 22px 20px; animation: card-in .22s ease-out; transform: rotate(-.3deg); }
+.bestiary header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.bestiary header small { font-family: var(--sc); font-size: .78rem; letter-spacing: .18em; color: var(--rust); }
+.bestiary header h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 2.2rem; line-height: 1.05; color: var(--ink); }
+.bestiary header p { margin: 2px 0 0; color: var(--blue); font-size: 1.2rem; }
+.bestiary .hint-close { position: static; flex: none; }
+.bestiary-tabs { display: flex; gap: 6px; margin: 12px 0 10px; border-bottom: 1px solid rgba(60, 45, 20, .2); }
+.bestiary-tabs button { border: 0; background: none; padding: 6px 12px; cursor: pointer; font-family: var(--sc); font-size: .85rem; letter-spacing: .1em; color: var(--ink-soft); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.bestiary-tabs button[aria-selected="true"] { color: var(--rust); border-bottom-color: var(--rust); }
+.bestiary-grid { list-style: none; margin: 0; padding: 4px 2px 6px; overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.bestiary-grid button { width: 100%; display: grid; gap: 2px; justify-items: center; padding: 8px 6px 9px; border: 1px solid rgba(60, 45, 20, .14); border-radius: 4px; cursor: pointer;
+  background: rgba(247, 240, 222, .6); transition: transform .12s ease, box-shadow .12s ease; }
+.bestiary-grid button:hover, .bestiary-grid button:focus-visible { transform: translateY(-2px) rotate(-.6deg); box-shadow: 0 8px 16px -10px rgba(40, 30, 10, .6); outline: none; }
+.bestiary-grid .bg-art { width: 100%; height: 96px; display: grid; place-items: center; overflow: hidden; }
+.bestiary-grid img { width: 100%; height: 100%; min-height: 0; object-fit: contain; display: block; }
+.bestiary-grid b { font-family: var(--display); font-weight: 400; font-size: 1.05rem; color: var(--ink); text-align: center; line-height: 1.1; }
+.bestiary-grid small { font-family: var(--sc); font-size: .7rem; letter-spacing: .1em; color: var(--ink-soft); }
+.bestiary .unknown img { filter: brightness(0) opacity(.22); }
+.bestiary .unknown b { color: var(--ink-soft); letter-spacing: .2em; }
+.bestiary-page { overflow: auto; padding-top: 10px; }
+.bp-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 22px; margin-top: 10px; align-items: start; }
+.bp-portrait { aspect-ratio: 4 / 3; display: grid; place-items: center; border-radius: 4px; background: radial-gradient(ellipse at 50% 60%, rgba(247, 240, 222, .9), rgba(226, 212, 180, .6)); }
+.bp-portrait img { width: 92%; height: 92%; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(40, 30, 15, .3)); }
+.bp-portrait.unknown img { filter: brightness(0) opacity(.22); }
+.bp-body h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.9rem; color: var(--ink); }
+.bp-body .hand { color: var(--blue); font-size: 1.25rem; margin: 4px 0 10px; }
+.bp-count { font-family: var(--sc); letter-spacing: .1em; font-size: .85rem; color: var(--rust); margin: 8px 0 6px; }
+.bp-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.bp-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 5px 2px; border-bottom: 1px dashed rgba(60, 45, 20, .18); }
+.bp-list b { font-family: var(--display); font-weight: 400; font-size: 1.05rem; }
+.bp-list small { color: var(--ink-soft); font-family: var(--sc); font-size: .72rem; letter-spacing: .08em; }
+.bp-swatch { display: flex; gap: 3px; }
+.bp-swatch i { width: 12px; height: 12px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(30, 20, 10, .25); }
+@media (max-width: 640px) { .bp-body { grid-template-columns: 1fr; } .bestiary { padding: 14px 16px 16px; } .bestiary header h2 { font-size: 1.8rem; } }

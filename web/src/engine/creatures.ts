@@ -54,6 +54,21 @@ export function recolouredUrl(key: string, colors: string[]) {
 export class Herd {
   list: Creature[] = []
   selected: Creature | null = null
+  /** the creature the player is carrying: it stays where the pointer puts it */
+  held: Creature | null = null
+  private from: [number, number] = [0, 0]
+  /** Picks a creature up. */
+  grab(c: Creature) { this.held = c; this.from = [c.x, c.y]; c.moving = false; c.wait = 0 }
+  /** Whether a creature may be set down here: its own kind of ground (land: grass, off fences and buildings; any enclosure). */
+  canDrop(c: Creature, x: number, y: number) { return c.area.ok(x, y, c.r) && (c.home !== 'land' || !this.fence[this.cell(x, y)]) }
+  /** Sets the carried creature down where it is, or back where it was picked up if it cannot be there. */
+  drop() {
+    const c = this.held; if (!c) return
+    this.held = null
+    if (!this.canDrop(c, c.x, c.y)) { c.x = this.from[0]; c.y = this.from[1] }
+    c.tx = c.x; c.ty = c.y; c.wait = 1 + Math.random() * 2; c.blocked = 0; c.since = 0
+    if (c.home === 'land') this.settle(c)                         // it now lives in the enclosure it was set down in
+  }
   private ask = 0
   private world: World
   /** fence tiles, and which fenced-off area every tile belongs to (tiles split by fences; a gap joins two areas) */
@@ -125,7 +140,8 @@ export class Herd {
     for (const f of list || []) {
       const b = speciesKey(f.species); if (!b) { console.warn('No sprite for species', f.species); continue }
       const scale = Math.max(0.2, (Number(f.size) || 1000) / 1000), quick = Math.max(0.1, (Number(f.speed) || 1000) / 1000)
-      const size = b[2] * scale, r = size * 0.36, area = areas[b[1]], rnd = seeded(Number(f.id) * 7919 + 101)
+      const size = b[2] * scale * 0.5,   // half the art's listed size: they read better beside the trees and buildings
+      r = size * 0.36, area = areas[b[1]], rnd = seeded(Number(f.id) * 7919 + 101)
       let x = w.cols / 2, y = w.rows / 2
       for (let k = 0; k < 6000; k++) { const tx = 2 + rnd() * (w.cols - 4), ty = 2 + rnd() * (w.rows - 4); if (area.ok(tx, ty, r)) { x = tx; y = ty; break } }
       const sprite = 'cre:' + b[0] + '|' + (f.colors || []).join(',')
@@ -154,6 +170,7 @@ export class Herd {
     for (const c of this.list) { const k = key(c.x, c.y); let b = grid.get(k); if (!b) grid.set(k, b = []); b.push(c) }
     const near = (c: Creature) => { const out: Creature[] = [], bx = Math.floor(c.x / 3), by = Math.floor(c.y / 3); for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const b = grid.get((bx + i) * 4096 + by + j); if (b) out.push(...b) } return out }
     for (const c of this.list) {
+      if (c === this.held) continue
       if (c.home === 'air') { this.fly(c, dt); continue }
       if (c.wait > 0) { c.wait -= dt; c.moving = false; if (c.wait <= 0) this.pickTarget(c); continue }
       const dx = c.tx - c.x, dy = c.ty - c.y, d = Math.hypot(dx, dy)
@@ -183,6 +200,7 @@ export class Herd {
       c.moving = step > 0.001
     }
     for (const a of this.list) for (const b of near(a)) {         // keep a little personal space (each pair once)
+      if (a === this.held || b === this.held) continue
       if (b === a || a.home !== b.home || (a.x < b.x || (a.x === b.x && a.y <= b.y))) continue
       const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01, min = a.r + b.r
       if (d < min) { const push = (min - d) * 0.5 * Math.min(1, dt * 4), ux = dx / d, uy = dy / d

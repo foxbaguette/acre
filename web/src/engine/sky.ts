@@ -143,6 +143,43 @@ uniform sampler2D uClouds; uniform float uA; uniform vec3 uColor;
 in vec2 vUV; out vec4 o;
 void main() { float m = texture(uClouds, vUV).a * uA; o = vec4(uColor * m, m); }`
 
+// ---- clouds seen from far out, as on the planet map: whole weather systems from layered noise, brighter on the side
+// facing the sun, soft and shaded underneath, and their shadows on the land; they thin out as you come down
+const FAR_FS = `#version 300 es
+precision highp float;
+uniform vec3 uCam; uniform vec2 uView; uniform float uT, uFar, uCover, uRain, uPart; uniform vec3 uLo, uHi;   // part 0: the shadows on the ground, 1: the clouds themselves
+in vec2 vUV; out vec4 o;
+float hash12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+vec2 grd(vec2 i) { float a = hash12(i) * 6.2831853; return vec2(cos(a), sin(a)); }
+float gnoise(vec2 p) { vec2 i = floor(p), f = fract(p), u = f * f * f * (f * (f * 6. - 15.) + 10.);
+  float a = dot(grd(i), f), b = dot(grd(i + vec2(1., 0.)), f - vec2(1., 0.)), c = dot(grd(i + vec2(0., 1.)), f - vec2(0., 1.)), d = dot(grd(i + 1.), f - 1.);
+  return .5 + .7 * mix(mix(a, b, u.x), mix(c, d, u.x), u.y); }
+const vec2 SUN = vec2(-.507, -.645);
+float clouds(vec2 p, float t) { return gnoise(p * .32 + vec2(t * .045, t * .016)) * .5 + gnoise(mat2(.8, -.6, .6, .8) * p * .8 + 7. + vec2(t * .1, -t * .03)) * .28
+  + gnoise(p * 2. + 3. + vec2(t * .2, t * .06)) * .17 + gnoise(mat2(.8, .6, -.6, .8) * p * 4.6 + vec2(t * .34, 0.)) * .05; }
+void main() {
+  vec2 P = uCam.xy + vec2(vUV.x, 1. - vUV.y) * uView / uCam.z;
+  vec2 p = P * .16;                                                  // the island's tiles are much smaller than the planet's: far wider systems
+  float t = uT;
+  if (uPart < .5) { float cs = clouds(p + vec2(.5, .65), t) + uCover;
+  float shade = mix(.44, .34, uFar) * smoothstep(.5, .7, cs); /* a tad darker close up */ o = vec4(vec3(.03, .07, .13) * shade, shade); return; }   // their shadows, at every zoom
+  float cl = clouds(p, t) + uCover;
+  vec4 acc = vec4(0.);
+  if (cl > .5 && uFar > 0.) {
+    float lit = clamp(.55 + (cl - clouds(p - SUN * .3, t) - uCover) * 4., 0., 1.);
+    vec3 cc = mix(uLo, uHi, lit) * (.92 + .1 * smoothstep(.6, .85, cl)) * (1. - uRain * .28);
+    float a = smoothstep(.55, .7, cl) * .93 * uFar;
+    acc = vec4(cc * a, a) + acc * (1. - a);
+  }
+  o = acc;
+}`
+
+// a picture laid over the scene as it is (premultiplied), scaled up smoothly
+const BLIT_FS = `#version 300 es
+precision highp float;
+uniform sampler2D uTex; in vec2 vUV; out vec4 o;
+void main() { o = texture(uTex, vUV); }`
+
 // ---- rain and storm streaks, made from their index and the time
 const RAIN_VS = `#version 300 es
 in vec2 aPos;
@@ -202,6 +239,8 @@ export class Sky {
   private waterP: Program
   private finalP: Program
   private cloudP: Program
+  private farP: Program
+  private blitP: Program
   private rainP: Program
   private flashP: Program
   scene: Target | null = null
@@ -217,6 +256,8 @@ export class Sky {
     this.waterP = program(gl, FULL_VS, WATER_FS)
     this.finalP = program(gl, FULL_VS, FINAL_FS)
     this.cloudP = program(gl, FULL_VS, CLOUD_FS)
+    this.farP = program(gl, FULL_VS, FAR_FS)
+    this.blitP = program(gl, FULL_VS, BLIT_FS)
     this.rainP = program(gl, RAIN_VS, RAIN_FS)
     this.flashP = program(gl, FULL_VS, FLASH_FS)
   }
@@ -244,6 +285,26 @@ export class Sky {
   }
 
   /** Lays the gathered cloud shadows over what is drawn so far. */
+  /** Clouds seen from far out (far 0..1: none close up), drawn over the scene. cover: - clearer, + more. */
+  farClouds(cam: { x: number; y: number; z: number }, W: number, H: number, t: number, far: number, cover: number, rain: number, part: 0 | 1) {
+    if (part === 1 && far <= 0) return
+    if (!this.clouds || !this.scene) return
+    // clouds are soft: worked out at a quarter of the resolution, then laid over the scene
+    const gl = this.gl, P = this.farP, low = this.clouds
+    gl.bindFramebuffer(gl.FRAMEBUFFER, low.fb); gl.viewport(0, 0, low.w, low.h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.useProgram(P.p); gl.bindVertexArray(this.vao)
+    gl.uniform3f(P.u.uCam, cam.x, cam.y, cam.z); gl.uniform2f(P.u.uView, W, H); gl.uniform1f(P.u.uT, t)
+    gl.uniform1f(P.u.uFar, far); gl.uniform1f(P.u.uCover, cover); gl.uniform1f(P.u.uRain, rain); gl.uniform1f(P.u.uPart, part)
+    gl.uniform3f(P.u.uLo, 0.72, 0.77, 0.86); gl.uniform3f(P.u.uHi, 0.99, 0.98, 0.95)
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.scene.fb); gl.viewport(0, 0, W, H)
+    const B = this.blitP; gl.useProgram(B.p)
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, low.tex); gl.uniform1i(B.u.uTex, 0)
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+    gl.disable(gl.BLEND)
+  }
+
   cloudShadows(a: number) {
     if (!this.clouds || a <= 0) return
     const gl = this.gl, P = this.cloudP

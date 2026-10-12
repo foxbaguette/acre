@@ -35,6 +35,8 @@ export interface Fields {
   mountains: Mountain[]
   /** Makes the soil and path fields again from the world as it is now (after building); updates tex[0] in place. */
   refreshGrounds: () => void
+  /** Paths leading right up to a building's door: [from x, y, to x, y] in tiles (set before refreshGrounds). */
+  doors: [number, number, number, number][]
 }
 
 export function buildFields(world: World, S: number): Fields {
@@ -83,6 +85,7 @@ export function buildFields(world: World, S: number): Fields {
   }
   // paths are laid by hand: a footpath about half a tile wide along the middle of its tiles, straight, joining the
   // paths next to it (also corner to corner); where paths fill a whole block of tiles, they close up into a paved square
+  const doors: [number, number, number, number][] = [], pathPick = (i: number) => type[i] === T.path
   const straight = (pick: (i: number) => boolean) => {
     const f = new Float32Array(w * h), HW = 0.22
     const rect = (x0: number, y0: number, x1: number, y1: number) => {
@@ -107,6 +110,7 @@ export function buildFields(world: World, S: number): Fields {
       // corner to corner, where the two do not already join through a tile beside both
       for (const dx of [1, -1]) if (P(x + dx, y + 1) && !P(x + dx, y) && !P(x, y + 1)) segment(x + 0.5, y + 0.5, x + dx + 0.5, y + 1.5)
     }
+    if (pick === pathPick) for (const [ax, ay, bx, by] of doors) segment(ax, ay, bx, by)
     blurGrid(f, w, h, 1, 0.1 * S)
     return f
   }
@@ -118,7 +122,7 @@ export function buildFields(world: World, S: number): Fields {
   pack(0, 0, world.has[T.rock] ? field((i) => type[i] === T.rock, 2, 0.04) : empty())
   pack(0, 1, world.has[T.sand] ? field(of(T.sand), EDGES.sand.blur, 0.035) : empty())
   pack(0, 2, world.has[T.soil] ? soilField() : empty())
-  pack(0, 3, world.has[T.path] ? straight(of(T.path)) : empty())
+  pack(0, 3, world.has[T.path] ? straight(pathPick) : empty())
   // F1: the mountains (filled below); F2 and F3 are unused
   const anySea = ocean.some((v) => v)
   pack(2, 0, empty()); pack(3, 0, empty())
@@ -155,9 +159,9 @@ export function buildFields(world: World, S: number): Fields {
   }
   const refreshGrounds = () => {
     pack(0, 2, world.has[T.soil] ? soilField() : empty())
-    pack(0, 3, world.has[T.path] ? straight(of(T.path)) : empty())
+    pack(0, 3, world.has[T.path] ? straight(pathPick) : empty())
   }
-  return { S, w, h, tex, height, mountains: mt.list, refreshGrounds }
+  return { S, w, h, tex, height, mountains: mt.list, refreshGrounds, doors }
 }
 
 /** Signed distance to the edge of a mask, in tiles: + inside, - outside (exact Euclidean, two passes per side). */

@@ -60,7 +60,17 @@ void main() {
     vec4 acc = vec4(0.);
     if (uHas.y) acc = over(acc, col(sandCol(p, uPx), clamp(dist(f0.g, ${EDGES.sand.inner}) / soft + .5, 0., 1.)));
     if (uHas.z) acc = over(acc, col(soilCol(p, uPx), clamp(dist(f0.b, ${EDGES.soil.inner}) / soft + .5, 0., 1.)));
-    if (uHas.w) acc = over(acc, col(pathCol(p, uPx), clamp(dist(f0.a, ${EDGES.path.inner}) / soft + .5, 0., 1.)));
+    if (uHas.w) {                                     // a worn path: a ragged edge where the grass creeps in, lighter where feet go
+      vec2 wp = p + (vec2(gnoise(p * 2.1 + 7.), gnoise(p * 2.1 + 19.)) - .5) * .16 + (vec2(vnoise(p * 9.), vnoise(p * 9. + 4.)) - .5) * .07;
+      float fp = F(uF0, wp).a;
+      // as in the reference: a dusty track, palest down the middle where feet go, a darker worn lip along its edge,
+      // and the trampled grass just beside it a little darker; the border itself crisp
+      float d = dist(fp, ${EDGES.path.inner}), tile = uPx;
+      vec3 pc = pathCol(p, uPx) * mix(.9, 1.08, smoothstep(.55, .9, f0.a));
+      pc = mix(pc, pc * vec3(.72, .66, .58), (1. - smoothstep(0., .07 * tile, d)) * .8);
+      acc = over(acc, col(vec3(.16, .15, .06), .3 * (1. - smoothstep(0., .1 * tile, -d)) * step(d, 0.)));
+      acc = over(acc, col(pc, clamp(d / max(1., .025 * tile) + .5, 0., 1.)));
+    }
     o = acc;
     return;
   }
@@ -175,10 +185,10 @@ void main() {
   float slopeN = slope, hr = hm / (4.6 * K), n = gnoise(qs * 1.6), green = uLook.z > .5 ? 1. : 0.;
   vec3 rockC = mix(rgb(98., 90., 80.), rgb(150., 140., 124.), n) * (.92 + .16 * vnoise(p * 6.) * detailAt(uPx));
   float rockA = clamp(smoothstep(.35 + .25 * green, .9 + .2 * green, slopeN) + smoothstep(.45 + .15 * green, .75 + .1 * green, hr), 0., 1.) * smoothstep(.02, .15, hm);
-  land = mix(land, rockC, rockA);
+  land = mix(land, rockC, rockA * 0.);                                       // (hills are grass: no rock)
   float line = mix(.8, .9, green);
-  land = mix(land, rgb(222., 226., 230.), smoothstep(line, line + .05, hr + (n - .5) * .1) * (1. - smoothstep(1.6, 2.8, slopeN) * .5) * mtn);
-  land *= mix(1., ao * (1. - clamp(cav * .03 / K, 0., .18)), mtn);
+  // (and no snow)
+  land *= mix(1., ao, mtn * .3);                                            // only a breath of shade where the hill folds
   float wetS = 1. - smoothstep(0., .1 + .04 * gnoise(p * 4.), t.x);
   land = mix(land, land * vec3(.74, .76, .78), wetS * (1. - mtn));
   float mud = smoothstep(-.12, 0., t.y);
@@ -186,7 +196,7 @@ void main() {
   land *= 1. - .1 * hv.a * (1. - mtn);                                      // the shade of the woods
   // the planet map's light: warm where the sun falls, cool in the shade, shadows cast across the land
   // far out, the mountain's own faces carry its shape: their light and shade a little stronger
-  float liM = mix(li, 1. + (li - 1.) * 1.4, far * mtn);
+  float liM = mix(li, 1. + (li - 1.) * 2.2, mtn);                           // a hill shows by its light: the sunny side brighter, the far side in shade
   float lit = clamp(liM, 0., 2.) * (.3 + .7 * s);
   land *= mix(vec3(.38, .42, .5), vec3(1.12, 1.07, .98), smoothstep(0., 1.5, lit));
   land = cozy(land);
@@ -233,7 +243,14 @@ ${GLSL_TERRAIN}
 void main() {
   vec2 px = vec2(gl_FragCoord.x, uView.y - gl_FragCoord.y);
   vec2 p = uCam.xy + px / uCam.z;
-  o = vec4(vec3(18., 44., 66.) / 255. * (.94 + .12 * gnoise(p * .07 + 3.)), 1.);   // the deep end of the sea's colours
+  // the deep end of the sea's colours, graded exactly as the sea inside the map is, so the two meet without a seam
+  vec3 w = vec3(18., 44., 66.) / 255. * (.94 + .12 * gnoise(p * .07 + 3.));
+  w = mix(w, w * vec3(.78, 1.04, 1.12), .55) * 1.18;
+  float l = dot(w, vec3(.299, .587, .114));
+  w = mix(vec3(l), w, 1.1) * vec3(1.04, 1.02, .9) * 1.1;
+  w += vec3(.55, .62, .82) * .06 * (1. - smoothstep(0., .55, l));
+  w = (w - .45) * .96 + .45;
+  o = vec4(w / (1. + max(w - .9, 0.) * 1.6), 1.);
 }`
 const FULL_VS = `#version 300 es
 in vec2 aPos; void main() { gl_Position = vec4(aPos * 2. - 1., 0., 1.); }`
@@ -265,7 +282,7 @@ export class Ground {
   maxLevel: number
   stats = { baked: 0, bakeMs: 0 }
   /** which path, soil and rock look to draw (see look.ts) */
-  look: [number, number, number, number] = [2, 3, 1, 0]   // flagstone paths, furrowed soil, greener mountains (the picked look)
+  look: [number, number, number, number] = [0, 0, 1, 0]   // worn earth paths, furrowed soil, greener mountains (the painted look)
   /** Paints decor into a chunk while it is being baked: stage 0 after the grass (meadow carpets), 1 after the other
    *  grounds, 2 on top of the finished relief (lilies, which float on the water). */
   decor: ((stage: 0 | 1 | 2, region: [number, number, number], L: number, S: number) => void) | null = null

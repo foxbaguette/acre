@@ -129,7 +129,7 @@ export function buildWorld(raw: Uint8Array, mapId: number): World {
   const nearF = (x: number, y: number, d: number) => { for (let j = -d; j <= d; j++) for (let k = -d; k <= d; k++) if (inside(x + k, y + j) && forest[at(x + k, y + j)]) return true; return false }
   const nearP = (x: number, y: number, d: number) => { for (let j = -d; j <= d; j++) for (let k = -d; k <= d; k++) if (inside(x + k, y + j) && pond(at(x + k, y + j))) return true; return false }
   const put = (x: number, y: number, name: string, sc: number) => { const dx = (R() - 0.5) * 0.5, dy = (R() - 0.5) * 0.5; decor.push({ x: x + dx, y: y + dy, name: 'decor-' + name, sc, under: false }) }
-  const freeGrass = (i: number) => type[i] === T.grass && !forest[i]
+  const freeGrass = (i: number) => (type[i] === T.grass || type[i] === T.rock) && !forest[i]   // (the map's mountain tiles are grassy hills now: they get flowers too)
   if (CFG.forestEdges) for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
     const i = at(x, y); if (!freeGrass(i) || !nearF(x, y, 2)) continue
     const r = R()

@@ -8,14 +8,15 @@
 //   creatures.ts  the chain's creatures: placement, wandering, selection
 import type { Daytime, IslandView, Lifeform, Weather } from '@/engine/types'
 import { Atlas } from './atlas'
-import { applyBuilds, BUILDINGS, buildingTiles, cropStage, erasable, erase, eraseKindAt, footprint, placeBuilding, type Building, type EraseKind, MIN_ENCLOSURE, pristineOf, ring, rules, type Builds, type BuildTool } from './build'
+import { applyBuilds, BUILDINGS, buildingTiles, cropStage, dims, entrance, erasable, erase, eraseKindAt, footprint, placeBuilding, turn, type Building, type EraseKind, MIN_ENCLOSURE, pristineOf, ring, rules, type Builds, type BuildTool } from './build'
+import { CHIMNEYS, LIGHTS, LIT, PAD, RENDERED, SHPAD } from './buildingArt'
 import { CROPS } from './crops'
 import { BEASTS, Herd, speciesKey } from './creatures'
 import { buildFields } from './fields'
 import { Ground } from './ground'
 import { cloudShapes, DAYS, Sky, WX } from './sky'
-import { FLAG, SHAPE, Sprites } from './sprites'
-import { buildWorld, COLS, ROWS, TREES, type World } from './world'
+import { FIELD, FIELD_REACH, FLAG, SHAPE, Sprites } from './sprites'
+import { buildWorld, COLS, ROWS, seeded, T, type World } from './world'
 
 export interface EngineOptions { tiles: Uint8Array; mapId: string | number; weather?: Weather; daytime?: Daytime; view?: HTMLElement; /** the player's builds, laid over the map */ builds?: Builds }
 
@@ -26,6 +27,9 @@ const LOW = !!(((navigator as { deviceMemory?: number }).deviceMemory ?? 8) <= 4
 // a butterfly from above, as the old renderer painted it: shadow below, two wings a side, a body (s = one unit, 192 px canvas)
 const FLY_COLOURS = [['#FFFFFF', '#F3E9C8'], ['#F6D04D', '#E8A93A'], ['#F2A7C3', '#E07AA3'], ['#A9D4F5', '#6FAEE0']]
 const FLY_STAGES = 8
+/** Crops with painted field tiles (tools/painted-crops.mjs): they fill their tile so a planted patch reads as one field. */
+const PAINTED_CROPS = new Set<string>(CROPS)
+const cropSeed = (c: string) => { let h = 7; for (const ch of c) h = (h * 31 + ch.charCodeAt(0)) % 997; return h % 4 }
 function paintFly(g: CanvasRenderingContext2D, px: number, flap: number, c: string[]) {
   const k = px / 192, x = 96 * k, y = 48 * k, s = 32 * k
   g.fillStyle = 'rgba(30,50,20,.18)'; g.beginPath(); g.ellipse(x + s * 1.2, y + s * 2.2, s * flap, s * 0.5, 0, 0, 6.2832); g.fill()
@@ -51,46 +55,122 @@ export function startEngine(opts: EngineOptions): IslandView {
   const world: World = buildWorld(opts.tiles, Number(opts.mapId))
   const t1 = performance.now()
   const fields = buildFields(world, LOW ? 6 : 8)
-  // no trees where a mountain stands: inside its outline (and a little around it)
-  { const { S, w, tex } = fields, at = (x: number, y: number) => (Math.min(fields.h - 1, Math.max(0, Math.round((y + 0.5) * S))) * w + Math.min(w - 1, Math.max(0, Math.round((x + 0.5) * S)))) * 4
-    const ok = (x: number, y: number) => tex[1][at(x, y) + 3] < 0.4                  // F1.a: how much mountain shows here
-    world.trees = world.trees.filter((tr) => [[0, 0], [0.5, 0], [-0.5, 0], [0, 0.5], [0, -0.5]].every(([dx, dy]) => ok(tr.x + dx, tr.y + dy))) }
   // the player's builds, over the island as the chain made it; saved ones the map no longer allows are left out
   const pristine = pristineOf(world)
   const mountainAt = (i: number) => fields.tex[1][(Math.min(fields.h - 1, Math.round(((i / COLS | 0) + 0.5) * fields.S)) * fields.w + Math.min(fields.w - 1, Math.round(((i % COLS) + 0.5) * fields.S))) * 4 + 3]
+  // builds is the plan: what stands, with what the player marked and has not confirmed yet; done is what stands. The
+  // plan is judged on planWorld, the island as the plan would leave it; the island on screen shows what stands.
   let builds: Builds = {}
-  const can = rules(world, () => builds, mountainAt)
+  const planWorld: World = { ...world, type: world.type.slice(), tile: world.tile.slice(), forest: world.forest.slice(), has: world.has.slice(), trees: world.trees.slice(), decor: world.decor.slice() }
+  const can = rules(planWorld, () => builds, mountainAt)
   for (const k in opts.builds ?? {}) if (can.open(Number(k))) builds[Number(k)] = { ...opts.builds![Number(k)] }
-  let fence = applyBuilds(world, pristine, builds)
-  if (Object.values(builds).some((b) => b.g)) fields.refreshGrounds()
+  for (const k in builds) { const b = builds[k], top = b.u !== undefined ? opts.builds?.[b.u] : undefined   // a building of a kind that is gone (the windmill) goes too
+    if (b.u !== undefined && (!top?.s || !(top.s in BUILDINGS))) { delete b.u; delete b.s; delete b.lv; delete b.o; delete b.l; if (!Object.keys(b).length) delete builds[k] } }
+  let done: Builds = JSON.parse(JSON.stringify(builds))
+  let fence = applyBuilds(world, pristine, done), planFence = applyBuilds(planWorld, pristine, builds)
+  if (Object.values(done).some((b) => b.g)) { setDoors(); fields.refreshGrounds() }
   const t2 = performance.now()
   const ground = new Ground(gl, world, fields, LOW ? 256 : 512, LOW)
   { const q = new URLSearchParams(location.search).get('ground'); if (q) q.split(',').forEach((v, k) => { if (k < 4) ground.look[k] = Number(v) || 0 }) }   // ?ground=path,soil,rock: try a look
   const atlas = new Atlas(gl, LOW ? 4 : 8)
   const sprites = new Sprites(gl)
   const herd = new Herd(world)
-  const walls = () => { const b = buildingTiles(builds, fence.length); for (let i = 0; i < b.length; i++) b[i] |= fence[i]; return b }   // what creatures cannot cross
+  const walls = () => { const b = buildingTiles(done, fence.length); for (let i = 0; i < b.length; i++) b[i] |= fence[i]; return b }   // what creatures cannot cross
   herd.setFences(walls())
   const sky = new Sky(gl)
   const CLOUD = cloudShapes()
   const stats = { worldMs: t1 - t0, fieldsMs: t2 - t1, fps: 0, frames: 0, at: 0, frameMs: 0, sprites: 0 }
   const state = { weather: (opts.weather ?? 'sun') as Weather, daytime: (opts.daytime ?? 'day') as Daytime, motion: !matchMedia('(prefers-reduced-motion: reduce)').matches }
 
+  // ---------- the sea floor: coral reefs in the shallows, now and then a shipwreck further out. Not every island has
+  // them; whether it does, how many and where all follow from the map id, so they can always be worked out again. ----------
+  const seabed: { name: string; x: number; y: number; w: number; h: number; rot: number; tint?: [number, number, number] }[] = []
+  {
+    const R = seeded(Number(opts.mapId) * 104729 + 7), dist = new Int16Array(COLS * ROWS).fill(-1), q: number[] = []
+    for (let i = 0; i < COLS * ROWS; i++) if (!world.ocean[i]) { dist[i] = 0; q.push(i) }
+    for (let h = 0; h < q.length; h++) { const i = q[h], x = i % COLS, y = (i - x) / COLS
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= COLS || Y >= ROWS) continue; const j = Y * COLS + X; if (dist[j] < 0) { dist[j] = dist[i] + 1; q.push(j) } } }
+    const band = (lo: number, hi: number) => { const out: number[] = []; for (let i = 0; i < COLS * ROWS; i++) if (dist[i] >= lo && dist[i] <= hi) out.push(i); return out }
+    const place = (cands: number[], name: string, w: number, h: number, apart: number) => {
+      for (let k = 0; k < 40 && cands.length; k++) {
+        const i = cands[Math.floor(R() * cands.length)], x = i % COLS + 0.5, y = Math.floor(i / COLS) + 0.5
+        if (seabed.some((s) => Math.hypot(s.x - x, s.y - y) < apart)) continue
+        seabed.push({ name, x, y, w, h, rot: (R() - 0.5) * 1.2 }); return
+      }
+    }
+    // the corals' own colours, very muted (each multiplies the plate's grey-green)
+    const CORAL: [number, number, number][] = [[1.7, 0.86, 0.82], [1.6, 1.18, 0.7], [1.2, 0.86, 1.4], [1.65, 1.02, 0.76], [0.92, 1.15, 0.95], [1.4, 0.95, 1.1]]
+    const shallows = band(5, 9), open = band(7, 13), WRECKS = ['sloop', 'brig', 'longship']
+    const wr = R(); if (wr < 0.4) { const n = wr < 0.08 ? 2 : 1; for (let k = 0; k < n; k++) place(open, 'sea-wreck-' + WRECKS[Math.floor(R() * WRECKS.length)], 6.2, 4.48, 16) }
+    // table-coral reefs: not a fixed picture but a patch of any size, small or wide, grown plate by plate over the sea
+    // floor: plates crowd toward its middle, thin out at its edge, and never reach onto land
+    if (R() < 0.7) for (let n = 1 + Math.floor(R() * 3), k = 0; k < n; k++) {
+      const i = shallows[Math.floor(R() * shallows.length)]; if (i === undefined) break
+      const cx = i % COLS + 0.5, cy = Math.floor(i / COLS) + 0.5
+      if (seabed.some((s) => Math.hypot(s.x - cx, s.y - cy) < 10)) continue
+      const rx = 1.2 + Math.pow(R(), 1.6) * 6.5, ry = rx * (0.55 + R() * 0.45), turn = R() * Math.PI, lobes = [0, 1, 2].map(() => [R() * 6.28, 0.12 + R() * 0.22, 2 + Math.floor(R() * 3)])
+      const reach = (x: number, y: number) => { const u = x - cx, v = y - cy, a = Math.cos(turn) * u + Math.sin(turn) * v, b = -Math.sin(turn) * u + Math.cos(turn) * v, ang = Math.atan2(b / ry, a / rx)
+        return Math.hypot(a / rx, b / ry) / (1 + lobes.reduce((t, [p, m, f]) => t + Math.sin(ang * f + p) * m, 0)) }   // < 1: inside the patch
+      const plates = Math.round(rx * ry * 5.5)
+      for (let tries = 0, made = 0; made < plates && tries < plates * 8; tries++) {
+        const x = cx + (R() * 2 - 1) * rx * 1.4, y = cy + (R() * 2 - 1) * rx * 1.4, d = reach(x, y), j = Math.floor(y) * COLS + Math.floor(x)
+        if (d > 1 || R() < d * d * 0.75 || !world.ocean[j] || dist[j] < 3) continue   // well clear of the surf
+        const r = (0.22 + R() * 0.38) * (1.15 - d * 0.5)
+        seabed.push({ name: 'sea-plate-' + (1 + Math.floor(R() * 5)), x, y, w: r * 2.67, h: r * 2.67, rot: R() * 6.28, tint: CORAL[Math.floor(R() * CORAL.length)] }); made++
+      }
+    }
+    seabed.sort((a, b) => a.y - b.y)                             // plates further down lie over those above
+    for (const name of new Set(seabed.map((s) => s.name))) atlas.add(name, '/art/tiles/' + name + '.png?v=1')
+  }
+  // ---------- whales: a very few, out where the sea is deep, wandering slowly; now and then one blows ----------
+  const deep: number[] = []
+  {
+    const dist = new Int16Array(COLS * ROWS).fill(-1), q: number[] = []
+    for (let i = 0; i < COLS * ROWS; i++) if (!world.ocean[i]) { dist[i] = 0; q.push(i) }
+    for (let h = 0; h < q.length; h++) { const i = q[h], x = i % COLS, y = (i - x) / COLS
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= COLS || Y >= ROWS) continue; const j = Y * COLS + X; if (dist[j] < 0) { dist[j] = dist[i] + 1; q.push(j) } } }
+    for (let i = 0; i < COLS * ROWS; i++) if (dist[i] >= 6) deep.push(i)
+  }
+  const deepSet = new Uint8Array(COLS * ROWS); for (const i of deep) deepSet[i] = 1
+  const deepAt = (x: number, y: number) => { const X = Math.floor(x), Y = Math.floor(y); return X >= 0 && Y >= 0 && X < COLS && Y < ROWS && deepSet[Y * COLS + X] === 1 }
+  const pickDeep = () => { const i = deep[Math.floor(Math.random() * deep.length)]; return [i % COLS + 0.5, Math.floor(i / COLS) + 0.5] }
+  const whales = deep.length < 60 ? [] : [...Array(Math.min(3, 1 + Math.floor(deep.length / 600)))].map(() => { const [x, y] = pickDeep(), [tx, ty] = pickDeep(); return { x, y, tx, ty, head: Math.random() * 6.28, blow: 8 + Math.random() * 20, phase: Math.random() * 6.28 } })
+  // a place to swim to that can be reached in a straight line through deep water
+  const clearTo = (x: number, y: number, tx: number, ty: number) => { const n = Math.ceil(Math.hypot(tx - x, ty - y) * 2); for (let k = 1; k <= n; k++) if (!deepAt(x + (tx - x) * k / n, y + (ty - y) * k / n)) return false; return true }
+  const retarget = (w: { x: number; y: number; tx: number; ty: number }) => { for (let k = 0; k < 40; k++) { const [tx, ty] = pickDeep(); if (Math.hypot(tx - w.x, ty - w.y) > 6 && clearTo(w.x, w.y, tx, ty)) { w.tx = tx; w.ty = ty; return } } }
+  whales.forEach(retarget)
+  const stepWhales = (dt: number) => {
+    for (const w of whales) {
+      if (Math.hypot(w.tx - w.x, w.ty - w.y) < 2) retarget(w)
+      // steer for the target, but away from shallows ahead: feel 3 tiles ahead to each side
+      let turn = Math.atan2(w.ty - w.y, w.tx - w.x) - w.head; turn = Math.atan2(Math.sin(turn), Math.cos(turn))
+      const ahead = (a: number, d: number) => deepAt(w.x + Math.cos(w.head + a) * d, w.y + Math.sin(w.head + a) * d)
+      if (!ahead(0, 3)) turn = ahead(0.7, 3) || !ahead(-0.7, 3) ? 1 : -1
+      w.head += Math.max(-0.35 * dt, Math.min(0.35 * dt, turn))
+      const nx = w.x + Math.cos(w.head) * 0.45 * dt, ny = w.y + Math.sin(w.head) * 0.45 * dt
+      if (deepAt(nx, ny)) { w.x = nx; w.y = ny } else { w.head += 0.6 * dt; retarget(w) }   // blocked: turn on the spot until the way is open
+      w.blow -= dt; if (w.blow < -3) w.blow = 15 + Math.random() * 30
+    }
+  }
   // the pictures: trees, decor, butterflies (creatures are added when they arrive)
-  for (const n of TREES) atlas.add(n, `/art/tiles/${n}.svg?v=1`)
-  for (let m = 0; m < 16; m++) { const n = `fence-${m.toString(2).padStart(4, '0')}`; atlas.add(n, `/art/tiles/${n}.svg?v=1`) }
-  for (const d of new Set(world.decor.map((q) => q.name))) atlas.add(d, `/art/tiles/${d}.svg?v=1`)
+  atlas.add('whale', '/art/tiles/whale.svg?v=1')
+  for (let m = 0; m < 16; m++) { const n = `fence-${m.toString(2).padStart(4, '0')}`; atlas.add(n, `/art/tiles/${n}.svg?v=2`) }
+  // a meadow patch: one of four versions, turned, mirrored and sized by where it lies, so no two neighbours look alike
+  const spot = (d: { x: number; y: number }, k: number) => { const h = Math.sin(d.x * 12.9898 + d.y * 78.233 + k * 37.719) * 43758.5453; return h - Math.floor(h) }
+  const decorArt = (d: { name: string; x: number; y: number }) => (d.name.startsWith('decor-meadow') ? `${d.name}-${1 + Math.floor(spot(d, 1) * 4)}` : d.name)
+  for (const d of new Set(world.decor.map(decorArt))) atlas.add(d, `/art/tiles/${d}.svg?v=2`)
   FLY_COLOURS.forEach((c, ci) => { for (let i = 0; i < FLY_STAGES; i++) atlas.add(`fly-${ci}-${i}`, (g, px) => paintFly(g, px, 0.25 + 0.75 * (i + 0.5) / FLY_STAGES, c)) })
 
   // decor is baked into the ground: meadow carpets after the grass, the rest after the other grounds
   const decorIn = (region: [number, number, number]) => { const [x0, y0, n] = region; return world.decor.filter((d) => d.x > x0 - 2 && d.x < x0 + n + 2 && d.y > y0 - 2 && d.y < y0 + n + 2) }
-  ground.canBake = (region, L) => { let ok = true; for (const d of decorIn(region)) if (!atlas.ready(d.name, d.sc * L)) ok = false; return ok }
+  ground.canBake = (region, L) => { let ok = true; for (const d of decorIn(region)) if (!atlas.ready(decorArt(d), d.sc * L)) ok = false; return ok }
   ground.decor = (stage, region, L, S) => {
     sprites.begin()
     for (const d of decorIn(region)) {
       if (d.under !== (stage === 0) || (d.name === 'decor-lily') !== (stage === 2)) continue
-      const r = atlas.get(d.name, d.sc * L); if (!r) continue
-      sprites.picture(r, d.x + 0.5, d.y + 0.5, [-d.sc / 2, -d.sc / 2, d.sc / 2, d.sc / 2])
+      const r = atlas.get(decorArt(d), d.sc * L); if (!r) continue
+      if (d.name.startsWith('decor-meadow')) { const s = d.sc * (0.85 + spot(d, 2) * 0.4); sprites.picture(r, d.x + 0.5, d.y + 0.5, [-s / 2, -s / 2, s / 2, s / 2], { rot: spot(d, 3) * 6.2832, sx: spot(d, 4) < 0.5 ? -1 : 1 }) }
+      else sprites.picture(r, d.x + 0.5, d.y + 0.5, [-d.sc / 2, -d.sc / 2, d.sc / 2, d.sc / 2])
     }
     gl.viewport(0, 0, S, S)
     sprites.draw(atlas.tex, ground.height, ground.fieldSize, [world.cols, world.rows], { x: region[0], y: region[1], z: L }, S, S, { flip: false })
@@ -134,49 +214,133 @@ export function startEngine(opts: EngineOptions): IslandView {
     const body = (c: typeof herd.list[number], y: number, flags: number) => {
       const r = atlas.get(c.sprite, c.size * z); if (!r) return
       const breathe = still ? 1 : 1 + 0.015 * Math.sin(t * 2 + c.phase), bob = still || !c.moving ? 0 : Math.abs(Math.sin(t * 8 + c.phase))
-      sprites.picture(r, c.x, y, [-c.size / 2, -c.size / 2, c.size / 2, c.size / 2], { rot: c.head + Math.PI / 2, sx: breathe * (1 - bob * 0.03), sy: breathe * (1 + bob * 0.05), flags })
+      const f = falling(c)
+      sprites.picture(r, c.x, y - f.h, [-c.size / 2, -c.size / 2, c.size / 2, c.size / 2], { rot: c.head + Math.PI / 2, sx: breathe * (1 - bob * 0.03) * f.sx, sy: breathe * (1 + bob * 0.05) * f.sy, flags })
     }
+    // a creature just set down: it drops from where it was held, lands with a squash and a little bounce, and dust puffs
+    // up round it. h: how high it still is (tiles), sx, sy: its squash
+    const falling = (c: typeof herd.list[number]) => {
+      const t0 = drops.get(c); if (t0 === undefined) return { h: 0, sx: 1, sy: 1 }
+      const a = t - t0, H = liftOf(c), T1 = Math.sqrt(2 * H / 9), T2 = 0.18   // 9 tiles/s² to the ground, then one small hop
+      if (a > T1 + T2 + 0.25) { drops.delete(c); return { h: 0, sx: 1, sy: 1 } }
+      if (a < T1) return { h: H - 4.5 * a * a, sx: 0.96, sy: 1.06 }      // falling: stretched a touch
+      const b = a - T1, land = Math.exp(-b * 14)
+      const h = b < T2 ? 0.07 * Math.sin(Math.PI * b / T2) : 0
+      return { h, sx: 1 + 0.22 * land, sy: 1 - 0.2 * land }
+    }
+    for (const [c, t0] of drops) { const a = t - Math.sqrt(2 * liftOf(c) / 9) - t0
+      if (a > 0 && a < 0.5) for (let k = 0; k < 6; k++) { const s = Math.max(c.size, 0.7), ang = k / 6 * 6.283 + c.phase, d = s * (0.3 + a * 1.2), rr = s * (0.1 + a * 0.3)
+        sprites.shape(SHAPE.puff, c.x + Math.cos(ang) * d, c.y + c.size * 0.15 + Math.sin(ang) * d * 0.55, rr, rr * 0.75, [0.82, 0.76, 0.62, (1 - a / 0.5) * 0.45]) } }
+    if (drops.size) kick()
+    // whales below the surface; when one blows: it rises, and a spout of spray
+    for (const w of whales) if (seen(w.x, w.y, 4)) {
+      const r = atlas.get('whale', 3.6 * z); if (!r) continue
+      const up = w.blow < 0 ? Math.sin(Math.min(1, -w.blow / 3) * Math.PI) : 0, sway = still ? 0 : Math.sin(t * 0.8 + w.phase) * 0.05
+      sprites.picture(r, w.x, w.y, [-1, -1.8, 1, 1.8], { rot: w.head + Math.PI / 2 + sway, color: [1, 1, 1, 0.55 + 0.4 * up], flags: FLAG.water })
+    }
+    // the sea floor, under everything that swims
+    for (const s of seabed) if (seen(s.x, s.y, 4)) { const r = atlas.get(s.name, s.w * z); if (r) sprites.picture(r, s.x, s.y, [-s.w / 2, -s.h / 2, s.w / 2, s.h / 2], { rot: s.rot, flags: FLAG.water | FLAG.seabed, color: s.tint ? [...s.tint, 0.97] : [1, 1, 1, 1] }) }   // (alpha .97 marks a reef for the shader)
     // under the water's surface: swimmers, tinted and clipped by the water, with a ripple spreading round each
-    for (const c of herd.list) if (c.home === 'water' && seen(c.x, c.y)) {
+    for (const c of herd.list) if (c.home === 'water' && c !== herd.held && seen(c.x, c.y)) {
       if (c === herd.selected) halo(c, c.y)
       body(c, c.y, FLAG.water)
       if (!still) { const k = (t * 0.6 + c.phase) % 1; sprites.shape(SHAPE.ripple, c.x, c.y, c.size * (0.35 + k * 0.3) / 0.92, c.size * (0.25 + k * 0.2) / 0.92, [225 / 255, 245 / 255, 1, (1 - k) * 0.6], FLAG.water) }
     }
     const landAt = sprites.n
     // standing on the ground, back to front: trees and land creatures
-    const items: [number, number, number][] = []                // [depth, kind 0 tree / 1 creature / 2 fence, index]
-    world.trees.forEach((tr, i) => { if (seen(tr.x, tr.y, 2)) items.push([tr.y + 0.5, 0, i]) })
+    const items: [number, number, number, number][] = []        // [depth, kind 0 tree / 1 creature / 2 post / 3 crop / 4 rail / 5 building, index, 0 standing / 1 planned / 2 to be erased]
+    const homes: [string, number, number, Building, number][] = []   // the buildings in view: art, top-left x, y, kind, turn
+    // a turned point of a building's own drawing, on the map
+    const at = (kind: Building, o: number, bx: number, by: number, x: number, y: number) => { const [u, v] = turn(kind, o, x, y); return [bx + u, by + v] }
+    // shadows by the time of day: the sun's place (the buildings' shadow pictures were rendered under the same three suns),
+    // as how far a shadow reaches along the ground per unit of height, and how dark it is; at night, midday's, faint
+    const SUN = ({ morning: ['morning', -1.33, 0.33, 0.85], day: ['day', 0.4, 0.3, 1], evening: ['evening', 1.33, 0.33, 0.85], night: ['day', 0.4, 0.3, 0.3] } as Record<string, [string, number, number, number]>)[state.daytime] ?? ['day', 0.4, 0.3, 1]
+    const [sunName, sunX, sunZ, aS] = SUN, sunA = Math.atan2(sunZ, sunX), sunL = Math.hypot(sunX, sunZ) / 0.5
+    const PLAN = 1, GONE = 2, holo = (st: number) => (st === PLAN ? -1 : st === GONE ? -2 : 1)   // a negative alpha draws a hologram (sprites.ts)
+    const tk = (t: { name: string; x: number; y: number }) => t.name + ',' + t.x.toFixed(2) + ',' + t.y.toFixed(2)
+    const planTrees = new Set(planWorld.trees.map(tk)), doneTrees = new Set(world.trees.map(tk))
+    const trees = [...world.trees, ...planWorld.trees.filter((t) => !doneTrees.has(tk(t)))]
+    trees.forEach((tr, i) => { if (seen(tr.x, tr.y, 2)) items.push([tr.y + 0.5, 0, i, i < world.trees.length ? (planTrees.has(tk(tr)) ? 0 : GONE) : PLAN]) })
     const now = Date.now()
-    for (const k in builds) { const b = builds[k]; if (!b.s) continue; const i = Number(k), x = i % COLS, y = (i - x) / COLS, { w, h } = BUILDINGS[b.s]; if (seen(x + w / 2, y + h / 2, Math.max(w, h))) items.push([y + h - 0.05, 5, i]) }
-    for (const k in builds) { const b = builds[k]; if (!b.c) continue; const i = Number(k), x = i % COLS, y = (i - x) / COLS; if (seen(x, y, 1)) items.push([y - 0.4, 3, i]) }
-    for (let i = 0; i < fence.length; i++) if (fence[i]) {
+    const putBuilding = (i: number, b: { s?: Building; o?: number }, st: number, d = 0) => { const x = i % COLS, y = (i - x) / COLS, [w, h] = dims(b.s!, b.o); if (seen(x + w / 2, y + h / 2, Math.max(w, h))) items.push([y + h - 0.05 + d, 5, i, st]) }
+    for (const k in done) { const b = done[k]; if (!b.s) continue; const p = builds[k], same = p?.s === b.s && (p.o ?? 0) === (b.o ?? 0)
+      putBuilding(Number(k), b, same ? 0 : GONE); if (same && (p.lv ?? 1) !== (b.lv ?? 1)) putBuilding(Number(k), p, PLAN, 0.001) }
+    for (const k in builds) { const p = builds[k]; if (!p.s) continue; const d = done[k]; if (d?.s === p.s && (d.o ?? 0) === (p.o ?? 0)) continue; putBuilding(Number(k), p, PLAN) }
+    for (const k in done) { const b = done[k]; if (!b.c) continue; const i = Number(k), x = i % COLS, y = (i - x) / COLS; if (seen(x, y, 1)) items.push([y - 0.4, 3, i, builds[k]?.c === b.c ? 0 : GONE]) }
+    for (const k in builds) { const p = builds[k]; if (!p.c || done[k]?.c === p.c) continue; const i = Number(k), x = i % COLS, y = (i - x) / COLS; if (seen(x, y, 1)) items.push([y - 0.39, 3, i, PLAN]) }
+    const anyFence = new Uint8Array(fence.length), postState = (i: number) => (fence[i] && planFence[i] ? 0 : fence[i] ? GONE : PLAN)
+    for (let i = 0; i < fence.length; i++) anyFence[i] = fence[i] | planFence[i]
+    for (let i = 0; i < anyFence.length; i++) if (anyFence[i]) {
       const x = i % COLS, y = (i - x) / COLS; if (!seen(x, y, 1)) continue
-      const a = anchor(i); items.push([a[1] + 0.12, 2, i])
-      for (let k = 0; k < 4; k++) { const j = linked(fence, i, k); if (j >= 0) items.push([(a[1] + anchor(j)[1]) / 2 + 0.1, 4, i * 4 + k]) }
+      const a = anchor(i), st = postState(i); items.push([a[1] + 0.12, 2, i, st])
+      for (let k = 0; k < 4; k++) { const j = linked(anyFence, i, k); if (j < 0) continue
+        const sj = postState(j), rs = st === 0 && sj === 0 ? 0 : st === PLAN || sj === PLAN ? PLAN : GONE
+        items.push([(a[1] + anchor(j)[1]) / 2 + 0.1, 4, i * 4 + k, rs]) }
     }
-    herd.list.forEach((c, i) => { if (c.home === 'land' && seen(c.x, c.y)) items.push([c.y, 1, i]) })
+    herd.list.forEach((c, i) => { if (c.home === 'land' && c !== herd.held && seen(c.x, c.y)) items.push([c.y, 1, i, 0]) })
     items.sort((a, b) => a[0] - b[0])
-    for (const [, kind, i] of items) {
+    // planned and cleared ground: a blue tile where soil or a path is to go, red where it is to be taken up or plants cleared
+    for (const k of new Set([...Object.keys(done), ...Object.keys(builds)])) { const i = Number(k), dg = done[i]?.g, pg = builds[i]?.g; if (dg === pg) continue
+      const x = i % COLS, y = (i - x) / COLS; if (!seen(x, y)) continue
+      sprites.shape(SHAPE.tile, x + 0.5, y + 0.5, 0.5, 0.5, pg ? [0.35, 0.78, 1, 0.8] : [1, 0.34, 0.3, 0.8]) }
+    { const kept = new Set(planWorld.decor), marked = new Set<number>()
+      for (const d of world.decor) if (!kept.has(d)) { const x = Math.floor(d.x + 0.5), y = Math.floor(d.y + 0.5), i = y * COLS + x, p = builds[i]; if (marked.has(i) || !seen(x, y) || (p && (p.g || p.f || p.c || p.p || p.u !== undefined))) continue;   // only plants cleared on purpose, not those a build covers marked.add(i)
+        sprites.shape(SHAPE.tile, x + 0.5, y + 0.5, 0.42, 0.42, [1, 0.34, 0.3, 0.7]) } }
+    for (const [, kind, i, st] of items) if (kind === 5 && st !== PLAN) { const b = done[i], [w, h] = dims(b.s!, b.o), x = i % COLS, y = (i - x) / COLS, sq = 0.62
+      if (b.s === 'torch') sprites.shape(SHAPE.softShadow, x + 0.6, y + 0.64, 0.13, 0.06, [...SHADE, 0.4])
+      else if (!RENDERED.has(b.s!)) sprites.shape(SHAPE.softShadow, x + w / 2 + 0.3, y + h / 2 + 0.4, w * sq, h * sq, [...SHADE, 0.42]) }
+    for (const [, kind, i, st] of items) if (kind === 0 && st !== PLAN) { const tr = trees[i], rr = tr.sc * 0.55
+      // cast by the sun the way the buildings' are: the crown's shadow thrown out to the lower right by the tree's height,
+      // stretched a little along the light, and a small dark patch at the foot of the trunk
+      const hgt = tr.sc * 1.25, ox = hgt * sunX, oy = hgt * sunZ, kS = sunL
+      sprites.shape(SHAPE.softShadow, tr.x + 0.5 + ox, tr.y + 0.5 + oy, rr * (1.25 + (kS - 1) * 0.5), rr * 1.0, [...SHADE, 0.36 * aS], 0, sunA)   // soft: a crown lets light through
+      sprites.shape(SHAPE.softShadow, tr.x + 0.5 + ox * .9, tr.y + 0.5 + oy * .9, rr * (.85 + (kS - 1) * 0.35), rr * .68, [...SHADE, 0.22 * aS], 0, sunA)
+      sprites.shape(SHAPE.softShadow, tr.x + 0.5 + rr * 0.15, tr.y + 0.5 + rr * 0.2, rr * 0.55, rr * 0.45, [...SHADE, 0.3]) }
+    for (const [, kind, i, st] of items) {
       if (kind === 0) {
-        const tr = world.trees[i], r = atlas.get(tr.name, tr.sc * z); if (!r) continue
-        sprites.picture(r, tr.x + 0.5, tr.y + 0.5 - tr.lift, [-tr.sc / 2, 0.5 - tr.sc, tr.sc / 2, 0.5], { sway: still ? 0 : tr.sw, phase: tr.phase, flags: FLAG.graded })
+        const tr = trees[i], conifer = Number(tr.name.slice(-2)) >= 4, rr = tr.sc * (conifer ? 0.46 : 0.56)
+        sprites.tree(tr.x + 0.5, tr.y + 0.5 - tr.lift, rr, (tr.phase / 6.2832 * 7.3) % 1, conifer ? 1 : 0, (tr.phase * 3.7) % 1, still ? 0 : tr.sw * 0.4, tr.phase, holo(st))
       } else if (kind === 3) {
-        const b = builds[i], name = cropArt(b.c!, cropStage(b.t ?? 0, now)), r = atlas.get(name, z); if (!r) continue
+        const set = st === PLAN ? builds : done, b = set[i], name = cropArt(b.c!, st === PLAN ? '6-harvest' : cropStage(b.t ?? 0, now)), r = atlas.get(name, z); if (!r) continue
         const x = i % COLS, y = (i - x) / COLS
-        sprites.picture(r, x + 0.5, y + 0.5, [-0.5, -0.5, 0.5, 0.5], { sway: still ? 0 : 0.12, phase: i * 0.37, flags: FLAG.graded })
+        if (PAINTED_CROPS.has(b.c!) && st !== PLAN) {   // (a planned crop shows as its plain tile: the soil it needs is only planned too)                          // a field tile: ragged where the field ends, interlocking with another crop
+          let fl = FLAG.graded | FLAG.field | cropSeed(b.c!) * FIELD.seed, k = 0
+          for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue
+            const nb = set[i + dy * COLS + dx]
+            if (nb?.c === b.c || nb?.g !== 'soil') fl |= FIELD.near << k
+            if (nb?.c === b.c) fl |= FIELD.same << k
+            k++ }
+          if (!still) fl |= FIELD.wind
+          sprites.picture(r, x + 0.5, y + 0.5, [-FIELD_REACH, -FIELD_REACH, FIELD_REACH, FIELD_REACH], { flags: fl, color: [1, 1, 1, holo(st)] })
+        } else sprites.picture(r, x + 0.5, y + 0.5, [-0.5, -0.5, 0.5, 0.5], { sway: still ? 0 : 0.12, phase: i * 0.37, flags: FLAG.graded, color: [1, 1, 1, holo(st)] })
       } else if (kind === 2) {                                  // a post, standing on its anchor
         const r = atlas.get('fence-0000', z); if (!r) continue
         const [ax, ay] = anchor(i)
-        sprites.picture(r, ax, ay, [-0.5, -0.5, 0.5, 0.5], { flags: FLAG.graded })
+        sprites.picture(r, ax, ay, [-0.5, -0.5, 0.5, 0.5], { flags: FLAG.graded, color: [1, 1, 1, holo(st)] })
       } else if (kind === 5) {                                  // a building, standing on its footprint
-        const b = builds[i], spec = BUILDINGS[b.s!], name = buildingArt(spec.art(b.lv ?? 1)), r = atlas.get(name, Math.max(spec.w, spec.h) * z); if (!r) continue
-        const x = i % COLS, y = (i - x) / COLS
-        sprites.picture(r, x + spec.w / 2, y + spec.h, [-spec.w / 2, -spec.h, spec.w / 2, 0], { flags: FLAG.graded })
+        const b = (st === PLAN ? builds : done)[i], spec = BUILDINGS[b.s!], base = spec.art(b.lv ?? 1)
+        const x = i % COLS, y = (i - x) / COLS, o = b.o ?? 0, [w, h] = dims(b.s!, o)
+        if (RENDERED.has(b.s!)) {                                // a rendered picture for each facing, with its shadow, reaching PAD tiles past the footprint
+          const name = buildingArt(`${base}-o${o}`), pw = w + PAD[0] + PAD[2], ph = h + PAD[1] + PAD[3], r = atlas.get(name, Math.max(pw, ph) * z); if (!r) continue
+          const rect: [number, number, number, number] = [-PAD[0], -PAD[1], w + PAD[2], h + PAD[3]]
+          if (st !== PLAN) { const sw = w + SHPAD[0] + SHPAD[2], sh = h + SHPAD[1] + SHPAD[3], sr = atlas.get(buildingArt(`${base}-o${o}-shadow-${sunName}`), Math.max(sw, sh) * z)   // its shadow, where the hour's sun throws it
+            if (sr) sprites.picture(sr, x, y, [-SHPAD[0], -SHPAD[1], w + SHPAD[2], h + SHPAD[3]], { color: [1, 1, 1, aS] }) }
+          sprites.picture(r, x, y, rect, { flags: FLAG.graded, color: [1, 1, 1, holo(st)] })
+        } else {
+          const name = buildingArt(base), r = atlas.get(name, Math.max(spec.w, spec.h) * z); if (!r) continue
+          sprites.picture(r, x + w / 2, y + h / 2, [-spec.w / 2, -spec.h / 2, spec.w / 2, spec.h / 2], { rot: o * Math.PI / 2, flags: FLAG.graded, color: [1, 1, 1, holo(st)] })
+        }
+        if (st === PLAN) continue
+        homes.push([base, x, y, b.s!, o])
+        if (b.s === 'torch') {                                   // its flame, alive (a soft glow round it after dark comes with the lights)
+          const fl = still ? 0 : 1
+          sprites.shape(SHAPE.flame, x + 0.5, y + 0.17, 0.1, 0.17, [(x * 0.37 + y * 0.61) % 1, fl, 0, 1])
+        }
       } else if (kind === 4) {                                  // a rail from one post to the next: the rail part of the straight fence art, stretched and turned
         const r = atlas.get('fence-0101', z); if (!r) continue
-        const a = i >> 2, b = linked(fence, a, i & 3), [x0, y0] = anchor(a), [x1, y1] = anchor(b)
+        const a = i >> 2, b = linked(anyFence, a, i & 3), [x0, y0] = anchor(a), [x1, y1] = anchor(b)
         const len = Math.hypot(x1 - x0, y1 - y0), u = r.u0 + (r.u1 - r.u0) * 0.43
-        sprites.picture({ ...r, u1: u }, (x0 + x1) / 2, (y0 + y1) / 2, [-len / 2, -0.5, len / 2, 0.5], { rot: Math.atan2(y1 - y0, x1 - x0), flags: FLAG.graded })
+        sprites.picture({ ...r, u1: u }, (x0 + x1) / 2, (y0 + y1) / 2, [-len / 2, -0.5, len / 2, 0.5], { rot: Math.atan2(y1 - y0, x1 - x0), flags: FLAG.graded, color: [1, 1, 1, holo(st)] })
       } else {
         const c = herd.list[i]
         if (c === herd.selected) halo(c, c.y)
@@ -184,10 +348,26 @@ export function startEngine(opts: EngineOptions): IslandView {
         body(c, c.y, FLAG.graded)
       }
     }
+    for (const w of whales) if (w.blow < 0 && !still && seen(w.x, w.y, 4)) {
+      const k = -w.blow / 3, hx = w.x + Math.cos(w.head) * 1.1, hy = w.y + Math.sin(w.head) * 1.1
+      for (let j = 0; j < 6; j++) { const a = (k * 1.6 + j / 6) % 1, rr = 0.15 + a * 0.5
+        sprites.shape(SHAPE.puff, hx + Math.sin(j * 2.1) * a * 0.3, hy - a * 1.4, rr, rr, [0.95, 0.97, 1, (1 - a) * 0.55 * Math.sin(Math.min(1, k) * Math.PI)]) }
+    }
+    // chimney smoke: soft puffs rising, swelling and thinning as the wind takes them east
+    const wind = WX[state.weather].gust
+    for (const [name, bx, by, bk, bo] of homes) for (const [cx, cy] of (RENDERED.has(bk) ? CHIMNEYS[`${name}-o${bo}`] : CHIMNEYS[name]) ?? []) {
+      const [sx, sy] = RENDERED.has(bk) ? [bx + cx, by + cy] : at(bk, bo, bx, by, cx, cy), seed = sx * 1.7 + sy * 3.1
+      for (let k = 0; k < 7; k++) {
+        const a = still ? (k + 0.5) / 7 : (t * 0.16 + k / 7 + seed) % 1, rise = a * 1.3
+        const px = sx + a * a * (0.9 + 0.5 * wind) + Math.sin(a * 5 + seed + k) * 0.08, py = sy - rise
+        const rr = 0.1 + a * 0.38, alpha = Math.min(1, a * 6) * (1 - a) * 0.5
+        sprites.shape(SHAPE.puff, px, py, rr, rr, [0.88, 0.87, 0.84, alpha])
+      }
+    }
     // the tiles a build would cover: gold where it can go, red where it cannot, pale where something will be erased
-    for (const [i, k] of preview()) { const x = i % COLS, y = (i - x) / COLS; if (seen(x, y)) sprites.shape(SHAPE.tile, x + 0.5, y + 0.5, 0.5, 0.5, k === 0 ? [0.98, 0.82, 0.4, 0.9] : k === 1 ? [0.9, 0.32, 0.25, 0.5] : [1, 0.94, 0.86, 0.95]) }
+    for (const [i, k] of preview()) { const x = i % COLS, y = (i - x) / COLS; if (seen(x, y)) sprites.shape(SHAPE.tile, x + 0.5, y + 0.5, 0.5, 0.5, k === 0 ? [0.98, 0.82, 0.4, 0.9] : k === 1 ? [0.9, 0.32, 0.25, 0.5] : k === 3 ? [0.92, 0.95, 1, 0.75] : [1, 0.94, 0.86, 0.95]) }
     // the shadows of flyers, far below
-    for (const c of herd.list) if (c.home === 'air' && seen(c.x, c.y, 2)) {
+    for (const c of herd.list) if (c.home === 'air' && c !== herd.held && seen(c.x, c.y, 2)) {
       const bob = still ? 0 : Math.sin(t * 1.3 + c.phase), rx = c.size * 0.34 * (1 - 0.05 * bob)
       sprites.shape(SHAPE.softShadow, c.x + 0.75 + 0.04 * bob, c.y + 1.05 + 0.05 * bob, rx, rx * 0.72, [...SHADE, 0.2 - 0.02 * bob])
     }
@@ -204,13 +384,29 @@ export function startEngine(opts: EngineOptions): IslandView {
     }
     // flyers above everything
     const flyAt = sprites.n
-    for (const c of herd.list) if (c.home === 'air' && seen(c.x, c.y, 2)) {
+    { const c = herd.held                                        // the carried creature, held up off the ground
+      if (c) { const ok = herd.canDrop(c, c.x, c.y), m = still ? 0 : 1, q = t + c.phase
+        // a little panicked: it wriggles side to side, kicks (a quick squash and stretch), bobs in the air, and now and then
+        // twists hard the other way, as if trying to get loose
+        const twist = Math.sin(q * 2.3) > 0.82 ? Math.sin(q * 9) * 0.35 : 0
+        const sway = m * (Math.sin(q * 21) * 0.17 + Math.sin(q * 34) * 0.06 + twist)
+        const kick = m * Math.sin(q * 27), sx = 1 + 0.07 * kick, sy = 1 - 0.07 * kick
+        const lift = liftOf(c) + m * (0.06 * Math.abs(Math.sin(q * 13)) + 0.02 * Math.sin(q * 41))
+        const jx = m * Math.sin(q * 17) * 0.04
+        sprites.shape(SHAPE.softShadow, c.x + 0.1, c.y + 0.15, c.size * (0.4 - lift * 0.12), c.size * (0.3 - lift * 0.09), [...SHADE, 0.38 - lift * 0.25])
+        if (!ok) sprites.shape(SHAPE.tile, Math.floor(c.x) + 0.5, Math.floor(c.y) + 0.5, 0.5, 0.5, [0.9, 0.32, 0.25, 0.5])
+        const r = atlas.get(c.sprite, c.size * 1.15 * z)
+        if (r) sprites.picture(r, c.x + jx, c.y - lift, [-c.size * 0.575, -c.size * 0.575, c.size * 0.575, c.size * 0.575], { rot: c.head + Math.PI / 2 + sway, sx, sy, flags: FLAG.graded, color: ok ? [1, 1, 1, 1] : [1, 0.75, 0.72, 1] })
+        // sweat drops flicking off now and then
+        if (m) for (let k = 0; k < 3; k++) { const a = ((q * 1.7 + k / 3) % 1), side = k % 2 ? 1 : -1
+          if (a < 0.55) { const d = c.size * (0.42 + a * 0.5); sprites.shape(SHAPE.dot, c.x + side * d * 0.8, c.y - lift - c.size * 0.3 - a * 0.25 + a * a * 0.6, 0.035, 0.05, [0.82, 0.92, 1, (1 - a / 0.55) * 0.9]) } } } }
+    for (const c of herd.list) if (c.home === 'air' && c !== herd.held && seen(c.x, c.y, 2)) {
       const lift = 0.9 + (still ? 0 : 0.08 * Math.sin(t * 1.3 + c.phase))
       if (c === herd.selected) halo(c, c.y)
       body(c, c.y - lift * 0.15, FLAG.graded)
     }
     // Cloud shadows drift slowly across the whole world; when the sky turns cloudy, more grow in over a couple of seconds
-    const cloudAt = sprites.n
+    const blobs: [number, number, number, number, number, number, number][] = []   // x, y, rx, ry, soft, alpha, tilt
     const target = WX[state.weather].more; sky.grow = still ? target : sky.grow + Math.sign(target - sky.grow) * Math.min(Math.abs(target - sky.grow), dt / 2)
     const M = Math.max(10, (view.clientWidth / zMin() - COLS) / 2 + 6)   // clouds appear and vanish beyond the widest view, then drift in
     const tt = still ? 0 : t
@@ -220,12 +416,14 @@ export function startEngine(opts: EngineOptions): IslandView {
       const cx0 = p ? ((tt * p.sp + p.x * span) % span) - 15 - M : ((tt * (giant ? 0.2 : 0.3) + (giant ? 60 : k * span / 6)) % span) - 15 - M
       const cy0 = p ? p.y * (ROWS + 16) - 8 + Math.sin(tt * 0.05 + p.phase) * 0.8 : ((k * 7.3) % ROWS) + Math.sin(tt * 0.05 + k) * 0.8
       const wx = cx0 + 15 - w / 2, wy = cy0 - w * 0.35, tall = p ? p.tall : 0.7, shape = p ? p.shape : CLOUD.clouds[k % 6]
-      if (wx + w < x0 || wx > x1 || wy + w * tall < y0 || wy > y1) continue
+      if (wx + w < x0 - 8 || wx - 6 > x1 || wy + w * tall < y0 - 8 || wy - 7 > y1) continue
       for (const [bx, by, rx, ry, tilt] of shape.blobs) {
         const soft = 2 * shape.blur / rx
-        sprites.shape(SHAPE.cloud, wx + bx * w, wy + by * w * tall, rx * w * (1 + soft), ry * w * tall * (1 + soft), [0, soft, 0, p ? grow * grow : 1], 0, tilt)
+        blobs.push([wx + bx * w, wy + by * w * tall, rx * w * (1 + soft), ry * w * tall * (1 + soft), soft, p ? grow * grow : 1, tilt])
       }
     }
+    const cloudAt = sprites.n
+    for (const [bx, by, rx, ry, soft, a, tilt] of blobs) sprites.shape(SHAPE.cloud, bx, by, rx, ry, [0, soft, 0, a], 0, tilt)
     // fireflies after dark: little swarms on the banks, each light circling slowly; their light, then their glow
     const lightAt = sprites.n, glows: [number, number, number][] = []
     const nf = z < 8 ? 0 : Math.round(world.swarms.length * DAYS[state.daytime].fireflies * WX[state.weather].flies)
@@ -241,7 +439,21 @@ export function startEngine(opts: EngineOptions): IslandView {
         glows.push([fx, fy, glow])
       }
     }
+    const dark = state.daytime === 'night' ? 1 : state.daytime === 'evening' ? 0.6 : 0
+    // each window, door, lantern and torch throws its own light: a pool that fades softly, a window's only forward
+    if (dark) for (const [name, bx, by, bk, bo] of homes) for (const [lx, ly, reach, fwd, bright = 1] of LIGHTS[name] ?? []) {
+      const [px, py] = at(bk, bo, bx, by, lx, ly)
+      const flick = still || fwd ? 1 : 0.92 + 0.08 * Math.sin(t * 7.3 + bx * 3) * Math.sin(t * 4.1 + by)
+      sprites.shape(SHAPE.light, px, py, reach, reach, [0.55 * dark * flick * bright, 0.9 * dark * flick * Math.min(1, bright * 1.3), fwd, 0], 0, bo * Math.PI / 2) }
     const glowAt = sprites.n
+    if (dark) for (const [name, bx, by, bk, bo] of homes) if (LIT.has(name)) {
+      const sp = BUILDINGS[bk], [w, h] = dims(bk, bo)
+      if (RENDERED.has(bk)) { const pw = w + PAD[0] + PAD[2], ph = h + PAD[1] + PAD[3], lr = atlas.get(buildingArt(`${name}-o${bo}-lights`), Math.max(pw, ph) * z); if (!lr) continue
+        sprites.picture(lr, bx, by, [-PAD[0], -PAD[1], w + PAD[2], h + PAD[3]], { color: [1, 1, 1, dark] }); continue }
+      const r = atlas.get(buildingArt(name + '-lights'), Math.max(sp.w, sp.h) * z); if (!r) continue
+      const flick = still ? 1 : 0.94 + 0.06 * Math.sin(t * 3.1 + bx) * Math.sin(t * 1.7 + by)
+      sprites.picture(r, bx + w / 2, by + h / 2, [-sp.w / 2, -sp.h / 2, sp.w / 2, sp.h / 2], { rot: bo * Math.PI / 2, color: [1, 1, 1, dark * flick] })
+    }
     for (const [fx, fy, glow] of glows) {
       sprites.shape(SHAPE.glow, fx, fy, 0.13, 0.13, [1, 222 / 255, 150 / 255, glow * 0.85])
       const core = Math.max(1 / z, 0.022); sprites.shape(SHAPE.dot, fx, fy, core, core, [1, 240 / 255, 200 / 255, glow])
@@ -264,7 +476,7 @@ export function startEngine(opts: EngineOptions): IslandView {
       const ratio = ZOOM.target / CAM.z
       if (Math.abs(Math.log(ratio)) < 0.003) { ZOOM.active = false; zoomNow(ratio, ZOOM.px, ZOOM.py) } else zoomNow(ratio ** (1 - Math.exp(-dt / 80)), ZOOM.px, ZOOM.py)
     }
-    if (state.motion) herd.step(dt / 1000)
+    if (state.motion) { herd.step(dt / 1000); stepWhales(dt / 1000) }
     resize()
     const d = dpr(), cam = { x: CAM.x, y: CAM.y, z: CAM.z * d }, W = size[0], H = size[1], t = now / 1000
     const f0 = performance.now()
@@ -276,10 +488,8 @@ export function startEngine(opts: EngineOptions): IslandView {
     sky.size(W, H)
     const parts = buildScene(t, dt / 1000, cam, W, H), [landAt, flyAt, cloudAt, lightAt, glowAt, end] = parts
     const fieldArgs = [atlas.tex, ground.height, ground.fieldSize, [world.cols, world.rows]] as const
-    const sp = (from: number, to: number, o: Record<string, unknown> = {}) => sprites.draw(fieldArgs[0], fieldArgs[1], fieldArgs[2], [fieldArgs[3][0], fieldArgs[3][1]], cam, W, H, { time: t, gust: WX[state.weather].gust, from, to, ...o })
+    const sp = (from: number, to: number, o: Record<string, unknown> = {}) => sprites.draw(fieldArgs[0], fieldArgs[1], fieldArgs[2], [fieldArgs[3][0], fieldArgs[3][1]], cam, W, H, { time: t, gust: WX[state.weather].gust, from, to, soil: ground.f[0], ...o })
     // the cloud shadows and the fireflies' light, each in its own small target
-    gl!.bindFramebuffer(gl!.FRAMEBUFFER, sky.clouds!.fb); gl!.viewport(0, 0, sky.clouds!.w, sky.clouds!.h); gl!.clearColor(0, 0, 0, 0); gl!.clear(gl!.COLOR_BUFFER_BIT)
-    sp(cloudAt, lightAt, { blend: 'max' })
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, sky.light!.fb); gl!.viewport(0, 0, sky.light!.w, sky.light!.h); gl!.clearColor(0, 0, 0, 1); gl!.clear(gl!.COLOR_BUFFER_BIT)
     sp(lightAt, glowAt, { blend: 'light' })
     // the scene: ground, swimmers, the water's life, what stands on the ground, cloud shadows, flyers
@@ -289,8 +499,11 @@ export function startEngine(opts: EngineOptions): IslandView {
     const still = !state.motion
     sky.water(ground.height, ground.fieldSize, [world.cols, world.rows], cam, W, H, t, state.weather === 'storm' ? 2 : state.weather === 'rain' ? 1 : 0, cam.z > 6 ? (still ? 2 : 1) : 0, !still && cam.z > 14, ground.level(cam.z))
     sp(landAt, flyAt)
-    sky.cloudShadows(Math.min(1, WX[state.weather].clouds * 1.3))
+    // the weather: whole cloud systems as on the planet map; their shadows at every zoom, the clouds themselves from far out
+    const farZ = cam.z / d, far = 1 - Math.min(1, Math.max(0, (farZ - 11) / 22)), cover = ({ sun: -0.1, cloudy: 0.03, rain: 0.08, storm: 0.14 } as Record<string, number>)[state.weather] ?? 0, wet = state.weather === 'rain' || state.weather === 'storm' ? 1 : 0
+    sky.farClouds(cam, W, H, still ? 0 : t, far, cover, wet, 0)
     sp(flyAt, cloudAt)
+    sky.farClouds(cam, W, H, still ? 0 : t, far, cover, wet, 1)
     // graded onto the canvas, then what glows and falls on top
     sky.final(state.weather, state.daytime, W, H, true)
     sp(glowAt, end)
@@ -312,12 +525,17 @@ export function startEngine(opts: EngineOptions): IslandView {
     view.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); view.classList.add('drag')
     press = ptrs.size === 1 ? { x: e.clientX, y: e.clientY, id: e.pointerId } : null
     // with a build tool picked, a drag with the main button (or one finger) marks tiles instead of panning
-    if (tool && ptrs.size === 1 && e.button === 0) { const [x, y] = cellAt(e.clientX, e.clientY); mark = [x, y, x, y]; stroke = (tool === 'fence' || tool === 'path') && !e.shiftKey ? [y * COLS + x] : null; eraseKind = tool === 'erase' ? eraseKindAt(world, builds, y * COLS + x) : null; kick() }
+    if (tool && ptrs.size === 1 && e.button === 0) { const [x, y] = cellAt(e.clientX, e.clientY); mark = [x, y, x, y]; stroke = (tool === 'fence' || tool === 'path') && !e.shiftKey ? [y * COLS + x] : null; eraseKind = tool === 'erase' ? eraseKindAt(planWorld, builds, y * COLS + x) : null; unmark = unmarks(y * COLS + x); kick() }
     else { mark = null; stroke = null }
+    if (!tool && ptrs.size === 1 && e.button === 0) { const [wx, wy] = toWorld(e.clientX, e.clientY), c = herd.at(wx, wy, CAM.z); carry = c ? { c, dx: c.x - wx, dy: c.y - wy } : null } else carry = null
   })
   view.addEventListener('pointermove', (e) => {
     const p = ptrs.get(e.pointerId); if (!p) return
     ptrs.set(e.pointerId, [e.clientX, e.clientY])
+    if (carry && ptrs.size === 1) {                             // carrying a creature: it follows the pointer, the map stays put
+      if (!herd.held && press && Math.hypot(e.clientX - press.x, e.clientY - press.y) >= 6) { herd.grab(carry.c); view.style.cursor = 'grabbing' }
+      if (herd.held) { const [wx, wy] = toWorld(e.clientX, e.clientY); carry.c.x = wx; carry.c.y = wy + liftOf(carry.c); kick(); return }   // held by its middle, right under the pointer; it stands on the ground a little below
+    }
     if (mark && ptrs.size === 1) { const [x, y] = cellAt(e.clientX, e.clientY); if (x !== mark[2] || y !== mark[3]) { if (stroke) stroke.push(...line8(mark[2], mark[3], x, y)); mark[2] = x; mark[3] = y; kick() } return }
     if (ptrs.size === 2) {
       mark = null
@@ -327,21 +545,27 @@ export function startEngine(opts: EngineOptions): IslandView {
     CAM.x -= (e.clientX - p[0]) / CAM.z; CAM.y -= (e.clientY - p[1]) / CAM.z; clampCam(); kick()
   })
   const up = (e: PointerEvent) => {
+    if (herd.held) { const c = herd.held; herd.drop(); if (c.home !== 'air') drops.set(c, performance.now() / 1000); carry = null; press = null; ptrs.delete(e.pointerId); pinch = 0; if (!ptrs.size) view.classList.remove('drag'); view.style.cursor = ''; kick(); return }
+    carry = null
     if (mark) { if (e.type === 'pointerup') build(); mark = null; stroke = null; kick() }
     else if (e.type === 'pointerup' && press && press.id === e.pointerId && Math.hypot(e.clientX - press.x, e.clientY - press.y) < 6) {   // a click, not a drag
       const [wx, wy] = toWorld(e.clientX, e.clientY), c = herd.at(wx, wy, CAM.z)
-      if (c) select(c.id)                                       // clicking the map does not let go: only the card's close button or Esc
+      select(c ? c.id : null)                                   // a click on empty ground lets the selected creature go
     }
     press = null; ptrs.delete(e.pointerId); pinch = 0; if (!ptrs.size) view.classList.remove('drag')
   }
   view.addEventListener('pointerup', up); view.addEventListener('pointercancel', up)
+  let carry: { c: typeof herd.list[number]; dx: number; dy: number } | null = null
+  /** How high a carried creature is held above the ground it would land on (tiles): smaller ones not as high. */
+  const liftOf = (c: { size: number }) => 0.12 + c.size * 0.3
+  const drops = new Map<typeof herd.list[number], number>()     // creatures just set down, and when (s)
   let hoverCur = '', hoverRaf = 0, hoverAt: [number, number] = [0, 0]
   view.addEventListener('pointermove', (e) => {
     if (ptrs.size) return; hoverAt = [e.clientX, e.clientY]
     if (!hoverRaf) hoverRaf = requestAnimationFrame(() => {
       hoverRaf = 0
       if (tool) { const c = cellAt(hoverAt[0], hoverAt[1]); if (!hover || c[0] !== hover[0] || c[1] !== hover[1]) { hover = c; kick() } return }
-      const [wx, wy] = toWorld(hoverAt[0], hoverAt[1]), want = herd.at(wx, wy, CAM.z) ? 'pointer' : ''; if (want !== hoverCur) { hoverCur = want; view.style.cursor = want }
+      const [wx, wy] = toWorld(hoverAt[0], hoverAt[1]), want = herd.at(wx, wy, CAM.z) ? 'grab' : ''; if (want !== hoverCur) { hoverCur = want; view.style.cursor = want }
     })
   })
   view.addEventListener('wheel', (e) => { e.preventDefault(); const r = view.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top) }, { passive: false })
@@ -349,7 +573,7 @@ export function startEngine(opts: EngineOptions): IslandView {
   document.getElementById('zin')?.addEventListener('click', () => zoomAt(1.4, view.clientWidth / 2, view.clientHeight / 2))
   document.getElementById('zout')?.addEventListener('click', () => zoomAt(1 / 1.4, view.clientWidth / 2, view.clientHeight / 2))
   document.getElementById('zfit')?.addEventListener('click', fit)
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (mark) { mark = null; kick() } else if (herd.selected) select(null) } })
+  document.addEventListener('keydown', (e) => { if ((e.key === 'r' || e.key === 'R') && tool && tool in BUILDINGS && !(e.target instanceof HTMLInputElement)) { rotateBuild(); return } if (e.key === 'Escape') { if (mark) { mark = null; kick() } else if (herd.selected) select(null) } })
   view.addEventListener('pointerleave', () => { if (hover) { hover = null; kick() } })
   view.addEventListener('contextmenu', (e) => { if (tool) e.preventDefault() })   // right-drag moves the map while building
 
@@ -383,11 +607,28 @@ export function startEngine(opts: EngineOptions): IslandView {
   }
 
   // ---------- building ----------
-  let tool: BuildTool | null = null, mark: [number, number, number, number] | null = null, hover: [number, number] | null = null
+  let tool: BuildTool | null = null, rot = 0, mark: [number, number, number, number] | null = null, hover: [number, number] | null = null
   /** the tiles a fence or path being drawn passes, in order; null while dragging a rectangle */
   let stroke: number[] | null = null
   /** what an erase that is being dragged is after: set by the tile it started on */
   let eraseKind: EraseKind | null = null
+  // starting on something already marked takes the mark back: with the eraser, what is marked to go; with a build
+  // tool, what is planned to go up. The tiles go back to what stands.
+  let unmark = false
+  const same = (a: unknown, b: unknown) => JSON.stringify(a ?? {}) === JSON.stringify(b ?? {})
+  const planned = (i: number) => { const p = builds[i], d = done[i] ?? {}; return !!p && !!((p.g && p.g !== d.g) || (p.f && !d.f) || (p.c && p.c !== d.c) || (p.p && !d.p) || (p.u !== undefined && p.u !== d.u) || (p.s && p.lv !== d.lv)) }
+  const doomed = (i: number) => { const p = builds[i] ?? {}, d = done[i] ?? {}; return !!((d.g && p.g !== d.g) || (d.f && !p.f) || (d.c && p.c !== d.c) || (d.p && !p.p) || (d.u !== undefined && p.u !== d.u) || (p.x && !d.x)) }
+  const unmarks = (i: number) => !!tool && tool !== 'upgrade' && (tool === 'erase' ? doomed(i) : planned(i))
+  /** The tiles taking a mark back here changes: a building's whole footprint, planned or standing. */
+  function unmarkTiles(cells: Iterable<number>) {
+    const out = new Set<number>(), test = tool === 'erase' ? doomed : planned
+    for (const i of cells) { if (!test(i)) continue; out.add(i)
+      const pu = builds[i]?.u, du = done[i]?.u
+      if (pu !== undefined && builds[pu]?.s) { for (const j of footprint(builds[pu].s!, pu, COLS, builds[pu].o)) out.add(j); for (const j of builds[pu].l ?? []) if (planned(j)) out.add(j) }
+      if (du !== undefined && done[du]?.s) for (const j of footprint(done[du].s!, du, COLS, done[du].o)) out.add(j) }
+    return out
+  }
+  const revert = (i: number) => { if (done[i]) builds[i] = JSON.parse(JSON.stringify(done[i])); else delete builds[i] }
   /** The tiles from one to the next as a straight line, diagonal steps allowed (fences and paths join corner to corner). */
   function line8(x0: number, y0: number, x1: number, y1: number): number[] {
     const out: number[] = [], n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))
@@ -395,11 +636,11 @@ export function startEngine(opts: EngineOptions): IslandView {
     return out
   }
   let crop: string = CROPS.includes('wheat' as never) ? 'wheat' : CROPS[0]
-  let onBuild: ((b: Builds, undoable: boolean) => void) | null = null
+  let onBuild: ((b: Builds, undoable: boolean, pending: number, kind: 'build' | 'erase' | 'both') => void) | null = null
   const history: string[] = []                                  // the builds before each change, for undo
   const added = new Set<string>()
-  const buildingArt = (n: string) => { if (!added.has(n)) { added.add(n); atlas.add(n, `/art/tiles/${n}.svg?v=2`) } return n }
-  const cropArt = (c: string, stage: string) => { const n = `crop-${c}-${stage}`; if (!added.has(n)) { added.add(n); atlas.add(n, `/art/crops/${c}/${stage}.svg?v=1`) } return n }
+  const buildingArt = (n: string) => { if (!added.has(n)) { added.add(n); atlas.add(n, /-o\d/.test(n) ? `/art/tiles/${n}.png?v=12` : `/art/tiles/${n}.svg?v=5`) } return n }
+  const cropArt = (c: string, stage: string) => { const n = `crop-${c}-${stage}`; if (!added.has(n)) { added.add(n); atlas.add(n, PAINTED_CROPS.has(c) ? `/art/tiles/${n}.svg?v=9` : `/art/crops/${c}/${stage}.svg?v=1`) } return n }
   const box = (m: [number, number, number, number]): [number, number, number, number] => [Math.min(m[0], m[2]), Math.min(m[1], m[3]), Math.max(m[0], m[2]), Math.max(m[1], m[3])]
   const inBox = ([x0, y0, x1, y1]: [number, number, number, number]) => { const out: number[] = []; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) out.push(y * COLS + x); return out }
   /** The tiles the build being marked would cover: 0 it goes there, 1 it cannot, 2 something there will be erased. */
@@ -407,47 +648,105 @@ export function startEngine(opts: EngineOptions): IslandView {
     if (!tool) return []
     const m = mark ?? (hover ? [hover[0], hover[1], hover[0], hover[1]] as [number, number, number, number] : null); if (!m) return []
     const b = box(m), out: [number, number][] = []
+    if (mark ? unmark : hover && unmarks(hover[1] * COLS + hover[0])) { for (const i of unmarkTiles(stroke ? new Set(stroke) : inBox(b))) out.push([i, 3]); return out }
     if (stroke) { const ok = tool === 'fence' ? can.fence : can.path; for (const i of new Set(stroke)) out.push([i, ok(i) ? 0 : 1]); return out }
     if (tool === 'fence') {
       const small = b[2] - b[0] + 1 < MIN_ENCLOSURE || b[3] - b[1] + 1 < MIN_ENCLOSURE
       for (const i of ring(b, COLS)) out.push([i, !small && can.fence(i) ? 0 : 1])
       return out
     }
-    if (tool in BUILDINGS) { const at = placeAt(tool as Building, m[2], m[3]); return footprint(tool as Building, at, COLS).map((i) => [i, can.building(i) ? 0 : 1] as [number, number]) }
-    if (tool === 'upgrade') { const at = builds[m[3] * COLS + m[2]]?.u; if (at === undefined) return []; const b = builds[at]; return footprint(b.s!, at, COLS).map((i) => [i, (b.lv ?? 1) < BUILDINGS[b.s!].stages ? 0 : 1] as [number, number]) }
-    if (tool === 'erase') { const k = mark ? eraseKind : eraseKindAt(world, builds, m[0] + m[1] * COLS); for (const i of inBox(b)) if (erasable(world, builds, i, k)) out.push([i, 2]); return out }
-    const ok = tool === 'soil' ? can.soil : tool === 'path' ? can.path : can.crop
+    if (tool in BUILDINGS) {                                     // its footprint, and the path its door will be joined to
+      const k = tool as Building, at = placeAt(k, m[2], m[3]), fp = footprint(k, at, COLS, rot), link = linkPath(k, at, rot), ok = fp.every(can.building) && link !== null
+      const cells = fp.map((i) => [i, ok ? 0 : 1] as [number, number])
+      if (link) for (const i of link) cells.push([i, ok ? 0 : 1])
+      else { const e = entrance(k, at, COLS, ROWS, rot); if (e >= 0) cells.push([e, 1]) }
+      return cells
+    }
+    if (tool === 'upgrade') { const at = builds[m[3] * COLS + m[2]]?.u; if (at === undefined) return []; const b = builds[at]; return footprint(b.s!, at, COLS, b.o).map((i) => [i, (b.lv ?? 1) < BUILDINGS[b.s!].stages ? 0 : 1] as [number, number]) }
+    if (tool === 'erase') {
+      const k = mark ? eraseKind : eraseKindAt(planWorld, builds, m[0] + m[1] * COLS), seen = new Set<number>()
+      for (const i of inBox(b)) if (erasable(planWorld, builds, i, k)) {
+        const u = builds[i]?.u
+        for (const j of u !== undefined && (k === null || k === 'building') ? footprint(builds[u].s!, u, COLS, builds[u].o) : [i]) if (!seen.has(j)) { seen.add(j); out.push([j, 2]) }   // a building goes whole: show all of it
+      }
+      return out
+    }
+    const ok = tool === 'soil' ? can.soil : tool === 'path' ? can.path : tool === 'tree' ? can.tree : can.crop
     for (const i of inBox(b)) out.push([i, ok(i) ? 0 : 1])
     return out
   }
   /** Lays the builds over the island again; where the ground changed, it is re-drawn over that box. */
+  /** Where a path ends at a building's door, it runs on right up to the door. */
+  function setDoors() {
+    fields.doors.length = 0
+    for (const k in done) { const b = done[k]; if (!b.s || BUILDINGS[b.s].door === undefined) continue
+      const at = Number(k), o = b.o ?? 0, e = entrance(b.s, at, COLS, ROWS, o); if (e < 0 || world.type[e] !== T.path) continue
+      const [dx, dy] = turn(b.s, o, BUILDINGS[b.s].door! + 0.5, BUILDINGS[b.s].doorY!), ex = e % COLS, ey = (e - ex) / COLS
+      fields.doors.push([ex + 0.5, ey + 0.5, at % COLS + dx, (at - at % COLS) / COLS + dy]) }
+  }
+  /** How many tiles the plan changes. */
+  const pending = () => { let n = 0; for (const k of new Set([...Object.keys(done), ...Object.keys(builds)])) if (JSON.stringify(done[Number(k)] ?? {}) !== JSON.stringify(builds[Number(k)] ?? {})) n++; return n }
+  /** What the plan does: puts things up, takes things down, or both. */
+  const planKind = (): 'build' | 'erase' | 'both' => { let up = false, down = false
+    for (const k of new Set([...Object.keys(done), ...Object.keys(builds)])) { const i = Number(k); if (planned(i)) up = true; if (doomed(i)) down = true }
+    return up && down ? 'both' : down ? 'erase' : 'build' }
+  /** The plan changed: judge it anew and show it (the island itself waits for the plan to be confirmed). */
+  function refreshPlan() {
+    planFence = applyBuilds(planWorld, pristine, builds); can.changed()
+    kick(); onBuild?.(JSON.parse(JSON.stringify(done)), history.length > 0, pending(), planKind())
+  }
+  /** What stands changed: lay it over the island again; where the ground changed, it is re-drawn over that box. */
   function relay(groundBox: [number, number, number, number] | null) {
-    fence = applyBuilds(world, pristine, builds); herd.setFences(walls())
+    fence = applyBuilds(world, pristine, done); herd.setFences(walls()); setDoors()
     if (groundBox) { fields.refreshGrounds(); ground.rebuild(fields, groundBox) }
-    kick(); onBuild?.(JSON.parse(JSON.stringify(builds)), history.length > 0)
+    refreshPlan()
   }
   /** The box round every tile whose ground differs between two sets of builds, or null. */
   function groundDiff(a: Builds, b: Builds): [number, number, number, number] | null {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
     for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
-      const i = Number(k); if (a[i]?.g === b[i]?.g) continue
-      const x = i % COLS, y = (i - x) / COLS; x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y)
+      const i = Number(k), x = i % COLS, y = (i - x) / COLS
+      if (a[i]?.s !== b[i]?.s || a[i]?.o !== b[i]?.o) { x0 = Math.min(x0, x - 2); y0 = Math.min(y0, y - 2); x1 = Math.max(x1, x + 6); y1 = Math.max(y1, y + 6) }   // a building came or went: the path to its door with it
+      if (a[i]?.g === b[i]?.g) continue
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y)
     }
     return x1 < x0 ? null : [x0, y0, x1, y1]
   }
   /** The top-left tile of a building of this kind centred on the tile under the pointer, kept on the map. */
   function placeAt(kind: Building, cx: number, cy: number) {
-    const { w, h } = BUILDINGS[kind], x0 = Math.max(0, Math.min(COLS - w, cx - Math.floor(w / 2))), y0 = Math.max(0, Math.min(ROWS - h, cy - Math.floor(h / 2)))
+    const [w, h] = dims(kind, rot), x0 = Math.max(0, Math.min(COLS - w, cx - Math.floor(w / 2))), y0 = Math.max(0, Math.min(ROWS - h, cy - Math.floor(h / 2)))
     return y0 * COLS + x0
+  }
+  /** The path tiles that would join a building's door to the paths: none if a path already starts at its door, up to
+   *  two new ones if a path is that close and the ground takes them; null if it cannot be joined. A building without a
+   *  door needs none. */
+  function linkPath(kind: Building, at: number, o: number): number[] | null {
+    if (BUILDINGS[kind].door === undefined) return []
+    const e = entrance(kind, at, COLS, ROWS, o); if (e < 0) return null
+    if (planWorld.type[e] === T.path) return []
+    const fp = new Set(footprint(kind, at, COLS, o)), ex = e % COLS, ey = (e - ex) / COLS
+    let best: number[] | null = null, bestScore = Infinity
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+      const x = ex + dx, y = ey + dy; if (x < 0 || y < 0 || x >= COLS || y >= ROWS || planWorld.type[y * COLS + x] !== T.path) continue
+      const line = [e, ...line8(ex, ey, x, y)].filter((i) => planWorld.type[i] !== T.path)
+      if (line.length > 2 || line.some((i) => fp.has(i) || !can.path(i))) continue
+      const score = line.length * 10 + Math.hypot(dx, dy)           // the fewest new tiles, then the straightest way
+      if (score < bestScore) { bestScore = score; best = line }
+    }
+    return best
   }
   function build() {
     if (!tool || !mark) return
-    const b = box(mark), before = JSON.stringify(builds), old: Builds = JSON.parse(before)
+    const b = box(mark), before = JSON.stringify(builds)
     let changed = false
-    if (tool in BUILDINGS) {                                      // a building goes where the pointer was let go
-      const at = placeAt(tool as Building, mark[2], mark[3])
-      if (!footprint(tool as Building, at, COLS).every(can.building)) return
-      placeBuilding(world, builds, tool as Building, at); changed = true
+    if (unmark) {                                                // taking marks back
+      for (const i of unmarkTiles(stroke ? new Set(stroke) : inBox(b))) if (!same(builds[i], done[i])) { revert(i); changed = true }
+    } else if (tool in BUILDINGS) {                                      // a building goes where the pointer was let go
+      const k = tool as Building, at = placeAt(k, mark[2], mark[3]), link = linkPath(k, at, rot)
+      if (!footprint(k, at, COLS, rot).every(can.building) || link === null) return
+      placeBuilding(planWorld, builds, k, at, rot); changed = true
+      for (const i of link) builds[i] = { ...builds[i], g: 'path' }
+      if (link.length) builds[at] = { ...builds[at], l: link }   // remembered, so taking the building back takes its path too
     } else if (tool === 'upgrade') {
       const at = builds[mark[3] * COLS + mark[2]]?.u; if (at === undefined) return
       const top = builds[at]; if ((top.lv ?? 1) >= BUILDINGS[top.s!].stages) return
@@ -463,7 +762,9 @@ export function startEngine(opts: EngineOptions): IslandView {
       if (b[2] - b[0] + 1 < MIN_ENCLOSURE || b[3] - b[1] + 1 < MIN_ENCLOSURE || !ringCells.every(can.fence)) return
       for (const i of ringCells) if (!builds[i]?.f) { builds[i] = { ...builds[i], f: 1 }; changed = true }
     } else if (tool === 'erase') {
-      for (const i of inBox(b)) if (erasable(world, builds, i, eraseKind)) { erase(world, builds, i, eraseKind); changed = true }
+      for (const i of inBox(b)) if (erasable(planWorld, builds, i, eraseKind)) { erase(planWorld, builds, i, eraseKind); changed = true }
+    } else if (tool === 'tree') {                                // a tree on each open grass tile: mostly broadleaf, now and then a conifer
+      for (const i of inBox(b)) if (can.tree(i)) { const p = Math.random() < 0.7 ? 1 + Math.floor(Math.random() * 3) : 4 + Math.floor(Math.random() * 3); builds[i] = { ...builds[i], p }; delete builds[i].x; changed = true }
     } else if (tool === 'crop') {
       const t = Date.now()
       for (const i of inBox(b)) if (can.crop(i)) { builds[i] = { ...builds[i], c: crop, t }; changed = true }
@@ -474,13 +775,24 @@ export function startEngine(opts: EngineOptions): IslandView {
     }
     if (!changed) return
     history.push(before); if (history.length > 100) history.shift()
-    relay(groundDiff(old, builds))
+    refreshPlan()
   }
+  /** Builds the plan: what was marked now stands, what was marked for erasing goes. Crops start growing now. */
+  const confirmBuild = () => {
+    if (!pending()) return
+    const t = Date.now(); for (const k in builds) { const b = builds[k]; if (b.c && done[k]?.c !== b.c) b.t = t }
+    const old = done; done = JSON.parse(JSON.stringify(builds)); history.length = 0
+    relay(groundDiff(old, done))
+  }
+  /** Drops the plan: the holograms go, nothing changes. */
+  const discardBuild = () => { builds = JSON.parse(JSON.stringify(done)); history.length = 0; refreshPlan() }
+  /** Turns the building about to be placed a quarter turn clockwise. */
+  const rotateBuild = () => { rot = (rot + 1) % 4; kick() }
   const setBuildTool = (t: BuildTool | null, c?: string) => { tool = t; if (c && (CROPS as readonly string[]).includes(c)) crop = c; mark = null; stroke = null; hover = null; view.style.cursor = t ? 'crosshair' : ''; kick() }
   const undoBuild = () => {
     const prev = history.pop(); if (prev === undefined) return false
-    const old = builds; builds = JSON.parse(prev)
-    relay(groundDiff(old, builds)); return true
+    builds = JSON.parse(prev)
+    refreshPlan(); return true
   }
   let rt = 0
   window.addEventListener('resize', () => { clearTimeout(rt); rt = window.setTimeout(() => { if (CAM.z < zMin()) CAM.z = zMin(); clampCam(); kick() }, 150) })
@@ -508,6 +820,10 @@ export function startEngine(opts: EngineOptions): IslandView {
     setDaytime,
     setLifeforms: async (list: Lifeform[]) => { const n = await herd.set(list, (name, url) => atlas.add(name, url)); kick(); return n },
     selectCreature: select,
+    showCreature: (id: number | string) => {
+      const c = herd.list.find((q) => String(q.id) === String(id)); if (!c) return
+      CAM.z = Math.max(CAM.z, Math.min(zMax, 60)); CAM.x = c.x - view.clientWidth / CAM.z / 2; CAM.y = c.y - view.clientHeight / CAM.z / 2; clampCam(); select(c.id); kick()
+    },
     spriteFor: (species: string) => { const b = speciesKey(species); return b ? b[0] : null },
     onSelect: (fn) => { onSelect = fn },
     fit,
@@ -515,8 +831,11 @@ export function startEngine(opts: EngineOptions): IslandView {
     redraw: kick,
     ready,
     setBuildTool,
+    confirmBuild,
+    discardBuild,
+    rotateBuild,
     undoBuild,
     onBuild: (fn) => { onBuild = fn },
-    debug: { CAM, stats, ground, world, fields, atlas, sprites, herd, state, BEASTS },
+    debug: { seabed, sky, whales, CAM, stats, ground, world, fields, atlas, sprites, herd, state, BEASTS, setBuilds: (b: Builds) => { const old = done; done = b; builds = JSON.parse(JSON.stringify(b)); history.length = 0; relay(groundDiff(old, done)) } },
   }
 }

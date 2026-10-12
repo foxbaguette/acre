@@ -66,8 +66,9 @@ vec2 mountainHD(vec2 p) {
   vec2 d = (w - SC) / vec2(8.8, 6.8);
   float sp = crest(gnoise(vec2(d.x * 3.2, abs(d.y) * 1.4) + 4.));
   float spine = (exp(-d.y * d.y * 7.) + sp * sp * .35 * smoothstep(.04, .3, abs(d.y))) * on;   // a spine with short spurs
-  float k = scale * hk * smoothstep(0., .6, m.w), dome = pow(f, 1.5) * 4.2;
-  return vec2(dome, dome + eroded(w * .17) * 1.45 * on * .6 + spine) * k;
+  // a low grassy hill, not a mountain: the buildings are taller than any peak would be, so the land only swells
+  float k = scale * hk * smoothstep(0., .6, m.w), hill = f * f * (3. - 2. * f) * 1.3 * k;
+  return vec2(hill, hill);
 }
 float mountainH(vec2 p) { return mountainHD(p).y; }
 #else

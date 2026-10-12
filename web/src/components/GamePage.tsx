@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 import { fetchLifeforms, type Creature } from '@/chain/life'
+import { Bestiary, noteSeen } from '@/components/Bestiary'
 import { CreatureCard } from '@/components/CreatureCard'
 import { fetchMapTiles, fetchPlayerMaps, mapStats, type MapStats } from '@/chain/maps'
 import { startEngine } from '@/engine'
@@ -46,11 +47,16 @@ const TOOLS: { id: BuildTool; label: string; hint: string; icon: string }[] = [
   { id: 'fence', label: 'enclosure', hint: 'Drag to draw a fence, any shape; close the loop and it is an enclosure. To enlarge one, draw the new side out from the old fence and erase the old stretch. Shift + drag: a rectangle.', icon: 'M3 20V8l2-3 2 3v12M17 20V8l2-3 2 3v12M3 11h18M3 16h18' },
   { id: 'path', label: 'path', hint: 'Drag to lay a path where you go, over grass, soil or sand; trees in the way make room. Shift + drag: a whole area.', icon: 'M7 21c0-4 3-5 3-9S7 7 7 3M17 21c0-4-3-5-3-9s3-5 3-9M12 6v1M12 11v1M12 16v1' },
   { id: 'soil', label: 'soil', hint: 'Drag over open grass to turn it into soil, ready for sowing.', icon: 'M3 17c3-2 6-2 9 0s6 2 9 0M3 12c3-2 6-2 9 0s6 2 9 0M8 7l1-3M15 7l1-3' },
-  { id: 'crop', label: 'crops', hint: 'Pick a crop, then drag over soil to sow it. It grows from seed to harvest in about ten minutes.', icon: 'M12 21V10M12 14c-4 0-6-3-6-6 3 0 6 2 6 6zM12 11c0-4 2-7 6-7 0 4-2 7-6 7z' },
-  { id: 'farmhouse', label: 'farmhouse', hint: 'Click to put up a farmhouse (3 × 4 tiles) on open grass. One farmer moves in; upgrade it for more.', icon: 'M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6' },
+  { id: 'crop', label: 'crops', hint: 'Pick a crop, then drag over soil to sow it. It grows a stage every ten seconds and is ready in under a minute.', icon: 'M12 21V10M12 14c-4 0-6-3-6-6 3 0 6 2 6 6zM12 11c0-4 2-7 6-7 0 4-2 7-6 7z' },
+  { id: 'farmhouse', label: 'farmhouse', hint: 'Click to put up a farmhouse (3 × 4 tiles) on open grass; R turns it. Its door must reach a path: one up to two tiles away is joined to it. One farmer moves in; upgrade it for more.', icon: 'M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6' },
   { id: 'upgrade', label: 'upgrade', hint: 'Click a farmhouse to raise it a stage: each stage houses one more farmer, up to five.', icon: 'M12 20V6M6 12l6-6 6 6M5 21h14' },
-  { id: 'lab', label: 'lab', hint: 'Click to put up a research lab (4 × 4 tiles) on open grass.', icon: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M7 15h10' },
+  { id: 'lab', label: 'observatory', hint: 'Click to put up an observatory (4 × 4 tiles) on open grass; R turns it. Its door must reach a path: one up to two tiles away is joined to it.', icon: 'M4 20h16M5 20v-6h14v6M5 14a7 7 0 0 1 14 0M12 7l5-4M10 20v-3h4v3' },
+  { id: 'silo', label: 'silo', hint: 'Click to put up a silo (2 × 2 tiles) on open grass, to store the harvest.', icon: 'M7 21V9a5 5 0 0 1 10 0v12M7 21h10M7 13h10M7 17h10M12 4V2' },
+  { id: 'bakery', label: 'bakery', hint: 'Click to put up a bakery (2 × 2 tiles) on open grass; R turns it. Its door must reach a path: one up to two tiles away is joined to it.', icon: 'M4 20h16M5 20v-7l7-5 7 5v7M15 9V5h2v5.5M9 20v-4h3v4' },
+  { id: 'kitchen', label: 'kitchen', hint: 'Click to lay out an outdoor kitchen (3 × 2 tiles) on open grass: a bread oven, a hearth and a table; R turns it.', icon: 'M4 20h16M6 20v-6a6 6 0 0 1 12 0v6M10 20v-3h4v3M17 8c0-2 1-3 0-5' },
+  { id: 'torch', label: 'torch', hint: 'Click to set up a torch (1 tile). It burns through the evening and the night.', icon: 'M12 21v-9M8 8h8l-1.5 4h-5zM12 8c-2-2-1-4 0-6 1 2 2 4 0 6' },
   { id: 'nest', label: 'nest', hint: 'Click to lay a straw hatching nest (2 × 2 tiles) on open grass.', icon: 'M3 13c0 4 4 7 9 7s9-3 9-7M3 13c3 2 15 2 18 0M9 11a3 4 0 1 0 6 0a3 4 0 1 0-6 0' },
+  { id: 'tree', label: 'trees', hint: 'Drag over open grass to plant trees, one a tile: mostly broadleaf, now and then a conifer.', icon: 'M12 21v-5M12 3c-4 0-7 3-7 6.5S8 16 12 16s7-3 7-6.5S16 3 12 3z' },
   { id: 'erase', label: 'erase', hint: 'Drag to clear tiles. Start on a fence and only fences go; start on a tree and only trees and plants go (the same for buildings, crops, paths and soil).', icon: 'M15 4l5 5-9 9H6l-2-2 11-12zM9 9l6 6M4 20h16' },
 ]
 
@@ -74,8 +80,12 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
   const [selected, setSelected] = useState<string | null>(null)
   const [hint, setHint] = useState(!seenHint())
   const [buildOpen, setBuildOpen] = useState(false)
+  const [bestiaryOpen, setBestiaryOpen] = useState(false)
   const [tool, setTool] = useState<BuildTool | null>(null)
   const [undoable, setUndoable] = useState(false)
+  const [pending, setPending] = useState(0)
+  const [planKind, setPlanKind] = useState<'build' | 'erase' | 'both'>('build')
+  const confirmWords = planKind === 'erase' ? 'confirm erasing' : planKind === 'both' ? 'confirm changes' : 'confirm building'
   const [farmers, setFarmers] = useState(0)
   const [crop, setCrop] = useState<string>('wheat')
   const started = useRef<IslandView | null>(null)
@@ -106,9 +116,9 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
               // the creatures living here, from life.acre; the island stays usable if this read fails
               view.onSelect((id) => setSelected(id === null ? null : String(id)))
               setFarmers(farmersIn(saved))
-              view.onBuild((builds, canUndo) => { saveBuilds(mapId, builds); setUndoable(canUndo); setFarmers(farmersIn(builds)) })
+              view.onBuild((builds, canUndo, planned, kind) => { saveBuilds(mapId, builds); setUndoable(canUndo); setPending(planned); setPlanKind(kind); setFarmers(farmersIn(builds)) })
               fetchLifeforms(mapId)
-                .then((list) => { if (live) setCreatures(list); return view.setLifeforms(list) })
+                .then((list) => { if (live) setCreatures(list); noteSeen(list.map((c) => view.spriteFor(c.speciesName)).filter((k): k is string => !!k)); return view.setLifeforms(list) })
                 .then((n) => live && setLifeforms(n), (err) => { console.warn('Could not load the lifeforms', err); if (live) setLifeforms(null) })
             })
           } catch (err) {
@@ -131,6 +141,14 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
     return () => document.removeEventListener('keydown', key)
   }, [])
   const closeBuild = () => { setTool(null); setBuildOpen(false) }
+  useEffect(() => {                                              // a right click on the map (not a right-drag) puts the build tools away
+    if (!tool) return
+    let at: [number, number] | null = null
+    const down = (e: PointerEvent) => { at = e.button === 2 && (e.target as HTMLElement).tagName === 'CANVAS' ? [e.clientX, e.clientY] : null }
+    const up = (e: PointerEvent) => { if (e.button === 2 && at && Math.hypot(e.clientX - at[0], e.clientY - at[1]) < 6) closeBuild(); at = null }
+    window.addEventListener('pointerdown', down, true); window.addEventListener('pointerup', up, true)
+    return () => { window.removeEventListener('pointerdown', down, true); window.removeEventListener('pointerup', up, true) }
+  }, [tool])
 
   const closeHint = () => {
     setHint(false)
@@ -214,11 +232,30 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
                   </div>
                 )}
                 {tool === 'crop' && <p className="crop-name">{cropName(crop)}</p>}
+                {(tool === 'farmhouse' || tool === 'lab' || tool === 'nest' || tool === 'silo' || tool === 'bakery' || tool === 'kitchen') && <button type="button" className="build-link" onClick={() => started.current?.rotateBuild()}>rotate (R)</button>}
                 <div className="build-actions">
                   <button type="button" className="build-link" disabled={!undoable} onClick={() => started.current?.undoBuild()}>undo</button>
                   <button type="button" className="build-link" onClick={closeBuild}>done</button>
                 </div>
-                <p className="rec-foot">Kept on this device for now; right-drag still moves the map.</p>
+                <p className="build-plan hand">{pending ? `${pending} tile${pending === 1 ? '' : 's'} planned: blue goes up, red comes down. Click a mark again to take it back.` : 'Nothing planned yet. What you mark shows as a hologram until you confirm it.'}</p>
+                <div className="build-actions">
+                  <button type="button" className="build-confirm" disabled={!pending} onClick={() => started.current?.confirmBuild()}>{confirmWords}</button>
+                  <button type="button" className="build-link" disabled={!pending} onClick={() => started.current?.discardBuild()}>discard</button>
+                </div>
+                <p className="rec-foot">Kept on this device for now. Right-drag moves the map; a right click puts the tools away.</p>
+              </div>
+            )}
+            <button type="button" className="wx-tag bestiary-toggle" aria-haspopup="dialog" onClick={() => { closeBuild(); setBestiaryOpen(true) }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 5c3-1.5 5.5-1.5 8 0v14c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v14c2.5-1.5 5-1.5 8 0z" />
+              </svg>
+              bestiary
+            </button>
+            {!buildOpen && pending > 0 && (
+              <div className="build-pending">
+                <span className="hand">{pending} planned</span>
+                <button type="button" className="build-confirm" onClick={() => started.current?.confirmBuild()}>{confirmWords}</button>
+                <button type="button" className="build-link" onClick={() => started.current?.discardBuild()}>discard</button>
               </div>
             )}
           </div>
@@ -352,6 +389,15 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
         </div>
         )}
       </div>
+
+      {bestiaryOpen && (
+        <Bestiary
+          creatures={creatures}
+          keyOf={(n) => started.current?.spriteFor(n) ?? null}
+          onFind={(id) => { setBestiaryOpen(false); started.current?.showCreature(id) }}
+          onClose={() => setBestiaryOpen(false)}
+        />
+      )}
 
       {hint && load.state === 'ready' && (
         <div className="hud hud-hint">
