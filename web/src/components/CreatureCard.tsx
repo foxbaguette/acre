@@ -48,7 +48,7 @@ export function CreatureCard({ creature, art, onClose }: { creature: Creature; a
   useEffect(() => {
     let live = true
     setPicture(null)
-    if (art) recolouredArt(`/art/topdown/${art}/side.svg`, c.colors).then((url) => live && setPicture(url), () => undefined)
+    if (art) recolouredArt(`art/topdown/${art}/side.svg`, c.colors).then((url) => live && setPicture(url), () => undefined)
     return () => {
       live = false
     }

@@ -4,7 +4,7 @@
 // build back is just laying a smaller set.
 import { PATH, T, tileIndex, type World } from './world'
 
-export type BuildTool = 'fence' | 'path' | 'soil' | 'crop' | 'tree' | 'erase' | Building | 'upgrade'
+export type BuildTool = 'fence' | 'path' | 'soil' | 'crop' | 'tree' | 'erase' | 'harvest' | Building | 'upgrade'
 export type Building = 'farmhouse' | 'lab' | 'nest' | 'silo' | 'bakery' | 'kitchen' | 'torch'
 /** The buildings: footprint in tiles (w across, h down, as drawn: entrance facing south), how many stages they can be
  *  upgraded through, and for those with a door, the column of the tile just in front of it (that tile must reach a path). */
@@ -27,6 +27,8 @@ export interface CellBuild {
   /** a crop is growing there, and when it was sown (ms since 1970) */
   c?: string
   t?: number
+  /** the crop is marked for harvest: a farmer will come for it */
+  h?: 1
   /** a tree the player planted here (its kind: 1-3 broadleaf, 4-6 conifer) */
   p?: number
   /** cleared: the island's own trees, bushes and flowers there are gone */

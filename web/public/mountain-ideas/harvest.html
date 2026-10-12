@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harvest Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=IM+Fell+English&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; --rust: #a5452d; --blue: #2e4a6e; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, section { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 4px; font-size: 27px; font-weight: 400; }
+  h2 { margin: 30px 0 4px; font-size: 21px; font-weight: 400; }
+  header p, section > p { margin: 0; color: var(--soft); max-width: 900px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 14px 0 6px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  figcaption { padding: 9px 13px 11px; font-size: 14px; color: var(--soft); }
+  figcaption b { color: var(--ink); font-weight: 400; font-size: 15px; }
+  /* a view of the game: a crop of a real screenshot, the mock-up drawn over it */
+  .view { position: relative; width: 100%; aspect-ratio: 600 / 340; overflow: hidden; }
+  .view .shot { position: absolute; width: 1576px; height: 808px; transform-origin: 0 0; }
+  .view .shot > img { position: absolute; inset: 0; }
+  /* the badge: a paper token with a sickle, floating over a ripe field */
+  .badge { position: absolute; transform: translate(-50%, -100%); display: grid; place-items: center; animation: bob 2.4s ease-in-out infinite; }
+  .badge .tok { width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #fffaf0, #efe2c4 70%, #d8c69e); box-shadow: 0 0 0 2px #b48a3a, 0 6px 12px -4px rgba(20, 14, 4, .6); display: grid; place-items: center; }
+  .badge .tok svg { width: 26px; height: 26px; }
+  .badge .n { position: absolute; top: -6px; right: -10px; min-width: 20px; padding: 1px 5px; border-radius: 10px; background: var(--rust); color: #fbf7ee; font: 12px 'IM Fell English SC', serif; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,.3); }
+  .badge .stem { width: 2px; height: 14px; background: linear-gradient(#b48a3a, rgba(180, 138, 58, 0)); }
+  .badge.glow .tok { box-shadow: 0 0 0 2px #b48a3a, 0 0 0 7px rgba(255, 220, 140, .45), 0 6px 12px -4px rgba(20, 14, 4, .6); }
+  .badge.big .tok { width: 54px; height: 54px; }
+  .badge.small { animation: none; } .badge.small .tok { width: 34px; height: 34px; } .badge.small .tok svg { width: 18px; height: 18px; }
+  @keyframes bob { 50% { transform: translate(-50%, calc(-100% - 5px)); } }
+  .tip { position: absolute; transform: translate(-50%, -100%); padding: 4px 10px; background: rgba(251, 247, 238, .96); border-radius: 4px; font: 18px 'Caveat', cursive; color: var(--blue); white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,.25); }
+  .outline { position: absolute; border: 2px dashed rgba(255, 226, 150, .9); border-radius: 18px; box-shadow: 0 0 18px rgba(255, 214, 120, .35) inset; }
+  .cursor { position: absolute; width: 22px; height: 22px; }
+  /* the harvest tool in the build card */
+  .tool { position: absolute; width: 62px; height: 56px; border-radius: 4px; background: #a5452d; color: #fbf7ee; display: grid; place-items: center; align-content: center; gap: 2px; font: 9px 'IM Fell English SC', serif; letter-spacing: .12em; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+  .tool svg { width: 22px; height: 22px; }
+  .hint { position: absolute; font: 19px 'Caveat', cursive; color: var(--blue); background: #f4ecdb; padding: 0 4px; }
+  .sel { position: absolute; border: 2px solid rgba(255, 230, 160, .95); background: rgba(255, 220, 130, .16); }
+  .tile { position: absolute; border: 2px solid rgba(255, 214, 108, .9); box-sizing: border-box; }
+  footer { height: 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Harvesting: the field asks, the tool answers</h1>
+  <p>Two ways that work together, drawn over real screenshots of the game. A field that is ready shows a sickle token over it; one click sends the farmers to the whole field. For anything finer, a harvest tool in the build card marks crops by dragging, like soil or paths.</p>
+</header>
+
+<section>
+  <h2>1. The field asks: a sickle token over every ripe field</h2>
+  <p>When a field is ripe, a small paper token with a sickle rises over its middle and bobs gently; the number is how many tiles are ready. No menu: one click and the farmers come.</p>
+  <div class="grid">
+    <figure><div class="view" data-shot="ripe" data-x="560" data-y="330"><div class="badge" style="left:836px;top:476px"><div class="tok"><svg viewBox="0 0 24 24" fill="none" stroke="#6e4a1a" stroke-width="1.8" stroke-linecap="round"><path d="M5 19l5-5"/><path d="M10 14c1-6 6-9 10-8-3 1-6 4-6 8"/></svg></div><span class="n">18</span><div class="stem"></div></div></div>
+      <figcaption><b>Ripe.</b> The token appears when the field is ready. Fields that are still growing show nothing.</figcaption></figure>
+    <figure><div class="view" data-shot="ripe" data-x="560" data-y="330"><div class="outline" style="left:700px;top:468px;width:272px;height:158px"></div><div class="badge big glow" style="left:836px;top:476px"><div class="tok"><svg viewBox="0 0 24 24" fill="none" stroke="#6e4a1a" stroke-width="1.8" stroke-linecap="round"><path d="M5 19l5-5"/><path d="M10 14c1-6 6-9 10-8-3 1-6 4-6 8"/></svg></div><span class="n">18</span><div class="stem"></div></div>
+      <div class="tip" style="left:836px;top:398px">harvest the wheat · 18 tiles</div><svg class="cursor" style="left:842px;top:446px" viewBox="0 0 24 24"><path d="M4 2l14 9-6 1 3 7-3 1-3-7-5 4z" fill="#fff" stroke="#222" stroke-width="1.2"/></svg></div>
+      <figcaption><b>Hover.</b> The token lifts and glows; the field it belongs to is outlined, and a handwritten note says what a click does.</figcaption></figure>
+    <figure><div class="view" data-shot="working" data-x="560" data-y="330"><div class="badge small" style="left:836px;top:470px"><div class="tok"><svg viewBox="0 0 24 24" fill="none" stroke="#6e4a1a" stroke-width="1.8" stroke-linecap="round"><path d="M5 19l5-5"/><path d="M10 14c1-6 6-9 10-8-3 1-6 4-6 8"/></svg></div><span class="n">11</span><div class="stem"></div></div></div>
+      <figcaption><b>Clicked.</b> The farmers come out. The token shrinks and stops bobbing; its number counts down the tiles left. When the field is in, it fades away.</figcaption></figure>
+    <figure><div class="view" data-shot="ripe" data-x="300" data-y="150" data-zoom=".62"></div>
+      <figcaption><b>Zoomed out.</b> Every ripe field on the island has its token, so a glance over the island shows where the harvest is waiting.</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>2. The tool answers: harvest in the build card</h2>
+  <p>A sickle tool beside erase. Drag across crops: only the ripe tiles are marked (gold), green ones are left; a click marks one tile. Marks show as holograms like everything else in the card, so they can be taken back before the farmers set out.</p>
+  <div class="grid">
+    <figure><div class="view" data-shot="menu" data-x="0" data-y="140" data-tool="1"></div>
+      <figcaption><b>The tool.</b> "Harvest" fills the free slot after erase. Its hint: "Drag over crops to mark the ripe ones for harvest; the farmers bring them to a silo."</figcaption></figure>
+    <figure><div class="view" data-shot="ripe" data-x="560" data-y="330" data-drag="1"></div>
+      <figcaption><b>Dragging.</b> The box marks only what is ripe inside it: here a corner of the field. Each marked tile turns gold; the rest of the field keeps its token for later.</figcaption></figure>
+  </div>
+</section>
+<footer></footer>
+<script>
+const W = 600
+for (const v of document.querySelectorAll('.view')) {
+  const zoom = +(v.dataset.zoom || 1), x = +v.dataset.x, y = +v.dataset.y
+  const shot = document.createElement('div'); shot.className = 'shot'
+  shot.innerHTML = `<img src="harvest/${v.dataset.shot}.png" width="1576" height="808" alt="">`
+  for (const o of [...v.children]) shot.append(o)
+  if (v.dataset.tool) shot.insertAdjacentHTML('beforeend', `<div class="tool" style="left:290px;top:302px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 19l5-5"/><path d="M10 14c1-6 6-9 10-8-3 1-6 4-6 8"/></svg>HARVEST</div><div class="hint" style="left:30px;top:368px;width:330px">Drag over crops to mark the ripe ones for harvest.</div>`)
+  if (v.dataset.drag) { let h = `<div class="sel" style="left:690px;top:470px;width:150px;height:152px"></div>`
+    for (const [tx, ty] of [[44,29],[45,29],[46,29],[44,30],[45,30],[46,30],[44,31],[45,31],[46,31]]) h += `<div class="tile" style="left:${(tx - 29.583) * 48}px;top:${(ty - 19.083) * 48}px;width:48px;height:48px"></div>`
+    h += `<div class="badge" style="left:910px;top:476px"><div class="tok"><svg viewBox="0 0 24 24" fill="none" stroke="#6e4a1a" stroke-width="1.8" stroke-linecap="round"><path d="M5 19l5-5"/><path d="M10 14c1-6 6-9 10-8-3 1-6 4-6 8"/></svg></div><span class="n">9</span><div class="stem"></div></div><svg class="cursor" style="left:836px;top:616px" viewBox="0 0 24 24"><path d="M4 2l14 9-6 1 3 7-3 1-3-7-5 4z" fill="#fff" stroke="#222" stroke-width="1.2"/></svg>`
+    shot.insertAdjacentHTML('beforeend', h) }
+  v.append(shot)
+  const fit = () => { const s = v.clientWidth / W * zoom; shot.style.transform = `scale(${s}) translate(${-x}px, ${-y}px)` }
+  fit(); addEventListener('resize', fit)
+  if (zoom < 1) { shot.querySelector('img').style.filter = 'none'; shot.insertAdjacentHTML('beforeend', `<div class="badge small" style="left:836px;top:476px"><div class="tok"><svg viewBox="0 0 24 24" fill="none" stroke="#6e4a1a" stroke-width="1.8" stroke-linecap="round"><path d="M5 19l5-5"/><path d="M10 14c1-6 6-9 10-8-3 1-6 4-6 8"/></svg></div><span class="n">18</span></div>`) }
+}
+</script>
+</body>
+</html>

@@ -85,7 +85,7 @@ export const CFG = {
   butterflies: true,
 }
 
-/** Builds the island from the chain's tile bytes (bits 0-2 ground, 3-5 mountain height, 6 trees). */
+/** Builds the island from the chain's tile bytes (bits 0-2 ground, 3-5 mountain height, 6 trees, 7 cleared by the owner). */
 export function buildWorld(raw: Uint8Array, mapId: number): World {
   const R = seeded(mapId * 7919 + 17)
   const cols = COLS, rows = ROWS, N = cols * rows
@@ -108,6 +108,7 @@ export function buildWorld(raw: Uint8Array, mapId: number): World {
   chance(CFG.mountainChance); chance(CFG.riverChance); chance(CFG.lakeChance)
   Math.round(between(CFG.pondsMin, CFG.pondsMax)); rint(5, 9); rint(2, 5)
 
+  const cleared = new Uint8Array(N)   // bit 7: the owner cleared the tile's trees and plants (land.acre clearnature)
   const type = new Uint8Array(N), ocean = new Uint8Array(N), elev = new Uint8Array(N), forest = new Uint8Array(N), lake = new Uint8Array(N)
   const GROUND = [T.water, T.water, T.sand, T.grass, T.rock, T.soil, T.path]   // 0 sea, 1 fresh water, 2 beach, 3 grass, 4 mountain, 5 field, 6 road
   for (let i = 0; i < N; i++) {
@@ -117,6 +118,7 @@ export function buildWorld(raw: Uint8Array, mapId: number): World {
     if (g === 0) ocean[i] = 1
     if (g === 4) elev[i] = Math.min(5, (b >> 3) & 7)
     if (b & 64) forest[i] = g === 4 ? 2 : g === 3 ? 1 : 0
+    if (b & 128) { cleared[i] = 1; forest[i] = 0 }   // (the tree bit stays on chain, so the owner can bring the trees back)
   }
   for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {   // a tree with no wooded neighbour is a lone tree at a forest edge
     const i = at(x, y)
@@ -153,6 +155,8 @@ export function buildWorld(raw: Uint8Array, mapId: number): World {
       put(x, y, k, 1.05 + R() * 0.15); decor[decor.length - 1].under = true
     }
   }
+  // (the random stream above stays the same either way; what lies on a cleared tile is simply left out)
+  for (let k = decor.length - 1; k >= 0; k--) { const d = decor[k], i = Math.round(d.y) * cols + Math.round(d.x); if (cleared[i]) decor.splice(k, 1) }
   decor.sort((a, b) => (Number(b.under) - Number(a.under)) || a.y - b.y)   // meadow carpets first, then the rest top to bottom
   const tint = new Float32Array(N * 4)
   { const n1 = smooth(14), k = CFG.tintStrength / 100

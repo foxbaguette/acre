@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
+import { chainPart, fetchConstructs, saveActions } from '@/chain/constructs'
 import { fetchLifeforms, type Creature } from '@/chain/life'
 import { Bestiary, noteSeen } from '@/components/Bestiary'
 import { CreatureCard } from '@/components/CreatureCard'
-import { fetchMapTiles, fetchPlayerMaps, mapStats, type MapStats } from '@/chain/maps'
+import { fetchMapTiles, fetchPlayerMaps, forgetMapTiles, mapStats, type MapStats } from '@/chain/maps'
 import { startEngine } from '@/engine'
 import { loadBuilds as readBuilds, saveForm } from '@/engine/build'
 import { CROPS } from '@/engine/crops'
 import type { Builds, BuildTool, IslandView } from '@/engine/types'
 import { AccountTag } from '@/journal/Header'
+import { friendlyError, signer, transact } from '@/wallet/session'
+
+type Save = { state: 'idle' } | { state: 'signing' } | { state: 'error'; message: string }
 
 type Load = { state: 'reading' } | { state: 'drawing' } | { state: 'ready' } | { state: 'error'; message: string }
 
@@ -23,7 +27,8 @@ const seenHint = () => {
 
 const pct = (v: number) => `${Math.round(v * 1000) / 10}%`
 
-// The player's builds on each island. The contract has no action for them yet, so for now they live in this browser.
+// The player's builds on each island: the island shows only what land.acre keeps (table constructs). This browser keeps
+// the crops, which are not constructions. On an island the signed-in wallet does not own, builds last only this visit.
 const buildKey = (mapId: string) => `ua-builds-${mapId}`
 const loadBuilds = (mapId: string): Builds => {
   try {
@@ -38,6 +43,12 @@ const saveBuilds = (mapId: string, builds: Builds) => {
   } catch {
     /* kept for this visit only */
   }
+}
+/** The chain's builds, with this browser's crops laid back on the chain's soil. */
+const withCrops = (chain: Builds, local: Builds): Builds => {
+  const out: Builds = JSON.parse(JSON.stringify(chain))
+  for (const k in local) { const { c, t, h } = local[k]; if (c && out[k]?.g === 'soil') out[k] = { ...out[k], c, ...(t ? { t } : {}), ...(h ? { h } : {}) } }
+  return out
 }
 const cropName = (c: string) => c.replace(/-/g, ' ')
 /** Everyone living in the island's farmhouses: one farmer per stage. */
@@ -57,6 +68,7 @@ const TOOLS: { id: BuildTool; label: string; hint: string; icon: string }[] = [
   { id: 'torch', label: 'torch', hint: 'Click to set up a torch (1 tile). It burns through the evening and the night.', icon: 'M12 21v-9M8 8h8l-1.5 4h-5zM12 8c-2-2-1-4 0-6 1 2 2 4 0 6' },
   { id: 'nest', label: 'nest', hint: 'Click to lay a straw hatching nest (2 × 2 tiles) on open grass.', icon: 'M3 13c0 4 4 7 9 7s9-3 9-7M3 13c3 2 15 2 18 0M9 11a3 4 0 1 0 6 0a3 4 0 1 0-6 0' },
   { id: 'tree', label: 'trees', hint: 'Drag over open grass to plant trees, one a tile: mostly broadleaf, now and then a conifer.', icon: 'M12 21v-5M12 3c-4 0-7 3-7 6.5S8 16 12 16s7-3 7-6.5S16 3 12 3z' },
+  { id: 'harvest', label: 'harvest', hint: 'Drag over crops to mark the ripe ones for harvest; the farmers bring them to a silo. Start on a mark to take marks back. A ripe field also shows a sickle: click it to harvest the whole field.', icon: 'M5 19l5-5M10 14c1-6 6-9 10-8-3 1-6 4-6 8' },
   { id: 'erase', label: 'erase', hint: 'Drag to clear tiles. Start on a fence and only fences go; start on a tree and only trees and plants go (the same for buildings, crops, paths and soil).', icon: 'M15 4l5 5-9 9H6l-2-2 11-12zM9 9l6 6M4 20h16' },
 ]
 
@@ -87,8 +99,15 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
   const [planKind, setPlanKind] = useState<'build' | 'erase' | 'both'>('build')
   const confirmWords = planKind === 'erase' ? 'confirm erasing' : planKind === 'both' ? 'confirm changes' : 'confirm building'
   const [farmers, setFarmers] = useState(0)
+  const [store, setStore] = useState<Record<string, number>>({})
   const [crop, setCrop] = useState<string>('wheat')
   const started = useRef<IslandView | null>(null)
+  const [save, setSave] = useState<Save>({ state: 'idle' })
+  const [owner, setOwner] = useState<string | null>(null)
+  /** what land.acre holds for this island, as the page keeps it (null until read) */
+  const onChain = useRef<Builds | null>(null)
+  const who = signer()
+  const toChain = !!who && who.actor === owner && onChain.current !== null
   const selectedCreature = selected === null ? null : creatures.find((c) => String(c.id) === selected) ?? null
 
   useEffect(() => {
@@ -96,9 +115,10 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
     fetchPlayerMaps(account).then((maps) => {
       const m = maps.find((x) => x.id === mapId)
       if (live && m?.name) setName(m.name)
+      if (live && m) setOwner(m.owner)
     }, () => undefined)
-    fetchMapTiles(mapId).then(
-      (tiles) => {
+    Promise.all([fetchMapTiles(mapId), fetchConstructs(mapId)]).then(
+      ([tiles, chain]) => {
         if (!live || started.current) return
         setStats(mapStats(tiles))
         setLoad({ state: 'drawing' })
@@ -106,7 +126,9 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
         setTimeout(() => {
           if (!live || started.current) return
           try {
-            const saved = loadBuilds(mapId)
+            // what the chain holds, with this browser's crops on its soil
+            onChain.current = chain
+            const saved = withCrops(chain, loadBuilds(mapId))
             started.current = startEngine({ tiles, mapId, builds: saved })
             if (import.meta.env.DEV) (window as unknown as { __island: IslandView }).__island = started.current
             const view = started.current
@@ -116,6 +138,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
               // the creatures living here, from life.acre; the island stays usable if this read fails
               view.onSelect((id) => setSelected(id === null ? null : String(id)))
               setFarmers(farmersIn(saved))
+              view.onStore(setStore)
               view.onBuild((builds, canUndo, planned, kind) => { saveBuilds(mapId, builds); setUndoable(canUndo); setPending(planned); setPlanKind(kind); setFarmers(farmersIn(builds)) })
               fetchLifeforms(mapId)
                 .then((list) => { if (live) setCreatures(list); noteSeen(list.map((c) => view.spriteFor(c.speciesName)).filter((k): k is string => !!k)); return view.setLifeforms(list) })
@@ -149,6 +172,28 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
     window.addEventListener('pointerdown', down, true); window.addEventListener('pointerup', up, true)
     return () => { window.removeEventListener('pointerdown', down, true); window.removeEventListener('pointerup', up, true) }
   }, [tool])
+
+  /** Confirms the plan: on the owner's island land.acre is asked first (one transaction), and only once it is signed
+   *  does the plan stand. Crops and anything on another's island stay in this browser. */
+  const confirm = async () => {
+    const view = started.current, w = signer()
+    if (!view || save.state === 'signing') return
+    if (!w || w.actor !== owner || !onChain.current) { view.confirmBuild(); return }
+    const next = chainPart(view.plan()), actions = saveActions(mapId, w, onChain.current, next)
+    if (!actions.length) { view.confirmBuild(); return }
+    setSave({ state: 'signing' }); setTool(null)
+    try {
+      await transact(actions)
+    } catch (err) {
+      setSave({ state: 'error', message: friendlyError(err) })
+      return
+    }
+    onChain.current = next
+    if (actions.some((a) => a.name === 'clearnature')) forgetMapTiles(mapId)
+    view.confirmBuild(); setSave({ state: 'idle' })
+  }
+  const confirmLabel = save.state === 'signing' ? 'signing…' : confirmWords
+  const saveNote = save.state === 'error' ? <p className="build-error" role="alert">{save.message}</p> : null
 
   const closeHint = () => {
     setHint(false)
@@ -226,7 +271,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
                   <div className="crop-pick" role="radiogroup" aria-label="Which crop to sow">
                     {CROPS.map((c) => (
                       <button key={c} type="button" role="radio" aria-checked={crop === c} className="crop-seed" title={cropName(c)} onClick={() => setCrop(c)}>
-                        <img src={`/art/crops/${c}/7-harvest-front.svg?v=1`} alt={cropName(c)} loading="lazy" />
+                        <img src={`art/crops/${c}/7-harvest-front.svg?v=1`} alt={cropName(c)} loading="lazy" />
                       </button>
                     ))}
                   </div>
@@ -239,10 +284,11 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
                 </div>
                 <p className="build-plan hand">{pending ? `${pending} tile${pending === 1 ? '' : 's'} planned: blue goes up, red comes down. Click a mark again to take it back.` : 'Nothing planned yet. What you mark shows as a hologram until you confirm it.'}</p>
                 <div className="build-actions">
-                  <button type="button" className="build-confirm" disabled={!pending} onClick={() => started.current?.confirmBuild()}>{confirmWords}</button>
-                  <button type="button" className="build-link" disabled={!pending} onClick={() => started.current?.discardBuild()}>discard</button>
+                  <button type="button" className="build-confirm" disabled={!pending || save.state === 'signing'} onClick={confirm}>{confirmLabel}</button>
+                  <button type="button" className="build-link" disabled={!pending || save.state === 'signing'} onClick={() => { setSave({ state: 'idle' }); started.current?.discardBuild() }}>discard</button>
                 </div>
-                <p className="rec-foot">Kept on this device for now. Right-drag moves the map; a right click puts the tools away.</p>
+                {saveNote}
+                <p className="rec-foot">{toChain ? 'Confirming saves to the chain (your wallet signs); crops stay on this device.' : 'Not saved: only the island’s owner, signed in, saves to the chain. Gone when you leave.'} Right-drag moves the map; a right click puts the tools away.</p>
               </div>
             )}
             <button type="button" className="wx-tag bestiary-toggle" aria-haspopup="dialog" onClick={() => { closeBuild(); setBestiaryOpen(true) }}>
@@ -254,8 +300,9 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
             {!buildOpen && pending > 0 && (
               <div className="build-pending">
                 <span className="hand">{pending} planned</span>
-                <button type="button" className="build-confirm" onClick={() => started.current?.confirmBuild()}>{confirmWords}</button>
-                <button type="button" className="build-link" onClick={() => started.current?.discardBuild()}>discard</button>
+                <button type="button" className="build-confirm" disabled={save.state === 'signing'} onClick={confirm}>{confirmLabel}</button>
+                <button type="button" className="build-link" disabled={save.state === 'signing'} onClick={() => { setSave({ state: 'idle' }); started.current?.discardBuild() }}>discard</button>
+                {saveNote}
               </div>
             )}
           </div>
@@ -382,6 +429,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
             )}
             <p className="rec-foot">Shares of the whole chart, sea included.</p>
             {farmers > 0 && <p className="rec-foot">{farmers === 1 ? 'One farmer lives here.' : `${farmers} farmers live here.`}</p>}
+            {Object.keys(store).length > 0 && <p className="rec-foot">In the silos: {Object.entries(store).map(([c, n]) => `${n} ${cropName(c)}`).join(', ')}.</p>}
             {lifeforms !== null && (
               <p className="rec-foot">{lifeforms === 0 ? 'No creatures live here yet.' : lifeforms === 1 ? 'One creature lives here.' : `${lifeforms} creatures live here.`}</p>
             )}

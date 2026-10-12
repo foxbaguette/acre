@@ -70,6 +70,9 @@ export function fetchMapTiles(mapId: string): Promise<Uint8Array> {
   return pending
 }
 
+/** Reads the map's tiles anew next time (after clearnature changed them). */
+export const forgetMapTiles = (mapId: string) => { tileCache.delete(mapId) }
+
 export interface MapStats {
   land: number
   forest: number

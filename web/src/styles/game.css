@@ -203,3 +203,25 @@
 .bp-swatch { display: flex; gap: 3px; }
 .bp-swatch i { width: 12px; height: 12px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(30, 20, 10, .25); }
 @media (max-width: 640px) { .bp-body { grid-template-columns: 1fr; } .bestiary { padding: 14px 16px 16px; } .bestiary header h2 { font-size: 1.8rem; } }
+
+/* ---------- ripe fields: a paper token with a sickle over each, placed by the engine ---------- */
+.field-tokens { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
+.field-token { position: absolute; left: 0; top: 0; width: 0; height: 0; padding: 0; border: 0; background: none; pointer-events: auto; cursor: pointer; }
+.field-token .tok, .field-token .n, .field-token .note, .field-token .stem { position: absolute; }
+.field-token .tok { left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: #6e4a1a;
+  background: radial-gradient(circle at 38% 32%, #fffaf0, #efe2c4 70%, #d8c69e); box-shadow: 0 0 0 2px #b48a3a, 0 6px 12px -4px rgba(20, 14, 4, .6); animation: token-bob 2.4s ease-in-out infinite; transition: transform .15s ease, box-shadow .15s ease; }
+.field-token .tok svg { width: 24px; height: 24px; }
+.field-token .n { left: 10px; top: -28px; min-width: 20px; padding: 1px 5px; border-radius: 10px; background: var(--rust); color: #fbf7ee; font-family: var(--sc); font-size: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,.3); animation: token-bob 2.4s ease-in-out infinite; }
+.field-token .stem { display: none; }
+.field-token .note { left: 0; top: -58px; transform: translateX(-50%); padding: 3px 10px; border-radius: 4px; background: rgba(251, 247, 238, .96); color: var(--blue); font-family: var(--hand); font-size: 1.15rem; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,.25); opacity: 0; transition: opacity .15s ease; pointer-events: none; }
+.field-token:hover .tok, .field-token:focus-visible .tok { transform: translateY(-4px) scale(1.12); box-shadow: 0 0 0 2px #b48a3a, 0 0 0 7px rgba(255, 220, 140, .45), 0 8px 14px -4px rgba(20, 14, 4, .6); animation: none; }
+.field-token:hover .note, .field-token:focus-visible .note { opacity: 1; }
+.field-token.working { cursor: default; }
+.field-token.working .tok { left: -16px; top: -16px; width: 32px; height: 32px; animation: none; opacity: .92; }
+.field-token.working .tok svg { width: 17px; height: 17px; }
+.field-token.working .n { left: 6px; top: -22px; animation: none; background: #8a6a3a; }
+.field-token.far .tok { left: -15px; top: -15px; width: 30px; height: 30px; } .field-token.far .tok svg { width: 16px; height: 16px; }
+.field-token.far .n { left: 5px; top: -21px; font-size: 10px; } .field-token.far .stem { display: none; }
+@keyframes token-bob { 50% { translate: 0 -5px; } }
+@media (prefers-reduced-motion: reduce) { .field-token .tok, .field-token .n { animation: none; } }
+.build-error { margin: 6px 0 0; font-size: .85rem; color: var(--rust); max-width: 30ch; }

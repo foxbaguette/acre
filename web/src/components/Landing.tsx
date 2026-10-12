@@ -45,7 +45,7 @@ export function Landing({ onConnect, busy, error }: { onConnect: () => void; bus
       if (name?.firstChild) name.firstChild.nodeValue = `${tab.dataset.name} `
       if (note) note.textContent = tab.dataset.note ?? ''
       leaf.querySelectorAll<HTMLImageElement>('#stage-list img').forEach((img) => {
-        img.src = `/art/crops/${tab.dataset.crop}/${img.dataset.stage}.svg`
+        img.src = `art/crops/${tab.dataset.crop}/${img.dataset.stage}.svg`
         img.alt = `${tab.dataset.name}: ${STAGE_WORDS[img.dataset.stage!]}`
       })
     }

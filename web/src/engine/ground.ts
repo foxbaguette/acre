@@ -341,7 +341,7 @@ export class Ground {
     gl.texStorage3D(gl.TEXTURE_2D_ARRAY, Math.log2(size) + 1, gl.RGBA8, size, size, GROUND_TILES.length)
     const cv = document.createElement('canvas'); cv.width = cv.height = size
     const g = cv.getContext('2d')!
-    const images = await Promise.all(GROUND_TILES.map((n) => loadImage(`/art/tiles/${n}.svg?v=1`)))
+    const images = await Promise.all(GROUND_TILES.map((n) => loadImage(`art/tiles/${n}.svg?v=1`)))
     images.forEach((im, i) => {
       g.clearRect(0, 0, size, size)
       if (im) g.drawImage(im, 0, 0, size, size)

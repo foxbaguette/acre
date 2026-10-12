@@ -43,7 +43,14 @@ export interface IslandView {
   undoBuild(): boolean
   /** Called with every build on the island whenever they change (to keep them), and whether undo can take one back. */
   /** what stands changed (builds: what stands), or the plan did (pending: how many tiles it changes) */
+  /** Marks a ripe crop (or its whole field) for harvest, or takes the mark back. */
+  harvest(tile: number, whole: boolean): void
+  unharvest(tile: number, whole: boolean): void
+  /** What lies in the silos, crop by crop (called now and on every harvest). */
+  onStore(fn: (store: Record<string, number>) => void): void
   onBuild(fn: (builds: Builds, undoable: boolean, pending: number, kind: 'build' | 'erase' | 'both') => void): void
+  /** What would stand once the plan is confirmed (a copy). */
+  plan(): Builds
   /** Builds what was planned. */
   confirmBuild(): void
   /** Drops what was planned. */

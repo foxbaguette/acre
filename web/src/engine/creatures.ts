@@ -21,7 +21,7 @@ export const BEASTS: [string, 'air' | 'water' | 'land', number][] = [
   ['hell__nightmare', 'land', 1.6], ['hell__torment-ram', 'land', 1.3], ['hell__hellspinner', 'land', 1.2], ['carnivores__snow-leopard', 'land', 1.2],
   ['hoofed__camel', 'land', 1.6], ['hoofed__mountain-goat', 'land', 1.2], ['story__wind-hare', 'land', 0.7], ['rats__black-rat', 'land', 0.5],
 ]
-export const spriteUrl = (k: string) => `/art/topdown/${k}/top.svg?v=1`
+export const spriteUrl = (k: string) => `art/topdown/${k}/top.svg?v=1`
 export const speciesKey = (name: string) => {
   const slug = String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   return BEASTS.find((b) => b[0].split('__')[1] === slug || b[0].split('__')[1] === slug + '-polished') ?? null

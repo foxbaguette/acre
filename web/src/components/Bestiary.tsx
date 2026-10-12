@@ -69,7 +69,7 @@ export function Bestiary({ creatures, keyOf, onFind, onClose }: {
             <button type="button" className="build-link" onClick={() => setOpen(null)}>&larr; all species</button>
             <div className="bp-body">
               <div className={`bp-portrait${seen.has(page[0]) ? '' : ' unknown'}`}>
-                <img src={`/art/topdown/${page[0]}/side.svg?v=1`} alt={seen.has(page[0]) ? speciesTitle(page[0]) : 'An unknown species'} />
+                <img src={`art/topdown/${page[0]}/side.svg?v=1`} alt={seen.has(page[0]) ? speciesTitle(page[0]) : 'An unknown species'} />
               </div>
               <div>
                 <h3>{seen.has(page[0]) ? speciesTitle(page[0]) : 'Not yet met'}</h3>
@@ -104,7 +104,7 @@ export function Bestiary({ creatures, keyOf, onFind, onClose }: {
                 return (
                   <li key={key}>
                     <button type="button" className={known ? '' : 'unknown'} onClick={() => setOpen(key)}>
-                      <span className="bg-art"><img src={`/art/topdown/${key}/side.svg?v=1`} alt="" loading="lazy" /></span>
+                      <span className="bg-art"><img src={`art/topdown/${key}/side.svg?v=1`} alt="" loading="lazy" /></span>
                       <b>{known ? speciesTitle(key) : '? ? ?'}</b>
                       <small>{home === 'air' ? 'sky' : home}{n ? ` · ${n} here` : ''}</small>
                     </button>
