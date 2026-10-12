@@ -241,6 +241,7 @@ void main() { o = texture(uTex, vUV) * uAlpha; }`
 const SEA_FS = `#version 300 es
 precision highp float; precision highp sampler2DArray;
 uniform sampler2D uH; uniform vec2 uHSize, uMap; uniform vec3 uCam; uniform vec2 uView;
+uniform float uWinter;
 out vec4 o;
 ${GLSL_TERRAIN}
 void main() {
@@ -253,7 +254,9 @@ void main() {
   w = mix(vec3(l), w, 1.1) * vec3(1.04, 1.02, .9) * 1.1;
   w += vec3(.55, .62, .82) * .06 * (1. - smoothstep(0., .55, l));
   w = (w - .45) * .96 + .45;
-  o = vec4(w / (1. + max(w - .9, 0.) * 1.6), 1.);
+  w = w / (1. + max(w - .9, 0.) * 1.6);
+  if (uWinter > .5) { float wl = dot(w, vec3(.3, .55, .15)); w = mix(w, vec3(wl) * vec3(.82, .94, 1.08), .5) * vec3(.92, .96, 1.); }   // winter, as the sea inside the map
+  o = vec4(w, 1.);
 }`
 const FULL_VS = `#version 300 es
 in vec2 aPos; void main() { gl_Position = vec4(aPos * 2. - 1., 0., 1.); }`
@@ -451,7 +454,7 @@ export class Ground {
     gl.useProgram(this.seaP.p)
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.height); gl.uniform1i(this.seaP.u.uH, 0)
     gl.uniform2f(this.seaP.u.uHSize, this.fieldSize[0], this.fieldSize[1]); gl.uniform2f(this.seaP.u.uMap, cols, rows)
-    gl.uniform3f(this.seaP.u.uCam, cam.x, cam.y, cam.z); gl.uniform2f(this.seaP.u.uView, W, H)
+    gl.uniform3f(this.seaP.u.uCam, cam.x, cam.y, cam.z); gl.uniform2f(this.seaP.u.uView, W, H); gl.uniform1f(this.seaP.u.uWinter, this.look[3] > 2.5 ? 1 : 0)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     const P = this.drawP; gl.useProgram(P.p)
     gl.uniform3f(P.u.uCam, cam.x, cam.y, cam.z); gl.uniform2f(P.u.uView, W, H); gl.uniform1i(P.u.uTex, 0); gl.uniform1f(P.u.uAlpha, 1)

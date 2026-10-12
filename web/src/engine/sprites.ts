@@ -140,6 +140,10 @@ vec4 treeCol(vec2 p, float seed, float kind, float hue, float aa) {
   // each tree its own shade: some yellower, some bluer and darker
   vec3 tint = mix(vec3(.9, .96, 1.08), vec3(1.1, 1.05, .82), hue);
   dark *= tint; mid *= tint; light *= tint;
+  if (uSeason > .5 && uSeason < 1.5) {                             // summer: dry, dusty leaves, olive and a touch yellow (the conifers less so)
+    float k = kind < .5 ? 1. : .5;
+    dark = mix(dark, dark * vec3(1.1, 1.02, .7), .6 * k); mid = mix(mid, vec3(.33, .34, .15), .45 * k); light = mix(light, vec3(.64, .6, .32), .5 * k);
+  }
   if (kind < .5 && uSeason > 1.5 && uSeason < 2.5) {               // autumn: gold, orange or rust, a few still turning
     float pick = fract(seed * 7.31 + hue * .37);
     vec3 leaf = pick < .38 ? vec3(.76, .6, .26) : pick < .72 ? vec3(.74, .46, .22) : pick < .9 ? vec3(.56, .3, .18) : vec3(.56, .56, .27);
