@@ -8,7 +8,7 @@ export type BuildTool = 'fence' | 'path' | 'soil' | 'crop' | 'tree' | 'erase' | 
 export type Building = 'farmhouse' | 'lab' | 'nest' | 'silo' | 'bakery' | 'kitchen' | 'torch' | 'market'
 /** The buildings: footprint in tiles (w across, h down, as drawn: entrance facing south), how many stages they can be
  *  upgraded through, and for those with a door, the column of the tile just in front of it (that tile must reach a path). */
-export const BUILDINGS: Record<Building, { w: number; h: number; stages: number; art: (stage: number) => string; door?: number; doorY?: number }> = {
+export const BUILDINGS: Record<Building, { w: number; h: number; stages: number; art: (stage: number) => string; door?: number; doorY?: number; main?: boolean }> = {
   farmhouse: { w: 3, h: 4, stages: 5, art: (s) => `building-farmhouse-${s}`, door: 1, doorY: 3.72 },   // stage n: n farmers live there
   lab: { w: 4, h: 4, stages: 1, art: () => 'building-lab', door: 2, doorY: 3.5 },
   nest: { w: 2, h: 2, stages: 1, art: () => 'building-nest' },
@@ -16,7 +16,7 @@ export const BUILDINGS: Record<Building, { w: number; h: number; stages: number;
   bakery: { w: 2, h: 2, stages: 1, art: () => 'building-bakery', door: 1, doorY: 1.8 },
   kitchen: { w: 3, h: 2, stages: 1, art: () => 'building-kitchen' },
   torch: { w: 1, h: 1, stages: 1, art: () => 'building-torch' },
-  market: { w: 4, h: 5, stages: 1, art: () => 'building-market', door: 2, doorY: 4.9 },   // open to the south: the path comes into its square
+  market: { w: 4, h: 5, stages: 1, art: () => 'building-market', door: 2, doorY: 4.9, main: true },   // open to the south; the main building: it needs no path, the others' paths come to it
 }
 
 /** What the player made on one tile. */

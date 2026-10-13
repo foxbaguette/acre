@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 import { chainPart, fetchConstructs, fetchEnclosures, saveActions } from '@/chain/constructs'
+import { clockAt, fetchHomeClock, type Conditions, type HomeClock } from '@/chain/home'
 import { fetchLifeforms, type Creature } from '@/chain/life'
 import { Bestiary, noteSeen } from '@/components/Bestiary'
 import { CreatureCard } from '@/components/CreatureCard'
+import { IslandClock } from '@/components/IslandClock'
 import { fetchMapTiles, fetchPlayerMaps, forgetMapTiles, mapStats, type MapStats } from '@/chain/maps'
 import { startEngine } from '@/engine'
 import { loadBuilds as readBuilds, saveForm } from '@/engine/build'
@@ -50,6 +52,9 @@ const withCrops = (chain: Builds, local: Builds): Builds => {
   for (const k in local) { const { c, t, h } = local[k]; if (c && out[k]?.g === 'soil') out[k] = { ...out[k], c, ...(t ? { t } : {}), ...(h ? { h } : {}) } }
   return out
 }
+const WEATHER_WORDS: Record<string, string> = { sun: 'sunny', cloudy: 'cloudy', rain: 'light rain', storm: 'storm' }
+const SNOW_WORDS: Record<string, string> = { rain: 'light snow', storm: 'snowstorm' }
+const weatherWord = (c: Conditions) => (c.season === 'winter' && SNOW_WORDS[c.weather]) || WEATHER_WORDS[c.weather] || c.weather
 const cropName = (c: string) => c.replace(/-/g, ' ')
 /** Everyone living in the island's farmhouses: one farmer per stage. */
 const farmersIn = (b: Builds) => Object.values(b).reduce((n, c) => n + (c.s === 'farmhouse' ? c.lv ?? 1 : 0), 0)
@@ -64,7 +69,7 @@ const TOOLS: { id: BuildTool; label: string; hint: string; icon: string }[] = [
   { id: 'lab', label: 'observatory', hint: 'Click to put up an observatory (4 × 4 tiles) on open grass; R turns it. Its door must reach a path: one up to two tiles away is joined to it.', icon: 'M4 20h16M5 20v-6h14v6M5 14a7 7 0 0 1 14 0M12 7l5-4M10 20v-3h4v3' },
   { id: 'silo', label: 'silo', hint: 'Click to put up a silo (2 × 2 tiles) on open grass, to store the harvest.', icon: 'M7 21V9a5 5 0 0 1 10 0v12M7 21h10M7 13h10M7 17h10M12 4V2' },
   { id: 'bakery', label: 'bakery', hint: 'Click to put up a bakery (2 × 2 tiles) on open grass; R turns it. Its door must reach a path: one up to two tiles away is joined to it.', icon: 'M4 20h16M5 20v-7l7-5 7 5v7M15 9V5h2v5.5M9 20v-4h3v4' },
-  { id: 'market', label: 'market', hint: 'Click to lay out a market (4 × 5 tiles) on open grass: a market hall with a cobbled square, stalls and a fountain; R turns it. Its square must reach a path: one up to two tiles away is joined to it.', icon: 'M4 21V11M20 21V11M3 11l3-6h12l3 6zM3 11h18M8 21v-5h8v5M12 5V3' },
+  { id: 'market', label: 'market', hint: 'Click to lay out a market (4 × 5 tiles) on open grass: a market hall with a cobbled square, stalls and a fountain; R turns it. It is the main building: it needs no path, the other buildings’ paths lead to it (one up to two tiles away is joined to it).', icon: 'M4 21V11M20 21V11M3 11l3-6h12l3 6zM3 11h18M8 21v-5h8v5M12 5V3' },
   { id: 'kitchen', label: 'kitchen', hint: 'Click to lay out an outdoor kitchen (3 × 2 tiles) on open grass: a bread oven, a hearth and a table; R turns it.', icon: 'M4 20h16M6 20v-6a6 6 0 0 1 12 0v6M10 20v-3h4v3M17 8c0-2 1-3 0-5' },
   { id: 'torch', label: 'torch', hint: 'Click to set up a torch (1 tile). It burns through the evening and the night.', icon: 'M12 21v-9M8 8h8l-1.5 4h-5zM12 8c-2-2-1-4 0-6 1 2 2 4 0 6' },
   { id: 'nest', label: 'nest', hint: 'Click to lay a straw hatching nest (2 × 2 tiles) on open grass.', icon: 'M3 13c0 4 4 7 9 7s9-3 9-7M3 13c3 2 15 2 18 0M9 11a3 4 0 1 0 6 0a3 4 0 1 0-6 0' },
@@ -103,6 +108,17 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
   const [store, setStore] = useState<Record<string, number>>({})
   const [crop, setCrop] = useState<string>('wheat')
   const started = useRef<IslandView | null>(null)
+  // the island's season, daytime and weather: what is shown, and what the island clock (home.acre) says it is now
+  const [shown, setShown] = useState<Conditions | null>(null)
+  const [island, setIsland] = useState<Conditions | null>(null)
+  const [skyOpen, setSkyOpen] = useState(false)
+  const homeClock = useRef<HomeClock | null>(null)
+  const [clockReady, setClockReady] = useState<HomeClock | null>(null)
+  const ownPick = !!shown && !!island && (shown.season !== island.season || shown.daytime !== island.daytime || shown.weather !== island.weather)
+  const followClock = () => {
+    const view = started.current, c = homeClock.current; if (!view || !c) return
+    const { now } = clockAt(c, Date.now()); view.setSeason(now.season); view.setDaytime(now.daytime); view.setWeather(now.weather)
+  }
   const [save, setSave] = useState<Save>({ state: 'idle' })
   const [owner, setOwner] = useState<string | null>(null)
   /** what land.acre holds for this island, as the page keeps it (null until read) */
@@ -112,7 +128,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
   const selectedCreature = selected === null ? null : creatures.find((c) => String(c.id) === selected) ?? null
 
   useEffect(() => {
-    let live = true
+    let live = true, clockTimer = 0
     fetchPlayerMaps(account).then((maps) => {
       const m = maps.find((x) => x.id === mapId)
       if (live && m?.name) setName(m.name)
@@ -138,6 +154,25 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
               setLoad({ state: 'ready' })
               // the creatures living here, from life.acre; the island stays usable if this read fails
               view.onSelect((id) => setSelected(id === null ? null : String(id)))
+              view.onConditions((c) => live && setShown(c))
+              // the island clock: whenever a season, daytime or weather comes round, it is shown (over a pick of one's own)
+              fetchHomeClock().then((c) => {
+                if (!live) return
+                homeClock.current = c; setClockReady(c)
+                let last: ReturnType<typeof clockAt>['turn'] | null = null
+                const tick = () => {
+                  if (!live) return
+                  clearTimeout(clockTimer)
+                  const { now, turn, next } = clockAt(c, Date.now())
+                  if (!last || turn.season !== last.season) view.setSeason(now.season)
+                  if (!last || turn.daytime !== last.daytime) view.setDaytime(now.daytime)
+                  if (!last || turn.weather !== last.weather || turn.season !== last.season) view.setWeather(now.weather)
+                  last = turn; setIsland(now)
+                  clockTimer = window.setTimeout(tick, Math.max(500, next - Date.now() + 250))
+                }
+                tick()
+                document.addEventListener('visibilitychange', () => { if (!document.hidden) tick() })   // timers sleep in a hidden tab
+              }, (err) => console.warn('Could not read the island clock', err))
               setFarmers(farmersIn(saved))
               view.onStore(setStore)
               view.onBuild((builds, canUndo, planned, kind) => { saveBuilds(mapId, builds); setUndoable(canUndo); setPending(planned); setPlanKind(kind); setFarmers(farmersIn(builds)) })
@@ -155,6 +190,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
     )
     return () => {
       live = false
+      clearTimeout(clockTimer)
     }
   }, [account, mapId])
 
@@ -337,8 +373,9 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
         </button>
       </div>
 
-      {/* ---------- season, time of day and weather, bottom left ---------- */}
+      {/* ---------- season, time of day and weather, bottom left: what the island has now; one button opens the choices ---------- */}
       <div className="hud hud-bl">
+        <div className="sky-panel" id="sky-panel" hidden={!skyOpen}>
         <div className="hud-row" role="group" aria-label="Season">
           <span className="hud-label">season</span>
           <button type="button" className="wx-tag" data-season="spring" aria-pressed="false">
@@ -425,6 +462,24 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
             <path d="M12.5 14l-2.5 4h3l-2 4" />
           </svg>
           storm
+        </button>
+        </div>
+        {ownPick && (
+          <button type="button" className="sky-follow hand" onClick={followClock}>
+            back to the island’s own {island && island.season === shown?.season && island.daytime === shown?.daytime ? 'weather' : 'time'}: {island?.season} · {island?.daytime} · {island && weatherWord(island)}
+          </button>
+        )}
+        </div>
+        <div className="sky-bar">
+        {clockReady && island && <IslandClock clock={clockReady} season={island.season} />}
+        <button type="button" className="wx-tag sky-toggle" aria-expanded={skyOpen} aria-controls="sky-panel" onClick={() => setSkyOpen(!skyOpen)}
+          title={ownPick ? 'Your own pick: the island’s clock takes over again when the next change comes round' : 'As the island’s clock has it now'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+            <circle cx="9" cy="9" r="3.2" />
+            <path d="M9 2.5v1.5M2.5 9H4M4.4 4.4l1 1M13.6 4.4l-1 1M8 20h9a3.5 3.5 0 0 0 .4-7 5 5 0 0 0-9.6 1.4A2.8 2.8 0 0 0 8 20z" />
+          </svg>
+          {shown ? `${shown.season} · ${shown.daytime} · ${weatherWord(shown)}` : 'season & weather'}
+          {ownPick && <span className="sky-own" aria-label="your own pick">•</span>}
         </button>
         </div>
       </div>

@@ -18,6 +18,9 @@ export interface Lifeform {
 export interface IslandView {
   setWeather(kind: Weather): void
   setDaytime(kind: Daytime): void
+  setSeason(kind: Season): void
+  /** Called with the season, daytime and weather shown, now and whenever one changes (a button or a set call). */
+  onConditions(fn: (c: { season: Season; daytime: Daytime; weather: Weather }) => void): void
   /** Shows these creatures on the island (replacing any shown before); resolves to how many could be placed. */
   setLifeforms(list: Lifeform[]): Promise<number>
   /** The enclosures the chain keeps: a tag with their number over each (id, tiles inside, first tile as a map index). */

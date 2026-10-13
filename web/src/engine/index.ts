@@ -876,10 +876,11 @@ export function startEngine(opts: EngineOptions): IslandView {
   }
   /** The path tiles that would join a building's door to the paths: none if a path already starts at its door, up to
    *  two new ones if a path is that close and the ground takes them; null if it cannot be joined. A building without a
-   *  door needs none. */
+   *  door needs none, and neither does the main building (the market): it is joined if a path is close, else stands alone. */
   function linkPath(kind: Building, at: number, o: number): number[] | null {
     if (BUILDINGS[kind].door === undefined) return []
-    const e = entrance(kind, at, COLS, ROWS, o); if (e < 0) return null
+    const alone = BUILDINGS[kind].main ? [] : null
+    const e = entrance(kind, at, COLS, ROWS, o); if (e < 0) return alone
     if (planWorld.type[e] === T.path) return []
     const fp = new Set(footprint(kind, at, COLS, o)), ex = e % COLS, ey = (e - ex) / COLS
     let best: number[] | null = null, bestScore = Infinity
@@ -890,7 +891,7 @@ export function startEngine(opts: EngineOptions): IslandView {
       const score = line.length * 10 + Math.hypot(dx, dy)           // the fewest new tiles, then the straightest way
       if (score < bestScore) { bestScore = score; best = line }
     }
-    return best
+    return best ?? alone
   }
   function build() {
     if (!tool || !mark) return
@@ -971,10 +972,12 @@ export function startEngine(opts: EngineOptions): IslandView {
   const ready = ground.ready.then(() => { frameIsland(); return new Promise<void>((r) => { const chk = () => (ground.missing({ x: CAM.x, y: CAM.y, z: CAM.z * dpr() }, size[0], size[1]).length ? requestAnimationFrame(chk) : r()); requestAnimationFrame(chk) }) })
 
   // the page's weather and time-of-day buttons
-  const setWeather = (k: Weather) => { if (!WX[k]) return; state.weather = k; sky.nextFlash = performance.now() / 1000 + 3; document.querySelectorAll<HTMLElement>('[data-weather]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.weather === k))); kick() }
-  const setDaytime = (k: Daytime) => { if (!DAYS[k]) return; state.daytime = k; document.querySelectorAll<HTMLElement>('[data-daytime]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.daytime === k))); kick() }
+  let onConditions: ((c: { season: Season; daytime: Daytime; weather: Weather }) => void) | null = null
+  const told = () => onConditions?.({ season: state.season, daytime: state.daytime, weather: state.weather })
+  const setWeather = (k: Weather) => { if (!WX[k]) return; state.weather = k; told(); sky.nextFlash = performance.now() / 1000 + 3; document.querySelectorAll<HTMLElement>('[data-weather]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.weather === k))); kick() }
+  const setDaytime = (k: Daytime) => { if (!DAYS[k]) return; state.daytime = k; told(); document.querySelectorAll<HTMLElement>('[data-daytime]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.daytime === k))); kick() }
   const setSeason = (k: Season) => { const n = SEASONS.indexOf(k); if (n < 0) return
-    state.season = k; sprites.season = n
+    state.season = k; sprites.season = n; told()
     if (ground.look[3] !== n) { ground.look[3] = n; ground.restyle() }
     document.querySelectorAll<HTMLElement>('[data-season]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.season === k))); kick() }
   document.querySelectorAll<HTMLElement>('[data-season]').forEach((b) => b.addEventListener('click', () => setSeason(b.dataset.season as Season)))
@@ -986,6 +989,8 @@ export function startEngine(opts: EngineOptions): IslandView {
   return {
     setWeather,
     setDaytime,
+    setSeason,
+    onConditions: (fn) => { onConditions = fn; told() },
     setLifeforms: async (list: Lifeform[]) => { const n = await herd.set(list, (name, url) => atlas.add(name, url)); kick(); return n },
     setEnclosures,
     selectCreature: select,
