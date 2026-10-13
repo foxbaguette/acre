@@ -6,9 +6,13 @@ import { islandTime, type HomeClock } from '@/chain/home'
 export function IslandClock({ clock, season }: { clock: HomeClock; season: string }) {
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 500)   // an island minute is under a second
-    return () => clearInterval(id)
-  }, [])
+    // redraw exactly when the next island minute begins (a fixed interval beats against the island minute's length)
+    const perMin = (clock.daytime * Math.max(1, clock.daytimes.length) * 1000) / (24 * 60)
+    let id = 0
+    const next = () => { const t = Date.now(); id = window.setTimeout(() => { setNow(Date.now()); next() }, perMin - ((t - clock.start) % perMin) + 4) }
+    next()
+    return () => clearTimeout(id)
+  }, [clock])
   const { h, m, day, days } = islandTime(clock, now)
   const hourA = ((h % 12) + m / 60) * 30, minA = m * 6, hh = String(h).padStart(2, '0'), mm = String(m).padStart(2, '0')
   return (
