@@ -15,7 +15,7 @@ import { Farmers } from './farmers'
 import { BEASTS, Herd, speciesKey } from './creatures'
 import { buildFields } from './fields'
 import { Ground } from './ground'
-import { cloudShapes, DAYS, Sky, WX } from './sky'
+import { cloudShapes, DAYS, Sky, WX, blendMood, wxMood } from './sky'
 import { FIELD, FIELD_REACH, FLAG, SHAPE, Sprites } from './sprites'
 import { buildWorld, COLS, ROWS, seeded, T, type World } from './world'
 
@@ -178,6 +178,13 @@ export function startEngine(opts: EngineOptions): IslandView {
   const SEASONS: Season[] = ['spring', 'summer', 'autumn', 'winter'], month = new Date().getMonth()
   const state = { weather: (opts.weather ?? 'sun') as Weather, daytime: (opts.daytime ?? 'day') as Daytime, season: (opts.season ?? SEASONS[Math.floor(((month + 10) % 12) / 3)]) as Season, motion: !matchMedia('(prefers-reduced-motion: reduce)').matches }
   const winter = () => state.season === 'winter'
+  // changes blend in: a new daytime or weather over a few seconds (p: 0 the old, 1 the new); a new season crossfades from
+  // the picture before it, held until the new season's ground is drawn
+  const FADE_S = 2.5
+  const fade = { day: { from: state.daytime, p: 1 }, wx: { from: state.weather, wasWinter: false, p: 1 }, season: { p: 1, hold: false, t0: 0, cam: { x: 0, y: 0, z: 0 } } }
+  const ease = (p: number) => p * p * (3 - 2 * p)
+  const lerp = (a: number, b: number, k: number) => a + (b - a) * k
+  let drawn = false   // (nothing fades before the first picture)
 
   // ---------- the sea floor: coral reefs in the shallows, now and then a shipwreck further out. Not every island has
   // them; whether it does, how many and where all follow from the map id, so they can always be worked out again. ----------
@@ -380,8 +387,12 @@ export function startEngine(opts: EngineOptions): IslandView {
     const at = (kind: Building, o: number, bx: number, by: number, x: number, y: number) => { const [u, v] = turn(kind, o, x, y); return [bx + u, by + v] }
     // shadows by the time of day: the sun's place (the buildings' shadow pictures were rendered under the same three suns),
     // as how far a shadow reaches along the ground per unit of height, and how dark it is; at night, midday's, faint
-    const SUN = ({ morning: ['morning', -1.33, 0.33, 0.85], day: ['day', 0.4, 0.3, 1], evening: ['evening', 1.33, 0.33, 0.85], night: ['day', 0.4, 0.3, 0.3] } as Record<string, [string, number, number, number]>)[state.daytime] ?? ['day', 0.4, 0.3, 1]
-    const [sunName, sunX, sunZ, aS] = SUN, sunA = Math.atan2(sunZ, sunX), sunL = Math.hypot(sunX, sunZ) / 0.5
+    const SUNS = { morning: ['morning', -1.33, 0.33, 0.85], day: ['day', 0.4, 0.3, 1], evening: ['evening', 1.33, 0.33, 0.85], night: ['day', 0.4, 0.3, 0.3] } as Record<string, [string, number, number, number]>
+    // (while the daytime changes, the sun moves across and the one shadow picture fades into the next)
+    const dk = ease(fade.day.p), s0 = SUNS[fade.day.from] ?? SUNS.day, s1 = SUNS[state.daytime] ?? SUNS.day
+    const sunName = s1[0], sunX = lerp(s0[1], s1[1], dk), sunZ = lerp(s0[2], s1[2], dk), aS = lerp(s0[3], s1[3], dk)
+    const shadowPics: [string, number][] = s0[0] === s1[0] || dk >= 1 ? [[sunName, aS]] : [[s0[0], s0[3] * (1 - dk)], [sunName, s1[3] * dk]]
+    const sunA = Math.atan2(sunZ, sunX), sunL = Math.hypot(sunX, sunZ) / 0.5
     const PLAN = 1, GONE = 2, holo = (st: number) => (st === PLAN ? -1 : st === GONE ? -2 : 1)   // a negative alpha draws a hologram (sprites.ts)
     const tk = (t: { name: string; x: number; y: number }) => t.name + ',' + t.x.toFixed(2) + ',' + t.y.toFixed(2)
     const planTrees = new Set(planWorld.trees.map(tk)), doneTrees = new Set(world.trees.map(tk))
@@ -454,8 +465,8 @@ export function startEngine(opts: EngineOptions): IslandView {
         if (RENDERED.has(b.s!)) {                                // a rendered picture for each facing, with its shadow, reaching PAD tiles past the footprint
           const name = buildingArt(`${base}-o${o}`), pw = w + PAD[0] + PAD[2], ph = h + PAD[1] + PAD[3], r = atlas.get(name, Math.max(pw, ph) * z); if (!r) continue
           const rect: [number, number, number, number] = [-PAD[0], -PAD[1], w + PAD[2], h + PAD[3]]
-          if (st !== PLAN) { const sw = w + SHPAD[0] + SHPAD[2], sh = h + SHPAD[1] + SHPAD[3], sr = atlas.get(buildingArt(`${base}-o${o}-shadow-${sunName}`), Math.max(sw, sh) * z)   // its shadow, where the hour's sun throws it
-            if (sr) sprites.picture(sr, x, y, [-SHPAD[0], -SHPAD[1], w + SHPAD[2], h + SHPAD[3]], { color: [1, 1, 1, aS] }) }
+          if (st !== PLAN) for (const [sn, sa] of shadowPics) { const sw = w + SHPAD[0] + SHPAD[2], sh = h + SHPAD[1] + SHPAD[3], sr = atlas.get(buildingArt(`${base}-o${o}-shadow-${sn}`), Math.max(sw, sh) * z)   // its shadow, where the hour's sun throws it
+            if (sr) sprites.picture(sr, x, y, [-SHPAD[0], -SHPAD[1], w + SHPAD[2], h + SHPAD[3]], { color: [1, 1, 1, sa] }) }
           sprites.picture(r, x, y, rect, { flags: FLAG.graded, color: [1, 1, 1, holo(st)] })
         } else {
           const name = buildingArt(base), r = atlas.get(name, Math.max(spec.w, spec.h) * z); if (!r) continue
@@ -592,7 +603,7 @@ export function startEngine(opts: EngineOptions): IslandView {
         glows.push([fx, fy, glow])
       }
     }
-    const dark = state.daytime === 'night' ? 1 : state.daytime === 'evening' ? 0.6 : 0
+    const darkOf = (k: string) => (k === 'night' ? 1 : k === 'evening' ? 0.6 : 0), dark = lerp(darkOf(fade.day.from), darkOf(state.daytime), dk)
     // each window, door, lantern and torch throws its own light: a pool that fades softly, a window's only forward
     if (dark) for (const [name, bx, by, bk, bo] of homes) for (const [lx, ly, reach, fwd, bright = 1] of LIGHTS[name] ?? []) {
       const [px, py] = at(bk, bo, bx, by, lx, ly)
@@ -625,6 +636,7 @@ export function startEngine(opts: EngineOptions): IslandView {
     raf = 0
     if (!ground.tiles) { kick(); return }
     const dt = Math.min(50, now - (last || now)); last = now
+    for (const fd of [fade.day, fade.wx]) if (fd.p < 1) fd.p = Math.min(1, fd.p + dt / 1000 / FADE_S)
     if (ZOOM.active) {
       const ratio = ZOOM.target / CAM.z
       if (Math.abs(Math.log(ratio)) < 0.003) { ZOOM.active = false; zoomNow(ratio, ZOOM.px, ZOOM.py) } else zoomNow(ratio ** (1 - Math.exp(-dt / 80)), ZOOM.px, ZOOM.py)
@@ -644,7 +656,12 @@ export function startEngine(opts: EngineOptions): IslandView {
     sky.size(W, H)
     const parts = buildScene(t, dt / 1000, cam, W, H), [landAt, flyAt, cloudAt, lightAt, glowAt, end] = parts
     const fieldArgs = [atlas.tex, ground.height, ground.fieldSize, [world.cols, world.rows]] as const
-    const sp = (from: number, to: number, o: Record<string, unknown> = {}) => sprites.draw(fieldArgs[0], fieldArgs[1], fieldArgs[2], [fieldArgs[3][0], fieldArgs[3][1]], cam, W, H, { time: t, gust: WX[state.weather].gust, from, to, soil: ground.f[0], ...o })
+    // the weather, blended while one turns into the next
+    const wk = ease(fade.wx.p), wFrom = fade.wx.from, wTo = state.weather
+    const COVER = { sun: -0.1, cloudy: 0.03, rain: 0.08, storm: 0.14 } as Record<string, number>, wetOf = (k: string) => (k === 'rain' || k === 'storm' ? 1 : 0)
+    const ringsOf = (k: string, wint: boolean) => (wint ? 0 : k === 'storm' ? 2 : k === 'rain' ? 1 : 0)
+    const gust = lerp(WX[wFrom].gust, WX[wTo].gust, wk)
+    const sp = (from: number, to: number, o: Record<string, unknown> = {}) => sprites.draw(fieldArgs[0], fieldArgs[1], fieldArgs[2], [fieldArgs[3][0], fieldArgs[3][1]], cam, W, H, { time: t, gust, from, to, soil: ground.f[0], ...o })
     // the cloud shadows and the fireflies' light, each in its own small target
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, sky.light!.fb); gl!.viewport(0, 0, sky.light!.w, sky.light!.h); gl!.clearColor(0, 0, 0, 1); gl!.clear(gl!.COLOR_BUFFER_BIT)
     sp(lightAt, glowAt, { blend: 'light' })
@@ -652,23 +669,29 @@ export function startEngine(opts: EngineOptions): IslandView {
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, sky.scene!.fb); gl!.viewport(0, 0, W, H)
     const pending = ground.draw(cam, W, H)
     const still = !state.motion
-    const farZ = cam.z / d, far = 1 - Math.min(1, Math.max(0, (farZ - 11) / 22)), cover = ({ sun: -0.1, cloudy: 0.03, rain: 0.08, storm: 0.14 } as Record<string, number>)[state.weather] ?? 0, wet = state.weather === 'rain' || state.weather === 'storm' ? 1 : 0
+    const farZ = cam.z / d, far = 1 - Math.min(1, Math.max(0, (farZ - 11) / 22)), cover = lerp(COVER[wFrom] ?? 0, COVER[wTo] ?? 0, wk), wet = lerp(wetOf(wFrom), wetOf(wTo), wk)
     sp(0, landAt, { cloud: [far, cover, still ? 0 : t, 0] })
-    sky.water(ground.height, ground.fieldSize, [world.cols, world.rows], cam, W, H, t, winter() ? 0 : state.weather === 'storm' ? 2 : state.weather === 'rain' ? 1 : 0, cam.z > 6 ? (still ? 2 : 1) : 0, !still && cam.z > 14, ground.level(cam.z))
+    sky.water(ground.height, ground.fieldSize, [world.cols, world.rows], cam, W, H, t, lerp(ringsOf(wFrom, fade.wx.wasWinter), ringsOf(wTo, winter()), wk), cam.z > 6 ? (still ? 2 : 1) : 0, !still && cam.z > 14, ground.level(cam.z))
     sp(landAt, flyAt)
     // the weather: whole cloud systems as on the planet map; their shadows at every zoom, the clouds themselves from far out
     sky.farClouds(cam, W, H, still ? 0 : t, far, cover, wet, 0)
     sp(flyAt, cloudAt)
     sky.farClouds(cam, W, H, still ? 0 : t, far, cover, wet, 1)
+    // a new season: the picture from before, held until the new ground is drawn (or the view moves), then fading out
+    if (fade.season.p < 1) { const fs = fade.season, moved = CAM.x !== fs.cam.x || CAM.y !== fs.cam.y || CAM.z !== fs.cam.z
+      if (fs.hold && (!need.length || moved || performance.now() - fs.t0 > 2500)) fs.hold = false
+      if (!fs.hold) fs.p = Math.min(1, fs.p + dt / 1000 / (moved ? 0.35 : 1.2))
+      sky.drawSnap(1 - ease(fs.p)) }
     // graded onto the canvas, then what glows and falls on top
-    sky.final(state.weather, state.daytime, W, H, true, winter())
+    sky.final(blendMood(DAYS[fade.day.from], DAYS[state.daytime], ease(fade.day.p)), blendMood(wxMood(wFrom, fade.wx.wasWinter), wxMood(wTo, winter()), wk), W, H, true)
     sp(glowAt, end)
-    if (!still) sky.rain(state.weather, W, H, d, t, dt / 1000, winter())
+    if (!still) { if (wk < 1 && wFrom !== wTo) sky.rain(wFrom, W, H, d, t, dt / 1000, fade.wx.wasWinter, 1 - wk); sky.rain(wTo, W, H, d, t, dt / 1000, winter(), wFrom === wTo ? 1 : wk) }
+    drawn = true
     stats.sprites = sprites.n
     stats.frameMs = performance.now() - f0
     stats.frames++
     if (now - stats.at > 1000) { stats.fps = Math.round(stats.frames * 1000 / (now - stats.at)); stats.frames = 0; stats.at = now; const el = document.getElementById('fps'); if (el) el.textContent = `${stats.fps} fps · gl` }
-    if (state.motion || pending || need.length || ZOOM.active) kick()
+    if (state.motion || pending || need.length || ZOOM.active || fade.day.p < 1 || fade.wx.p < 1 || fade.season.p < 1) kick()
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) kick() })
 
@@ -974,9 +997,11 @@ export function startEngine(opts: EngineOptions): IslandView {
   // the page's weather and time-of-day buttons
   let onConditions: ((c: { season: Season; daytime: Daytime; weather: Weather }) => void) | null = null
   const told = () => onConditions?.({ season: state.season, daytime: state.daytime, weather: state.weather })
-  const setWeather = (k: Weather) => { if (!WX[k]) return; state.weather = k; told(); sky.nextFlash = performance.now() / 1000 + 3; document.querySelectorAll<HTMLElement>('[data-weather]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.weather === k))); kick() }
-  const setDaytime = (k: Daytime) => { if (!DAYS[k]) return; state.daytime = k; told(); document.querySelectorAll<HTMLElement>('[data-daytime]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.daytime === k))); kick() }
+  const setWeather = (k: Weather) => { if (!WX[k]) return; if (drawn && k !== state.weather) fade.wx = { from: state.weather, wasWinter: winter(), p: 0 }; else fade.wx.wasWinter = winter(); state.weather = k; told(); sky.nextFlash = performance.now() / 1000 + 3; document.querySelectorAll<HTMLElement>('[data-weather]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.weather === k))); kick() }
+  const setDaytime = (k: Daytime) => { if (!DAYS[k]) return; if (drawn && k !== state.daytime) fade.day = { from: state.daytime, p: 0 }; state.daytime = k; told(); document.querySelectorAll<HTMLElement>('[data-daytime]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.daytime === k))); kick() }
   const setSeason = (k: Season) => { const n = SEASONS.indexOf(k); if (n < 0) return
+    if (drawn && k !== state.season && sky.snapshot()) fade.season = { p: 0, hold: true, t0: performance.now(), cam: { ...CAM } }
+    if (fade.wx.p >= 1) fade.wx.wasWinter = k === 'winter'
     state.season = k; sprites.season = n; told()
     if (ground.look[3] !== n) { ground.look[3] = n; ground.restyle() }
     document.querySelectorAll<HTMLElement>('[data-season]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.season === k))); kick() }

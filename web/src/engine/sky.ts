@@ -22,6 +22,19 @@ export const DAYS: Record<Daytime, { tint: number[] | null; sat: number; bri: nu
   night: { tint: [9, 18, 56, 0.62], sat: 1, bri: 1, flies: 0, fireflies: 1 },
 }
 
+/** The look a daytime or a weather gives the finished picture; two blend while one turns into the next. */
+export interface Mood { tint: number[] | null; sat: number; bri: number }
+export function blendMood(a: Mood, b: Mood, k: number): Mood {
+  const ta = a.tint ?? (b.tint ? [b.tint[0], b.tint[1], b.tint[2], 0] : null), tb = b.tint ?? (a.tint ? [a.tint[0], a.tint[1], a.tint[2], 0] : null)
+  return { tint: ta && tb ? ta.map((v, i) => v + (tb[i] - v) * k) : null, sat: a.sat + (b.sat - a.sat) * k, bri: a.bri + (b.bri - a.bri) * k }
+}
+/** A weather's look; in winter the rain falls as snow: a snowstorm is a pale whiteout, not a dark sky. */
+export function wxMood(weather: Weather, winter: boolean): Mood {
+  if (winter && weather === 'storm') return { tint: [214, 222, 234, 0.34], sat: 0.72, bri: 0.98 }
+  if (winter && weather === 'rain') return { tint: [200, 210, 226, 0.12], sat: 0.85, bri: 0.99 }
+  return WX[weather]
+}
+
 const FULL_VS = `#version 300 es
 in vec2 aPos; out vec2 vUV; void main() { vUV = aPos; gl_Position = vec4(aPos * 2. - 1., 0., 1.); }`
 
@@ -174,6 +187,12 @@ void main() {
   o = acc;
 }`
 
+// the picture from before a change of season, laid over the new one and fading out
+const SNAP_FS = `#version 300 es
+precision highp float;
+uniform sampler2D uTex; uniform float uA; in vec2 vUV; out vec4 o;
+void main() { o = vec4(texture(uTex, vUV).rgb, 1.) * uA; }`
+
 // a picture laid over the scene as it is (premultiplied), scaled up smoothly
 const BLIT_FS = `#version 300 es
 precision highp float;
@@ -247,6 +266,8 @@ export class Sky {
   private vao: WebGLVertexArrayObject
   private waterP: Program
   private finalP: Program
+  private snapP: Program
+  private snap: Target | null = null
   private cloudP: Program
   private farP: Program
   private blitP: Program
@@ -264,6 +285,7 @@ export class Sky {
     this.vao = quad(gl)
     this.waterP = program(gl, FULL_VS, WATER_FS)
     this.finalP = program(gl, FULL_VS, FINAL_FS)
+    this.snapP = program(gl, FULL_VS, SNAP_FS)
     this.cloudP = program(gl, FULL_VS, CLOUD_FS)
     this.farP = program(gl, FULL_VS, FAR_FS)
     this.blitP = program(gl, FULL_VS, BLIT_FS)
@@ -325,10 +347,28 @@ export class Sky {
     gl.disable(gl.BLEND)
   }
 
-  final(weather: Weather, daytime: Daytime, W: number, H: number, look: boolean, winter = false) {
-    const gl = this.gl, P = this.finalP, d = DAYS[daytime]
-    // in winter the rain falls as snow: a snowstorm is a pale whiteout, not a dark sky
-    const w = winter && weather === 'storm' ? { ...WX.storm, tint: [214, 222, 234, 0.34], sat: 0.72, bri: 0.98 } : winter && weather === 'rain' ? { ...WX.rain, tint: [200, 210, 226, 0.12], sat: 0.85, bri: 0.99 } : WX[weather]
+  /** Keeps the scene as it is now, to fade from (a new season). */
+  snapshot() {
+    const gl = this.gl, sc = this.scene; if (!sc) return false
+    if (!this.snap || this.snap.w !== sc.w || this.snap.h !== sc.h) { if (this.snap) freeTarget(gl, this.snap); this.snap = target(gl, sc.w, sc.h) }
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, sc.fb); gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.snap.fb)
+    gl.blitFramebuffer(0, 0, sc.w, sc.h, 0, 0, sc.w, sc.h, gl.COLOR_BUFFER_BIT, gl.NEAREST)
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null); gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null)
+    return true
+  }
+  /** Lays the kept scene over the scene being drawn, this strong (0-1). */
+  drawSnap(a: number) {
+    const gl = this.gl, sn = this.snap, sc = this.scene; if (!sn || !sc || sn.w !== sc.w || sn.h !== sc.h || a <= 0) return
+    gl.bindFramebuffer(gl.FRAMEBUFFER, sc.fb); gl.viewport(0, 0, sc.w, sc.h)
+    gl.useProgram(this.snapP.p); gl.bindVertexArray(this.vao)
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, sn.tex); gl.uniform1i(this.snapP.u.uTex, 0); gl.uniform1f(this.snapP.u.uA, a)
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+    gl.disable(gl.BLEND)
+  }
+
+  final(d: Mood, w: Mood, W: number, H: number, look: boolean) {
+    const gl = this.gl, P = this.finalP
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H)
     gl.useProgram(P.p); gl.bindVertexArray(this.vao)
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, this.scene!.tex); gl.uniform1i(P.u.uScene, 0)
@@ -341,17 +381,17 @@ export class Sky {
   }
 
   /** Streaks of rain and, in a storm, lightning; on the canvas, over everything. dt in seconds. */
-  rain(weather: Weather, W: number, H: number, dpr: number, t: number, dt: number, snow = false) {   // snow: in winter, light snow and a snowstorm instead
-    if (weather !== 'rain' && weather !== 'storm') return
+  rain(weather: Weather, W: number, H: number, dpr: number, t: number, dt: number, snow = false, amount = 1) {   // snow: in winter, light snow and a snowstorm instead; amount: 0-1 while it sets in or eases off
+    if ((weather !== 'rain' && weather !== 'storm') || amount <= 0.01) return
     const gl = this.gl, P = this.rainP, storm = weather === 'storm'
-    const area = W * H / (dpr * dpr), n = snow ? (storm ? Math.round(area / 900) : Math.round(area / 3200)) : storm ? Math.round(area / 2600) : Math.round(area / 7000)
+    const area = W * H / (dpr * dpr), n = Math.round(amount * (snow ? (storm ? area / 900 : area / 3200) : storm ? area / 2600 : area / 7000))
     gl.useProgram(P.p); gl.bindVertexArray(this.vao)
     gl.uniform2f(P.u.uView, W, H); gl.uniform1f(P.u.uT, t); gl.uniform1f(P.u.uDpr, dpr); gl.uniform1f(P.u.uStorm, storm ? 1 : 0); gl.uniform1f(P.u.uSnow, snow ? 1 : 0)
     if (snow) gl.uniform4f(P.u.uColor, 0.97, 0.98, 1, storm ? 0.8 : 0.85)
     else gl.uniform4f(P.u.uColor, storm ? 205 / 255 : 210 / 255, storm ? 222 / 255 : 225 / 255, 245 / 255, storm ? 0.45 : 0.32)
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n)
-    if (storm && !snow) {
+    if (storm && !snow && amount > 0.6) {
       if (t > this.nextFlash) { this.flash = 1; this.nextFlash = t + 5 + Math.random() * 9; this.double = Math.random() < 0.5 ? t + 0.18 : 0 }
       if (this.double && t > this.double) { this.flash = 0.8; this.double = 0 }
       if (this.flash > 0.01) {
