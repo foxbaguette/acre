@@ -100,7 +100,7 @@ export function App() {
       </div>
     )
   } else if (island) {
-    page = <GamePage mapId={island} account={account} wallet={walletName()} onSignOut={signOut} onLeave={leave} />
+    page = <GamePage mapId={island} account={account} onLeave={leave} />
   } else {
     page = <Atlas account={account} wallet={walletName()} onSignOut={signOut} onEnter={enter} />
   }

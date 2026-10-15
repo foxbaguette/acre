@@ -25,7 +25,7 @@
 .hud { position: absolute; z-index: 10; }
 .hud-tl { left: 18px; top: 16px; display: grid; gap: 8px; justify-items: start; }
 .hud-tr { right: 20px; top: 18px; display: grid; justify-items: end; gap: 8px; }
-.hud-r { right: 18px; top: 92px; display: grid; gap: 10px; }   /* under the account tag, clear of the notes and creature cards */
+.hud-r { right: 20px; top: 50%; transform: translateY(-50%); }   /* the right edge, halfway down: clear of the Fenmarks, the clock and a creature's card */
 .hud-bl { left: 18px; bottom: 18px; display: grid; gap: 10px; }
 .hud-row { display: flex; align-items: flex-end; gap: 6px; }
 .hud-br { right: 18px; bottom: 18px; }
@@ -36,21 +36,10 @@
 .isle-tag-mark { width: 46px; height: 46px; color: var(--rust); flex: none; transform: rotate(-8deg); }
 .isle-tag small { display: block; font-family: var(--sc); font-size: .74rem; letter-spacing: .16em; color: var(--rust); line-height: 1.1; }
 .isle-tag b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.7rem; line-height: 1.05; color: var(--ink); }
-.back-link { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 5px 8px; border: 0; border-radius: 999px; cursor: pointer;
-  background: rgba(247, 240, 222, .86); color: var(--blue); font-family: var(--hand); font-size: 1.3rem; line-height: 1; box-shadow: 0 4px 12px -4px rgba(10, 8, 2, .45); }
 .hud-fps { min-height: 1em; padding-left: 8px; font-family: var(--sc); font-size: .74rem; letter-spacing: .14em; color: #fdf6e3; text-shadow: 0 1px 3px rgba(0, 0, 0, .55); font-variant-numeric: tabular-nums; }
-.back-link:hover { background: var(--paper); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
 
 .game .acct { box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); }
 .game .acct::before { background: #8fa5ad; }
-
-.knob { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%; cursor: pointer; padding: 0;
-  font-family: var(--display); font-size: 1.7rem; line-height: 1; color: var(--ink);
-  background: radial-gradient(circle at 35% 30%, #fffaf0, var(--paper) 55%, #e2d4b4); border: 2px solid #b8924f;
-  box-shadow: inset 0 0 0 2px rgba(255, 250, 235, .7), 0 6px 14px -4px rgba(10, 8, 2, .55); transition: transform .15s ease; }
-.knob:hover { transform: scale(1.06); }
-.knob:active { transform: scale(.96); }
-.knob-fit svg { width: 26px; height: 26px; color: var(--rust); }
 
 .hud-label { font-family: var(--hand); color: #fdf6e3; font-size: 1.3rem; margin: 0 4px 6px 2px; text-shadow: 0 1px 3px rgba(0, 0, 0, .5); }
 .wx-tag { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px 7px 10px; border: 0; cursor: pointer; border-radius: 3px;
@@ -150,8 +139,7 @@
   .hud-bl { left: 12px; bottom: 76px; gap: 6px; }
   .hud-row { flex-wrap: wrap; }
   .hud-label { display: none; }
-  .hud-r { right: 12px; top: auto; bottom: 84px; }   /* on phones the cards sit at the top right, the account tag at the bottom */
-  .knob { width: 42px; height: 42px; }
+  .hud-r { right: 12px; }
   .hud-hint { bottom: 140px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -236,7 +224,7 @@
 /* season, daytime and weather: one button, the choices above it */
 .sky-panel { display: grid; gap: 10px; }
 .sky-panel[hidden] { display: none; }
-.sky-toggle { justify-self: start; }
+.ui-corners .sky-toggle { justify-self: start; }
 .sky-own { margin-left: 2px; color: var(--rust); font-size: 1.1em; line-height: 0; }
 .sky-follow { justify-self: start; border: 0; padding: 3px 10px; border-radius: 4px; background: rgba(251, 247, 238, .92); color: var(--blue); font-size: 1.05rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }
 .sky-follow:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -258,3 +246,95 @@
 .purse span { display: flex; align-items: baseline; gap: 5px; }
 .purse b { font-family: var(--sc); font-weight: 400; font-size: 1.1rem; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
 .purse small { font-family: var(--sc); font-size: .8rem; letter-spacing: .1em; color: var(--ink-soft); }
+/* build, weather and bestiary side by side; the weather card under them, on paper like the build card */
+.hud-buttons { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sky-panel { width: 360px; max-width: calc(100vw - 36px); padding: 12px 14px; background: var(--card); background-image: var(--noise); border-radius: 3px; transform: rotate(-.4deg);
+  box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 14px 26px -10px rgba(10, 8, 2, .6); }
+.sky-panel .hud-label { color: var(--ink-soft); text-shadow: none; font-size: 1.15rem; min-width: 64px; }
+.sky-panel .hud-row { flex-wrap: wrap; }
+.sky-now { margin: 0 0 4px; color: var(--blue); font-size: 1.15rem; }
+.sky-toggle[aria-expanded="true"] { background-color: var(--card); color: var(--ink); box-shadow: 0 8px 18px -6px rgba(10, 8, 2, .6), inset 0 -3px 0 var(--rust); }
+/* zoom: one paper tag like the Fenmarks' tag, a plus over a minus, a fine rule between */
+.zoom-tag { display: grid; padding: 3px; border-radius: 4px; background: var(--card); background-image: var(--noise); box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); }
+.zoom-btn { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 3px; background: none; color: var(--ink); cursor: pointer; }
+.zoom-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.zoom-btn:hover { background: var(--paper); color: var(--rust); }
+.zoom-btn:active { transform: translateY(1px); }
+.zoom-btn:focus-visible { outline: 2px solid var(--rust); outline-offset: -2px; }
+.zoom-rule { height: 1px; margin: 1px 7px; background: rgba(60, 45, 20, .25); }
+
+/* ---------- the enclosures: a small numbered seal; the whole tag on hover, or close up ---------- */
+.pen-tag .pen-seal { position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; pointer-events: auto; cursor: default;
+  font: normal .8rem var(--sc); color: var(--ink); background: radial-gradient(circle at 35% 30%, #fffaf0, #efe2c4 70%, #d8c69e); box-shadow: 0 0 0 1.5px #b48a3a, 0 4px 8px -3px rgba(20, 14, 4, .6); }
+.pen-tag.pond .pen-seal { color: #2e4a6e; box-shadow: 0 0 0 1.5px #6a8aa0, 0 4px 8px -3px rgba(20, 14, 4, .6); }
+.pen-tag b, .pen-tag small { display: none; }
+.pen-tag:hover b, .pen-tag:hover small, .pen-tags.near .pen-tag b, .pen-tags.near .pen-tag small { display: block; }
+.pen-tag:hover .pen-seal, .pen-tags.near .pen-seal { display: none; }
+.pen-tags.far .pen-tag .pen-seal { width: 20px; height: 20px; left: -10px; top: -10px; font-size: .62rem; }
+
+/* ---------- layout 1: the corners ---------- */
+/* the name tag's folded corner: the way back to the journal */
+.ui-corners .isle-tag { position: relative; }
+.isle-back { position: absolute; left: 0; bottom: 0; width: 30px; height: 30px; padding: 0 0 3px 3px; border: 0; border-radius: 0 0 0 3px; cursor: pointer; display: grid; place-items: end start;
+  background: linear-gradient(225deg, transparent 50%, #d9ccb2 50%); color: var(--blue); }
+.isle-back svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.isle-back:hover { background: linear-gradient(225deg, transparent 50%, #cbb994 50%); color: var(--rust); }
+.isle-back:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+/* build, weather, bestiary: three tags of one size, the name in ink, the sign in blue */
+.tool-tag { width: 104px; justify-content: center; padding: 9px 10px; transform: none !important; }
+.tool-tag svg { color: var(--blue); }
+.tool-tag span { color: var(--ink); }
+.tool-tag[aria-expanded="true"] span { color: var(--ink); }
+/* the Fenmarks and the island's time: two small paper tags, pinned one under the other; the day of the season slides out on hover */
+.ui-corners .hud-tr .purse { transform: rotate(1deg); padding: 4px 11px 4px 5px; border-radius: 3px; }
+.ui-corners .hud-tr .purse img { width: 24px; height: 24px; }
+.ui-corners .hud-tr .isle-clock { transform: rotate(-1.2deg); gap: 8px; padding: 4px 11px 4px 5px; border-radius: 3px; background: var(--card); background-image: var(--noise);
+  box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); cursor: default; outline: none; }
+.ui-corners .hud-tr .isle-clock svg { width: 24px; height: 24px; }
+.ui-corners .hud-tr .isle-clock span { display: flex; align-items: baseline; gap: 0; }
+.ui-corners .hud-tr .isle-clock b { font-size: 1rem; }
+.ui-corners .hud-tr .isle-clock small { max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; transition: max-width .25s ease, opacity .2s ease, margin .25s ease; }
+.ui-corners .hud-tr .isle-clock:hover small, .ui-corners .hud-tr .isle-clock:focus-visible small, .ui-corners .hud-tr .isle-clock:focus small { max-width: 180px; opacity: 1; margin-left: 8px; }
+
+/* ---------- layout 4: the journal's margin down the left ---------- */
+.margin { left: 0; top: 0; bottom: 0; width: 116px; display: flex; flex-direction: column; align-items: center; padding: 20px 14px 18px 8px;
+  background: linear-gradient(90deg, #f3ebda, #fbf7ee); background-image: var(--noise), linear-gradient(90deg, #f3ebda, #fbf7ee); box-shadow: 6px 0 18px -6px rgba(10, 8, 2, .5); }
+.margin::after { content: ''; position: absolute; top: 0; bottom: 0; right: 14px; width: 1.5px; background: rgba(165, 69, 45, .5); }
+.margin-title { display: grid; justify-items: center; text-align: center; gap: 2px; width: 92px; }
+.margin-title .isle-tag-mark { width: 44px; height: 44px; }
+.margin-title b { font-family: var(--display); font-weight: 400; font-size: 1.35rem; line-height: 1.05; color: var(--ink); margin-top: 4px; }
+.margin-title small { font-family: var(--sc); font-size: .68rem; letter-spacing: .14em; color: var(--rust); }
+.margin-tools { display: grid; gap: 14px; margin-top: 36px; width: 92px; }
+.margin-tool { position: relative; display: grid; justify-items: center; gap: 4px; padding: 8px 2px 7px; border: 0; border-radius: 4px; background: none; cursor: pointer; color: var(--blue); }
+.margin-tool svg { width: 28px; height: 28px; }
+.margin-tool span { font-family: var(--sc); font-size: .72rem; letter-spacing: .12em; color: var(--ink); }
+.margin-tool:hover { background: rgba(60, 45, 20, .06); }
+.margin-tool[aria-expanded="true"] { background: rgba(60, 45, 20, .08); box-shadow: inset 3px 0 0 var(--rust); }
+.margin-tool .sky-own { position: absolute; right: 18px; top: 4px; }
+.margin-foot { margin-top: auto; display: grid; justify-items: center; gap: 14px; width: 92px; }
+.margin .isle-clock { flex-direction: column; gap: 4px; background: none; box-shadow: none; padding: 0; text-align: center; }
+.margin .isle-clock svg { width: 46px; height: 46px; }
+.margin .isle-clock small { font-size: .9rem; }
+.margin-back { border: 0; background: none; cursor: pointer; color: var(--blue); font-size: 1.05rem; line-height: 1.1; padding: 2px; }
+.margin-back:hover { text-decoration: underline; text-underline-offset: 3px; }
+.margin-cards { left: 128px; top: 16px; display: grid; gap: 8px; justify-items: start; z-index: 12; }   /* (over the Fenmarks and the zoom, when a card opens wide) */
+.ui-margin .hud-r { right: 20px; }
+
+/* the switch between the two, at the foot of the weather card */
+.sky-view { margin: 10px 0 0; font-family: var(--hand); font-size: 1.05rem; color: var(--ink-soft); }
+.sky-view button { border: 0; background: none; padding: 0 2px; cursor: pointer; font: inherit; color: var(--blue); }
+.sky-view button[aria-pressed="true"] { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .tool-tag { width: auto; }
+  .margin { width: 78px; padding: 12px 10px 12px 4px; }
+  .margin::after { right: 9px; }
+  .margin-title b { font-size: 1rem; } .margin-title small { display: none; } .margin-title .isle-tag-mark { width: 32px; height: 32px; }
+  .margin-title, .margin-tools, .margin-foot { width: 62px; }
+  .margin-tool svg { width: 24px; height: 24px; } .margin-tool span { font-size: .6rem; }
+  .margin .isle-clock svg { width: 36px; height: 36px; } .margin .isle-clock small { display: none; }
+  .margin-back { font-size: .9rem; }
+  .margin-cards { left: 86px; right: 10px; }
+  .ui-margin .sky-panel, .ui-margin .build-card { width: auto; max-width: calc(100vw - 98px); }
+  .ui-margin .hud-tr { top: 16px; bottom: auto; }
+}

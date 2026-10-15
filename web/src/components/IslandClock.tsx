@@ -16,7 +16,7 @@ export function IslandClock({ clock, season }: { clock: HomeClock; season: strin
   const { h, m, day, days } = islandTime(clock, now)
   const hourA = ((h % 12) + m / 60) * 30, minA = m * 6, hh = String(h).padStart(2, '0'), mm = String(m).padStart(2, '0')
   return (
-    <div className="isle-clock" role="timer" aria-label={`Island time ${hh}:${mm}, day ${day} of ${season}`}>
+    <div className="isle-clock" role="timer" tabIndex={0} aria-label={`Island time ${hh}:${mm}, day ${day} of ${season}`}>
       <svg viewBox="0 0 40 40" aria-hidden="true">
         <circle cx="20" cy="20" r="18" className="face" />
         {Array.from({ length: 12 }, (_, k) => (

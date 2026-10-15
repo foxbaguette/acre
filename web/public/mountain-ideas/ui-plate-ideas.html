@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fenmarks and Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=EB+Garamond:wght@400;500&family=IM+Fell+English&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; --rust: #a5452d; --blue: #2e4a6e; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 'EB Garamond', Georgia, serif; }
+  header, main { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 6px; font-size: 28px; font-weight: 400; }
+  header p { margin: 0; color: var(--soft); max-width: 900px; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding-top: 18px; padding-bottom: 50px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  figcaption { padding: 9px 14px 12px; font-size: 14.5px; color: var(--soft); }
+  figcaption b { display: block; color: var(--ink); font-weight: 500; font-size: 16px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; }
+  /* a crop of the island's top right corner (from a 1440 x 900 screenshot), by day and darkened as at night */
+  .crop { position: relative; height: 170px; overflow: hidden; background: url(ui/clean.png) no-repeat; background-position: -990px -6px; }
+  .crop.night::before { content: ''; position: absolute; inset: 0; background: rgba(9, 18, 56, .62); }
+  .crop .at { position: absolute; right: 18px; top: 16px; }
+  .crop.night .at { z-index: 1; }
+
+  .sc { font-family: 'IM Fell English SC', serif; letter-spacing: .08em; }
+  .hand { font-family: 'Caveat', cursive; }
+  .num { font-variant-numeric: tabular-nums; }
+  .row { display: flex; align-items: center; gap: 9px; }
+  .shadowtext { color: #fdf6e3; text-shadow: 0 1px 2px rgba(0,0,0,.75), 0 0 10px rgba(0,0,0,.45); }
+  .paper { background: linear-gradient(180deg, #fdfaf2, #f6efe0); box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); }
+</style>
+</head>
+<body>
+<header>
+  <h1>The Fenmarks and the island's time: ten quieter ways</h1>
+  <p>For the corners layout. Today's plate first, then ten ideas, each on a crop of the island's top right corner by day (left) and darkened as at night (right), since whatever replaces the plate must still read on both.</p>
+</header>
+<main id="sheet"></main>
+<script>
+const coin = (px) => `<img src="../art/token/fenmark-small.svg" width="${px}" height="${px}" style="display:block;flex:none">`
+const face = (px, opts = {}) => { const h = 2, m = 7, ha = ((h % 12) + m / 60) * 30, ma = m * 6, rim = opts.rim ?? '#b48a3a', fill = opts.fill ?? '#fbf7ee', hand = opts.hand ?? '#2f2a22'
+  let t = ''; for (let k = 0; k < 12; k++) t += `<line x1="20" y1="${k % 3 ? 4.5 : 3.5}" x2="20" y2="${k % 3 ? 6.5 : 8}" transform="rotate(${k * 30} 20 20)" stroke="${opts.tick ?? '#7a6f5c'}" stroke-width="1" stroke-linecap="round"/>`
+  return `<svg viewBox="0 0 40 40" width="${px}" height="${px}" style="display:block;flex:none"><circle cx="20" cy="20" r="18" fill="${fill}" stroke="${rim}" stroke-width="1.4"/>${t}<line x1="20" y1="20" x2="20" y2="10.5" transform="rotate(${ha} 20 20)" stroke="${hand}" stroke-width="2.2" stroke-linecap="round"/><line x1="20" y1="20" x2="20" y2="6.5" transform="rotate(${ma} 20 20)" stroke="${hand}" stroke-width="1.3" stroke-linecap="round"/><circle cx="20" cy="20" r="1.6" fill="#a5452d"/></svg>` }
+const fen = (size = 18, col = 'var(--ink)', soft = 'var(--soft)', x = '') => `<span class="sc num ${x}" style="font-size:${size}px;color:${col}">0.0000</span><span class="sc ${x}" style="font-size:${Math.round(size * .66)}px;color:${soft}">FEN</span>`
+const time = (size = 17, col = 'var(--ink)', soft = 'var(--soft)', x = '') => `<span class="sc num ${x}" style="font-size:${size}px;color:${col}">02:07</span><span class="hand ${x}" style="font-size:${size - 1}px;color:${soft}">day 6 of 17 · autumn</span>`
+
+const IDEAS = [
+  ['Now: one plate', 'The paper plate as it is: both on one card, a fine rule between. Clear, but it is the biggest light shape on the screen.',
+    `<div class="paper" style="border-radius:4px;padding:9px 14px 10px;display:grid;gap:7px"><div class="row">${coin(28)}${fen()}</div><div style="height:1px;background:rgba(60,45,20,.2)"></div><div class="row">${face(30)}${time()}</div></div>`],
+  ['1. Straight on the map', 'No card at all: light lettering with a soft shadow, as the journal\'s labels on the map are written. The coin and the clock carry their own colour.',
+    `<div style="display:grid;gap:6px;justify-items:end"><div class="row">${coin(26)}${fen(19, '#fdf6e3', '#efe4c8', 'shadowtext')}</div><div class="row">${face(26)}${time(17, '#fdf6e3', '#f2e8cc', 'shadowtext')}</div></div>`],
+  ['2. Frosted paper', 'The same plate, but thin: the paper half see-through and the map softly blurred behind it, so it reads as a pane, not a slab.',
+    `<div style="border-radius:6px;padding:8px 13px;display:grid;gap:6px;background:rgba(251,247,238,.5);backdrop-filter:blur(6px) saturate(1.1);-webkit-backdrop-filter:blur(6px);box-shadow:0 0 0 1px rgba(255,250,235,.55) inset,0 6px 16px -8px rgba(0,0,0,.45)"><div class="row">${coin(24)}${fen(17)}</div><div class="row">${face(24)}${time(16)}</div></div>`],
+  ['3. One slim line', 'Both on a single short line, the coin, the amount, a dot, the clock and the hour; the day of the season only on hover. Half the height.',
+    `<div class="paper" style="border-radius:20px;padding:4px 14px 4px 5px;display:flex;align-items:center;gap:8px">${coin(24)}${fen(16)}<span style="width:1px;height:18px;background:rgba(60,45,20,.25);margin:0 3px"></span>${face(22)}<span class="sc num" style="font-size:15px">02:07</span></div>`],
+  ['4. Two small tags', 'Two separate little paper tags, each only as big as what it holds, one a little tilted, as if pinned to the map one after the other.',
+    `<div style="display:grid;gap:8px;justify-items:end"><div class="paper row" style="border-radius:3px;padding:4px 11px 4px 5px;transform:rotate(1deg)">${coin(24)}${fen(16)}</div><div class="paper row" style="border-radius:3px;padding:4px 11px 4px 5px;transform:rotate(-1.2deg)">${face(24)}${time(15)}</div></div>`],
+  ['5. Ink ribbon', 'A narrow dark ribbon instead of white paper: cream lettering on ink, tucked against the top edge. Recedes into the map by day and glows a little at night.',
+    `<div style="margin-top:-16px;background:rgba(30,34,40,.82);color:#efe6d2;border-radius:0 0 6px 6px;padding:10px 14px 8px;display:grid;gap:6px;box-shadow:0 8px 16px -8px rgba(0,0,0,.6)"><div class="row">${coin(24)}${fen(16, '#f4ead2', '#bfb39a')}</div><div class="row">${face(24, { fill: '#2a2e33', rim: '#b48a3a', hand: '#efe6d2', tick: '#8a8478' })}${time(15, '#f4ead2', '#bfb39a')}</div></div>`],
+  ['6. Pocket watch', 'The clock becomes the piece: a round brass-rimmed watch face, the hour inside it; the Fenmarks on a small tag hung beneath. The day of the season on hover.',
+    `<div style="display:grid;justify-items:center;gap:0"><div style="width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#eef0ee,#b9bcb6 60%,#7e827c);box-shadow:0 0 0 2px #9a9d97,0 8px 16px -6px rgba(0,0,0,.6);display:grid;place-items:center">${face(50)}</div><div style="width:1.5px;height:10px;background:#9a9d97"></div><div class="paper row" style="border-radius:3px;padding:3px 9px 3px 4px;gap:6px">${coin(20)}${fen(14)}</div></div>`],
+  ['7. Engraved outline', 'No fill: only a fine cream outline round the two lines and the lettering in light, as if the plate were engraved into the map.',
+    `<div style="border:1px solid rgba(253,246,227,.8);border-radius:4px;padding:7px 12px;display:grid;gap:6px;box-shadow:0 0 0 1px rgba(0,0,0,.18),inset 0 0 0 1px rgba(0,0,0,.12)"><div class="row">${coin(24)}${fen(17, '#fdf6e3', '#efe4c8', 'shadowtext')}</div><div class="row">${face(24)}${time(16, '#fdf6e3', '#f2e8cc', 'shadowtext')}</div></div>`],
+  ['8. The coin speaks', 'A bigger coin with the amount beside it on the map, and the time in small hand underneath, no card: the Fenmark itself is the badge.',
+    `<div style="display:grid;justify-items:end;gap:4px"><div class="row" style="gap:10px"><span style="display:grid;justify-items:end"><span class="sc num shadowtext" style="font-size:22px;color:#fdf6e3">0.0000</span><span class="sc shadowtext" style="font-size:11px;color:#efe4c8;margin-top:-4px">fenmark</span></span>${coin(44)}</div><div class="row hand shadowtext" style="font-size:17px;color:#fdf6e3;gap:6px">${face(20)}<span class="sc num" style="font-size:15px">02:07</span> · day 6 · autumn</div></div>`],
+  ['9. Under the top edge', 'A strip of paper tucked under the screen\'s top edge, only its lower part showing, torn along the bottom: there, but out of the way.',
+    `<div class="paper" style="margin-top:-16px;padding:12px 14px 12px;display:flex;align-items:center;gap:12px;border-radius:0;clip-path:polygon(0 0,100% 0,100% 88%,94% 100%,86% 91%,77% 99%,66% 90%,55% 98%,44% 90%,33% 99%,22% 91%,11% 99%,0 90%)">${coin(24)}${fen(16)}<span style="width:1px;height:20px;background:rgba(60,45,20,.25)"></span>${face(22)}<span class="sc num" style="font-size:15px">02:07</span></div>`],
+  ['10. Small and soft', 'The same plate, about two thirds the size, three quarters opaque and with a lighter shadow: still paper, just stepping back.',
+    `<div style="border-radius:4px;padding:6px 10px 7px;display:grid;gap:5px;background:rgba(251,247,238,.78);box-shadow:0 4px 12px -6px rgba(0,0,0,.4)"><div class="row" style="gap:7px">${coin(20)}${fen(14)}</div><div style="height:1px;background:rgba(60,45,20,.16)"></div><div class="row" style="gap:7px">${face(20)}${time(13)}</div></div>`],
+]
+const sheet = document.getElementById('sheet')
+for (const [title, note, html] of IDEAS) {
+  const f = document.createElement('figure')
+  f.innerHTML = `<div class="pair"><div class="crop"><div class="at">${html}</div></div><div class="crop night"><div class="at">${html}</div></div></div><figcaption><b>${title}</b>${note}</figcaption>`
+  sheet.append(f)
+}
+</script>
+</body>
+</html>

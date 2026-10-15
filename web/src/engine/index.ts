@@ -151,12 +151,12 @@ export function startEngine(opts: EngineOptions): IslandView {
     pens = []
     for (const e of list) { const m = penMiddle(e.at, e.water); if (!m) continue
       const el = document.createElement('div'); el.className = 'pen-tag' + (e.water ? ' pond' : '')
-      el.innerHTML = '<b></b><small></small>'; el.querySelector('b')!.textContent = (e.water ? 'pond no. ' : 'enclosure no. ') + e.id; el.querySelector('small')!.textContent = e.tiles + ' tile' + (e.tiles === 1 ? '' : 's')
+      el.innerHTML = '<i class="pen-seal"></i><b></b><small></small>'; el.querySelector('i')!.textContent = e.id; el.querySelector('b')!.textContent = (e.water ? 'pond no. ' : 'enclosure no. ') + e.id; el.querySelector('small')!.textContent = e.tiles + ' tile' + (e.tiles === 1 ? '' : 's')
       penLayer.append(el); pens.push({ ...e, el, x: m[0], y: m[1] }) }
     kick()
   }
   function placePens() { const z = CAM.z
-    penLayer.classList.toggle('far', z < 10)
+    penLayer.classList.toggle('far', z < 10); penLayer.classList.toggle('near', z >= 30)   // close up the whole tags show; further out only their seals
     for (const p of pens) p.el.style.transform = `translate(${(p.x - CAM.x) * z}px, ${(p.y - CAM.y) * z}px)` }
   const harvestTiles = (tiles: number[]) => { both((b) => { for (const i of tiles) if (b[i]?.c && ripe(i)) b[i].h = 1 }); relay(null) }
   const harvest = (tile: number, whole: boolean) => { const tiles = whole ? fieldOf(tile) : [tile]
@@ -1005,10 +1005,10 @@ export function startEngine(opts: EngineOptions): IslandView {
     state.season = k; sprites.season = n; told()
     if (ground.look[3] !== n) { ground.look[3] = n; ground.restyle() }
     document.querySelectorAll<HTMLElement>('[data-season]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.season === k))); kick() }
-  document.querySelectorAll<HTMLElement>('[data-season]').forEach((b) => b.addEventListener('click', () => setSeason(b.dataset.season as Season)))
   setSeason(state.season)
-  document.querySelectorAll<HTMLElement>('[data-weather]').forEach((b) => b.addEventListener('click', () => setWeather(b.dataset.weather as Weather)))
-  document.querySelectorAll<HTMLElement>('[data-daytime]').forEach((b) => b.addEventListener('click', () => setDaytime(b.dataset.daytime as Daytime)))
+  // the season, daytime and weather buttons, wherever the page puts them (and whenever it draws them)
+  document.addEventListener('click', (e) => { const b = (e.target as Element | null)?.closest?.('[data-season], [data-daytime], [data-weather]') as HTMLElement | null; if (!b) return
+    if (b.dataset.season) setSeason(b.dataset.season as Season); else if (b.dataset.daytime) setDaytime(b.dataset.daytime as Daytime); else if (b.dataset.weather) setWeather(b.dataset.weather as Weather) })
   if (opts.weather) setWeather(opts.weather); if (opts.daytime) setDaytime(opts.daytime)
 
   return {

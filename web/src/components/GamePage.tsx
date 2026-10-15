@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { chainPart, fetchConstructs, fetchEnclosures, saveActions } from '@/chain/constructs'
 import { clockAt, fetchHomeClock, type Conditions, type HomeClock } from '@/chain/home'
@@ -7,12 +7,11 @@ import { Bestiary, noteSeen } from '@/components/Bestiary'
 import { CreatureCard } from '@/components/CreatureCard'
 import { FenPurse } from '@/components/FenPurse'
 import { IslandClock } from '@/components/IslandClock'
-import { fetchMapTiles, fetchPlayerMaps, forgetMapTiles, mapStats, type MapStats } from '@/chain/maps'
+import { fetchMapTiles, fetchPlayerMaps, forgetMapTiles } from '@/chain/maps'
 import { startEngine } from '@/engine'
 import { loadBuilds as readBuilds, saveForm } from '@/engine/build'
 import { CROPS } from '@/engine/crops'
 import type { Builds, BuildTool, IslandView } from '@/engine/types'
-import { AccountTag } from '@/journal/Header'
 import { friendlyError, signer, transact } from '@/wallet/session'
 
 type Save = { state: 'idle' } | { state: 'signing' } | { state: 'error'; message: string }
@@ -20,6 +19,16 @@ type Save = { state: 'idle' } | { state: 'signing' } | { state: 'error'; message
 type Load = { state: 'reading' } | { state: 'drawing' } | { state: 'ready' } | { state: 'error'; message: string }
 
 const HINT_KEY = 'ua-island-hint-seen'
+// how the island's tools are laid out: in the corners, or in a margin down the left
+type Layout = 'corners' | 'margin'
+const LAYOUT_KEY = 'ua-ui-layout'
+const firstLayout = (): Layout => {
+  const q = new URLSearchParams(location.search).get('ui')
+  if (q === 'corners' || q === 'margin') { try { localStorage.setItem(LAYOUT_KEY, q) } catch { /* fine */ } return q }
+  try { return localStorage.getItem(LAYOUT_KEY) === 'margin' ? 'margin' : 'corners' } catch { return 'corners' }
+}
+/** The frame counter, only when asked for (?fps). */
+const showFps = new URLSearchParams(location.search).has('fps')
 const seenHint = () => {
   try {
     return localStorage.getItem(HINT_KEY) === '1'
@@ -28,7 +37,6 @@ const seenHint = () => {
   }
 }
 
-const pct = (v: number) => `${Math.round(v * 1000) / 10}%`
 
 // The player's builds on each island: the island shows only what land.acre keeps (table constructs). This browser keeps
 // the crops, which are not constructions. On an island the signed-in wallet does not own, builds last only this visit.
@@ -57,8 +65,6 @@ const WEATHER_WORDS: Record<string, string> = { sun: 'sunny', cloudy: 'cloudy', 
 const SNOW_WORDS: Record<string, string> = { rain: 'light snow', storm: 'snowstorm' }
 const weatherWord = (c: Conditions) => (c.season === 'winter' && SNOW_WORDS[c.weather]) || WEATHER_WORDS[c.weather] || c.weather
 const cropName = (c: string) => c.replace(/-/g, ' ')
-/** Everyone living in the island's farmhouses: one farmer per stage. */
-const farmersIn = (b: Builds) => Object.values(b).reduce((n, c) => n + (c.s === 'farmhouse' ? c.lv ?? 1 : 0), 0)
 
 const TOOLS: { id: BuildTool; label: string; hint: string; icon: string }[] = [
   { id: 'fence', label: 'enclosure', hint: 'Drag to draw a fence, any shape; close the loop and it is an enclosure. To enlarge one, draw the new side out from the old fence and erase the old stretch. Shift + drag: a rectangle.', icon: 'M3 20V8l2-3 2 3v12M17 20V8l2-3 2 3v12M3 11h18M3 16h18' },
@@ -81,20 +87,16 @@ const TOOLS: { id: BuildTool; label: string; hint: string; icon: string }[] = [
 
 /**
  * The island itself, full screen. The journal only shows up in small pieces around the edges: the island's
- * name tag, who is signed in, zoom, the time of day, the weather and a field-notes card.
+ * name tag and the build, weather and bestiary buttons, the player's Fenmarks and the island's time, zoom, and the card of
+ * a creature picked.
  */
-export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
+export function GamePage({ mapId, account, onLeave }: {
   mapId: string
   account: string
-  wallet: string | null
-  onSignOut: () => void
   onLeave: () => void
 }) {
   const [load, setLoad] = useState<Load>({ state: 'reading' })
   const [name, setName] = useState(`Island ${mapId}`)
-  const [stats, setStats] = useState<MapStats | null>(null)
-  const [notesOpen, setNotesOpen] = useState(false)
-  const [lifeforms, setLifeforms] = useState<number | null>(null)
   const [creatures, setCreatures] = useState<Creature[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [hint, setHint] = useState(!seenHint())
@@ -105,10 +107,10 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
   const [pending, setPending] = useState(0)
   const [planKind, setPlanKind] = useState<'build' | 'erase' | 'both'>('build')
   const confirmWords = planKind === 'erase' ? 'confirm erasing' : planKind === 'both' ? 'confirm changes' : 'confirm building'
-  const [farmers, setFarmers] = useState(0)
-  const [store, setStore] = useState<Record<string, number>>({})
   const [crop, setCrop] = useState<string>('wheat')
   const started = useRef<IslandView | null>(null)
+  const [layout, setLayoutState] = useState<Layout>(firstLayout)
+  const setLayout = (l: Layout) => { setLayoutState(l); try { localStorage.setItem(LAYOUT_KEY, l) } catch { /* only for this visit */ } }
   // the island's season, daytime and weather: what is shown, and what the island clock (home.acre) says it is now
   const [shown, setShown] = useState<Conditions | null>(null)
   const [island, setIsland] = useState<Conditions | null>(null)
@@ -138,7 +140,6 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
     Promise.all([fetchMapTiles(mapId), fetchConstructs(mapId)]).then(
       ([tiles, chain]) => {
         if (!live || started.current) return
-        setStats(mapStats(tiles))
         setLoad({ state: 'drawing' })
         // let the "sketching" note paint before the first build starts
         setTimeout(() => {
@@ -174,13 +175,11 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
                 tick()
                 document.addEventListener('visibilitychange', () => { if (!document.hidden) tick() })   // timers sleep in a hidden tab
               }, (err) => console.warn('Could not read the island clock', err))
-              setFarmers(farmersIn(saved))
-              view.onStore(setStore)
-              view.onBuild((builds, canUndo, planned, kind) => { saveBuilds(mapId, builds); setUndoable(canUndo); setPending(planned); setPlanKind(kind); setFarmers(farmersIn(builds)) })
+              view.onBuild((builds, canUndo, planned, kind) => { saveBuilds(mapId, builds); setUndoable(canUndo); setPending(planned); setPlanKind(kind) })
               fetchEnclosures(mapId).then((list) => live && view.setEnclosures(list), (err) => console.warn('Could not read the enclosures', err))
               fetchLifeforms(mapId)
                 .then((list) => { if (live) setCreatures(list); noteSeen(list.map((c) => view.spriteFor(c.speciesName)).filter((k): k is string => !!k)); return view.setLifeforms(list) })
-                .then((n) => live && setLifeforms(n), (err) => { console.warn('Could not load the lifeforms', err); if (live) setLifeforms(null) })
+                .catch((err) => console.warn('Could not load the lifeforms', err))
             })
           } catch (err) {
             setLoad({ state: 'error', message: err instanceof Error ? err.message : String(err) })
@@ -246,8 +245,187 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
     }
   }
 
+  // the two layouts share these: the three tools, and the cards they open (the weather card always in the page)
+  const toolClass = layout === 'corners' ? 'wx-tag tool-tag' : 'margin-tool'
+  const toolButtons = (
+    <>
+      <button type="button" className={`${toolClass} build-toggle`} aria-expanded={buildOpen} aria-controls="build-card" onClick={() => { setSkyOpen(false); if (buildOpen) closeBuild(); else setBuildOpen(true) }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M14 6l4 4M3 21l9-9M12.5 4.5l3-1.5 5.5 5.5-1.5 3-3-3-1 1-3-3 1-1z" />
+        </svg>
+        <span>build</span>
+      </button>
+      <button type="button" className={`${toolClass} sky-toggle`} aria-expanded={skyOpen} aria-controls="sky-panel" onClick={() => { closeBuild(); setSkyOpen(!skyOpen) }}
+        title={ownPick ? 'Your own pick: the island’s clock takes over again when the next change comes round' : 'Season, daytime and weather, as the island’s clock has them now'}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+          <circle cx="9" cy="9" r="3.2" />
+          <path d="M9 2.5v1.5M2.5 9H4M4.4 4.4l1 1M13.6 4.4l-1 1M8 20h9a3.5 3.5 0 0 0 .4-7 5 5 0 0 0-9.6 1.4A2.8 2.8 0 0 0 8 20z" />
+        </svg>
+        <span>weather</span>
+        {ownPick && <span className="sky-own" aria-label="your own pick">•</span>}
+      </button>
+      <button type="button" className={`${toolClass} bestiary-toggle`} aria-haspopup="dialog" onClick={() => { closeBuild(); setSkyOpen(false); setBestiaryOpen(true) }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M4 5c3-1.5 5.5-1.5 8 0v14c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v14c2.5-1.5 5-1.5 8 0z" />
+        </svg>
+        <span>bestiary</span>
+      </button>
+    </>
+  )
+  const cardsAndSky = (
+    <>
+      {load.state === 'ready' && (
+        <div className="build">
+          {buildOpen && (
+            <div className="build-card" id="build-card">
+              <div className="build-tools" role="group" aria-label="What to build">
+                {TOOLS.map((t) => (
+                  <button key={t.id} type="button" className="build-tool" aria-pressed={tool === t.id} onClick={() => setTool(tool === t.id ? null : t.id)}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d={t.icon} />
+                    </svg>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <p className="build-hint hand">{tool ? TOOLS.find((t) => t.id === tool)!.hint : 'Pick what to build, then drag across the island.'}</p>
+              {tool === 'crop' && (
+                <div className="crop-pick" role="radiogroup" aria-label="Which crop to sow">
+                  {CROPS.map((c) => (
+                    <button key={c} type="button" role="radio" aria-checked={crop === c} className="crop-seed" title={cropName(c)} onClick={() => setCrop(c)}>
+                      <img src={`art/crops/${c}/7-harvest-front.svg?v=1`} alt={cropName(c)} loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {tool === 'crop' && <p className="crop-name">{cropName(crop)}</p>}
+              {(tool === 'farmhouse' || tool === 'lab' || tool === 'nest' || tool === 'silo' || tool === 'bakery' || tool === 'kitchen' || tool === 'market') && <button type="button" className="build-link" onClick={() => started.current?.rotateBuild()}>rotate (R)</button>}
+              <div className="build-actions">
+                <button type="button" className="build-link" disabled={!undoable} onClick={() => started.current?.undoBuild()}>undo</button>
+                <button type="button" className="build-link" onClick={closeBuild}>done</button>
+              </div>
+              <p className="build-plan hand">{pending ? `${pending} tile${pending === 1 ? '' : 's'} planned: blue goes up, red comes down. Click a mark again to take it back.` : 'Nothing planned yet. What you mark shows as a hologram until you confirm it.'}</p>
+              <div className="build-actions">
+                <button type="button" className="build-confirm" disabled={!pending || save.state === 'signing'} onClick={confirm}>{confirmLabel}</button>
+                <button type="button" className="build-link" disabled={!pending || save.state === 'signing'} onClick={() => { setSave({ state: 'idle' }); started.current?.discardBuild() }}>discard</button>
+              </div>
+              {saveNote}
+              <p className="rec-foot">{toChain ? 'Confirming saves to the chain (your wallet signs); crops stay on this device.' : 'Not saved: only the island’s owner, signed in, saves to the chain. Gone when you leave.'} Right-drag moves the map; a right click puts the tools away.</p>
+            </div>
+          )}
+          {!buildOpen && pending > 0 && (
+            <div className="build-pending">
+              <span className="hand">{pending} planned</span>
+              <button type="button" className="build-confirm" disabled={save.state === 'signing'} onClick={confirm}>{confirmLabel}</button>
+              <button type="button" className="build-link" disabled={save.state === 'signing'} onClick={() => { setSave({ state: 'idle' }); started.current?.discardBuild() }}>discard</button>
+              {saveNote}
+            </div>
+          )}
+        </div>
+      )}
+      <div className="sky-panel" id="sky-panel" hidden={!skyOpen || load.state !== 'ready'}>
+        <p className="sky-now hand">{shown ? `${shown.season} · ${shown.daytime} · ${weatherWord(shown)}` : 'reading the island’s clock…'}{ownPick ? ' (your own pick)' : ''}</p>
+      <div className="hud-row" role="group" aria-label="Season">
+        <span className="hud-label">season</span>
+        <button type="button" className="wx-tag" data-season="spring" aria-pressed={shown?.season === 'spring'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+            <circle cx="12" cy="9" r="2" />
+            <path d="M12 7c0-3 3-4 3-4s1 3-1.5 4.5M14 9c3 0 4 3 4 3s-3 1-4.5-1.5M10 9c-3 0-4 3-4 3s3 1 4.5-1.5M12 11v10M12 17c-2-2-5-2-5-2s1 3 5 3" />
+          </svg>
+          spring
+        </button>
+        <button type="button" className="wx-tag" data-season="summer" aria-pressed={shown?.season === 'summer'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 20h16M6 20c1-5 3-8 6-8s5 3 6 8M12 8V3M8 9 6 6M16 9l2-3" />
+          </svg>
+          summer
+        </button>
+        <button type="button" className="wx-tag" data-season="autumn" aria-pressed={shown?.season === 'autumn'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 19C5 10 10 4 20 4c0 10-6 15-15 15zM5 19l9-9M9 15h4M11 13V9" />
+          </svg>
+          autumn
+        </button>
+        <button type="button" className="wx-tag" data-season="winter" aria-pressed={shown?.season === 'winter'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+            <path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 4l3 2 3-2M9 20l3-2 3 2M4 10.5l3.4-.4L6.6 7M20 13.5l-3.4.4.8 3.1M4 13.5l3.4.4-.8 3.1M20 10.5l-3.4-.4.8-3.1" />
+          </svg>
+          winter
+        </button>
+      </div>
+      <div className="hud-row" role="group" aria-label="Time of day">
+        <span className="hud-label">daytime</span>
+        <button type="button" className="wx-tag" data-daytime="morning" aria-pressed={shown?.daytime === 'morning'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 16h16M7 16a5 5 0 0 1 10 0M12 4v3M5.5 8.5l2 2M18.5 8.5l-2 2M2 20h20" />
+          </svg>
+          morning
+        </button>
+        <button type="button" className="wx-tag" data-daytime="day" aria-pressed={shown?.daytime === 'day'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" />
+          </svg>
+          day
+        </button>
+        <button type="button" className="wx-tag" data-daytime="evening" aria-pressed={shown?.daytime === 'evening'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 16h16M8 16a4 4 0 0 1 8 0M2 20h20M12 7v3M6 10l1.5 1.5M18 10l-1.5 1.5" />
+          </svg>
+          evening
+        </button>
+        <button type="button" className="wx-tag" data-daytime="night" aria-pressed={shown?.daytime === 'night'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z" />
+            <path d="M17 3l.6 1.4L19 5l-1.4.6L17 7l-.6-1.4L15 5l1.4-.6z" />
+          </svg>
+          night
+        </button>
+      </div>
+      <div className="hud-row" role="group" aria-label="Weather">
+      <span className="hud-label">weather</span>
+      <button type="button" className="wx-tag" data-weather="sun" aria-pressed={shown?.weather === 'sun'}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" />
+        </svg>
+        sunny
+      </button>
+      <button type="button" className="wx-tag" data-weather="cloudy" aria-pressed={shown?.weather === 'cloudy'}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M7 18a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.4 1.6A3.5 3.5 0 0 1 17.5 18z" />
+          <path d="M3.5 13.5a3 3 0 0 1 2-5" />
+        </svg>
+        cloudy
+      </button>
+      <button type="button" className="wx-tag" data-weather="rain" aria-pressed={shown?.weather === 'rain'}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+          <path d="M7 15a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.4 1.6A3.5 3.5 0 0 1 17.5 15z" />
+          <path d="M9 18l-1 3M13 18l-1 3M17 18l-1 3" />
+        </svg>
+        light rain
+      </button>
+      <button type="button" className="wx-tag" data-weather="storm" aria-pressed={shown?.weather === 'storm'}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M7 14a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.4 1.6A3.5 3.5 0 0 1 17.5 14z" />
+          <path d="M12.5 14l-2.5 4h3l-2 4" />
+        </svg>
+        storm
+      </button>
+      </div>
+      {ownPick && (
+        <button type="button" className="sky-follow hand" onClick={followClock}>
+          back to the island’s own {island && island.season === shown?.season && island.daytime === shown?.daytime ? 'weather' : 'time'}: {island?.season} · {island?.daytime} · {island && weatherWord(island)}
+        </button>
+      )}
+        <p className="sky-view">view: {(['corners', 'margin'] as const).map((l, i) => <span key={l}>{i ? ' · ' : ''}<button type="button" aria-pressed={layout === l} onClick={() => setLayout(l)}>{l}</button></span>)}</p>
+      </div>
+      {showFps && <span className="hud-fps" id="fps" aria-live="off" />}
+    </>
+  )
+
   return (
-    <div className="game">
+    <div className={`game ui-${layout}`}>
       <h1 className="sr-only">{name}</h1>
       <div className="view" id="view" aria-label={`${name}, seen from above. Drag to look around, scroll or pinch to zoom.`} role="img">
       </div>
@@ -271,262 +449,68 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
         </div>
       )}
 
-      {/* ---------- the island's name tag, top left ---------- */}
-      <div className="hud hud-tl">
-        <div className="isle-tag">
-          <svg className="isle-tag-mark" aria-hidden="true">
-            <use href="#stamp-mark" />
-          </svg>
-          <span>
-            <small>map no. {mapId}</small>
-            <b>{name}</b>
-          </span>
-        </div>
-        <button type="button" className="back-link" onClick={onLeave}>
-          <svg width="30" height="16" viewBox="0 0 34 18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-            <path d="M32 10C24 7 14 6 3 9M9 3C6.5 5 4.5 7 3 9c2.5 1.3 5 3 7 5" />
-          </svg>
-          back to the journal
-        </button>
-        {load.state === 'ready' && (
-          <div className="build">
-            <button type="button" className="wx-tag build-toggle" aria-expanded={buildOpen} aria-controls="build-card" onClick={() => (buildOpen ? closeBuild() : setBuildOpen(true))}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M14 6l4 4M3 21l9-9M12.5 4.5l3-1.5 5.5 5.5-1.5 3-3-3-1 1-3-3 1-1z" />
+      {/* ---------- the tools and the island's name: in the corners, or in a margin down the left (the weather card can switch) ---------- */}
+      {layout === 'corners' ? (
+        <>
+          <div className="hud hud-tl">
+            <div className="isle-tag">
+              <svg className="isle-tag-mark" aria-hidden="true">
+                <use href="#stamp-mark" />
               </svg>
-              build
-            </button>
-            {buildOpen && (
-              <div className="build-card" id="build-card">
-                <div className="build-tools" role="group" aria-label="What to build">
-                  {TOOLS.map((t) => (
-                    <button key={t.id} type="button" className="build-tool" aria-pressed={tool === t.id} onClick={() => setTool(tool === t.id ? null : t.id)}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d={t.icon} />
-                      </svg>
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="build-hint hand">{tool ? TOOLS.find((t) => t.id === tool)!.hint : 'Pick what to build, then drag across the island.'}</p>
-                {tool === 'crop' && (
-                  <div className="crop-pick" role="radiogroup" aria-label="Which crop to sow">
-                    {CROPS.map((c) => (
-                      <button key={c} type="button" role="radio" aria-checked={crop === c} className="crop-seed" title={cropName(c)} onClick={() => setCrop(c)}>
-                        <img src={`art/crops/${c}/7-harvest-front.svg?v=1`} alt={cropName(c)} loading="lazy" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {tool === 'crop' && <p className="crop-name">{cropName(crop)}</p>}
-                {(tool === 'farmhouse' || tool === 'lab' || tool === 'nest' || tool === 'silo' || tool === 'bakery' || tool === 'kitchen' || tool === 'market') && <button type="button" className="build-link" onClick={() => started.current?.rotateBuild()}>rotate (R)</button>}
-                <div className="build-actions">
-                  <button type="button" className="build-link" disabled={!undoable} onClick={() => started.current?.undoBuild()}>undo</button>
-                  <button type="button" className="build-link" onClick={closeBuild}>done</button>
-                </div>
-                <p className="build-plan hand">{pending ? `${pending} tile${pending === 1 ? '' : 's'} planned: blue goes up, red comes down. Click a mark again to take it back.` : 'Nothing planned yet. What you mark shows as a hologram until you confirm it.'}</p>
-                <div className="build-actions">
-                  <button type="button" className="build-confirm" disabled={!pending || save.state === 'signing'} onClick={confirm}>{confirmLabel}</button>
-                  <button type="button" className="build-link" disabled={!pending || save.state === 'signing'} onClick={() => { setSave({ state: 'idle' }); started.current?.discardBuild() }}>discard</button>
-                </div>
-                {saveNote}
-                <p className="rec-foot">{toChain ? 'Confirming saves to the chain (your wallet signs); crops stay on this device.' : 'Not saved: only the island’s owner, signed in, saves to the chain. Gone when you leave.'} Right-drag moves the map; a right click puts the tools away.</p>
-              </div>
-            )}
-            <button type="button" className="wx-tag bestiary-toggle" aria-haspopup="dialog" onClick={() => { closeBuild(); setBestiaryOpen(true) }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M4 5c3-1.5 5.5-1.5 8 0v14c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v14c2.5-1.5 5-1.5 8 0z" />
-              </svg>
-              bestiary
-            </button>
-            {!buildOpen && pending > 0 && (
-              <div className="build-pending">
-                <span className="hand">{pending} planned</span>
-                <button type="button" className="build-confirm" disabled={save.state === 'signing'} onClick={confirm}>{confirmLabel}</button>
-                <button type="button" className="build-link" disabled={save.state === 'signing'} onClick={() => { setSave({ state: 'idle' }); started.current?.discardBuild() }}>discard</button>
-                {saveNote}
-              </div>
-            )}
+              <span>
+                <small>map no. {mapId}</small>
+                <b>{name}</b>
+              </span>
+              <button type="button" className="isle-back" onClick={onLeave} aria-label="Back to the journal" title="back to the journal">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6" /></svg>
+              </button>
+            </div>
+            {load.state === 'ready' && <div className="hud-buttons">{toolButtons}</div>}
+            {cardsAndSky}
           </div>
-        )}
-        <span className="hud-fps" id="fps" aria-live="off" />
+          <div className="hud hud-tr">
+            <FenPurse account={account} />
+            {clockReady && island && <IslandClock clock={clockReady} season={island.season} />}
+          </div>
+        </>
+      ) : (
+        <>
+          <aside className="hud margin" aria-label={name}>
+            <div className="margin-title">
+              <svg className="isle-tag-mark" aria-hidden="true">
+                <use href="#stamp-mark" />
+              </svg>
+              <b>{name}</b>
+              <small>map no. {mapId}</small>
+            </div>
+            {load.state === 'ready' && <div className="margin-tools">{toolButtons}</div>}
+            <div className="margin-foot">
+              {clockReady && island && <IslandClock clock={clockReady} season={island.season} />}
+              <button type="button" className="margin-back hand" onClick={onLeave}>← back to the journal</button>
+            </div>
+          </aside>
+          <div className="hud margin-cards">{cardsAndSky}</div>
+          <div className="hud hud-tr"><FenPurse account={account} /></div>
+        </>
+      )}
+
+      {/* ---------- zoom, right edge: one paper tag, in and out ---------- */}
+      <div className="hud hud-r zoom-tag" role="group" aria-label="Zoom">
+        <button type="button" className="zoom-btn" id="zin" aria-label="Zoom in">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" /></svg>
+        </button>
+        <span className="zoom-rule" aria-hidden="true" />
+        <button type="button" className="zoom-btn" id="zout" aria-label="Zoom out">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12" /></svg>
+        </button>
       </div>
 
-      {/* ---------- who is signed in, top right ---------- */}
-      <div className="hud hud-tr">
-        <AccountTag account={account} wallet={wallet} onSignOut={onSignOut} />
-        <FenPurse account={account} />
-      </div>
-
-      {/* ---------- zoom, right edge ---------- */}
-      <div className="hud hud-r" role="group" aria-label="Zoom">
-        <button type="button" className="knob" id="zin" aria-label="Zoom in">
-          +
-        </button>
-        <button type="button" className="knob" id="zout" aria-label="Zoom out">
-          &minus;
-        </button>
-        <button type="button" className="knob knob-fit" id="zfit" aria-label="Show the whole map">
-          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" aria-hidden="true">
-            <circle cx="50" cy="50" r="34" strokeWidth="5" />
-            <path d="M50 10 58 50 50 90 42 50Z" fill="currentColor" fillOpacity=".25" strokeWidth="4" />
-            <path d="M50 10 58 50H42Z" fill="currentColor" />
-          </svg>
-        </button>
-      </div>
-
-      {/* ---------- season, time of day and weather, bottom left: what the island has now; one button opens the choices ---------- */}
-      <div className="hud hud-bl">
-        <div className="sky-panel" id="sky-panel" hidden={!skyOpen}>
-        <div className="hud-row" role="group" aria-label="Season">
-          <span className="hud-label">season</span>
-          <button type="button" className="wx-tag" data-season="spring" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-              <circle cx="12" cy="9" r="2" />
-              <path d="M12 7c0-3 3-4 3-4s1 3-1.5 4.5M14 9c3 0 4 3 4 3s-3 1-4.5-1.5M10 9c-3 0-4 3-4 3s3 1 4.5-1.5M12 11v10M12 17c-2-2-5-2-5-2s1 3 5 3" />
-            </svg>
-            spring
-          </button>
-          <button type="button" className="wx-tag" data-season="summer" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-              <path d="M4 20h16M6 20c1-5 3-8 6-8s5 3 6 8M12 8V3M8 9 6 6M16 9l2-3" />
-            </svg>
-            summer
-          </button>
-          <button type="button" className="wx-tag" data-season="autumn" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5 19C5 10 10 4 20 4c0 10-6 15-15 15zM5 19l9-9M9 15h4M11 13V9" />
-            </svg>
-            autumn
-          </button>
-          <button type="button" className="wx-tag" data-season="winter" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-              <path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 4l3 2 3-2M9 20l3-2 3 2M4 10.5l3.4-.4L6.6 7M20 13.5l-3.4.4.8 3.1M4 13.5l3.4.4-.8 3.1M20 10.5l-3.4-.4.8-3.1" />
-            </svg>
-            winter
-          </button>
-        </div>
-        <div className="hud-row" role="group" aria-label="Time of day">
-          <span className="hud-label">daytime</span>
-          <button type="button" className="wx-tag" data-daytime="morning" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-              <path d="M4 16h16M7 16a5 5 0 0 1 10 0M12 4v3M5.5 8.5l2 2M18.5 8.5l-2 2M2 20h20" />
-            </svg>
-            morning
-          </button>
-          <button type="button" className="wx-tag" data-daytime="day" aria-pressed="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" />
-            </svg>
-            day
-          </button>
-          <button type="button" className="wx-tag" data-daytime="evening" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-              <path d="M4 16h16M8 16a4 4 0 0 1 8 0M2 20h20M12 7v3M6 10l1.5 1.5M18 10l-1.5 1.5" />
-            </svg>
-            evening
-          </button>
-          <button type="button" className="wx-tag" data-daytime="night" aria-pressed="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z" />
-              <path d="M17 3l.6 1.4L19 5l-1.4.6L17 7l-.6-1.4L15 5l1.4-.6z" />
-            </svg>
-            night
-          </button>
-        </div>
-        <div className="hud-row" role="group" aria-label="Weather">
-        <span className="hud-label">weather</span>
-        <button type="button" className="wx-tag" data-weather="sun" aria-pressed="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" />
-          </svg>
-          sunny
-        </button>
-        <button type="button" className="wx-tag" data-weather="cloudy" aria-pressed="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M7 18a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.4 1.6A3.5 3.5 0 0 1 17.5 18z" />
-            <path d="M3.5 13.5a3 3 0 0 1 2-5" />
-          </svg>
-          cloudy
-        </button>
-        <button type="button" className="wx-tag" data-weather="rain" aria-pressed="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-            <path d="M7 15a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.4 1.6A3.5 3.5 0 0 1 17.5 15z" />
-            <path d="M9 18l-1 3M13 18l-1 3M17 18l-1 3" />
-          </svg>
-          light rain
-        </button>
-        <button type="button" className="wx-tag" data-weather="storm" aria-pressed="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M7 14a4 4 0 0 1 .5-8 5.5 5.5 0 0 1 10.4 1.6A3.5 3.5 0 0 1 17.5 14z" />
-            <path d="M12.5 14l-2.5 4h3l-2 4" />
-          </svg>
-          storm
-        </button>
-        </div>
-        {ownPick && (
-          <button type="button" className="sky-follow hand" onClick={followClock}>
-            back to the island’s own {island && island.season === shown?.season && island.daytime === shown?.daytime ? 'weather' : 'time'}: {island?.season} · {island?.daytime} · {island && weatherWord(island)}
-          </button>
-        )}
-        </div>
-        <div className="sky-bar">
-        {clockReady && island && <IslandClock clock={clockReady} season={island.season} />}
-        <button type="button" className="wx-tag sky-toggle" aria-expanded={skyOpen} aria-controls="sky-panel" onClick={() => setSkyOpen(!skyOpen)}
-          title={ownPick ? 'Your own pick: the island’s clock takes over again when the next change comes round' : 'As the island’s clock has it now'}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-            <circle cx="9" cy="9" r="3.2" />
-            <path d="M9 2.5v1.5M2.5 9H4M4.4 4.4l1 1M13.6 4.4l-1 1M8 20h9a3.5 3.5 0 0 0 .4-7 5 5 0 0 0-9.6 1.4A2.8 2.8 0 0 0 8 20z" />
-          </svg>
-          {shown ? `${shown.season} · ${shown.daytime} · ${weatherWord(shown)}` : 'season & weather'}
-          {ownPick && <span className="sky-own" aria-label="your own pick">•</span>}
-        </button>
-        </div>
-      </div>
-
-      {/* ---------- field notes, bottom right ---------- */}
-      <div className="hud hud-br">
-        {selectedCreature ? (
+      {/* ---------- the creature picked, bottom right ---------- */}
+      {selectedCreature && (
+        <div className="hud hud-br">
           <CreatureCard creature={selectedCreature} art={started.current?.spriteFor(selectedCreature.speciesName) ?? null} onClose={() => started.current?.selectCreature(null)} />
-        ) : (
-        <div className={`notes-card${notesOpen ? ' is-open' : ''}`}>
-          <button type="button" className="notes-toggle" aria-expanded={notesOpen} aria-controls="field-notes" onClick={() => setNotesOpen((o) => !o)}>
-            <span>Field notes</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path d={notesOpen ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} />
-            </svg>
-          </button>
-          <div id="field-notes" hidden={!notesOpen}>
-            {stats ? (
-              <ul className="rec">
-                {([
-                  ['land', stats.land, 'var(--moss)'], ['forest', stats.forest, '#3d6a3a'], ['mountain', stats.mountain, 'var(--ink-soft)'],
-                  ['beach', stats.beach, '#b8892f'], ['fresh water', stats.freshWater, '#2f6f86']
-                ] as [string, number, string][]).map(([label, v, c]) => (
-                  <li key={label}>
-                    <b>{label}</b>
-                    <span className="bar" aria-hidden="true">
-                      <i style={{ '--v': `${Math.min(100, v * 100)}%`, '--c': c } as CSSProperties} />
-                    </span>
-                    <span>{pct(v)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="hand">Reading the survey…</p>
-            )}
-            <p className="rec-foot">Shares of the whole chart, sea included.</p>
-            {farmers > 0 && <p className="rec-foot">{farmers === 1 ? 'One farmer lives here.' : `${farmers} farmers live here.`}</p>}
-            {Object.keys(store).length > 0 && <p className="rec-foot">In the silos: {Object.entries(store).map(([c, n]) => `${n} ${cropName(c)}`).join(', ')}.</p>}
-            {lifeforms !== null && (
-              <p className="rec-foot">{lifeforms === 0 ? 'No creatures live here yet.' : lifeforms === 1 ? 'One creature lives here.' : `${lifeforms} creatures live here.`}</p>
-            )}
-          </div>
         </div>
-        )}
-      </div>
+      )}
 
       {bestiaryOpen && (
         <Bestiary
