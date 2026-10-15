@@ -5,6 +5,7 @@ import { clockAt, fetchHomeClock, type Conditions, type HomeClock } from '@/chai
 import { fetchLifeforms, type Creature } from '@/chain/life'
 import { Bestiary, noteSeen } from '@/components/Bestiary'
 import { CreatureCard } from '@/components/CreatureCard'
+import { FenPurse } from '@/components/FenPurse'
 import { IslandClock } from '@/components/IslandClock'
 import { fetchMapTiles, fetchPlayerMaps, forgetMapTiles, mapStats, type MapStats } from '@/chain/maps'
 import { startEngine } from '@/engine'
@@ -354,6 +355,7 @@ export function GamePage({ mapId, account, wallet, onSignOut, onLeave }: {
       {/* ---------- who is signed in, top right ---------- */}
       <div className="hud hud-tr">
         <AccountTag account={account} wallet={wallet} onSignOut={onSignOut} />
+        <FenPurse account={account} />
       </div>
 
       {/* ---------- zoom, right edge ---------- */}

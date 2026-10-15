@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fenmark Wreath</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, section { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 4px; font-size: 27px; font-weight: 400; }
+  h2 { margin: 28px 0 10px; font-size: 20px; font-weight: 400; }
+  header p { margin: 0; color: var(--soft); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+  .card.dark { background: #1d2329; border-color: #1d2329; color: #e8e2d4; }
+  .card h3 { margin: 0 0 12px; font-weight: 400; font-size: 15px; color: var(--soft); font-family: 'IM Fell English SC', serif; letter-spacing: .08em; }
+  .card.dark h3 { color: #a8a090; }
+  .sizes { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 18px; }
+  .sizes figure { margin: 0; text-align: center; font-size: 11px; color: var(--soft); }
+  .card.dark .sizes figure { color: #8a8478; }
+  .ic { display: block; margin: 0 auto 4px; }
+  .ic svg { display: block; width: 100%; height: 100%; }
+  /* a wallet's token list */
+  .wallet { display: grid; gap: 2px; max-width: 420px; }
+  .row { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; font: 14px system-ui, sans-serif; }
+  .row b { display: block; font-weight: 600; }
+  .row small { color: #8a8478; }
+  .row .amt { text-align: right; font-variant-numeric: tabular-nums; }
+  .light .row { background: #fff; }
+  .dark .row { background: #262d34; }
+  .dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 700 11px system-ui; color: #fff; }
+  /* an exchange's pair line */
+  .market { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; font: 14px system-ui, sans-serif; max-width: 420px; }
+  .light .market { background: #fff; } .dark .market { background: #262d34; }
+  .market .up { color: #3a9a5a; margin-left: auto; }
+  footer { height: 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>B. Wreath of reeds, in gold and silver</h1>
+  <p>From 256 pixels down to 16, on a light and a dark page, and in place: a wallet's token list and an exchange's market line.</p>
+</header>
+<section><h2>Sizes</h2><div class="pair" id="sizes"></div></section>
+<section><h2>In a wallet</h2><div class="pair" id="wallets"></div></section>
+<section><h2>On an exchange</h2><div class="pair" id="markets"></div></section>
+<footer></footer>
+<script>
+const METAL = {
+  gold:   { a: '#f1d58a', b: '#c99a3e', c: '#8a6424', rim: '#a87a2e', dark: '#6e4e1c', light: '#fbecc0' },
+  silver: { a: '#eef0ee', b: '#b9bcb6', c: '#7e827c', rim: '#9a9d97', dark: '#55584f', light: '#ffffff' },
+}
+let uid = 0
+const grad = (id, m) => `<radialGradient id="${id}" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="${m.a}"/><stop offset=".6" stop-color="${m.b}"/><stop offset="1" stop-color="${m.c}"/></radialGradient>`
+function coin(m) {
+  const id = 'g' + (++uid)
+  let s = `<defs>${grad(id, m)}</defs><circle cx="100" cy="100" r="96" fill="${m.rim}"/>`
+  for (let k = 0; k < 120; k++) { const a = k / 120 * Math.PI * 2; s += `<line x1="${100 + Math.cos(a) * 92}" y1="${100 + Math.sin(a) * 92}" x2="${100 + Math.cos(a) * 96}" y2="${100 + Math.sin(a) * 96}" stroke="${m.dark}" stroke-width="1.2" opacity=".5"/>` }
+  return s + `<circle cx="100" cy="100" r="90" fill="url(#${id})"/><circle cx="100" cy="100" r="82" fill="none" stroke="${m.dark}" stroke-width="1.4" opacity=".55"/>`
+}
+const emboss = (m, g, op = 1) => `<g transform="translate(0 1.4)" fill="${m.light}" stroke="${m.light}" opacity=".55">${g}</g><g fill="${m.dark}" stroke="${m.dark}" opacity="${op}">${g}</g>`
+const blade = (x, base, h, bend) => `<path d="M${x - 2} ${base} C${x - 1} ${base - h * .5} ${x + bend * .5} ${base - h * .8} ${x + bend} ${base - h} C${x + bend * .4} ${base - h * .75} ${x + 2} ${base - h * .5} ${x + 2} ${base}Z"/>`
+// B: a wreath of reed blades and bulrushes up both sides, FEN in the middle
+function wreath(m) {
+  let g = ''
+  for (const s of [-1, 1]) for (let k = 0; k < 7; k++) { const a = (100 + k * 20) * Math.PI / 180, r = 64, x = 100 + Math.cos(a) * r, y = 100 + Math.sin(a) * r, rot = Math.atan2(Math.cos(a), -Math.sin(a)) * 180 / Math.PI + 90
+    const X = s < 0 ? x : 200 - x, R = s < 0 ? rot : -rot; g += `<g transform="translate(${X} ${y}) rotate(${R})">${blade(0, 0, 24, s * -3)}${k % 2 ? '<ellipse cx="0" cy="-26" rx="2.6" ry="6"/>' : ''}</g>` }
+  const t = (fill, dy, op = 1) => `<text x="100" y="114" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="40" letter-spacing="2" fill="${fill}" opacity="${op}"${dy ? ` transform="translate(0 ${dy})"` : ''}>FEN</text>`
+  return coin(m) + emboss(m, g, .9) + t(m.light, 1.4, .55) + t(m.dark, 0)
+}
+const svg = (body, px) => `<span class="ic" style="width:${px}px;height:${px}px"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${body}</svg></span>`
+const SIZES = [256, 128, 64, 48, 32, 24, 16]
+
+const sizes = document.getElementById('sizes'), wallets = document.getElementById('wallets'), markets = document.getElementById('markets')
+for (const bg of ['light', 'dark']) {
+  const card = document.createElement('div'); card.className = 'card ' + bg
+  card.innerHTML = ['gold', 'silver'].map((k) => `<h3>${k}</h3><div class="sizes">${SIZES.map((px) => `<figure>${svg(wreath(METAL[k]), px)}${px}px</figure>`).join('')}</div>`).join('<div style="height:18px"></div>')
+  sizes.append(card)
+
+  const w = document.createElement('div'); w.className = 'card ' + bg
+  const row = (icon, name, sym, amt) => `<div class="row">${icon}<span><b>${name}</b><small>${sym}</small></span><span class="amt">${amt}</span></div>`
+  w.innerHTML = ['gold', 'silver'].map((k) => `<h3>${k}</h3><div class="wallet">${row(`<span class="dot" style="background:#f5a623">W</span>`, 'WAX', 'WAXP', '312.44210000')}${row(svg(wreath(METAL[k]), 32), 'Fenmark', 'FEN', '1,250.00000000')}${row(`<span class="dot" style="background:#3b6fd8">T</span>`, 'Trilium', 'TLM', '88.2150')}</div>`).join('<div style="height:14px"></div>')
+  wallets.append(w)
+
+  const mk = document.createElement('div'); mk.className = 'card ' + bg
+  mk.innerHTML = ['gold', 'silver'].map((k) => `<h3>${k}</h3><div class="market">${svg(wreath(METAL[k]), 24)}<b>FEN</b><span style="color:#8a8478">/ WAX</span><span>0.04120</span><span class="up">+3.2%</span></div>`).join('<div style="height:14px"></div>')
+  markets.append(mk)
+}
+</script>
+</body>
+</html>

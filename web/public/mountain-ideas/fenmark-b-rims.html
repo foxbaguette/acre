@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fenmark Rims</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, section { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 4px; font-size: 27px; font-weight: 400; }
+  h2 { margin: 28px 0 10px; font-size: 20px; font-weight: 400; }
+  header p { margin: 0; color: var(--soft); max-width: 900px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+  .card.dark { background: #1d2329; border-color: #1d2329; color: #e8e2d4; }
+  .version { display: grid; grid-template-columns: 200px 1fr; align-items: center; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .card.dark .version { border-color: #2e363e; }
+  .version:first-of-type { border-top: 0; }
+  .version b { display: block; font-weight: 400; font-size: 16px; }
+  .version small { color: var(--soft); font-size: 13px; }
+  .card.dark .version small { color: #8a8478; }
+  .sizes { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 18px; }
+  .sizes figure { margin: 0; text-align: center; font-size: 11px; color: var(--soft); }
+  .card.dark .sizes figure { color: #8a8478; }
+  .ic { display: block; margin: 0 auto 4px; }
+  .ic svg { display: block; width: 100%; height: 100%; }
+  .wallets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .wallets h3 { margin: 0 0 6px; font-weight: 400; font-size: 14px; color: var(--soft); font-family: 'IM Fell English SC', serif; letter-spacing: .06em; }
+  .row { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; font: 14px system-ui, sans-serif; margin-bottom: 2px; }
+  .row b { display: block; font-weight: 600; } .row small { color: #8a8478; } .row .amt { text-align: right; font-variant-numeric: tabular-nums; }
+  .light .row { background: #fff; } .dark .row { background: #262d34; }
+  .dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 700 11px system-ui; color: #fff; }
+  .market { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; font: 14px system-ui, sans-serif; margin-bottom: 10px; }
+  .light .market { background: #fff; } .dark .market { background: #262d34; }
+  footer { height: 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>The wreath of reeds in silver: the coin round it</h1>
+  <p>The wreath and the lettering stay as chosen; what changes is the coin's edge and rim, and how dark its relief is struck (a step towards Bold's darkness, not all the way). The original first, then five versions, from 128 pixels down to 16, on a light and a dark page, then in a wallet and on an exchange.</p>
+</header>
+<section><h2>Sizes</h2><div id="sizes"></div></section>
+<section><h2>In place</h2><div id="inplace"></div></section>
+<footer></footer>
+<script>
+// silver as chosen, and one step darker (between it and Bold)
+const LIGHT = { a: '#eef0ee', b: '#b9bcb6', c: '#7e827c', rim: '#9a9d97', dark: '#55584f', light: '#ffffff' }
+const MID = { a: '#eff1ef', b: '#bcbfb9', c: '#7c807a', rim: '#8e918b', dark: '#474a43', light: '#ffffff' }
+let uid = 0
+const grad = (id, m) => `<radialGradient id="${id}" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="${m.a}"/><stop offset=".6" stop-color="${m.b}"/><stop offset="1" stop-color="${m.c}"/></radialGradient>`
+const emboss = (m, g, op = 1, dy = 1.4) => `<g transform="translate(0 ${dy})" fill="${m.light}" stroke="${m.light}" opacity=".55">${g}</g><g fill="${m.dark}" stroke="${m.dark}" opacity="${op}">${g}</g>`
+const blade = (x, base, h, bend) => `<path d="M${x - 2} ${base} C${x - 1} ${base - h * .5} ${x + bend * .5} ${base - h * .8} ${x + bend} ${base - h} C${x + bend * .4} ${base - h * .75} ${x + 2} ${base - h * .5} ${x + 2} ${base}Z"/>`
+// the wreath of reeds and FEN, exactly as chosen (scaled to sit inside a face of radius r)
+function face(m, r = 82, fenSize = 40, fenWeight = 0) {
+  const k = r / 82
+  let g = ''; for (const sd of [-1, 1]) for (let j = 0; j < 7; j++) { const a = (100 + j * 20) * Math.PI / 180, x = 100 + Math.cos(a) * 64 * k, y = 100 + Math.sin(a) * 64 * k, rot = Math.atan2(Math.cos(a), -Math.sin(a)) * 180 / Math.PI + 90
+    const X = sd < 0 ? x : 200 - x, R = sd < 0 ? rot : -rot; g += `<g transform="translate(${X} ${y}) rotate(${R}) scale(${k})">${blade(0, 0, 24, sd * -3)}${j % 2 ? '<ellipse cx="0" cy="-26" rx="2.6" ry="6"/>' : ''}</g>` }
+  const t = (fill, d, op) => `<text x="100" y="${100 + fenSize * .35}" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="${fenSize}" letter-spacing="2" fill="${fill}" opacity="${op}"${fenWeight ? ` stroke="${fill}" stroke-width="${fenWeight}" stroke-linejoin="round"` : ''}${d ? ` transform="translate(0 ${d})"` : ''}>FEN</text>`
+  return emboss(m, g, .9) + t(m.light, 1.4, .55) + t(m.dark, 0, 1)
+}
+const disc = (r, fill, extra = '') => `<circle cx="100" cy="100" r="${r}" fill="${fill}"${extra}/>`
+const milling = (m, r0 = 92, r1 = 96, n = 120, w = 1.2, op = .5) => { let s = ''; for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2; s += `<line x1="${100 + Math.cos(a) * r0}" y1="${100 + Math.sin(a) * r0}" x2="${100 + Math.cos(a) * r1}" y2="${100 + Math.sin(a) * r1}" stroke="${m.dark}" stroke-width="${w}" opacity="${op}"/>` } return s }
+
+const VERSIONS = [
+  ['Original', 'as chosen: fine milling, a thin inner ring', () => { const m = LIGHT, id = 'g' + (++uid)
+    return `<defs>${grad(id, m)}</defs>` + disc(96, m.rim) + milling(m) + disc(90, `url(#${id})`) + `<circle cx="100" cy="100" r="82" fill="none" stroke="${m.dark}" stroke-width="1.4" opacity=".55"/>` + face(m) }],
+  ['1. Mid-tone', 'the same coin, its relief and edge a step darker: halfway to Bold', () => { const m = MID, id = 'g' + (++uid)
+    return `<defs>${grad(id, m)}</defs>` + disc(97, '#6c6f69') + disc(95.5, m.rim) + milling(m, 91, 95.5, 120, 1.3, .55) + disc(89, `url(#${id})`) + `<circle cx="100" cy="100" r="82" fill="none" stroke="${m.dark}" stroke-width="1.8" opacity=".6"/>` + face(m) }],
+  ['2. Clean edge', 'no milling: a smooth raised rim and a thin dark outline, which stay crisp when small', () => { const m = MID, id = 'g' + (++uid)
+    return `<defs>${grad(id, m)}<linearGradient id="e${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d4d7d1"/><stop offset="1" stop-color="#7a7d77"/></linearGradient></defs>` + disc(97, '#5c5f59') + disc(95, `url(#e${id})`) + disc(87, `url(#${id})`) + `<circle cx="100" cy="100" r="87" fill="none" stroke="${m.dark}" stroke-width="1.6" opacity=".55"/>` + face(m) }],
+  ['3. Beaded rim', 'a ring of struck beads in place of the milling, as on old coins; they read as a border at any size', () => { const m = MID, id = 'g' + (++uid)
+    let beads = ''; for (let k = 0; k < 44; k++) { const a = k / 44 * Math.PI * 2; beads += `<circle cx="${100 + Math.cos(a) * 85.5}" cy="${100 + Math.sin(a) * 85.5}" r="2.3" fill="${m.dark}" opacity=".7"/><circle cx="${100 + Math.cos(a) * 85.5 - .5}" cy="${100 + Math.sin(a) * 85.5 - .6}" r="1" fill="#fff" opacity=".6"/>` }
+    return `<defs>${grad(id, m)}</defs>` + disc(97, '#6c6f69') + disc(95.5, m.rim) + disc(91, `url(#${id})`) + beads + face(m, 78) }],
+  ['4. Engraved border', 'a double line framing the face, the wreath sitting inside it like a medal', () => { const m = MID, id = 'g' + (++uid)
+    return `<defs>${grad(id, m)}</defs>` + disc(97, '#6c6f69') + disc(95.5, m.rim) + disc(91, `url(#${id})`) + `<circle cx="100" cy="100" r="86" fill="none" stroke="${m.dark}" stroke-width="2.4" opacity=".7"/><circle cx="100" cy="100" r="81" fill="none" stroke="${m.dark}" stroke-width="1" opacity=".55"/>` + face(m, 78) }],
+  ['5. Broad rim', 'a wider, darker raised rim with a soft bevel; FEN a touch larger', () => { const m = MID, id = 'g' + (++uid)
+    return `<defs>${grad(id, m)}<radialGradient id="r${id}" cx=".4" cy=".3" r=".9"><stop offset="0" stop-color="#c8cbc5"/><stop offset=".7" stop-color="#8a8d87"/><stop offset="1" stop-color="#5e615b"/></radialGradient></defs>` + disc(97, '#585b55') + disc(95.5, `url(#r${id})`) + disc(82, '#6e716b') + disc(80.5, `url(#${id})`) + face(m, 76, 42, .4) }],
+]
+const svg = (body, px) => `<span class="ic" style="width:${px}px;height:${px}px"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${body}</svg></span>`
+const SIZES = [128, 64, 48, 32, 24, 16]
+
+for (const bg of ['light', 'dark']) {
+  const card = document.createElement('div'); card.className = 'card ' + bg
+  card.innerHTML = VERSIONS.map(([name, note, draw]) => `<div class="version"><span><b>${name}</b><small>${note}</small></span><div class="sizes">${SIZES.map((px) => `<figure>${svg(draw(), px)}${px}px</figure>`).join('')}</div></div>`).join('')
+  document.getElementById('sizes').append(card)
+
+  const ip = document.createElement('div'); ip.className = 'card ' + bg
+  const row = (icon, name, sym, amt) => `<div class="row">${icon}<span><b>${name}</b><small>${sym}</small></span><span class="amt">${amt}</span></div>`
+  ip.innerHTML = `<div class="wallets">${VERSIONS.map(([name, , draw]) => `<div><h3>${name}</h3>${row('<span class="dot" style="background:#f5a623">W</span>', 'WAX', 'WAXP', '312.44210000')}${row(svg(draw(), 32), 'Fenmark', 'FEN', '1,250.00000000')}<div class="market">${svg(draw(), 20)}<b>FEN</b><span style="color:#8a8478">/ WAX</span><span style="margin-left:auto">0.04120</span></div></div>`).join('')}</div>`
+  document.getElementById('inplace').append(ip)
+}
+</script>
+</body>
+</html>

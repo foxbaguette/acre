@@ -24,7 +24,7 @@
 /* ---------- HUD pieces: paper, ink and brass, kept small ---------- */
 .hud { position: absolute; z-index: 10; }
 .hud-tl { left: 18px; top: 16px; display: grid; gap: 8px; justify-items: start; }
-.hud-tr { right: 20px; top: 18px; }
+.hud-tr { right: 20px; top: 18px; display: grid; justify-items: end; gap: 8px; }
 .hud-r { right: 18px; top: 92px; display: grid; gap: 10px; }   /* under the account tag, clear of the notes and creature cards */
 .hud-bl { left: 18px; bottom: 18px; display: grid; gap: 10px; }
 .hud-row { display: flex; align-items: flex-end; gap: 6px; }
@@ -252,3 +252,9 @@
 .isle-clock span { display: grid; line-height: 1.1; }
 .isle-clock b { font: 400 1.15rem var(--sc); letter-spacing: .06em; font-variant-numeric: tabular-nums; }
 .isle-clock small { font-family: var(--hand); font-size: .95rem; color: var(--ink-soft); }
+/* the player's Fenmarks, under who is signed in */
+.purse { display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 6px; border-radius: 4px; background: var(--card); background-image: var(--noise); box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); color: var(--ink); }
+.purse img { display: block; width: 28px; height: 28px; }
+.purse span { display: flex; align-items: baseline; gap: 5px; }
+.purse b { font-family: var(--sc); font-weight: 400; font-size: 1.1rem; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.purse small { font-family: var(--sc); font-size: .8rem; letter-spacing: .1em; color: var(--ink-soft); }

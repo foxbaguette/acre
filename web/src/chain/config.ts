@@ -24,3 +24,9 @@ export const RPC_NODES: readonly string[] = [
 /** Maps are 100 x 100 tiles, stored as 10 x 10 chunks of 10 x 10 tiles (chunk id = cy * 10 + cx). */
 export const MAP_SIZE = 100
 export const CHUNK = 10
+
+/** The Fenmark (FEN): the token contract once it is deployed (e.g. 'fen.acre'); until then no balance is read. */
+export const TOKEN_CONTRACT: string | null = null
+export const TOKEN_SYMBOL = 'FEN'
+/** Decimals shown (the token's precision is fixed when it is created). */
+export const TOKEN_DECIMALS = 4

@@ -2,3 +2,4 @@
 Thumbs.db
 *.tmp
 .claude/
+tools/node_modules/

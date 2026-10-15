@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fenmark Ideas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, main { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 4px; font-size: 27px; font-weight: 400; }
+  header p { margin: 0; color: var(--soft); max-width: 880px; }
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; padding-top: 18px; padding-bottom: 40px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 16px 12px; }
+  .big { display: block; width: 200px; height: 200px; margin: 0 auto; }
+  .small { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 10px 0 8px; }
+  .ic { display: inline-block; flex: none; }
+  .ic svg, .big svg { display: block; width: 100%; height: 100%; }
+  .small > span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; font: 12px 'IM Fell English SC', serif; letter-spacing: .06em; }
+  .small > .light { background: #fff; border: 1px solid var(--line); }
+  .small > .dark { background: #1d2329; color: #e8e2d4; }
+  figcaption { font-size: 14px; color: var(--soft); }
+  figcaption b { display: block; color: var(--ink); font-weight: 400; font-size: 16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>The Fenmark (FEN): 20 ideas for its coin</h1>
+  <p>Each drawn as a vector, large, and as it reads where a token icon mostly lives: about 48 and 24 pixels, on a light and a dark wallet. Brass, silver, copper and enamel, struck the way the island's journal would draw a coin.</p>
+</header>
+<main id="sheet"></main>
+<script>
+// ---------- materials ----------
+const METAL = {
+  gold:   { a: '#f1d58a', b: '#c99a3e', c: '#8a6424', rim: '#a87a2e', dark: '#6e4e1c', light: '#fbecc0' },
+  silver: { a: '#eef0ee', b: '#b9bcb6', c: '#7e827c', rim: '#9a9d97', dark: '#55584f', light: '#ffffff' },
+  copper: { a: '#e9b088', b: '#b8693e', c: '#7a3a1e', rim: '#94512c', dark: '#5a2a14', light: '#f6d2b8' },
+  green:  { a: '#7e9a64', b: '#4e6a3a', c: '#2e4224', rim: '#c99a3e', dark: '#22311a', light: '#c8d8b0' },
+}
+let uid = 0
+const grad = (id, m) => `<radialGradient id="${id}" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="${m.a}"/><stop offset=".6" stop-color="${m.b}"/><stop offset="1" stop-color="${m.c}"/></radialGradient>`
+// a round coin: milled edge, a raised rim, a struck face; optional text round the rim
+function coin(m, o = {}) {
+  const id = 'g' + (++uid), rid = 'r' + uid
+  let s = `<defs>${grad(id, m)}<path id="${rid}" d="M100 100 m-74 0 a74 74 0 1 1 148 0 a74 74 0 1 1 -148 0"/></defs>`
+  s += `<circle cx="100" cy="100" r="96" fill="${m.rim}"/>`
+  for (let k = 0; k < 120; k++) { const a = k / 120 * Math.PI * 2; s += `<line x1="${100 + Math.cos(a) * 92}" y1="${100 + Math.sin(a) * 92}" x2="${100 + Math.cos(a) * 96}" y2="${100 + Math.sin(a) * 96}" stroke="${m.dark}" stroke-width="1.2" opacity=".5"/>` }
+  s += `<circle cx="100" cy="100" r="90" fill="url(#${id})"/>`
+  s += `<circle cx="100" cy="100" r="${o.inner ?? 82}" fill="none" stroke="${m.dark}" stroke-width="1.4" opacity=".55"/>`
+  if (o.text) s += `<text font-family="IM Fell English SC, serif" font-size="13" letter-spacing="3" fill="${m.dark}" opacity=".85"><textPath href="#${rid}" startOffset="${o.offset ?? '25%'}" text-anchor="middle">${o.text}</textPath></text>`
+  return s
+}
+// struck relief: a light edge below, the shape in the metal's dark
+const emboss = (m, g, op = 1) => `<g transform="translate(0 1.4)" fill="${m.light}" stroke="${m.light}" opacity=".55">${g}</g><g fill="${m.dark}" stroke="${m.dark}" opacity="${op}">${g}</g>`
+
+// ---------- emblems ----------
+const FOX = 'M100 150 C88 150 74 138 70 124 C60 120 52 108 50 96 L34 46 C33 41 38 39 42 42 L76 74 C84 70 92 68 100 68 C108 68 116 70 124 74 L158 42 C162 39 167 41 166 46 L150 96 C148 108 140 120 130 124 C126 138 112 150 100 150 Z'
+const foxHead = (m, s = 1, x = 0, y = 0, hole = METAL.gold.b) => `<g transform="translate(${100 + x} ${100 + y}) scale(${s}) translate(-100 -100)">${emboss(m, `<path d="${FOX}" stroke-width="0"/>`)}
+  <g fill="${hole}" opacity=".9"><path d="M80 98 l12 4 l-10 6 z"/><path d="M120 98 l-12 4 l10 6 z"/><path d="M46 56 L72 80 L58 92 Z" opacity=".55"/><path d="M154 56 L128 80 L142 92 Z" opacity=".55"/></g>
+  <path d="M92 134 L108 134 L100 144 Z" fill="${m.dark}"/></g>`
+const wheat = (x, y, a, len = 70, c = '#6e4e1c') => { let g = `<g transform="translate(${x} ${y}) rotate(${a})" fill="${c}" stroke="${c}"><line x1="0" y1="0" x2="0" y2="${-len}" stroke-width="2.4" stroke-linecap="round"/>`
+  for (let k = 0; k < 5; k++) { const yy = -len + 8 + k * 9; g += `<ellipse cx="-5" cy="${yy}" rx="3.6" ry="7" transform="rotate(-28 -5 ${yy})" stroke="none"/><ellipse cx="5" cy="${yy}" rx="3.6" ry="7" transform="rotate(28 5 ${yy})" stroke="none"/>` }
+  return g + `<ellipse cx="0" cy="${-len - 4}" rx="3.2" ry="7" stroke="none"/></g>` }
+const EGG = 'M100 60 C122 60 136 98 136 118 C136 140 120 154 100 154 C80 154 64 140 64 118 C64 98 78 60 100 60Z'
+const leaf = (x, y, a, l = 26, w = 10) => `<path transform="translate(${x} ${y}) rotate(${a})" d="M0 0 C${w} ${-l * .3} ${w} ${-l * .75} 0 ${-l} C${-w} ${-l * .75} ${-w} ${-l * .3} 0 0Z"/>`
+// a laurel branch up one side (side -1 left, 1 right): from below the middle round to the top, the leaves along it
+const laurel = (side) => { let g = ''; for (let k = 0; k < 9; k++) { const a = (100 + k * 16) * Math.PI / 180, r = 62
+    const x = 100 + Math.cos(a) * r, y = 100 + Math.sin(a) * r, rot = Math.atan2(Math.cos(a), -Math.sin(a)) * 180 / Math.PI + 90
+    g += side < 0 ? leaf(x, y, rot, 18, 6) : leaf(200 - x, y, -rot, 18, 6) } return g }
+const paw = `<ellipse cx="100" cy="118" rx="22" ry="18"/><ellipse cx="72" cy="92" rx="9" ry="12" transform="rotate(-20 72 92)"/><ellipse cx="90" cy="76" rx="9" ry="12" transform="rotate(-6 90 76)"/><ellipse cx="110" cy="76" rx="9" ry="12" transform="rotate(6 110 76)"/><ellipse cx="128" cy="92" rx="9" ry="12" transform="rotate(20 128 92)"/>`
+const house = `<path d="M62 132 V98 L100 70 L138 98 V132 Z"/><rect x="118" y="72" width="8" height="18"/>`
+
+// low-poly fennec, five colours, no outlines (as the island's animals are drawn)
+const lowpoly = (() => { const O = '#c8743a', D = '#8e4a24', C = '#f2e6cc', C2 = '#dccaa6', K = '#2a1a12', E = '#5a2e1a'
+  const t = (c, p) => `<polygon fill="${c}" points="${p}"/>`
+  return t(D, '40,40 52,96 82,76') + t(E, '47,54 56,88 76,77') + t(O, '160,40 148,96 118,76') + t(E, '153,54 144,88 124,77')
+    + t(O, '82,76 100,70 84,104') + t('#d8884a', '100,70 118,76 116,104') + t('#e09a5a', '84,104 100,70 116,104') + t(D, '52,96 82,76 84,104') + t(O, '148,96 118,76 116,104')
+    + t(O, '52,96 84,104 60,118') + t(D, '148,96 116,104 140,118') + t(C, '60,118 84,104 86,128') + t(C2, '140,118 116,104 114,128') + t(C, '60,118 86,128 100,160') + t(C2, '140,118 114,128 100,160')
+    + t('#fbf2de', '84,104 116,104 114,128 86,128') + t(C, '86,128 114,128 100,160') + t(K, '92,140 108,140 100,150') + t(K, '80,98 92,102 82,107') + t(K, '120,98 108,102 118,107') })()
+
+// ---------- the twenty ----------
+const IDEAS = [
+  ['The fennec', 'The fox the whole project grew from, struck in brass: big ears, a calm face, FENMARK round the rim. The plainest, most coin-like of all.',
+    () => { const m = METAL.gold; return coin(m, { text: '· FENMARK · FENMARK ·', offset: '50%' }) + foxHead(m, .78, 0, 2) }],
+  ['Low-poly fennec', 'The fox in the island\'s own animal style: faceted, five colours, no outlines, on a green enamel coin with a brass rim. Reads best of all at 24 px.',
+    () => coin(METAL.green, { inner: 84 }) + `<g transform="translate(100 102) scale(.72) translate(-100 -100)">${lowpoly}</g>`],
+  ['Sheaf and tail', 'A sheaf of wheat bound with a fox\'s tail instead of twine: the harvest and the fox in one mark.',
+    () => { const m = METAL.gold; let g = ''; for (const a of [-24, -12, 0, 12, 24]) g += wheat(100, 140, a, 70, m.dark)
+      return coin(m) + g + `<path d="M64 120 C80 104 120 104 136 116 C150 126 146 142 132 140 C120 138 116 126 100 124 C86 122 76 128 64 120Z" fill="#b8693e"/><path d="M128 132 C134 136 142 138 146 132" stroke="#fbecc0" stroke-width="3" fill="none" stroke-linecap="round"/>` }],
+  ['Egg and sprout', 'Breeding and farming as one: an egg with a seedling coming up out of its crack. Copper.',
+    () => { const m = METAL.copper; return coin(m) + emboss(m, `<path d="M100 72 C118 72 130 102 130 118 C130 136 117 148 100 148 C83 148 70 136 70 118 C70 102 82 72 100 72Z" stroke-width="0"/>`)
+      + `<path d="M76 108 L88 102 L96 112 L106 100 L116 110 L126 104" fill="none" stroke="${m.light}" stroke-width="2.2"/><g fill="#6e8a3a">${leaf(100, 102, -32, 30, 11)}${leaf(100, 102, 30, 26, 10)}</g><line x1="100" y1="104" x2="100" y2="80" stroke="#4e6a2a" stroke-width="3"/>` }],
+  ['Acorn wreath', 'An acorn inside a laurel wreath: small beginnings, slow growth, the patient kind of wealth. Silver.',
+    () => { const m = METAL.silver; return coin(m) + emboss(m, `${laurel(1)}${laurel(-1)}`, .85) + emboss(m, `<ellipse cx="100" cy="112" rx="18" ry="22"/><path d="M78 98 C78 82 122 82 122 98 Z"/><rect x="98" y="72" width="4" height="12"/>`) }],
+  ['The cash coin', 'A round coin with a square hole, as the old fen coins were: F, E, N and a star round the hole. A quiet nod to where the name comes from.',
+    () => { const m = METAL.copper, id = 'h' + (++uid); return `<defs>${grad(id, m)}</defs><path fill-rule="evenodd" fill="${m.rim}" d="M100 4 a96 96 0 1 1 0 192 a96 96 0 1 1 0 -192 Z M84 84 H116 V116 H84 Z"/><path fill-rule="evenodd" fill="url(#${id})" d="M100 12 a88 88 0 1 1 0 176 a88 88 0 1 1 0 -176 Z M80 80 H120 V120 H80 Z"/>`
+      + `<rect x="76" y="76" width="48" height="48" fill="none" stroke="${m.dark}" stroke-width="2"/><g font-family="IM Fell English SC, serif" font-size="30" fill="${m.dark}" text-anchor="middle"><text x="100" y="58">F</text><text x="148" y="111">E</text><text x="100" y="164">N</text></g><path d="M52 100 l4 -10 l4 10 l-4 10 Z M44 100 l12 -4 l12 4 l-12 4Z" fill="${m.dark}"/>` }],
+  ['The fen', 'What the name says: reeds and bulrushes standing in still water. A landscape on a coin, calm and old.',
+    () => { const m = METAL.gold; let g = ''; for (const [x, h, a] of [[78, 62, -6], [90, 74, -2], [104, 80, 3], [118, 66, 7], [128, 52, 10]]) g += `<line x1="${x}" y1="132" x2="${x + a}" y2="${132 - h}" stroke-width="2.2"/><ellipse cx="${x + a * .8}" cy="${136 - h}" rx="3.4" ry="9"/>`
+      return coin(m) + emboss(m, g) + emboss(m, `<path d="M58 138 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke-width="2.4"/><path d="M68 150 q10 -5 20 0 t20 0 t20 0 t20 0" fill="none" stroke-width="2.4"/>`, .8) }],
+  ['The island', 'An island in enamel, green on a blue sea, set in a brass ring: every Fenmark comes from somebody\'s island.',
+    () => { const m = METAL.gold; return coin(m, { text: '· FENMARK ·', offset: '75%' }) + `<circle cx="100" cy="100" r="64" fill="#3e6a7a"/><circle cx="100" cy="100" r="64" fill="none" stroke="#2a4a58" stroke-width="3"/>`
+      + `<path d="M64 108 C60 88 78 74 94 80 C104 64 128 66 134 84 C146 90 142 112 128 116 C122 130 98 132 88 124 C74 126 66 120 64 108Z" fill="#d8c48a"/><path d="M70 106 C68 92 80 82 94 86 C104 72 124 74 128 88 C138 92 136 108 124 112 C118 124 98 124 90 118 C78 120 72 116 70 106Z" fill="#6e8a3e"/><circle cx="104" cy="96" r="6" fill="#4e6a2a"/><circle cx="92" cy="104" r="5" fill="#4e6a2a"/><circle cx="116" cy="104" r="4" fill="#4e6a2a"/>` }],
+  ['Wax seal', 'Not a coin but a seal pressed into red wax: the fox\'s head, as if every Fenmark were a sealed letter from the journal.',
+    () => { const m = { dark: '#5e1a12', light: '#d8786a' }; let blob = 'M100 8'; for (let k = 1; k <= 24; k++) { const a = k / 24 * Math.PI * 2 - Math.PI / 2, r = 92 + (k % 3 ? 4 : -3) + (k % 5 ? 0 : 3); blob += ` L${100 + Math.cos(a) * r} ${100 + Math.sin(a) * r}` }
+      return `<defs><radialGradient id="w${++uid}" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#c8463a"/><stop offset="1" stop-color="#7e1e16"/></radialGradient></defs><path d="${blob}Z" fill="url(#w${uid})"/><circle cx="100" cy="100" r="72" fill="#a8302a"/><circle cx="100" cy="100" r="72" fill="none" stroke="#5e1a12" stroke-width="3" opacity=".6"/>` + foxHead(m, .62, 0, 2, '#a8302a') }],
+  ['Crowned F', 'A monogram under a small crown: formal and official, the way a national mark looks.',
+    () => { const m = METAL.gold; return coin(m, { text: 'FENMARK', offset: '75%' }) + emboss(m, `<path d="M74 70 L82 52 L92 64 L100 46 L108 64 L118 52 L126 70 Z" stroke-width="0"/><rect x="74" y="70" width="52" height="6" stroke-width="0"/>`) + `<text x="100" y="146" text-anchor="middle" font-family="IM Fell English, serif" font-size="78" fill="${m.light}" opacity=".55" transform="translate(0 1.4)">F</text><text x="100" y="146" text-anchor="middle" font-family="IM Fell English, serif" font-size="78" fill="${m.dark}">F</text>` }],
+  ['Paw and seed', 'A fox\'s paw print, its big pad a seed about to sprout: the creatures and the fields.',
+    () => { const m = METAL.silver; return coin(m) + emboss(m, paw) + `<path d="M100 104 C110 104 114 118 100 132 C86 118 90 104 100 104Z" fill="${m.light}" opacity=".7"/><line x1="100" y1="106" x2="100" y2="128" stroke="${m.b}" stroke-width="1.5"/>` }],
+  ['The crest', 'A shield quartered with what the island is made of: grain, an egg, a house and the sea.',
+    () => { const m = METAL.gold, sh = 'M60 56 H140 V104 C140 130 120 146 100 154 C80 146 60 130 60 104 Z'
+      return coin(m) + `<path d="${sh}" fill="#7a2a1e"/><path d="M100 56 V154 M60 100 H140" stroke="${m.a}" stroke-width="3"/><path d="M60 56 H100 V100 H60Z M100 100 H140 V104 C140 130 120 146 100 154Z" fill="#2e4a6a"/><path d="${sh}" fill="none" stroke="${m.dark}" stroke-width="3"/>`
+        + `<g transform="translate(80 92) scale(.5)">${wheat(0, 0, 0, 60, m.a)}</g><path transform="translate(120 78) scale(.28) translate(-100 -108)" d="${EGG}" fill="${m.a}"/><g transform="translate(80 122) scale(.36) translate(-100 -100)" fill="${m.a}">${house}</g><path d="M106 122 q5 -3 10 0 t10 0 M108 130 q5 -3 10 0 t10 0" stroke="${m.a}" stroke-width="2.4" fill="none"/>` }],
+  ['Compass rose', 'The journal\'s compass rose, F marking the north: a currency for people who chart islands.',
+    () => { const m = METAL.silver; let g = ''; for (let k = 0; k < 8; k++) { const a = k * 45, l = k % 2 ? 40 : 62, w = k % 2 ? 7 : 11; g += `<path transform="rotate(${a} 100 100)" d="M100 100 L${100 - w} 100 L100 ${100 - l} Z"/>` }
+      return coin(m) + emboss(m, g) + `<circle cx="100" cy="100" r="7" fill="${m.light}"/><text x="100" y="34" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="16" fill="${m.dark}">F</text>` }],
+  ['Sun and moon', 'Half sun, half moon, split down the middle in gold and silver: the island\'s days, seasons and weather, always turning.',
+    () => { const g = METAL.gold, s = METAL.silver, id1 = 's' + (++uid), id2 = 's' + (++uid)
+      let rays = ''; for (let k = 0; k < 7; k++) { const a = (-90 - 90 + k * 30) * Math.PI / 180; rays += `<line x1="${100 + Math.cos(a) * 32}" y1="${100 + Math.sin(a) * 32}" x2="${100 + Math.cos(a) * 52}" y2="${100 + Math.sin(a) * 52}" stroke-width="5" stroke-linecap="round"/>` }
+      return `<defs>${grad(id1, g)}${grad(id2, s)}</defs><circle cx="100" cy="100" r="96" fill="${g.rim}"/><path d="M100 10 A90 90 0 0 0 100 190Z" fill="url(#${id1})"/><path d="M100 10 A90 90 0 0 1 100 190Z" fill="url(#${id2})"/>`
+        + `<g fill="${g.dark}" stroke="${g.dark}">${rays}<path d="M100 74 A26 26 0 0 0 100 126Z"/></g><path d="M100 70 A30 30 0 0 1 100 130 A22 22 0 0 0 100 70Z" fill="${s.dark}"/><circle cx="128" cy="74" r="2.4" fill="${s.dark}"/><circle cx="140" cy="118" r="2" fill="${s.dark}"/><line x1="100" y1="10" x2="100" y2="190" stroke="${g.dark}" stroke-width="2" opacity=".5"/>` }],
+  ['Hex brass', 'An eight-sided brass piece, not round: it stands out among round tokens on an exchange, with the fox struck in it.',
+    () => { const m = METAL.gold, id = 'x' + (++uid); let p = '', q = ''; for (let k = 0; k < 8; k++) { const a = (k / 8 + 1 / 16) * Math.PI * 2; p += `${100 + Math.cos(a) * 96},${100 + Math.sin(a) * 96} `; q += `${100 + Math.cos(a) * 86},${100 + Math.sin(a) * 86} ` }
+      return `<defs>${grad(id, m)}</defs><polygon points="${p}" fill="${m.rim}"/><polygon points="${q}" fill="url(#${id})"/>` + foxHead(m, .74, 0, 2) }],
+  ['Fox and egg', 'A fox curled asleep round an egg, its tail over its nose: care, patience, the young to come. Breeding at the heart of the coin.',
+    () => { const m = METAL.copper; return coin(m) + emboss(m, `<path d="M58 118 C52 86 80 60 112 64 C142 68 152 98 142 120 C134 140 106 148 84 142 C70 138 60 130 58 118Z M74 116 C76 132 96 138 114 134 C130 130 138 116 134 104 C128 92 112 92 104 104 C98 112 86 108 74 116Z" fill-rule="evenodd" stroke-width="0"/><path d="M60 112 L50 96 L68 104Z"/>`) + `<path transform="translate(106 116) scale(.24) translate(-100 -108)" d="${EGG}" fill="${m.light}"/>` }],
+  ['The bushel', 'A woven bushel basket heaped with grain: what a harvest is measured in, so what it is worth.',
+    () => { const m = METAL.gold; let weave = ''; for (let y = 108; y < 148; y += 9) weave += `<path d="M${62 + (y - 104) * .3} ${y} H${138 - (y - 104) * .3}" fill="none" stroke-width="2"/>`; for (let x = 72; x < 132; x += 10) weave += `<line x1="${x}" y1="104" x2="${x + (100 - x) * .14}" y2="150" stroke-width="1.6"/>`
+      let grain = ''; for (let k = 0; k < 9; k++) grain += `<ellipse cx="${70 + k * 7.5}" cy="${98 - Math.sin(k / 8 * Math.PI) * 18}" rx="5" ry="7"/>`
+      return coin(m) + emboss(m, grain) + emboss(m, `<path d="M58 102 H142 L132 152 H68 Z" fill="none" stroke-width="3"/>${weave}`) }],
+  ['The nest', 'A round straw nest with three eggs in it, seen from above: building and breeding, and it reads well tiny.',
+    () => { const m = METAL.gold; let straw = ''; for (let k = 0; k < 36; k++) { const a = k / 36 * Math.PI * 2, r = 46 + (k % 3) * 4; straw += `<line x1="${100 + Math.cos(a) * (r - 10)}" y1="${100 + Math.sin(a) * (r - 10)}" x2="${100 + Math.cos(a + .35) * (r + 6)}" y2="${100 + Math.sin(a + .35) * (r + 6)}" stroke-width="2.4" stroke-linecap="round"/>` }
+      return coin(m) + emboss(m, straw, .9) + `<circle cx="100" cy="100" r="30" fill="${m.c}" opacity=".55"/>` + [[90, 92], [112, 96], [98, 114]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="10" ry="13" fill="${m.light}" transform="rotate(${x - 100} ${x} ${y})"/>`).join('') }],
+  ['Fields and sun', 'Furrowed fields running to the horizon under a low sun: farmland, the plainest promise of value.',
+    () => { const m = METAL.copper; let rows = ''; for (let k = -5; k <= 5; k++) rows += `<line x1="${100 + k * 4}" y1="104" x2="${100 + k * 18}" y2="160" stroke-width="2"/>`
+      let rays = ''; for (let k = 0; k < 9; k++) { const a = (180 + k * 22.5) * Math.PI / 180; rays += `<line x1="${100 + Math.cos(a) * 26}" y1="${100 + Math.sin(a) * 26}" x2="${100 + Math.cos(a) * 40}" y2="${100 + Math.sin(a) * 40}" stroke-width="3" stroke-linecap="round"/>` }
+      return coin(m) + `<clipPath id="c${++uid}"><circle cx="100" cy="100" r="82"/></clipPath><g clip-path="url(#c${uid})">` + emboss(m, `<path d="M100 100 m-20 0 a20 20 0 0 1 40 0Z"/>${rays}<line x1="18" y1="102" x2="182" y2="102" stroke-width="2.6"/>${rows}`) + '</g>' }],
+  ['Bimetal', 'A silver ring round a brass heart, like the best modern coins: the fox in the middle, FEN on the ring. Valuable at a glance.',
+    () => { const s = METAL.silver, g = METAL.gold, id = 'b' + (++uid), id2 = 'b' + (++uid), rid = 'p' + uid
+      return `<defs>${grad(id, s)}${grad(id2, g)}<path id="${rid}" d="M100 100 m-76 0 a76 76 0 1 1 152 0 a76 76 0 1 1 -152 0"/></defs><circle cx="100" cy="100" r="96" fill="${s.rim}"/><circle cx="100" cy="100" r="91" fill="url(#${id})"/>`
+        + `<text font-family="IM Fell English SC, serif" font-size="15" letter-spacing="4" fill="${s.dark}"><textPath href="#${rid}" startOffset="25%" text-anchor="middle">FEN · FEN · FEN</textPath></text><circle cx="100" cy="100" r="60" fill="${g.rim}"/><circle cx="100" cy="100" r="57" fill="url(#${id2})"/>` + foxHead(g, .56, 0, 2) }],
+]
+
+const svg = (body) => `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${body}</svg>`
+const sheet = document.getElementById('sheet')
+IDEAS.forEach(([title, note, draw], i) => {
+  const body = draw(), f = document.createElement('figure')
+  f.innerHTML = `<div class="big">${svg(body)}</div>
+    <div class="small"><span class="light"><span class="ic" style="width:48px;height:48px">${svg(body)}</span><span class="ic" style="width:24px;height:24px">${svg(body)}</span>FEN</span>
+      <span class="dark"><span class="ic" style="width:48px;height:48px">${svg(body)}</span><span class="ic" style="width:24px;height:24px">${svg(body)}</span>FEN</span></div>
+    <figcaption><b>${i + 1}. ${title}</b>${note}</figcaption>`
+  sheet.append(f)
+})
+// (ids repeat across the small copies of one drawing; each copy refers to the first, which is the same picture)
+</script>
+</body>
+</html>
