@@ -13,6 +13,8 @@ export interface Lifeform {
   colors: string[]
   size: number
   speed: number
+  /** where its species lives (life.acre species environments): pond, sea, land, beach; none: where its picture belongs */
+  environments?: string[]
 }
 
 export interface IslandView {
@@ -47,14 +49,19 @@ export interface IslandView {
   rotateBuild(): void
   /** Takes back the last build; false when there was none. */
   undoBuild(): boolean
-  /** Called with every build on the island whenever they change (to keep them), and whether undo can take one back. */
-  /** what stands changed (builds: what stands), or the plan did (pending: how many tiles it changes) */
-  /** Marks a ripe crop (or its whole field) for harvest, or takes the mark back. */
-  harvest(tile: number, whole: boolean): void
-  unharvest(tile: number, whole: boolean): void
-  /** What lies in the silos, crop by crop (called now and on every harvest). */
-  onStore(fn: (store: Record<string, number>) => void): void
-  onBuild(fn: (builds: Builds, undoable: boolean, pending: number, kind: 'build' | 'erase' | 'both') => void): void
+  /** The player asks for a harvest of these fully grown tiles (map indexes): the page sends it to the chain. */
+  onHarvest(fn: (tiles: number[]) => void): void
+  /** The farmers' jobs (land.acre workqueue), crops named. */
+  setJobs(jobs: import('./farmers').Job[]): void
+  /** What grows, by map index: crop name and when it was sown (ms). */
+  setPlants(plants: Record<number, { c: string; t: number }>): void
+  /** How long each crop takes to grow, ms, by crop name. */
+  setGrowth(growth: Record<string, number>): void
+  /** Called with every build on the island whenever they change (to keep them), and whether undo can take one back;
+   *  what stands changed (builds: what stands), or the plan did (pending: how many tiles it changes) */
+  onBuild(fn: (builds: Builds, undoable: boolean, pending: number, kind: 'build' | 'erase' | 'both', fenced: PenLoss, left: Inventory | null) => void): void
+  /** What the island's owner holds (null: no limit), and the inventory name of each building (buildcfg's building_name). */
+  setInventory(held: Inventory | null, names: Partial<Record<string, string>>): void
   /** What would stand once the plan is confirmed (a copy). */
   plan(): Builds
   /** Builds what was planned. */
@@ -64,3 +71,9 @@ export interface IslandView {
   /** Internal handles for profiling in the console. */
   debug?: Record<string, unknown>
 }
+
+/** What a plan's enclosures take away when it is confirmed: soil tiles, and the buildings not made to stand inside one. */
+export interface PenLoss { soil: number; buildings: string[] }
+
+/** What a player holds, by inventory name (soil, path, fence, tree, or a building's building_name): how many. */
+export type Inventory = Record<string, number>

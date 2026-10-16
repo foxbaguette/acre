@@ -55,13 +55,27 @@ export const pristineOf = (world: World): Pristine => ({
   hasSoil: world.has[T.soil], hasPath: world.has[T.path],
 })
 
+/** The tree kind land.acre gives the trees an island grows with (createmap puts them into constructs, like any tree);
+ *  1-6 are the trees players plant. They are drawn as the island's woods, and make way for paths, fences and buildings. */
+export const WILD = 7
+
+/** The buildings that may stand inside an enclosure, as land.acre's buildcfg has them (allowed_inside_enclosures);
+ *  until it is read, the nest only. Any other building an enclosure closes round is taken down, and so is its soil. */
+export const insideOk = new Set<Building>(['nest'])
+export const setInsideOk = (list: Building[]) => { insideOk.clear(); for (const k of list) insideOk.add(k) }
+
+/** The buildings that need a path touching them (buildcfg's requires_path); null until read. */
+let pathRule: Set<Building> | null = null
+export const setPathRule = (list: Building[]) => { pathRule = new Set(list) }
+export const needsPath = (k: Building) => (pathRule ? pathRule.has(k) : BUILDINGS[k].door !== undefined && !BUILDINGS[k].main)
+
 /** The smallest enclosure: three by three tiles, so there is ground inside the fence. */
 export const MIN_ENCLOSURE = 3
 
 /** A crop's stages from sown to ripe, and how long it takes to grow (for now one pace for every crop). */
 export const STAGES = ['2-sown', '3-first-growth', '4-second-growth', '5-third-growth', '6-harvest'] as const
 export const GROW_MS = 4 * 10 * 1000          // for now: a new stage every 10 seconds, ripe after 40; ripe crops stay ripe (they never wilt)
-export const cropStage = (sown: number, now: number) => STAGES[Math.max(0, Math.min(STAGES.length - 1, Math.floor((now - sown) / GROW_MS * (STAGES.length - 1))))]
+export const cropStage = (sown: number, now: number, grow = GROW_MS) => STAGES[Math.max(0, Math.min(STAGES.length - 1, Math.floor((now - sown) / Math.max(1, grow) * (STAGES.length - 1))))]
 
 /** What may be built where, on the island as it is now. (The hills no longer limit building; the mountain reading stays for later.) */
 export function rules(world: World, builds: () => Builds, _mountain: (i: number) => number) {
@@ -85,19 +99,21 @@ export function rules(world: World, builds: () => Builds, _mountain: (i: number)
     }
     return pen[i] === 1
   }
+  /** no tree on the tile, or one of the island's own (those make way) */
+  const wildOrNone = (i: number) => !builds()[i]?.p || builds()[i]!.p === WILD
   return {
     open,
     inPen,
     /** the builds changed: work the enclosures out again when next asked */
     changed: () => { penDirty = true },
-    /** open grass, not in the woods, and not inside an enclosure (that is the creatures' ground) */
-    soil: (i: number) => open(i) && t(i) === T.grass && !world.forest[i] && !inPen(i),
-    /** grass, soil or sand without a crop or fence on it; trees there make way */
-    path: (i: number) => open(i) && (t(i) === T.grass || t(i) === T.soil || t(i) === T.sand) && !builds()[i]?.c && !builds()[i]?.f && builds()[i]?.u === undefined,
-    /** any dry, walkable ground without a crop; trees there make way */
-    fence: (i: number) => open(i) && (t(i) === T.grass || t(i) === T.soil || t(i) === T.sand || t(i) === T.path) && !builds()[i]?.c && builds()[i]?.u === undefined,
+    /** open grass with nothing built on it (no building, fence or tree), and not inside an enclosure (that is the creatures' ground) */
+    soil: (i: number) => open(i) && t(i) === T.grass && !world.forest[i] && !inPen(i) && !builds()[i]?.f && !builds()[i]?.p && builds()[i]?.u === undefined,
+    /** grass, soil or sand with no crop, fence, building or planted tree on it (a path takes the place of soil); the island's own trees make way */
+    path: (i: number) => open(i) && (t(i) === T.grass || t(i) === T.soil || t(i) === T.sand) && !builds()[i]?.c && !builds()[i]?.f && builds()[i]?.u === undefined && wildOrNone(i),
+    /** dry, walkable ground with nothing built on it (no soil, path, building or planted tree); the island's own trees make way */
+    fence: (i: number) => open(i) && (t(i) === T.grass || t(i) === T.soil || t(i) === T.sand || t(i) === T.path) && !builds()[i]?.g && !builds()[i]?.c && builds()[i]?.u === undefined && wildOrNone(i),
     /** a building's tile: open grass or sand, nothing built there yet (trees there make way) */
-    building: (i: number) => open(i) && (t(i) === T.grass || t(i) === T.sand) && !builds()[i]?.c && !builds()[i]?.f && !builds()[i]?.g && builds()[i]?.u === undefined,
+    building: (i: number) => open(i) && (t(i) === T.grass || t(i) === T.sand) && !builds()[i]?.c && !builds()[i]?.f && !builds()[i]?.g && builds()[i]?.u === undefined && wildOrNone(i),
     /** grass with nothing built or growing on it: room for a tree */
     tree: (i: number) => open(i) && t(i) === T.grass && !builds()[i]?.g && !builds()[i]?.f && !builds()[i]?.c && !builds()[i]?.p && builds()[i]?.u === undefined,
     /** soil with nothing on it yet */
@@ -119,19 +135,20 @@ export function ring([x0, y0, x1, y1]: [number, number, number, number], cols: n
 export function applyBuilds(world: World, pristine: Pristine, builds: Builds): Uint8Array {
   const { cols } = world, N = world.type.length, fence = new Uint8Array(N), soilTile = tileIndex.get('soil')!
   world.type.set(pristine.type); world.tile.set(pristine.tile); world.forest.set(pristine.forest)
+  const wildGone = (i: number) => !!pristine.forest[i] && builds[i]?.p !== WILD
+  for (let i = 0; i < N; i++) if (wildGone(i)) world.forest[i] = 0
   let soil = pristine.hasSoil, path = pristine.hasPath
   for (const k in builds) {
     const i = Number(k), b = builds[i]
     if (b.g === 'soil') { world.type[i] = T.soil; world.tile[i] = soilTile; soil = true }
     else if (b.g === 'path') { world.type[i] = T.path; world.tile[i] = tileIndex.get(PATH[i % PATH.length])!; path = true }
     if (b.f) fence[i] = 1
-    if (b.x || b.g || b.f || b.u !== undefined) world.forest[i] = 0
   }
   world.has[T.soil] = soil; world.has[T.path] = path
   // nothing grows or lies where the player built or cleared: trees, bushes and flowers there make way
-  const cleared = (x: number, y: number) => { const b = builds[Math.round(y) * cols + Math.round(x)]; return !!b && !!(b.x || b.g || b.f || b.c || b.u !== undefined) }
+  const cleared = (x: number, y: number) => { const i = Math.round(y) * cols + Math.round(x), b = builds[i]; return wildGone(i) || (!!b && !!(b.x || b.g || b.f || b.c || b.u !== undefined)) }
   world.trees = pristine.trees.filter((t) => !cleared(t.x, t.y))
-  for (const k in builds) { const b = builds[k]; if (!b.p || b.g || b.f || b.c || b.u !== undefined) continue   // the player's own trees
+  for (const k in builds) { const b = builds[k]; if (!b.p || b.p === WILD || b.g || b.f || b.c || b.u !== undefined) continue   // the player's own trees
     const i = Number(k), x = i % cols, y = (i - x) / cols, h = ((i * 2654435761) >>> 0) / 4294967296
     world.trees.push({ lift: 0, name: 'tree-0' + b.p, x: x + (h - 0.5) * 0.3, y: y + (((h * 7.31) % 1) - 0.5) * 0.3, sc: 1.25 + ((h * 13.7) % 1) * 0.3, sw: 0.35, phase: h * 6.28 }) }
   world.trees.sort((a, b) => a.y - b.y)

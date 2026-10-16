@@ -49,14 +49,15 @@ export interface Creature extends Lifeform {
 interface SpeciesRow {
   species_id: number | string
   species_name: string
+  environments?: string[]
 }
 
-let speciesCache: Promise<Map<string, string>> | null = null
+let speciesCache: Promise<Map<string, { name: string; environments: string[] }>> | null = null
 
-/** species id to species name; the name picks the creature's sprite. */
-function speciesNames(): Promise<Map<string, string>> {
+/** species id to species name (it picks the creature's sprite) and where it lives. */
+function speciesNames(): Promise<Map<string, { name: string; environments: string[] }>> {
   speciesCache ??= readTable<SpeciesRow>('species', LIFE_CONTRACT, () => true, { code: LIFE_CONTRACT })
-    .then((rows) => new Map(rows.map((r) => [String(r.species_id), r.species_name])))
+    .then((rows) => new Map(rows.map((r) => [String(r.species_id), { name: r.species_name, environments: r.environments ?? [] }])))
     .catch((err) => { speciesCache = null; throw err })
   return speciesCache
 }
@@ -78,12 +79,13 @@ export async function fetchLifeforms(mapId: string): Promise<Creature[]> {
     .filter((r) => String(r.map_id) === mapId && Boolean(r.hatched))
     .map((r) => ({
       id: r.creature_id,
-      species: names.get(String(r.species_id)) ?? r.creature_name,
+      species: names.get(String(r.species_id))?.name ?? r.creature_name,
+      environments: names.get(String(r.species_id))?.environments ?? [],
       colors: [r.color1, r.color2, r.color3, r.color4, r.color5].map(hex),
       size: Number(r.size),
       speed: Number(r.speed),
       name: r.creature_name,
-      speciesName: names.get(String(r.species_id)) ?? r.creature_name,
+      speciesName: names.get(String(r.species_id))?.name ?? r.creature_name,
       owner: r.owner,
       creator: r.creator,
       mass: Number(r.mass),

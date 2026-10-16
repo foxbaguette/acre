@@ -1,33 +1,50 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { AdminClear } from '@/components/AdminClear'
-import { fetchGenRows, fetchIsAuthorizer, GEN_DEFAULTS, GEN_FIELDS, genProblem, type GenRow } from '@/chain/admin'
+import { AdminLifeClear, AdminSpecies } from '@/components/AdminLife'
+import { AdminStartItems } from '@/components/AdminStart'
+import { AdminCrops, AdminHarvest } from '@/components/AdminFarm'
+import { AdminBuildings } from '@/components/AdminBuildings'
+import { AdminInventories } from '@/components/AdminInventories'
+import { fetchGenRows, fetchIsAuthorizer, fetchIsLifeAuthorizer, GEN_DEFAULTS, GEN_FIELDS, genProblem, type GenRow } from '@/chain/admin'
 import { CONTRACT } from '@/chain/config'
 import { actionFields } from '@/chain/rpc'
 import { AccountTag, Header } from '@/journal/Header'
 import { friendlyError, signer, transact } from '@/wallet/session'
 
-/** The admin panel: the game's settings, for land.acre's authorizers. For now: Lands › Genconfig. */
+type Section = 'genconfig' | 'buildings' | 'start' | 'inventories' | 'clear' | 'crops' | 'harvest' | 'species' | 'lifeclear'
+const NAV: { title: string; contract: 'land' | 'life'; items: [Section, string][] }[] = [
+  { title: 'Lands', contract: 'land', items: [['genconfig', 'Genconfig'], ['buildings', 'Buildings'], ['start', 'First island'], ['inventories', 'Inventories'], ['clear', 'Clearing']] },
+  { title: 'Farming', contract: 'land', items: [['crops', 'Crops'], ['harvest', 'Harvest']] },
+  { title: 'Life', contract: 'life', items: [['species', 'Species'], ['lifeclear', 'Clearing']] },
+]
+
+/** The admin panel: the game's settings, for the contracts' authorizers. Lands (land.acre) and Life (life.acre). */
 export function AdminPage({ account, wallet, onSignOut, onLeave }: { account: string; wallet: string | null; onSignOut: () => void; onLeave: () => void }) {
-  const [authorized, setAuthorized] = useState<boolean | null>(null)
-  const [section, setSection] = useState<'genconfig' | 'clear'>('genconfig')
-  useEffect(() => { fetchIsAuthorizer(account).then(setAuthorized) }, [account])
+  const [authorized, setAuthorized] = useState<{ land: boolean; life: boolean } | null>(null)
+  const [section, setSection] = useState<Section>('genconfig')
+  useEffect(() => { Promise.all([fetchIsAuthorizer(account), fetchIsLifeAuthorizer(account)]).then(([land, life]) => setAuthorized({ land, life })) }, [account])
+  const group = NAV.find((g) => g.items.some(([k]) => k === section))!
   return (
     <div className="admin">
       <Header home="contents-1" right={<AccountTag account={account} wallet={wallet} onSignOut={onSignOut} />} />
       <div className="wrap admin-body">
         <nav className="admin-nav" aria-label="Admin">
           <button type="button" className="admin-back hand" onClick={onLeave}>← back to the journal</button>
-          <h2>Lands</h2>
-          <ul>
-            {([['genconfig', 'Genconfig'], ['clear', 'Clearing']] as const).map(([k, label]) => (
-              <li key={k}><button type="button" aria-current={section === k ? 'page' : undefined} onClick={() => setSection(k)}>{label}</button></li>
-            ))}
-          </ul>
+          {NAV.map((g) => (
+            <div key={g.title}>
+              <h2>{g.title}</h2>
+              <ul>
+                {g.items.map(([k, label]) => (
+                  <li key={k}><button type="button" aria-current={section === k ? 'page' : undefined} onClick={() => setSection(k)}>{label}</button></li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
         <main className="admin-main">
-          {authorized === false && <p className="admin-note">This wallet is not one of land.acre’s authorizers: you can look, but the contract will refuse any change.</p>}
-          {section === 'genconfig' ? <GenConfigs /> : <AdminClear />}
+          {authorized && !authorized[group.contract] && <p className="admin-note">This wallet is not one of {group.contract}.acre’s authorizers: you can look, but the contract will refuse any change.</p>}
+          {section === 'genconfig' ? <GenConfigs /> : section === 'buildings' ? <AdminBuildings /> : section === 'start' ? <AdminStartItems /> : section === 'inventories' ? <AdminInventories /> : section === 'clear' ? <AdminClear /> : section === 'crops' ? <AdminCrops /> : section === 'harvest' ? <AdminHarvest /> : section === 'species' ? <AdminSpecies /> : <AdminLifeClear />}
         </main>
       </div>
     </div>

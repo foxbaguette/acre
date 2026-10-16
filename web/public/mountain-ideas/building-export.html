@@ -56,7 +56,9 @@ window.exportAll = async () => {
       s.ground.visible = false; files[name] = shoot(s); s.ground.visible = true
       // its shadow alone, under each time of day's sun (the game picks one; at night, midday's, faint)
       for (const [t, sunAt] of Object.entries(SUNS)) {
-        const keep = new Map(), hide = new THREE.MeshBasicMaterial({ colorWrite: false })
+        // hidden, but not in the way: writing no depth, the building cannot cover its own shadow (its ground plate, reaching
+        // past the footprint, cut a strip out of it); it still casts it
+        const keep = new Map(), hide = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false })
         m.group.traverse((q) => { if (q.isMesh) { keep.set(q, q.material); q.material = hide } })
         m.group.removeFromParent(); const ss = stage(m.group, w, h, SHPAD, sunAt); m.group.updateMatrixWorld(true)
         files[`${name}-shadow-${t}`] = shoot(ss)

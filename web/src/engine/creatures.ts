@@ -130,23 +130,38 @@ export class Herd {
   async set(list: Lifeform[], register: (name: string, url: string) => void): Promise<number> {
     const ask = ++this.ask, w = this.world
     const woods = (x: number, y: number) => w.forest[Math.floor(y) * w.cols + Math.floor(x)]   // trees would hide them
-    const grassOk = (x: number, y: number) => this.typeAt(x, y) === T.grass && !woods(x, y) && !this.fence[this.cell(x, y)]
+    const grassOk = (x: number, y: number) => { const t = this.typeAt(x, y); return (t === T.grass || t === T.sand) && !woods(x, y) && !this.fence[this.cell(x, y)] }   // grass and the beaches
     const areas: Record<string, Area> = {
       land: { ok: (x, y, r) => x > 1 + r && y > 1 + r && x < w.cols - 1 - r && y < w.rows - 1 - r && this.ringOk(x, y, r, grassOk) },
       water: { ok: (x, y, r) => this.ringOk(x, y, r * 1.1, (a, b) => this.typeAt(a, b) === T.water) },
       air: { ok: (x, y) => x > 1 && y > 1 && x < w.cols - 1 && y < w.rows - 1 },
     }
+    // a species' own environments, where life.acre lists them: pond (fresh water), sea, land (grass and the grassy
+    // hills, out of the woods), beach (sand); off the fences, like any creature on the ground
+    const tileOk = (envs: Set<string>) => (a: number, b: number) => {
+      const t = this.typeAt(a, b)
+      if (t === 'sea') return envs.has('sea')
+      if (t === T.water) return envs.has('pond')
+      if (this.fence[this.cell(a, b)]) return false
+      if (t === T.sand) return envs.has('beach')
+      return (t === T.grass || t === T.rock) && envs.has('land') && !woods(a, b)
+    }
+    const areaFor = (envs: Set<string>): Area => { const ok = tileOk(envs), dry = envs.has('land') || envs.has('beach')
+      return { ok: (x, y, r) => x > 1 + r && y > 1 + r && x < w.cols - 1 - r && y < w.rows - 1 - r && this.ringOk(x, y, dry ? r : r * 1.1, ok) } }
     const made: Creature[] = []
     for (const f of list || []) {
       const b = speciesKey(f.species); if (!b) { console.warn('No sprite for species', f.species); continue }
       const scale = Math.max(0.2, (Number(f.size) || 1000) / 1000), quick = Math.max(0.1, (Number(f.speed) || 1000) / 1000)
-      const size = b[2] * scale * 0.5,   // half the art's listed size: they read better beside the trees and buildings
-      r = size * 0.36, area = areas[b[1]], rnd = seeded(Number(f.id) * 7919 + 101)
+      const size = b[2] * scale * 0.5   // half the art's listed size: they read better beside the trees and buildings
+      // where it lives: its species' environments (a flyer flies wherever), else where its picture belongs
+      const envs = new Set((f.environments ?? []).filter((e) => ['pond', 'sea', 'land', 'beach'].includes(e)))
+      const own = envs.size > 0 && b[1] !== 'air', home: Creature['home'] = own ? (envs.has('land') || envs.has('beach') ? 'land' : 'water') : b[1]
+      const r = size * 0.36, area = own ? areaFor(envs) : areas[b[1]], rnd = seeded(Number(f.id) * 7919 + 101)
       let x = w.cols / 2, y = w.rows / 2
       for (let k = 0; k < 6000; k++) { const tx = 2 + rnd() * (w.cols - 4), ty = 2 + rnd() * (w.rows - 4); if (area.ok(tx, ty, r)) { x = tx; y = ty; break } }
       const sprite = 'cre:' + b[0] + '|' + (f.colors || []).join(',')
       register(sprite, await recolouredUrl(b[0], f.colors || []))
-      made.push({ id: f.id, sprite, home: b[1], size, r, x, y, area, tx: x, ty: y, head: rnd() * 6.28, wait: b[1] === 'air' ? 0 : rnd() * 3, phase: rnd() * 6.28, speed: (b[1] === 'air' ? 1.3 : 0.5) * quick, moving: false })
+      made.push({ id: f.id, sprite, home, size, r, x, y, area, tx: x, ty: y, head: rnd() * 6.28, wait: b[1] === 'air' ? 0 : rnd() * 3, phase: rnd() * 6.28, speed: (b[1] === 'air' ? 1.3 : 0.5) * quick, moving: false })
       if (ask !== this.ask) return 0                             // a newer list took over
     }
     this.list = made

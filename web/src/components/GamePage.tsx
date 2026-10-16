@@ -1,17 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { chainPart, fetchConstructs, fetchEnclosures, saveActions } from '@/chain/constructs'
-import { clockAt, fetchHomeClock, type Conditions, type HomeClock } from '@/chain/home'
+import { chainPart, fetchConstructs, fetchEnclosures, fetchInsideOk, saveActions } from '@/chain/constructs'
+import { fetchBuildCfg, fetchInventory, fetchItemNames } from '@/chain/inventory'
+import { claimAction, fetchCropCfg, fetchPlayerStore, fetchStorage, fetchStored, fetchJobs, fetchPlants, harvestActions, hasFarming, plantActions, sowable, unplantActions, type CropCfg, type Plant } from '@/chain/farming'
+import { FarmPanel, jobState } from '@/components/FarmPanel'
+import { StorageTag } from '@/components/StorageTag'
+import { GiveItem } from '@/components/GiveItem'
+import type { BuildCfg } from '@/chain/inventory'
+import type { Job } from '@/engine/farmers'
+import { clockAt, fetchHomeClock, namesAt, type Conditions, type HomeClock } from '@/chain/home'
 import { fetchLifeforms, type Creature } from '@/chain/life'
 import { Bestiary, noteSeen } from '@/components/Bestiary'
 import { CreatureCard } from '@/components/CreatureCard'
 import { FenPurse } from '@/components/FenPurse'
 import { IslandClock } from '@/components/IslandClock'
-import { fetchMapTiles, fetchPlayerMaps, forgetMapTiles } from '@/chain/maps'
+import { fetchMapTiles, fetchPlayerMaps, placeWords } from '@/chain/maps'
 import { startEngine } from '@/engine'
-import { loadBuilds as readBuilds, saveForm } from '@/engine/build'
+import { insideOk, loadBuilds as readBuilds, saveForm, setInsideOk, setPathRule, type Building } from '@/engine/build'
 import { CROPS } from '@/engine/crops'
-import type { Builds, BuildTool, IslandView } from '@/engine/types'
+import type { Builds, BuildTool, Inventory, IslandView, PenLoss } from '@/engine/types'
 import { friendlyError, signer, transact } from '@/wallet/session'
 
 type Save = { state: 'idle' } | { state: 'signing' } | { state: 'error'; message: string }
@@ -38,8 +45,9 @@ const seenHint = () => {
 }
 
 
-// The player's builds on each island: the island shows only what land.acre keeps (table constructs). This browser keeps
-// the crops, which are not constructions. On an island the signed-in wallet does not own, builds last only this visit.
+// The player's builds on each island: the island shows only what land.acre keeps (tables constructs and plants). This
+// browser keeps only the flowers and bushes cleared, which are looks. On an island the signed-in wallet does not own,
+// builds last only this visit.
 const buildKey = (mapId: string) => `ua-builds-${mapId}`
 const loadBuilds = (mapId: string): Builds => {
   try {
@@ -55,21 +63,69 @@ const saveBuilds = (mapId: string, builds: Builds) => {
     /* kept for this visit only */
   }
 }
-/** The chain's builds, with this browser's crops laid back on the chain's soil. */
-const withCrops = (chain: Builds, local: Builds): Builds => {
+/** The chain's builds with what grows on its soil (land.acre plants, crops named), and the flowers and bushes this
+ *  browser cleared (only looks, not constructs). Without farming on the chain yet, this browser's own crops stay. */
+const withCrops = (chain: Builds, local: Builds, plants: Record<number, { c: string; t: number }> | null): Builds => {
   const out: Builds = JSON.parse(JSON.stringify(chain))
-  for (const k in local) { const { c, t, h } = local[k]; if (c && out[k]?.g === 'soil') out[k] = { ...out[k], c, ...(t ? { t } : {}), ...(h ? { h } : {}) } }
+  for (const k in local) { const { c, t, x } = local[k]; if (!plants && c && out[k]?.g === 'soil') out[k] = { ...out[k], c, ...(t ? { t } : {}) }; if (x) out[k] = { ...out[k], x } }
+  for (const k in plants ?? {}) if (out[Number(k)]?.g === 'soil') out[Number(k)] = { ...out[Number(k)], ...plants![Number(k)] }
+  return out
+}
+/** What grows, by map index, crops named by cropcfg; a tile its farmer has cut already is bare soil (the chain lets it be
+ *  sown again before the claim). */
+const plantsByTile = (list: Plant[], crops: CropCfg[], jobs: Job[]) => {
+  const out: Record<number, { c: string; t: number }> = {}, now = Date.now()
+  for (const p of list) {
+    if (p.harvestId !== '0') { const j = jobs.find((q) => q.id === p.harvestId); if (!j || j.harvested <= now) continue }
+    const c = crops.find((q) => q.id === p.crop); if (c) out[p.tile] = { c: c.name, t: p.planted }
+  }
   return out
 }
 const WEATHER_WORDS: Record<string, string> = { sun: 'sunny', cloudy: 'cloudy', rain: 'light rain', storm: 'storm' }
 const SNOW_WORDS: Record<string, string> = { rain: 'light snow', storm: 'snowstorm' }
 const weatherWord = (c: Conditions) => (c.season === 'winter' && SNOW_WORDS[c.weather]) || WEATHER_WORDS[c.weather] || c.weather
-const cropName = (c: string) => c.replace(/-/g, ' ')
+const cropWord = (c: string) => c.replace(/-/g, ' ')
+
+/** The inventory name of what a tool builds (null: a tool that takes nothing from the inventory). */
+const itemOf = (tool: BuildTool, names: Partial<Record<Building, string>>): string | null => {
+  if (tool === 'soil' || tool === 'path' || tool === 'fence' || tool === 'tree') return tool
+  if (['farmhouse', 'lab', 'nest', 'silo', 'bakery', 'kitchen', 'torch', 'market'].includes(tool)) return names[tool as Building] ?? tool
+  return null
+}
+/** For a tool with nothing left: say so. */
+const outWord = (tool: BuildTool, left: Inventory | null, names: Partial<Record<Building, string>>) => {
+  const item = itemOf(tool, names); if (!left || !item) return ''
+  const n = left[item] ?? 0
+  return n <= 0 ? ' None left in your inventory: erasing one gives it back.' : ` ${n} left in your inventory.`
+}
+
+/** For a building: whether it may stand inside an enclosure. */
+const insideWord = (tool: BuildTool) => {
+  if (!['farmhouse', 'lab', 'nest', 'silo', 'bakery', 'kitchen', 'torch', 'market'].includes(tool)) return ''
+  return insideOk.has(tool as Building) ? ' It may stand inside an enclosure.' : ' Not inside an enclosure: one closed round it takes it down.'
+}
+
+/** What the planned fences take away, said plainly before it is confirmed. */
+function fenceWarning(loss: PenLoss) {
+  if (!loss.soil && !loss.buildings.length) return null
+  const names = [...new Set(loss.buildings)].map((k) => { const n = loss.buildings.filter((b) => b === k).length, w = TOOLS.find((t) => t.id === k)?.label ?? k; return n === 1 ? `the ${w}` : `${n} ${w}s` })
+  const what = [...(loss.soil ? [`${loss.soil} soil tile${loss.soil === 1 ? '' : 's'}`] : []), ...names]
+  const list = what.length === 1 ? what[0] : `${what.slice(0, -1).join(', ')} and ${what[what.length - 1]}`
+  return <p className="build-warn hand" role="alert">Confirming takes away {list}: an enclosure is the creatures’ ground, so they cannot stay inside the new fence. They go back to your inventory.</p>
+}
+
+/** The build tools in groups, in a fixed order (so nothing moves as what is left changes). */
+const TOOL_GROUPS: { title: string; ids: BuildTool[] }[] = [
+  { title: 'ground', ids: ['path', 'soil', 'fence', 'tree'] },
+  { title: 'buildings', ids: ['market', 'farmhouse', 'silo', 'bakery', 'kitchen', 'lab', 'nest', 'torch'] },
+  { title: 'farming', ids: ['crop', 'harvest'] },
+  { title: 'changes', ids: ['upgrade', 'erase'] },
+]
 
 const TOOLS: { id: BuildTool; label: string; hint: string; icon: string }[] = [
-  { id: 'fence', label: 'enclosure', hint: 'Drag to draw a fence, any shape; close the loop and it is an enclosure. To enlarge one, draw the new side out from the old fence and erase the old stretch. Shift + drag: a rectangle.', icon: 'M3 20V8l2-3 2 3v12M17 20V8l2-3 2 3v12M3 11h18M3 16h18' },
+  { id: 'fence', label: 'enclosure', hint: 'Drag to draw a fence, any shape; close the loop and it is an enclosure. To enlarge one, draw the new side out from the old fence and erase the old stretch. Shift + drag: a rectangle. An enclosure is the creatures’ ground: closing one round soil, or round a building not made for it, takes them away.', icon: 'M3 20V8l2-3 2 3v12M17 20V8l2-3 2 3v12M3 11h18M3 16h18' },
   { id: 'path', label: 'path', hint: 'Drag to lay a path where you go, over grass, soil or sand; trees in the way make room. Shift + drag: a whole area.', icon: 'M7 21c0-4 3-5 3-9S7 7 7 3M17 21c0-4-3-5-3-9s3-5 3-9M12 6v1M12 11v1M12 16v1' },
-  { id: 'soil', label: 'soil', hint: 'Drag over open grass to turn it into soil, ready for sowing.', icon: 'M3 17c3-2 6-2 9 0s6 2 9 0M3 12c3-2 6-2 9 0s6 2 9 0M8 7l1-3M15 7l1-3' },
+  { id: 'soil', label: 'soil', hint: 'Drag over open grass to turn it into soil, ready for sowing. Not inside an enclosure, and not where something is built.', icon: 'M3 17c3-2 6-2 9 0s6 2 9 0M3 12c3-2 6-2 9 0s6 2 9 0M8 7l1-3M15 7l1-3' },
   { id: 'crop', label: 'crops', hint: 'Pick a crop, then drag over soil to sow it. It grows a stage every ten seconds and is ready in under a minute.', icon: 'M12 21V10M12 14c-4 0-6-3-6-6 3 0 6 2 6 6zM12 11c0-4 2-7 6-7 0 4-2 7-6 7z' },
   { id: 'farmhouse', label: 'farmhouse', hint: 'Click to put up a farmhouse (3 × 4 tiles) on open grass; R turns it. Its door must reach a path: one up to two tiles away is joined to it. One farmer moves in; upgrade it for more.', icon: 'M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6' },
   { id: 'upgrade', label: 'upgrade', hint: 'Click a farmhouse to raise it a stage: each stage houses one more farmer, up to five.', icon: 'M12 20V6M6 12l6-6 6 6M5 21h14' },
@@ -106,6 +162,11 @@ export function GamePage({ mapId, account, onLeave }: {
   const [undoable, setUndoable] = useState(false)
   const [pending, setPending] = useState(0)
   const [planKind, setPlanKind] = useState<'build' | 'erase' | 'both'>('build')
+  const [fenced, setFenced] = useState<PenLoss>({ soil: 0, buildings: [] })
+  // what the island's owner holds once the plan is built (null: no inventory to keep to), and each building's name in it
+  const [left, setLeft] = useState<Inventory | null>(null)
+  const [itemNames, setItemNames] = useState<Partial<Record<Building, string>>>({})
+  const [, setInsideRead] = useState(0)
   const confirmWords = planKind === 'erase' ? 'confirm erasing' : planKind === 'both' ? 'confirm changes' : 'confirm building'
   const [crop, setCrop] = useState<string>('wheat')
   const started = useRef<IslandView | null>(null)
@@ -124,8 +185,27 @@ export function GamePage({ mapId, account, onLeave }: {
   }
   const [save, setSave] = useState<Save>({ state: 'idle' })
   const [owner, setOwner] = useState<string | null>(null)
+  /** where the island lies on the world map */
+  const [place, setPlace] = useState<{ x: number; y: number } | null>(null)
   /** what land.acre holds for this island, as the page keeps it (null until read) */
   const onChain = useRef<Builds | null>(null)
+  // farming on land.acre: the crops (null: not on the chain yet), what grows there by tile (crop name), the farmers' jobs,
+  // the owner's crop store
+  const [crops, setCrops] = useState<CropCfg[] | null>(null)
+  const onChainPlants = useRef<Record<number, string>>({})
+  const [jobs, setJobsState] = useState<Job[]>([])
+  const [store, setStore] = useState<Record<string, number>>({})
+  const [farmOpen, setFarmOpen] = useState(false)
+  const [farmNote, setFarmNote] = useState<string | null>(null)
+  const [storage, setStorage] = useState<{ capacity: number; used: number } | null>(null)
+  const [stored, setStored] = useState<Record<string, number>>({})
+  // what stands on the island (to show which buildings give it room) and every building's settings
+  const [standing, setStanding] = useState<Builds>({})
+  const [buildCfg, setBuildCfg] = useState<BuildCfg[]>([])
+  const farm = useRef<{ crops: CropCfg[] | null; owner: string | null }>({ crops: null, owner: null })
+  farm.current = { crops, owner }
+  const cropName = (id: string) => crops?.find((c) => c.id === id)?.name ?? id
+  const [, setTick] = useState(0)
   const who = signer()
   const toChain = !!who && who.actor === owner && onChain.current !== null
   const selectedCreature = selected === null ? null : creatures.find((c) => String(c.id) === selected) ?? null
@@ -135,20 +215,27 @@ export function GamePage({ mapId, account, onLeave }: {
     fetchPlayerMaps(account).then((maps) => {
       const m = maps.find((x) => x.id === mapId)
       if (live && m?.name) setName(m.name)
-      if (live && m) setOwner(m.owner)
+      if (live && m) { setOwner(m.owner); setPlace(m.at) }
     }, () => undefined)
-    Promise.all([fetchMapTiles(mapId), fetchConstructs(mapId)]).then(
-      ([tiles, chain]) => {
+    // farming, if the chain has it: the crops, what grows and the farmers' jobs (the island opens without it)
+    const farming = hasFarming().then((ok) => (ok ? Promise.all([fetchCropCfg(), fetchPlants(mapId), fetchJobs(mapId)]) : null)).catch(() => null)
+    Promise.all([fetchMapTiles(mapId), fetchConstructs(mapId), farming]).then(
+      ([tiles, chain, farmed]) => {
         if (!live || started.current) return
         setLoad({ state: 'drawing' })
         // let the "sketching" note paint before the first build starts
         setTimeout(() => {
           if (!live || started.current) return
           try {
-            // what the chain holds, with this browser's crops on its soil
+            // what the chain holds, with what grows on its soil
             onChain.current = chain
-            const saved = withCrops(chain, loadBuilds(mapId))
+            const grows = farmed ? plantsByTile(farmed[1], farmed[0], farmed[2]) : null
+            if (farmed) { setCrops(farmed[0]); onChainPlants.current = Object.fromEntries(Object.entries(grows!).map(([k, v]) => [k, v.c])) }
+            const saved = withCrops(chain, loadBuilds(mapId), grows)
             started.current = startEngine({ tiles, mapId, builds: saved })
+            if (farmed) { started.current.setGrowth(Object.fromEntries(farmed[0].map((c) => [c.name, c.growth * 1000])))
+              const named = farmed[2].map((j) => ({ ...j, crop: farmed[0].find((c) => c.id === j.crop)?.name ?? j.crop }))
+              started.current.setJobs(named); setJobsState(farmed[2]) }
             if (import.meta.env.DEV) (window as unknown as { __island: IslandView }).__island = started.current
             const view = started.current
             view.ready.then(() => {
@@ -175,7 +262,11 @@ export function GamePage({ mapId, account, onLeave }: {
                 tick()
                 document.addEventListener('visibilitychange', () => { if (!document.hidden) tick() })   // timers sleep in a hidden tab
               }, (err) => console.warn('Could not read the island clock', err))
-              view.onBuild((builds, canUndo, planned, kind) => { saveBuilds(mapId, builds); setUndoable(canUndo); setPending(planned); setPlanKind(kind) })
+              view.onHarvest((tiles) => sendHarvest(tiles))
+              view.onBuild((builds, canUndo, planned, kind, loss, rest) => { saveBuilds(mapId, builds); setStanding(builds); setUndoable(canUndo); setPending(planned); setPlanKind(kind); setFenced(loss); setLeft(rest) })
+              fetchInsideOk().then((list) => { if (live && list) { setInsideOk(list); setInsideRead((n) => n + 1) } }, () => undefined)
+              // which buildings need a path touching them (buildcfg), as land.acre checks it
+              fetchBuildCfg().then((cfg) => { if (live) setBuildCfg(cfg); if (live && cfg.length) setPathRule(cfg.filter((c) => c.requiresPath && c.building).map((c) => c.building!)) }, () => undefined)
               fetchEnclosures(mapId).then((list) => live && view.setEnclosures(list), (err) => console.warn('Could not read the enclosures', err))
               fetchLifeforms(mapId)
                 .then((list) => { if (live) setCreatures(list); noteSeen(list.map((c) => view.spriteFor(c.speciesName)).filter((k): k is string => !!k)); return view.setLifeforms(list) })
@@ -213,11 +304,97 @@ export function GamePage({ mapId, account, onLeave }: {
 
   /** Confirms the plan: on the owner's island land.acre is asked first (one transaction), and only once it is signed
    *  does the plan stand. Crops and anything on another's island stay in this browser. */
+  /** Reads what the owner holds into the island (the plan is held to it). */
+  const readInventory = () => {
+    const view = started.current; if (!view || !owner) return
+    Promise.all([fetchInventory(owner), fetchItemNames()]).then(([held, names]) => { setItemNames(names); view.setInventory(held, names) }, (err) => console.warn('Could not read the inventory', err))
+  }
+  useEffect(() => { if (load.state === 'ready') readInventory() }, [load.state, owner])   // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Reads what grows and the farmers' jobs again (after a change, and now and then). */
+  const readFarm = () => {
+    const view = started.current, list = farm.current.crops; if (!view || !list) return
+    Promise.all([fetchPlants(mapId), fetchJobs(mapId)]).then(([plants, js]) => {
+      const grows = plantsByTile(plants, list, js)
+      onChainPlants.current = Object.fromEntries(Object.entries(grows).map(([k, v]) => [k, v.c]))
+      view.setPlants(grows)
+      view.setJobs(js.map((j) => ({ ...j, crop: list.find((c) => c.id === j.crop)?.name ?? j.crop }))); setJobsState(js)
+    }, (err) => console.warn('Could not read the farm', err))
+  }
+  const readStore = () => { const o = farm.current.owner; if (o && farm.current.crops) fetchPlayerStore(o).then(setStore, () => undefined)
+    fetchStorage(mapId).then(setStorage, () => undefined); fetchStored(mapId).then(setStored, () => undefined) }
+  useEffect(() => { if (load.state === 'ready') readStore() }, [load.state, owner])   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (load.state !== 'ready' || !crops) return
+    readStore()
+    const t = window.setInterval(readFarm, 60_000)   // someone else's change now and then; the farmers' times need no reading
+    return () => window.clearInterval(t)
+  }, [load.state, crops, owner])   // eslint-disable-line react-hooks/exhaustive-deps
+  // when a farmer reaches the silo, the claim shows
+  useEffect(() => {
+    const now = Date.now(), next = jobs.filter((j) => !j.claimed && j.offloaded > now).map((j) => j.offloaded).sort((a, b) => a - b)[0]
+    if (!next) return
+    const t = window.setTimeout(() => setTick((n) => n + 1), next - now + 300); return () => window.clearTimeout(t)
+  })
+  const claimable = jobs.filter((j) => jobState(j, Date.now()).claimable).length
+  const roomBuildings = (() => {
+    const out = new Map<string, { name: string; count: number; each: number; dropOff: boolean }>()
+    for (const k in standing) { const b = standing[k]; if (!b.s) continue
+      const c = buildCfg.find((q) => q.building === b.s); if (!c || (!c.storage && !c.main)) continue
+      const name = c.display || c.name, e = out.get(name) ?? { name, count: 0, each: c.storage, dropOff: true }; e.count++; out.set(name, e) }
+    return [...out.values()].sort((a, b) => b.each - a.each)
+  })()
+  const storageTag = <StorageTag storage={storage} stored={stored} jobs={jobs} buildings={roomBuildings} store={store} cropName={cropName} />
+
+  /** A farmer is asked for these fully grown tiles: one harvest action for each crop. */
+  const sendHarvest = async (tiles: number[]) => {
+    const view = started.current, w = signer(), list = farm.current.crops; if (!view) return
+    setFarmOpen(true)
+    if (!list) { setFarmNote('Harvesting comes with land.acre’s farming update.'); return }
+    if (!w || w.actor !== farm.current.owner) { setFarmNote('Only the island’s owner, signed in, sends farmers.'); return }
+    const plan = view.plan(), byCrop: Record<string, number[]> = {}
+    for (const i of tiles) { const c = list.find((q) => q.name === plan[i]?.c); if (c) (byCrop[c.id] ??= []).push(i) }
+    if (!Object.keys(byCrop).length) return
+    const brings = Object.entries(byCrop).reduce((n, [id, ts]) => n + (list.find((q) => q.id === id)?.yield ?? 0) * ts.length, 0)
+    if (storage && storage.used + brings > storage.capacity) { setFarmNote(`The island’s storage is full: ${Math.max(0, storage.capacity - storage.used)} left, this harvest brings ${brings}. Put up more storage first.`); return }
+    setFarmNote('Waiting for your wallet…')
+    try {
+      await transact(harvestActions(mapId, w, byCrop))
+      setFarmNote('A farmer is on the way.'); setTimeout(() => { readFarm(); readStore() }, 2500)
+    } catch (err) { setFarmNote(friendlyError(err)) }
+  }
+  /** What the farmers brought to the silo into the store: one claim each, in one transaction. */
+  const claim = async (job: Job | Job[]) => {
+    const w = signer(), list = Array.isArray(job) ? job : [job]; if (!w || w.actor !== owner || !list.length) return
+    setFarmNote('Waiting for your wallet…')
+    try {
+      await transact(list.map((j) => claimAction(mapId, w, j.id)))
+      const byCrop: Record<string, number> = {}; for (const j of list) byCrop[j.crop] = (byCrop[j.crop] ?? 0) + j.amount
+      setFarmNote(Object.entries(byCrop).map(([c, n]) => `${n} ${cropName(c).replace(/-/g, ' ')}`).join(', ') + ' into your store.')
+      const ids = new Set(list.map((j) => j.id))
+      setJobsState((js) => js.map((q) => (ids.has(q.id) ? { ...q, claimed: true } : q)))
+      setTimeout(() => { readFarm(); readStore() }, 2500)
+    } catch (err) { setFarmNote(friendlyError(err)) }
+  }
+
   const confirm = async () => {
     const view = started.current, w = signer()
     if (!view || save.state === 'signing') return
     if (!w || w.actor !== owner || !onChain.current) { view.confirmBuild(); return }
-    const next = chainPart(view.plan()), actions = saveActions(mapId, w, onChain.current, next)
+    const plan = view.plan(), next = chainPart(plan)
+    // what is sown and taken off soil that stays: plant and unplant, with the season, daytime and weather checked first
+    const sow: Record<string, number[]> = {}, unsow: number[] = []
+    if (crops) {
+      const clock = clockReady ? namesAt(clockReady, Date.now()) : null
+      for (const k in plan) { const i = Number(k), c = plan[i].c; if (!c || onChainPlants.current[i] === c) continue
+        const cfg = crops.find((q) => q.name === c)
+        if (!cfg) { setSave({ state: 'error', message: `${cropWord(c)} is not a crop the chain knows.` }); return }
+        if (!sowable(cfg, clock)) { setSave({ state: 'error', message: `${cropWord(c)} cannot be sown now (${clock?.season}, ${clock?.daytime}, ${clock?.weather}).` }); return }
+        if (onChainPlants.current[i]) unsow.push(i)
+        ;(sow[cfg.id] ??= []).push(i) }
+      for (const k in onChainPlants.current) { const i = Number(k); if (!plan[i]?.c && plan[i]?.g === 'soil') unsow.push(i) }
+    }
+    const actions = [...unplantActions(mapId, w, unsow), ...saveActions(mapId, w, onChain.current, next), ...plantActions(mapId, w, sow)]
     if (!actions.length) { view.confirmBuild(); return }
     setSave({ state: 'signing' }); setTool(null)
     try {
@@ -228,8 +405,8 @@ export function GamePage({ mapId, account, onLeave }: {
     }
     const fenced = Object.keys({ ...onChain.current, ...next }).some((k) => !!onChain.current![Number(k)]?.f !== !!next[Number(k)]?.f)
     onChain.current = next
-    if (actions.some((a) => a.name === 'clearnature')) forgetMapTiles(mapId)
     view.confirmBuild(); setSave({ state: 'idle' })
+    setTimeout(() => { readInventory(); readStore(); readFarm() }, 2500)   // what the contract counted (inventory, storage, the farmers' jobs planned again), once a node has the block
     // the contract counts the enclosures anew when fences change: read them once a node has the block
     if (fenced) { view.setEnclosures([]); setTimeout(() => fetchEnclosures(mapId).then((list) => view.setEnclosures(list), () => undefined), 2500) }
   }
@@ -247,6 +424,13 @@ export function GamePage({ mapId, account, onLeave }: {
 
   // the two layouts share these: the three tools, and the cards they open (the weather card always in the page)
   const toolClass = layout === 'corners' ? 'wx-tag tool-tag' : 'margin-tool'
+  // the crops to sow: the chain's (those with a picture), each sowable now or not (home.acre's clock); without farming
+  // on the chain, every crop with a picture (sown on this device only)
+  const clockNames = clockReady ? namesAt(clockReady, Date.now()) : null
+  const seedList = crops
+    ? crops.filter((q) => (CROPS as readonly string[]).includes(q.name)).map((q) => ({ c: q.name, ok: sowable(q, clockNames), why: `sown only in ${[q.seasons.join(' or '), q.daytimes.join(' or '), q.weathers.join(' or ')].filter(Boolean).join(', ')}` }))
+    : CROPS.map((c) => ({ c: c as string, ok: true, why: '' }))
+  const seedInfo = (c: string) => { const q = crops?.find((x) => x.name === c); return q ? ` · grows in ${q.growth >= 3600 ? `${+(q.growth / 3600).toFixed(1)} h` : q.growth >= 60 ? `${Math.round(q.growth / 60)} min` : `${q.growth} s`} · ${q.yield} a tile` : '' }
   const toolButtons = (
     <>
       <button type="button" className={`${toolClass} build-toggle`} aria-expanded={buildOpen} aria-controls="build-card" onClick={() => { setSkyOpen(false); if (buildOpen) closeBuild(); else setBuildOpen(true) }}>
@@ -264,6 +448,13 @@ export function GamePage({ mapId, account, onLeave }: {
         <span>weather</span>
         {ownPick && <span className="sky-own" aria-label="your own pick">•</span>}
       </button>
+      <button type="button" className={`${toolClass} farm-toggle`} aria-expanded={farmOpen} aria-controls="farm-card" onClick={() => { closeBuild(); setSkyOpen(false); setFarmOpen(!farmOpen) }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M5 19l5-5M10 14c1-6 6-9 10-8-3 1-6 4-6 8" />
+        </svg>
+        <span>farmers</span>
+        {claimable > 0 && <span className="sky-own" aria-label={`${claimable} to claim`}>{claimable}</span>}
+      </button>
       <button type="button" className={`${toolClass} bestiary-toggle`} aria-haspopup="dialog" onClick={() => { closeBuild(); setSkyOpen(false); setBestiaryOpen(true) }}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M4 5c3-1.5 5.5-1.5 8 0v14c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v14c2.5-1.5 5-1.5 8 0z" />
@@ -274,48 +465,60 @@ export function GamePage({ mapId, account, onLeave }: {
   )
   const cardsAndSky = (
     <>
+      {load.state === 'ready' && farmOpen && !buildOpen && (
+        <div className="build"><FarmPanel jobs={jobs} cropName={cropName} store={store} storage={storage} canAct={!!who && who.actor === owner && !!crops} note={farmNote} onClaim={claim} onClaimAll={claim} onClose={() => { setFarmOpen(false); setFarmNote(null) }} /></div>
+      )}
       {load.state === 'ready' && (
         <div className="build">
           {buildOpen && (
             <div className="build-card" id="build-card">
-              <div className="build-tools" role="group" aria-label="What to build">
-                {TOOLS.map((t) => (
-                  <button key={t.id} type="button" className="build-tool" aria-pressed={tool === t.id} onClick={() => setTool(tool === t.id ? null : t.id)}>
+              {TOOL_GROUPS.map((g) => (
+              <div key={g.title} className="build-tools" role="group" aria-label={g.title}>
+                <span className="build-group">{g.title}</span>
+                {g.ids.map((id) => TOOLS.find((t) => t.id === id)!).map((t) => { const item = itemOf(t.id, itemNames), out = !!left && !!item && (left[item] ?? 0) <= 0
+                  return (
+                  <button key={t.id} type="button" className={`build-tool${out ? ' is-out' : ''}`} aria-pressed={tool === t.id} title={out ? 'none left in your inventory' : undefined} onClick={() => setTool(tool === t.id ? null : t.id)}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d={t.icon} />
                     </svg>
                     {t.label}
+                    {left && item && <small className={`tool-left${out ? ' is-out' : ''}`} aria-label={`${left[item] ?? 0} left`}>{left[item] ?? 0}</small>}
                   </button>
-                ))}
+                ) })}
               </div>
-              <p className="build-hint hand">{tool ? TOOLS.find((t) => t.id === tool)!.hint : 'Pick what to build, then drag across the island.'}</p>
+              ))}
+              <p className="build-hint hand">{tool ? TOOLS.find((t) => t.id === tool)!.hint + insideWord(tool) + outWord(tool, left, itemNames) : 'Pick what to build, then drag across the island.'}</p>
               {tool === 'crop' && (
                 <div className="crop-pick" role="radiogroup" aria-label="Which crop to sow">
-                  {CROPS.map((c) => (
-                    <button key={c} type="button" role="radio" aria-checked={crop === c} className="crop-seed" title={cropName(c)} onClick={() => setCrop(c)}>
-                      <img src={`art/crops/${c}/7-harvest-front.svg?v=1`} alt={cropName(c)} loading="lazy" />
+                  {seedList.map(({ c, ok, why }) => (
+                    <button key={c} type="button" role="radio" aria-checked={crop === c} className="crop-seed" title={ok ? cropWord(c) : `${cropWord(c)}: ${why}`} disabled={!ok} onClick={() => setCrop(c)}>
+                      <img src={`art/crops/${c}/7-harvest-front.svg?v=1`} alt={cropWord(c)} loading="lazy" />
                     </button>
                   ))}
+                  {seedList.length === 0 && <p className="build-hint hand">No crops yet: they are added in the admin panel (Farming › Crops).</p>}
                 </div>
               )}
-              {tool === 'crop' && <p className="crop-name">{cropName(crop)}</p>}
+              {tool === 'crop' && <p className="crop-name">{cropWord(crop)}{seedInfo(crop)}</p>}
               {(tool === 'farmhouse' || tool === 'lab' || tool === 'nest' || tool === 'silo' || tool === 'bakery' || tool === 'kitchen' || tool === 'market') && <button type="button" className="build-link" onClick={() => started.current?.rotateBuild()}>rotate (R)</button>}
               <div className="build-actions">
                 <button type="button" className="build-link" disabled={!undoable} onClick={() => started.current?.undoBuild()}>undo</button>
                 <button type="button" className="build-link" onClick={closeBuild}>done</button>
               </div>
+              {fenceWarning(fenced)}
               <p className="build-plan hand">{pending ? `${pending} tile${pending === 1 ? '' : 's'} planned: blue goes up, red comes down. Click a mark again to take it back.` : 'Nothing planned yet. What you mark shows as a hologram until you confirm it.'}</p>
               <div className="build-actions">
                 <button type="button" className="build-confirm" disabled={!pending || save.state === 'signing'} onClick={confirm}>{confirmLabel}</button>
                 <button type="button" className="build-link" disabled={!pending || save.state === 'signing'} onClick={() => { setSave({ state: 'idle' }); started.current?.discardBuild() }}>discard</button>
               </div>
               {saveNote}
+              <GiveItem owner={owner} buildCfg={buildCfg} onGiven={readInventory} />
               <p className="rec-foot">{toChain ? 'Confirming saves to the chain (your wallet signs); crops stay on this device.' : 'Not saved: only the island’s owner, signed in, saves to the chain. Gone when you leave.'} Right-drag moves the map; a right click puts the tools away.</p>
             </div>
           )}
           {!buildOpen && pending > 0 && (
             <div className="build-pending">
               <span className="hand">{pending} planned</span>
+              {fenceWarning(fenced)}
               <button type="button" className="build-confirm" disabled={save.state === 'signing'} onClick={confirm}>{confirmLabel}</button>
               <button type="button" className="build-link" disabled={save.state === 'signing'} onClick={() => { setSave({ state: 'idle' }); started.current?.discardBuild() }}>discard</button>
               {saveNote}
@@ -458,11 +661,12 @@ export function GamePage({ mapId, account, onLeave }: {
                 <use href="#stamp-mark" />
               </svg>
               <span>
-                <small>map no. {mapId}</small>
+                <small title={`its place on the world map: ${placeWords(place)}`}>map no. {mapId}{place ? ` · at ${place.x}, ${place.y}` : ''}</small>
                 <b>{name}</b>
               </span>
-              <button type="button" className="isle-back" onClick={onLeave} aria-label="Back to the journal" title="back to the journal">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6" /></svg>
+              <button type="button" className="isle-back" onClick={onLeave} aria-label="Back to the journal">
+                <svg className="isle-back-corner" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 6l-6 6 6 6" /></svg>
+                <span className="isle-back-label" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6" /></svg><span><small>back to the</small><b>journal</b></span></span>
               </button>
             </div>
             {load.state === 'ready' && <div className="hud-buttons">{toolButtons}</div>}
@@ -471,6 +675,7 @@ export function GamePage({ mapId, account, onLeave }: {
           <div className="hud hud-tr">
             <FenPurse account={account} />
             {clockReady && island && <IslandClock clock={clockReady} season={island.season} />}
+            {load.state === 'ready' && storageTag}
           </div>
         </>
       ) : (
@@ -481,7 +686,7 @@ export function GamePage({ mapId, account, onLeave }: {
                 <use href="#stamp-mark" />
               </svg>
               <b>{name}</b>
-              <small>map no. {mapId}</small>
+              <small title={`its place on the world map: ${placeWords(place)}`}>map no. {mapId}{place ? ` · at ${place.x}, ${place.y}` : ''}</small>
             </div>
             {load.state === 'ready' && <div className="margin-tools">{toolButtons}</div>}
             <div className="margin-foot">
@@ -490,7 +695,7 @@ export function GamePage({ mapId, account, onLeave }: {
             </div>
           </aside>
           <div className="hud margin-cards">{cardsAndSky}</div>
-          <div className="hud hud-tr"><FenPurse account={account} /></div>
+          <div className="hud hud-tr"><FenPurse account={account} />{load.state === 'ready' && storageTag}</div>
         </>
       )}
 

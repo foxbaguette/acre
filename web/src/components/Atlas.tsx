@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 
-import { fetchIsAuthorizer } from '@/chain/admin'
+import { fetchIsAuthorizer, fetchIsLifeAuthorizer } from '@/chain/admin'
 import { CONTRACT, GEN_CONFIG } from '@/chain/config'
 import { actionFields } from '@/chain/rpc'
-import { fetchMapTiles, fetchPlayerMaps, mapStats, type MapStats, type PlayerMap, fetchGenConfigs, type GenConfig } from '@/chain/maps'
+import { fetchMapTiles, fetchPlayerMaps, mapStats, placeWords, type MapStats, type PlayerMap, fetchGenConfigs, type GenConfig } from '@/chain/maps'
 import { friendlyError, signer, transact } from '@/wallet/session'
 import { coastlinePath } from '@/lib/outline'
 import { ArrowLeft, ArrowRight, Book, type Bookmark, type Spread } from '@/journal/Book'
@@ -123,7 +123,7 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
 }) {
   const [maps, setMaps] = useState<PlayerMap[] | null>(null)
   const [authorizer, setAuthorizer] = useState(false)
-  useEffect(() => { let live = true; fetchIsAuthorizer(account).then((a) => live && setAuthorizer(a)); return () => { live = false } }, [account])
+  useEffect(() => { let live = true; Promise.all([fetchIsAuthorizer(account), fetchIsLifeAuthorizer(account)]).then(([land, life]) => live && setAuthorizer(land || life)); return () => { live = false } }, [account])
   const [error, setError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [current, setCurrent] = useState('contents-1')
@@ -265,6 +265,7 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
               <div className="entry-meta">
                 <span>fig. {pageOf(previewIndex!)}</span>
                 <span>map no. {previewMap.id}</span>
+                {previewMap.at && <span title="its place on the world map">at {previewMap.at.x}, {previewMap.at.y}</span>}
               </div>
               <IslandChart chart={previewChart} name={islandName(previewMap)} className="pv-chart" idle="rest on its line a moment to sketch the chart" />
               <div className="pv-cap">
@@ -328,6 +329,7 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
             <div className="entry-meta">
               <span>Page {pg}</span>
               <span>map no. {m.id}</span>
+              <span title={`its place on the world map: ${placeWords(m.at)}`}>{m.at ? `at ${m.at.x}, ${m.at.y}` : 'no place yet'}</span>
             </div>
             <span className="roman">{m.name ? `The ${ORD[i] ?? `${i + 1}th`} island` : 'not yet named'}</span>
             <div className="isle-h">

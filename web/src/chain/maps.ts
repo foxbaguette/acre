@@ -6,6 +6,9 @@ export interface MapRow {
   owner: string
   playertag: string
   map_name: string
+  /** where it lies on the world map (missing on maps from before) */
+  x?: number
+  y?: number
 }
 
 export interface PlayerMap {
@@ -13,6 +16,16 @@ export interface PlayerMap {
   owner: string
   name: string
   playertag: string
+  /** where it lies on the world map (land.acre maps: a square spiral out from 0, 0), null on maps from before */
+  at: { x: number; y: number } | null
+}
+
+/** A place on the world map, as players read it: "0, 0", "3 east, 2 north". y grows to the south, like the islands. */
+export const placeWords = (at: { x: number; y: number } | null) => {
+  if (!at) return 'no place on the world map yet'
+  if (!at.x && !at.y) return 'the middle of the world'
+  const ew = at.x ? `${Math.abs(at.x)} ${at.x > 0 ? 'east' : 'west'}` : '', ns = at.y ? `${Math.abs(at.y)} ${at.y > 0 ? 'south' : 'north'}` : ''
+  return [ew, ns].filter(Boolean).join(', ')
 }
 
 /** Ground types in bits 0-2 of a tile byte. */
@@ -22,7 +35,8 @@ const toMap = (row: MapRow): PlayerMap => ({
   id: String(row.map_id),
   owner: row.owner,
   name: row.map_name,
-  playertag: row.playertag
+  playertag: row.playertag,
+  at: row.x === undefined || row.y === undefined ? null : { x: Number(row.x), y: Number(row.y) }
 })
 
 /** The maps a wallet owns, oldest first. */

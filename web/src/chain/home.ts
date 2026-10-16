@@ -17,6 +17,8 @@ export interface HomeClock {
   daytimes: Daytime[]
   /** per season, its weathers in turn */
   weathers: Record<string, Weather[]>
+  /** the same, as home.acre names them (sunny, lightrain …): what crops are checked against */
+  weatherNames: Record<string, string[]>
 }
 
 export interface Conditions { season: Season; daytime: Daytime; weather: Weather }
@@ -36,15 +38,16 @@ export async function fetchHomeClock(): Promise<HomeClock> {
   ])
   const c = config.find((r) => Number(r.index) === 0) ?? config[0]
   const seasonNames = seasons.sort(byIndex).map((r) => r.season_name as Season)
-  const weathers: Record<string, Weather[]> = {}
+  const weathers: Record<string, Weather[]> = {}, weatherNames: Record<string, string[]> = {}
   await Promise.all(seasonNames.map(async (s) => {
     const rows = await readTable<NamedRow>('weather', s, (r) => r.length > 0, q)
     weathers[s] = rows.sort(byIndex).map((r) => WEATHER[r.weather_name ?? ''] ?? 'sun')
+    weatherNames[s] = rows.map((r) => r.weather_name ?? '')
   }))
   return {
     start: Date.parse(c.time_start.endsWith('Z') ? c.time_start : c.time_start + 'Z'),
     season: Number(c.season_duration), daytime: Number(c.daytime_duration), weather: Number(c.weather_duration),
-    seasons: seasonNames, daytimes: daytimes.sort(byIndex).map((r) => r.daytime_name as Daytime), weathers,
+    seasons: seasonNames, daytimes: daytimes.sort(byIndex).map((r) => r.daytime_name as Daytime), weathers, weatherNames,
   }
 }
 
@@ -58,6 +61,12 @@ export function clockAt(c: HomeClock, ms: number) {
   // the next moment anything changes, ms since 1970
   const next = c.start + 1000 * Math.min((turn.season + 1) * c.season, (turn.daytime + 1) * c.daytime, (turn.weather + 1) * c.weather)
   return { now, turn, next }
+}
+
+/** What the island clock has at a moment, as home.acre names it (land.acre checks sowing against these). */
+export function namesAt(c: HomeClock, ms: number) {
+  const { now, turn } = clockAt(c, ms), list = c.weatherNames[now.season] ?? []
+  return { season: now.season as string, daytime: now.daytime as string, weather: list.length ? list[turn.weather % list.length] : '' }
 }
 
 /** The time on the island: one island day is all the daytimes once round (morning from 6:00, each daytime six hours),

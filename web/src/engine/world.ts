@@ -85,7 +85,8 @@ export const CFG = {
   butterflies: true,
 }
 
-/** Builds the island from the chain's tile bytes (bits 0-2 ground, 3-5 mountain height, 6 trees, 7 cleared by the owner). */
+/** Builds the island from its tile bytes (bits 0-2 ground, 3-5 mountain height; bit 6 its woods, which the engine lays on
+ *  from the tree constructs of kind WILD, since the chain keeps the island's trees as constructs). */
 export function buildWorld(raw: Uint8Array, mapId: number): World {
   const R = seeded(mapId * 7919 + 17)
   const cols = COLS, rows = ROWS, N = cols * rows

@@ -58,7 +58,9 @@
 .build-toggle[aria-expanded="true"] { background-color: var(--card); color: var(--ink); box-shadow: 0 8px 18px -6px rgba(10, 8, 2, .6), inset 0 -3px 0 var(--rust); }
 .build-card { width: 350px; padding: 12px 14px 12px; background: var(--card); background-image: var(--noise); border-radius: 3px; transform: rotate(-.6deg);
   box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 12px 26px -8px rgba(10, 8, 2, .6); }
-.build-tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.build-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.build-tools + .build-tools { margin-top: 8px; }
+.build-group { grid-column: 1 / -1; margin: 0 0 -1px 1px; font: .7rem var(--sc); letter-spacing: .16em; color: var(--rust); }
 .build-tool { display: grid; justify-items: center; gap: 4px; padding: 8px 2px 6px; font-size: .68rem !important; border: 1px solid rgba(60, 45, 20, .25); border-radius: 3px; cursor: pointer;
   background: rgba(255, 252, 242, .6); color: var(--ink-soft); font-family: var(--sc); font-size: .8rem; letter-spacing: .1em; }
 .build-tool svg { width: 24px; height: 24px; color: var(--blue); }
@@ -275,11 +277,25 @@
 /* ---------- layout 1: the corners ---------- */
 /* the name tag's folded corner: the way back to the journal */
 .ui-corners .isle-tag { position: relative; }
-.isle-back { position: absolute; left: 0; bottom: 0; width: 30px; height: 30px; padding: 0 0 3px 3px; border: 0; border-radius: 0 0 0 3px; cursor: pointer; display: grid; place-items: end start;
-  background: linear-gradient(225deg, transparent 50%, #d9ccb2 50%); color: var(--blue); }
+/* the whole tag is the button, cut down to the corner; pointing at the tag, the corner unfolds over all of it */
+.isle-back { position: absolute; inset: 0; padding: 0; border: 0; border-radius: 3px; cursor: pointer; background: #d9ccb2; background-image: var(--noise); color: var(--blue);
+  clip-path: polygon(0 calc(100% - 30px), 0 calc(100% - 30px), 30px 100%, 0 100%); transition: clip-path .28s cubic-bezier(.3, .7, .2, 1), background-color .2s; }
 .isle-back svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.isle-back:hover { background: linear-gradient(225deg, transparent 50%, #cbb994 50%); color: var(--rust); }
+.isle-back-corner { position: absolute; left: 3px; bottom: 3px; transition: opacity .15s; }
+.isle-back-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 12px; opacity: 0; transition: opacity .15s; text-align: left; white-space: nowrap; }
+.isle-back-label svg { width: 26px; height: 26px; color: var(--rust); flex: none; }
+.isle-back-label small { display: block; font-family: var(--sc); font-size: .74rem; letter-spacing: .16em; color: var(--rust); line-height: 1.1; }
+.isle-back-label b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.7rem; line-height: 1.05; color: var(--ink); }
+.isle-back:hover, .isle-back:focus-visible { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); background-color: #e3d7bd; }
+@media (hover: hover) {
+  .isle-tag:hover .isle-back { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); background-color: #e3d7bd; }
+  .isle-tag:hover .isle-back-corner { opacity: 0; }
+  .isle-tag:hover .isle-back-label { opacity: 1; transition-delay: .1s; }
+}
+.isle-back:focus-visible .isle-back-corner { opacity: 0; }
+.isle-back:focus-visible .isle-back-label { opacity: 1; }
 .isle-back:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+@media (hover: none) { .isle-back:hover { clip-path: polygon(0 calc(100% - 30px), 0 calc(100% - 30px), 30px 100%, 0 100%); } }
 /* build, weather, bestiary: three tags of one size, the name in ink, the sign in blue */
 .tool-tag { width: 104px; justify-content: center; padding: 9px 10px; transform: none !important; }
 .tool-tag svg { color: var(--blue); }
@@ -338,3 +354,84 @@
   .ui-margin .sky-panel, .ui-margin .build-card { width: auto; max-width: calc(100vw - 98px); }
   .ui-margin .hud-tr { top: 16px; bottom: auto; }
 }
+
+/* what a planned enclosure takes away */
+.build-warn { margin: 6px 0 2px; padding: 6px 9px; border-left: 3px solid #a3402c; background: rgba(163, 64, 44, .08); color: #7d2f20; font-size: .95rem; line-height: 1.3; }
+.build-pending:has(.build-warn) { flex-wrap: wrap; max-width: min(380px, calc(100vw - 32px)); }
+.build-pending .build-warn { flex-basis: 100%; margin: 0; }
+
+/* how many of a thing the owner has left */
+.build-tool { position: relative; }
+.tool-left { position: absolute; top: 3px; right: 5px; font: 600 .68rem/1 var(--sc); letter-spacing: .04em; color: var(--blue); }
+.tool-left.is-out { color: #a3402c; }
+
+/* the farmers' card: each job, where its farmer is, and the claim */
+.farm-card { max-width: min(360px, calc(100vw - 32px)); }
+.farm-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.farm-h h2 { margin: 0; font: 400 1.25rem var(--display); color: var(--ink); }
+.farm-jobs { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 6px; max-height: 46vh; overflow: auto; }
+.farm-jobs li { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 4px; background: rgba(253, 249, 239, .6); }
+.farm-jobs li.is-ready { background: rgba(214, 233, 196, .7); }
+.farm-jobs li.is-claimed { opacity: .6; }
+.farm-jobs img { width: 30px; height: 30px; object-fit: contain; }
+.farm-what b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.05rem; color: var(--ink); }
+.farm-what small { display: block; font-size: .85rem; color: var(--ink-soft); line-height: 1.25; }
+.farm-store { margin: 6px 0 0; font-size: .95rem; color: var(--ink-soft); }
+.crop-seed:disabled { opacity: .35; cursor: not-allowed; filter: grayscale(.7); }
+
+/* the island's storage: how full */
+.farm-storage { position: relative; display: flex; justify-content: space-between; align-items: baseline; margin: 8px 0 2px; padding: 4px 8px 7px; border-radius: 4px; background: rgba(253, 249, 239, .6); overflow: hidden; }
+.farm-storage span { font: .78rem var(--sc); letter-spacing: .14em; color: var(--rust); }
+.farm-storage b { font-family: var(--display); font-weight: 400; color: var(--ink); }
+.farm-storage i { position: absolute; left: 0; bottom: 0; height: 3px; background: #6f8f4e; }
+.farm-storage i.is-full { background: #a3402c; }
+
+/* a tool with none left: still there to read about, dimmed */
+.build-tool.is-out { opacity: .42; filter: grayscale(.85); }
+.build-tool.is-out:hover { opacity: .7; }
+.build-tool.is-out[aria-pressed="true"] { opacity: .8; }
+
+/* a growing crop pointed at: how long until it is fully grown */
+.crop-tip { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; padding: 4px 9px 5px; margin: -6px 0 0 0; background: var(--card); background-image: var(--noise);
+  border-radius: 3px; box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 8px 16px -8px rgba(10, 8, 2, .5); white-space: nowrap; translate: -50% -100%; text-align: center; }
+.crop-tip b { display: block; font: .72rem var(--sc); letter-spacing: .14em; color: var(--rust); text-transform: lowercase; }
+.crop-tip small { display: block; font-family: var(--hand); font-size: 1rem; color: var(--blue); line-height: 1.15; }
+
+/* the island's storage: a tag under the clock, and its card */
+.store-wrap { position: relative; display: flex; justify-content: flex-end; }
+.store-tag { position: relative; display: flex; align-items: center; gap: 8px; padding: 5px 12px 7px 8px; border: 0; border-radius: 4px; cursor: pointer; overflow: hidden;
+  background: var(--card); background-image: var(--noise); box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); color: var(--ink); }
+.store-tag svg { width: 22px; height: 22px; color: var(--blue); }
+.store-tag span { display: flex; align-items: baseline; gap: 5px; }
+.store-tag b { font-family: var(--sc); font-weight: 400; font-size: 1rem; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.store-tag small { font-family: var(--sc); font-size: .74rem; letter-spacing: .12em; color: var(--ink-soft); }
+.store-tag i { position: absolute; left: 0; bottom: 0; height: 3px; background: #6f8f4e; }
+.store-tag.is-full i { background: #a3402c; }
+.store-tag.is-full b { color: #8b3322; }
+.store-tag:hover, .store-tag[aria-expanded="true"] { background-color: var(--paper); }
+.store-tag:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+.store-card { position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: min(300px, calc(100vw - 32px)); padding: 12px 14px 10px; border-radius: 4px; text-align: left;
+  background: var(--card); background-image: var(--noise); box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 14px 28px -10px rgba(10, 8, 2, .6); color: var(--ink); }
+.store-card h2 { margin: 0 0 8px; font: 400 1.2rem var(--display); }
+.store-card h3 { margin: 12px 0 4px; font: .74rem var(--sc); letter-spacing: .16em; color: var(--rust); }
+.store-bar { height: 8px; border-radius: 4px; background: rgba(60, 45, 20, .14); overflow: hidden; }
+.store-bar i { display: block; height: 100%; background: #6f8f4e; }
+.store-bar.is-full i { background: #a3402c; }
+.store-nums { margin: 6px 0 0; font-size: .95rem; color: var(--ink-soft); }
+.store-nums b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.store-warn { margin: 6px 0 0; color: #7d2f20; font-size: 1rem; line-height: 1.25; }
+.store-note { margin: 4px 0 0; font-size: .88rem; color: var(--ink-soft); line-height: 1.3; }
+.store-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.store-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .95rem; }
+.store-list span { display: flex; align-items: center; gap: 6px; }
+.store-list img { width: 20px; height: 20px; object-fit: contain; }
+.store-list b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.farm-what small.farm-when { color: var(--blue); }
+.farm-all { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 0; padding: 6px 8px; border-radius: 4px; background: rgba(214, 233, 196, .7); }
+
+/* for testing (authorizers): adding to an inventory */
+.give-item { margin: 10px 0 4px; padding: 8px 8px 6px; border: 1px dashed rgba(60, 45, 20, .3); border-radius: 3px; }
+.give-row { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+.give-row select { flex: 1; min-width: 0; }
+.give-row input { width: 64px; }
+.give-note { display: block; margin-top: 4px; color: var(--ink-soft); }

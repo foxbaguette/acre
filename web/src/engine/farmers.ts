@@ -1,45 +1,68 @@
-// The farmers: when crops are marked for harvest, each farmhouse sends out as many farmers as its stage (stage n, n
-// farmers). A farmer takes the nearest open job, walks there (round fences, buildings and water; paths are quicker),
-// harvests the tile, carries the sack to the nearest silo, then takes the next job; with none left, walks home and goes in.
-import { BUILDINGS, dims, entrance, footprint, type Builds } from './build'
+// The farmers: each one is a job in land.acre's worker queue (table workqueue), and the chain says when each part of
+// the round begins: out of the farmhouse at start, at the field at atField, done harvesting at harvested, at the silo at
+// atSilo, offloaded at offloaded, home at home (resting inside until rested). A farmer walks the island's real way
+// (round fences and buildings, swimming only where land would be far longer; paths are quicker), but at whatever pace makes each walk take exactly as
+// long as the chain counted, so what is seen is what the chain has.
+import { dims, entrance, type Builds } from './build'
 
 export interface Farmer {
-  id: number; home: number; look: number
+  id: number; look: number
   x: number; y: number; head: number
-  state: 'out' | 'toCrop' | 'harvest' | 'toSilo' | 'drop' | 'home'
-  path: number[]; t: number; job: number; crop: string | null
+  state: 'walk' | 'harvest' | 'drop'
+  /** in the water: swimming across a short stretch */
+  swim: boolean
+  /** what it carries (null: nothing) */
+  crop: string | null
+}
+
+/** One job of the worker queue, as the page reads it: times in ms, tiles and buildings as map indexes (y * 100 + x). */
+export interface Job {
+  id: string; farmhouse: number; worker: number; silo: number; crop: string; tiles: number[]; amount: number; claimed: boolean
+  start: number; atField: number; harvested: number; atSilo: number; offloaded: number; home: number; rested: number
 }
 
 /** The grid the farmers walk: which tiles they may step on, and how dear each step is. */
-export interface Ground { cols: number; rows: number; walk: (i: number) => boolean; cost: (i: number) => number }
+export interface Ground { cols: number; rows: number; walk: (i: number) => boolean; water: (i: number) => boolean; cost: (i: number) => number }
 
-const HARVEST_S = 2.2, DROP_S = 0.7, SPEED = 1.5
+/** A job's round as points to walk through: out to the field, through its tiles, on to the silo, home. */
+interface Round { out: number[]; field: number[]; toSilo: number[]; home: number[] }
 
 export class Farmers {
   list: Farmer[] = []
-  private next = 1
-  /** tiles being harvested (claimed by a farmer) */
+  /** the tiles of jobs still being harvested (their crop not cut yet) */
   claimed = new Set<number>()
-  constructor(private ground: () => Ground, private builds: () => Builds,
-    /** the harvest is in: the crop leaves its tile and goes into the store */
-    private harvested: (tile: number, crop: string) => void) {}
+  private jobs: Job[] = []
+  private rounds = new Map<string, Round>()
+  /** tile: when its crop was cut (ms) */
+  private cutTiles = new Map<number, number>()
+  constructor(private ground: () => Ground, private builds: () => Builds) {}
 
-  /** The tiles marked for harvest and not yet taken by a farmer. */
-  private open() { const b = this.builds(), out: number[] = []; for (const k in b) if (b[k].h && b[k].c && !this.claimed.has(Number(k))) out.push(Number(k)); return out }
-  private houses() { const b = this.builds(), out: { at: number; lv: number; door: number }[] = []
-    for (const k in b) if (b[k].s === 'farmhouse') { const g = this.ground(), at = Number(k); out.push({ at, lv: b[k].lv ?? 1, door: entrance('farmhouse', at, g.cols, g.rows, b[k].o ?? 0) }) }
-    return out }
-  /** The tiles beside each silo a farmer can stand on to put the sack in. */
-  private siloSpots() { const b = this.builds(), g = this.ground(), out = new Set<number>()
-    for (const k in b) if (b[k].s === 'silo') { const at = Number(k), [w, h] = dims('silo', b[k].o), x0 = at % g.cols, y0 = (at - x0) / g.cols
-      for (let y = y0 - 1; y <= y0 + h; y++) for (let x = x0 - 1; x <= x0 + w; x++) { if (x < 0 || y < 0 || x >= g.cols || y >= g.rows) continue; const i = y * g.cols + x; if (g.walk(i)) out.add(i) } }
-    return out }
-  hasSilo() { return this.siloSpots().size > 0 }
+  setJobs(jobs: Job[]) { this.jobs = jobs; this.rounds.clear() }
+  /** The ground or the buildings changed: the ways are found again. */
+  rethink() { this.rounds.clear() }
+  /** Whether the crop sown on a tile at that time is cut already: a farmer has been over it since (it is bare soil
+   *  from then on, claimed or not; a crop sown there afterwards is a new one). */
+  cut(i: number, sown = 0) { const at = this.cutTiles.get(i); return at !== undefined && sown <= at }
+  /** The tiles cut so far, with when. */
+  cutList() { return this.cutTiles }
 
-  /** The cheapest way from a tile to the nearest of some goal tiles (8-neighbour, no cutting corners), or null. */
-  private route(from: number, goals: Set<number>): number[] | null {
+  private door(at: number) {
+    const b = this.builds()[at], g = this.ground(); if (!b?.s) return at
+    const e = entrance(b.s, at, g.cols, g.rows, b.o ?? 0); return e >= 0 ? e : at
+  }
+  /** The tiles beside a silo a farmer can stand on to put the sack in. */
+  private siloSpots(at: number) {
+    const b = this.builds()[at], g = this.ground(), out = new Set<number>(); if (!b?.s) return new Set([at])
+    const [w, h] = dims(b.s, b.o), x0 = at % g.cols, y0 = (at - x0) / g.cols
+    for (let y = y0 - 1; y <= y0 + h; y++) for (let x = x0 - 1; x <= x0 + w; x++) { if (x < 0 || y < 0 || x >= g.cols || y >= g.rows) continue; const i = y * g.cols + x; if (g.walk(i)) out.add(i) }
+    return out.size ? out : new Set([at])
+  }
+
+  /** The cheapest way from a tile to the nearest of some goal tiles (8-neighbour, no cutting corners); a straight
+   *  line when there is none. */
+  private route(from: number, goals: Set<number>): number[] {
     if (goals.has(from)) return [from]
-    const g = this.ground(), N = g.cols * g.rows, dist = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1)   // (dist not Float32: its rounding made settled tiles look stale)
+    const g = this.ground(), N = g.cols * g.rows, dist = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1)
     const heap: [number, number][] = []
     const push = (d: number, i: number) => { heap.push([d, i]); let k = heap.length - 1; while (k > 0) { const p = (k - 1) >> 1; if (heap[p][0] <= heap[k][0]) break; [heap[p], heap[k]] = [heap[k], heap[p]]; k = p } }
     const pop = () => { const top = heap[0], last = heap.pop()!; if (heap.length) { heap[0] = last; let k = 0; for (;;) { const l = 2 * k + 1, r = l + 1; let m = k; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === k) break; [heap[m], heap[k]] = [heap[k], heap[m]]; k = m } } return top }
@@ -55,59 +78,61 @@ export class Farmers {
         const nd = d + (dx && dy ? 1.414 : 1) * g.cost(j); if (nd < dist[j]) { dist[j] = nd; prev[j] = i; push(nd, j) }
       }
     }
-    return null
-  }
-  private go(f: Farmer, goals: Set<number>) { const g = this.ground(), from = Math.floor(f.y) * g.cols + Math.floor(f.x), p = this.route(from, goals); f.path = p ? p.slice(1) : []; return !!p }
-  /** The farmer takes the nearest open job; false if none can be reached. */
-  private takeJob(f: Farmer) {
-    const jobs = this.open(); if (!jobs.length || !this.hasSilo()) return false
-    if (!this.go(f, new Set(jobs))) return false
-    const g = this.ground(), end = f.path.length ? f.path[f.path.length - 1] : Math.floor(f.y) * g.cols + Math.floor(f.x)
-    f.job = end; f.crop = this.builds()[end]?.c ?? null; this.claimed.add(end); f.state = 'toCrop'; return true
+    let best = -1, bd = Infinity; const fx = from % g.cols, fy = (from - fx) / g.cols   // no way round: straight to the nearest goal
+    for (const k of goals) { const d = Math.hypot(k % g.cols - fx, (k - (k % g.cols)) / g.cols - fy); if (d < bd) { bd = d; best = k } }
+    return best < 0 ? [from] : [from, best]
   }
 
-  step(dt: number) {
-    const g = this.ground(), b = this.builds()
-    // send farmers out while there are open jobs (each house up to its stage), one every second
-    if (this.open().length && this.hasSilo()) for (const h of this.houses()) {
-      if (h.door < 0) continue
-      const out = this.list.filter((f) => f.home === h.at).length
-      if (out >= h.lv) continue
-      const last = this.list.filter((f) => f.home === h.at).reduce((m, f) => Math.max(m, f.id), 0)
-      if (this.list.some((f) => f.id === last && f.state === 'out' && f.t < 1)) continue
-      const x = h.door % g.cols + 0.5, y = (h.door - h.door % g.cols) / g.cols + 0.5
-      const f: Farmer = { id: this.next++, home: h.at, look: (h.at + out) % 4, x, y: y - 0.3, head: Math.PI / 2, state: 'out', path: [], t: 0, job: -1, crop: null }
-      this.list.push(f)
-    }
-    for (const f of [...this.list]) {
-      if (!(f.home in b) || b[f.home].s !== 'farmhouse') { this.release(f); this.list.splice(this.list.indexOf(f), 1); continue }   // its house is gone
-      f.t += dt
-      if (f.state === 'out') { if (f.t > .6 && !this.takeJob(f)) { this.goHome(f) } continue }
-      if (f.state === 'harvest') { if (f.t >= HARVEST_S) { const c = this.builds()[f.job]?.c; if (c) { this.harvested(f.job, c); f.crop = c } this.claimed.delete(f.job); f.job = -1
-          if (!this.go(f, this.siloSpots())) { this.goHome(f); continue } f.state = 'toSilo'; f.t = 0 } continue }
-      if (f.state === 'drop') { if (f.t >= DROP_S) { f.crop = null; f.t = 0; if (!this.takeJob(f)) this.goHome(f) } continue }
-      // walking: along the path, tile centre to tile centre
-      if (f.path.length) {
-        const i = f.path[0], tx = i % g.cols + 0.5, ty = (i - i % g.cols) / g.cols + 0.5, dx = tx - f.x, dy = ty - f.y, d = Math.hypot(dx, dy)
-        const sp = SPEED * (g.cost(Math.floor(f.y) * g.cols + Math.floor(f.x)) < 1 ? 1.25 : 1) * dt
-        f.head = Math.atan2(dy, dx)
-        if (d <= sp) { f.x = tx; f.y = ty; f.path.shift() } else { f.x += dx / d * sp; f.y += dy / d * sp }
-        continue
-      }
-      // arrived
-      if (f.state === 'toCrop') { if (this.builds()[f.job]?.c) { f.state = 'harvest'; f.t = 0 } else { this.claimed.delete(f.job); f.job = -1; if (!this.takeJob(f)) this.goHome(f) } }
-      else if (f.state === 'toSilo') { f.state = 'drop'; f.t = 0 }
-      else if (f.state === 'home') this.list.splice(this.list.indexOf(f), 1)   // in through the door
-    }
+  private roundOf(j: Job): Round {
+    let r = this.rounds.get(j.id); if (r) return r
+    const g = this.ground(), door = this.door(j.farmhouse), tiles = new Set(j.tiles)
+    const out = this.route(door, tiles)
+    // through the field, always on to the nearest tile not yet harvested
+    const field: number[] = [out[out.length - 1]], left = new Set(j.tiles); left.delete(field[0])
+    while (left.size) { const a = field[field.length - 1], ax = a % g.cols, ay = (a - ax) / g.cols; let best = -1, bd = Infinity
+      for (const k of left) { const d = Math.hypot(k % g.cols - ax, (k - (k % g.cols)) / g.cols - ay); if (d < bd) { bd = d; best = k } }
+      field.push(best); left.delete(best) }
+    const toSilo = this.route(field[field.length - 1], this.siloSpots(j.silo))
+    const home = this.route(toSilo[toSilo.length - 1], new Set([door]))
+    r = { out, field, toSilo, home }; this.rounds.set(j.id, r); return r
   }
-  private release(f: Farmer) { if (f.job >= 0) this.claimed.delete(f.job) }
-  private goHome(f: Farmer) {
-    this.release(f); f.job = -1; f.state = 'home'; f.t = 0
-    const h = this.houses().find((q) => q.at === f.home); if (!h || h.door < 0) { f.path = []; return }
-    if (!this.go(f, new Set([h.door]))) f.path = []
+
+  /** Where along a walk of tiles a farmer is, a fraction of the way along it: position and heading. */
+  private along(tiles: number[], f: number): [number, number, number] {
+    const g = this.ground(), pts = tiles.map((i) => [i % g.cols + 0.5, (i - (i % g.cols)) / g.cols + 0.5])
+    if (pts.length === 1) return [pts[0][0], pts[0][1], Math.PI / 2]
+    const seg = pts.slice(1).map((p, k) => Math.hypot(p[0] - pts[k][0], p[1] - pts[k][1])), total = seg.reduce((a, b) => a + b, 0) || 1
+    let d = Math.max(0, Math.min(1, f)) * total
+    for (let k = 0; k < seg.length; k++) {
+      if (d <= seg[k] || k === seg.length - 1) { const a = pts[k], b = pts[k + 1], u = seg[k] ? Math.min(1, d / seg[k]) : 1; return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, Math.atan2(b[1] - a[1], b[0] - a[0])] }
+      d -= seg[k]
+    }
+    const p = pts[pts.length - 1]; return [p[0], p[1], Math.PI / 2]
   }
-  /** A building of this kind covers tile i. */
-  static covered(b: Builds, i: number) { return b[i]?.u !== undefined }
-  static footprintOf(b: Builds, at: number, cols: number) { const s = b[at]?.s; return s ? footprint(s, at, cols, b[at].o) : [] }
-  static spec = BUILDINGS
+
+  /** Where every farmer is now, from the jobs' times. */
+  step(now = Date.now()) {
+    const list: Farmer[] = []
+    this.claimed.clear(); this.cutTiles.clear()
+    for (const j of this.jobs) {
+      const look = (j.farmhouse + j.worker) % 4, id = Number(j.id) || 0
+      const frac = (a: number, b: number) => (b > a ? (now - a) / (b - a) : 1)
+      // the crops this farmer has cut already: one tile after another through the harvest
+      const r = this.roundOf(j), n = r.field.length
+      const done = now >= j.harvested ? n : now >= j.atField ? Math.floor(frac(j.atField, j.harvested) * n) : 0
+      r.field.forEach((i, k) => (k < done ? this.cutTiles.set(i, j.atField + ((k + 1) / n) * (j.harvested - j.atField)) : this.claimed.add(i)))
+      if (now < j.start || now >= j.home) continue                                   // waiting for its turn, or home again
+      let p: [number, number, number], state: Farmer['state'] = 'walk', crop: string | null = null
+      if (now < j.atField) p = this.along(r.out, frac(j.start, j.atField))
+      else if (now < j.harvested) { p = this.along(r.field, frac(j.atField, j.harvested)); state = 'harvest'; crop = done > 0 ? j.crop : null }
+      else if (now < j.atSilo) { p = this.along(r.toSilo, frac(j.harvested, j.atSilo)); crop = j.crop }
+      else if (now < j.offloaded) { p = this.along(r.toSilo, 1); state = 'drop'; crop = j.crop }
+      else p = this.along(r.home, frac(j.offloaded, j.home))
+      const g = this.ground(), at = Math.floor(p[1]) * g.cols + Math.floor(p[0])
+      list.push({ id, look, x: p[0], y: p[1], head: p[2], state, crop, swim: state === 'walk' && g.water(at) })
+    }
+    this.list = list
+  }
+  /** Whether anything about the farmers changes with time from now on. */
+  busy(now = Date.now()) { return this.jobs.some((j) => now < j.home) }
 }

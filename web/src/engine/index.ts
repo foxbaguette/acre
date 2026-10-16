@@ -6,12 +6,12 @@
 //   atlas.ts      sprite pictures rasterised on demand into texture-array pages
 //   sprites.ts    one instanced batch for everything standing or moving
 //   creatures.ts  the chain's creatures: placement, wandering, selection
-import type { Daytime, IslandView, Lifeform, Weather, Season } from '@/engine/types'
+import type { Daytime, Inventory, IslandView, Lifeform, PenLoss, Weather, Season } from '@/engine/types'
 import { Atlas } from './atlas'
-import { applyBuilds, BUILDINGS, buildingTiles, cropStage, dims, entrance, erasable, erase, eraseKindAt, footprint, placeBuilding, turn, type Building, type EraseKind, MIN_ENCLOSURE, pristineOf, ring, rules, type Builds, type BuildTool } from './build'
+import { applyBuilds, WILD, BUILDINGS, buildingTiles, cropStage, dims, entrance, erasable, erase, eraseKindAt, footprint, GROW_MS, insideOk, needsPath, placeBuilding, turn, type Building, type EraseKind, MIN_ENCLOSURE, pristineOf, ring, rules, type Builds, type BuildTool, type CellBuild } from './build'
 import { CHIMNEYS, FOUNTAINS, LIGHTS, LIT, PAD, RENDERED, SHPAD } from './buildingArt'
 import { CROPS } from './crops'
-import { Farmers } from './farmers'
+import { Farmers, type Job } from './farmers'
 import { BEASTS, Herd, speciesKey } from './creatures'
 import { buildFields } from './fields'
 import { Ground } from './ground'
@@ -53,7 +53,10 @@ export function startEngine(opts: EngineOptions): IslandView {
   gl.getExtension('EXT_color_buffer_float'); gl.getExtension('EXT_texture_filter_anisotropic'); gl.getExtension('OES_texture_float_linear')
 
   const t0 = performance.now()
-  const world: World = buildWorld(opts.tiles, Number(opts.mapId))
+  // the island's own trees are constructs (tree kind WILD), laid onto the land as its woods; the land keeps none of its own
+  const land = Uint8Array.from(opts.tiles, (b) => b & 0x3f)
+  for (const k in opts.builds ?? {}) if (opts.builds![Number(k)].p === WILD) land[Number(k)] |= 64
+  const world: World = buildWorld(land, Number(opts.mapId))
   const t1 = performance.now()
   const fields = buildFields(world, LOW ? 6 : 8)
   // the player's builds, over the island as the chain made it; saved ones the map no longer allows are left out
@@ -70,24 +73,21 @@ export function startEngine(opts: EngineOptions): IslandView {
   let done: Builds = JSON.parse(JSON.stringify(builds))
   let fence = applyBuilds(world, pristine, done), planFence = applyBuilds(planWorld, pristine, builds)
   if (Object.values(done).some((b) => b.g)) { setDoors(); fields.refreshGrounds() }
-  // ---------- the harvest: crops marked for it, the farmers who bring it in, the store in the silos ----------
-  const STORE_KEY = 'ua-store-' + opts.mapId
-  let store: Record<string, number> = {}
-  try { store = JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}') } catch { store = {} }
-  let onStore: ((s: Record<string, number>) => void) | null = null
-  const both = (fn: (b: Builds) => void) => { fn(done); fn(builds) }      // the harvest is not a plan: it changes what stands and the plan alike
+  // ---------- the harvest: what grows (land.acre plants), the farmers' jobs (its worker queue) ----------
+  // A harvest is not a plan: it goes to the chain at once (onHarvest), and the farmers then walk as its jobs say.
+  const both = (fn: (b: Builds) => void) => { fn(done); fn(builds) }      // it changes what stands and the plan alike
+  let onHarvest: ((tiles: number[]) => void) | null = null
+  /** how long each crop takes to grow, ms (cropcfg); a crop not in it grows at the old pace */
+  let growth: Record<string, number> = {}
+  const stageOf = (b: CellBuild, now: number) => cropStage(b.t ?? 0, now, growth[b.c ?? ''] ?? GROW_MS)
   const farmers = new Farmers(() => {
     const blocked = walls()
     return { cols: COLS, rows: ROWS,
-      walk: (i) => !world.ocean[i] && world.type[i] !== T.water && !blocked[i],
-      cost: (i) => (world.type[i] === T.path ? 0.6 : done[i]?.c ? 1.15 : 1) }
-  }, () => done, (tile, crop) => {
-    both((b) => { const c = b[tile]; if (c) { delete c.c; delete c.t; delete c.h } })
-    store[crop] = (store[crop] ?? 0) + 1
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(store)) } catch { /* only for this visit */ }
-    onStore?.({ ...store }); relay(null)
-  })
-  const ripe = (i: number) => !!done[i]?.c && cropStage(done[i].t ?? 0, Date.now()) === '6-harvest'
+      walk: (i) => !blocked[i],                                   // water too: a farmer swims, but only where land would be far longer
+      water: (i) => !!world.ocean[i] || world.type[i] === T.water,
+      cost: (i) => (world.ocean[i] || world.type[i] === T.water ? 6 : world.type[i] === T.path ? 0.6 : done[i]?.c ? 1.15 : 1) }
+  }, () => done)
+  const ripe = (i: number) => !!done[i]?.c && stageOf(done[i], Date.now()) === '6-harvest'
   /** The ripe tiles of the same crop joined to this one (the field it belongs to). */
   const fieldOf = (i: number) => { const c = done[i]?.c, out = new Set<number>([i]), st = [i]
     while (st.length) { const k = st.pop()!, x = k % COLS, y = (k - x) / COLS
@@ -134,6 +134,20 @@ export function startEngine(opts: EngineOptions): IslandView {
   }
   // the enclosures land.acre keeps: a small paper tag in the middle of each, with its number and size. Its tiles are
   // found from its first tile over what stands now (not reached past a fence); one that is not closed here is not shown.
+  // pointing at a crop still growing: how long until it is fully grown (gone once it is)
+  const cropTip = document.createElement('div'); cropTip.className = 'crop-tip'; cropTip.hidden = true; cropTip.innerHTML = '<b></b><small></small>'; view.append(cropTip)
+  let tipTile = -1
+  const grownAt = (b: CellBuild) => (b.t ?? 0) + (growth[b.c ?? ''] ?? GROW_MS)
+  const inWords = (ms: number) => { const s = Math.max(1, Math.ceil(ms / 1000)); return s >= 3600 ? `${Math.floor(s / 3600)} h ${Math.ceil((s % 3600) / 60)} min` : s >= 60 ? `${Math.floor(s / 60)} min ${s % 60} s` : `${s} s` }
+  function placeCropTip() {
+    const b = tipTile >= 0 ? done[tipTile] : undefined, left = b?.c ? grownAt(b) - Date.now() : 0
+    if (!b?.c || left <= 0 || farmers.cut(tipTile, b.t ?? 0)) { if (!cropTip.hidden) cropTip.hidden = true; return }
+    const x = tipTile % COLS, y = (tipTile - x) / COLS, z = CAM.z
+    cropTip.querySelector('b')!.textContent = b.c.replace(/-/g, ' ')
+    cropTip.querySelector('small')!.textContent = 'fully grown in ' + inWords(left)
+    cropTip.style.transform = `translate(${(x + 0.5 - CAM.x) * z}px, ${(y - CAM.y) * z}px)`
+    cropTip.hidden = false; kick()   // (the countdown goes on while it shows)
+  }
   const penLayer = document.createElement('div'); penLayer.className = 'pen-tags'; view.append(penLayer)
   let pens: { id: string; tiles: number; at: number; el: HTMLDivElement; x: number; y: number }[] = []
   /** The middle of an enclosure: over what stands now, inside its fence (null if it is open here); a pond's, over its water. */
@@ -158,11 +172,28 @@ export function startEngine(opts: EngineOptions): IslandView {
   function placePens() { const z = CAM.z
     penLayer.classList.toggle('far', z < 10); penLayer.classList.toggle('near', z >= 30)   // close up the whole tags show; further out only their seals
     for (const p of pens) p.el.style.transform = `translate(${(p.x - CAM.x) * z}px, ${(p.y - CAM.y) * z}px)` }
-  const harvestTiles = (tiles: number[]) => { both((b) => { for (const i of tiles) if (b[i]?.c && ripe(i)) b[i].h = 1 }); relay(null) }
-  const harvest = (tile: number, whole: boolean) => { const tiles = whole ? fieldOf(tile) : [tile]
-    both((b) => { for (const i of tiles) if (b[i]?.c) b[i].h = 1 }); relay(null) }
-  const unharvest = (tile: number, whole: boolean) => { const tiles = whole ? fieldOf(tile) : [tile]
-    both((b) => { for (const i of tiles) if (b[i] && !farmers.claimed.has(i)) delete b[i].h }); relay(null) }
+  /** Fully grown tiles not yet being harvested go to the chain: a farmer is sent for them. */
+  const harvestTiles = (tiles: number[]) => { const ok = tiles.filter((i) => ripe(i) && !done[i].h); if (ok.length) onHarvest?.(ok) }
+  void fieldOf
+  /** The farmers' jobs from the chain: their tiles are being harvested (until claimed), and the farmers walk them. */
+  const setJobs = (jobs: Job[]) => {
+    both((b) => { for (const k in b) if (b[k].h) delete b[k].h })
+    for (const j of jobs) if (!j.claimed) both((b) => { for (const i of j.tiles) if (b[i]?.c) b[i].h = 1 })
+    farmers.setJobs(jobs); fieldsAt = 0; kick()
+  }
+  /** What grows, from the chain (crop name and when sown, ms): it replaces the crops that stand; the plan's own
+   *  unconfirmed sowing stays. */
+  const setPlants = (plants: Record<number, { c: string; t: number }>) => {
+    const keys = new Set([...Object.keys(done), ...Object.keys(builds), ...Object.keys(plants)].map(Number))
+    const unplanned = new Set([...keys].filter((i) => JSON.stringify(builds[i] ?? {}) === JSON.stringify(done[i] ?? {})))
+    for (const i of keys) {
+      const b = { ...(done[i] ?? {}) }; delete b.c; delete b.t; delete b.h
+      if (plants[i]) { b.c = plants[i].c; b.t = plants[i].t }
+      if (Object.keys(b).length) done[i] = b; else delete done[i]
+      if (unplanned.has(i)) { if (done[i]) builds[i] = { ...done[i] }; else delete builds[i] }
+    }
+    fieldsAt = 0; relay(null)
+  }
   const t2 = performance.now()
   const ground = new Ground(gl, world, fields, LOW ? 256 : 512, LOW)
   { const q = new URLSearchParams(location.search).get('ground'); if (q) q.split(',').forEach((v, k) => { if (k < 4) ground.look[k] = Number(v) || 0 }) }   // ?ground=path,soil,rock: try a look
@@ -398,12 +429,11 @@ export function startEngine(opts: EngineOptions): IslandView {
     const planTrees = new Set(planWorld.trees.map(tk)), doneTrees = new Set(world.trees.map(tk))
     const trees = [...world.trees, ...planWorld.trees.filter((t) => !doneTrees.has(tk(t)))]
     trees.forEach((tr, i) => { if (seen(tr.x, tr.y, 2)) items.push([tr.y + 0.5, 0, i, i < world.trees.length ? (planTrees.has(tk(tr)) ? 0 : GONE) : PLAN]) })
-    const now = Date.now()
     const putBuilding = (i: number, b: { s?: Building; o?: number }, st: number, d = 0) => { const x = i % COLS, y = (i - x) / COLS, [w, h] = dims(b.s!, b.o); if (seen(x + w / 2, y + h / 2, Math.max(w, h))) items.push([y + h - 0.05 + d, 5, i, st]) }
     for (const k in done) { const b = done[k]; if (!b.s) continue; const p = builds[k], same = p?.s === b.s && (p.o ?? 0) === (b.o ?? 0)
       putBuilding(Number(k), b, same ? 0 : GONE); if (same && (p.lv ?? 1) !== (b.lv ?? 1)) putBuilding(Number(k), p, PLAN, 0.001) }
     for (const k in builds) { const p = builds[k]; if (!p.s) continue; const d = done[k]; if (d?.s === p.s && (d.o ?? 0) === (p.o ?? 0)) continue; putBuilding(Number(k), p, PLAN) }
-    for (const k in done) { const b = done[k]; if (!b.c) continue; const i = Number(k), x = i % COLS, y = (i - x) / COLS; if (seen(x, y, 1)) items.push([y - 0.4, 3, i, builds[k]?.c === b.c ? 0 : GONE]) }
+    for (const k in done) { const b = done[k]; if (!b.c) continue; const i = Number(k), x = i % COLS, y = (i - x) / COLS; if (farmers.cut(i, b.t ?? 0)) continue; if (seen(x, y, 1)) items.push([y - 0.4, 3, i, builds[k]?.c === b.c ? 0 : GONE]) }
     for (const k in builds) { const p = builds[k]; if (!p.c || done[k]?.c === p.c) continue; const i = Number(k), x = i % COLS, y = (i - x) / COLS; if (seen(x, y, 1)) items.push([y - 0.39, 3, i, PLAN]) }
     const anyFence = new Uint8Array(fence.length), postState = (i: number) => (fence[i] && planFence[i] ? 0 : fence[i] ? GONE : PLAN)
     for (let i = 0; i < fence.length; i++) anyFence[i] = fence[i] | planFence[i]
@@ -417,7 +447,7 @@ export function startEngine(opts: EngineOptions): IslandView {
     herd.list.forEach((c, i) => { if (c.home === 'land' && c !== herd.held && seen(c.x, c.y)) items.push([c.y, 1, i, 0]) })
     farmers.list.forEach((f, i) => { if (seen(f.x, f.y)) items.push([f.y, 6, i, 0]) })
     if (hoverField) for (const i of hoverField.tiles) { const x = i % COLS, y = (i - x) / COLS; sprites.shape(SHAPE.tile, x + 0.5, y + 0.5, 0.5, 0.5, [1, 0.9, 0.55, 0.5]) }
-    for (const k in done) { if (!done[k].h) continue; const i = Number(k), x = i % COLS, y = (i - x) / COLS; if (!seen(x, y)) continue
+    for (const k in done) { if (!done[k].h) continue; const i = Number(k), x = i % COLS, y = (i - x) / COLS; if (!seen(x, y) || farmers.cut(i, done[k].t ?? 0)) continue
       const pulse = farmers.claimed.has(i) ? 0.75 + 0.25 * Math.sin(t * 6) : 0.55
       sprites.shape(SHAPE.tile, x + 0.5, y + 0.5, 0.5, 0.5, [1, 0.86, 0.42, pulse]) }
     items.sort((a, b) => a[0] - b[0])
@@ -443,7 +473,7 @@ export function startEngine(opts: EngineOptions): IslandView {
         const tr = trees[i], conifer = Number(tr.name.slice(-2)) >= 4, rr = tr.sc * (conifer ? 0.46 : 0.56)
         sprites.tree(tr.x + 0.5, tr.y + 0.5 - tr.lift, rr, (tr.phase / 6.2832 * 7.3) % 1, conifer ? 1 : 0, (tr.phase * 3.7) % 1, still ? 0 : tr.sw * 0.4, tr.phase, holo(st))
       } else if (kind === 3) {
-        const set = st === PLAN ? builds : done, b = set[i], name = cropArt(b.c!, st === PLAN ? '6-harvest' : cropStage(b.t ?? 0, now)), r = atlas.get(name, z); if (!r) continue
+        const set = st === PLAN ? builds : done, b = set[i], name = cropArt(b.c!, st === PLAN ? '6-harvest' : stageOf(b, Date.now())), r = atlas.get(name, z); if (!r) continue
         const x = i % COLS, y = (i - x) / COLS
         if (PAINTED_CROPS.has(b.c!) && st !== PLAN) {   // (a planned crop shows as its plain tile: the soil it needs is only planned too)                          // a field tile: ragged where the field ends, interlocking with another crop
           let fl = FLAG.graded | FLAG.field | cropSeed(b.c!) * FIELD.seed, k = 0
@@ -485,7 +515,12 @@ export function startEngine(opts: EngineOptions): IslandView {
         sprites.picture({ ...r, u1: u }, (x0 + x1) / 2, (y0 + y1) / 2, [-len / 2, -0.5, len / 2, 0.5], { rot: Math.atan2(y1 - y0, x1 - x0), flags: FLAG.graded, color: [1, 1, 1, holo(st)] })
       } else if (kind === 6) {                                  // a farmer: walking, bent over the harvest, carrying the sack
         const f = farmers.list[i], r = atlas.get('farmer-' + (f.look + 1), 0.9 * z); if (!r) continue
-        const walking = f.path.length > 0, work = f.state === 'harvest', bob = still ? 0 : walking ? Math.abs(Math.sin(t * 9 + f.id)) : work ? Math.abs(Math.sin(t * 7 + f.id)) : 0
+        if (f.swim) {                                                // swimming: low in the water, rings spreading round, the sack held up out of sight
+          for (let k = 0; k < 2; k++) { const a = still ? 0.5 : (t * 0.8 + k / 2 + f.id * 0.31) % 1
+            sprites.shape(SHAPE.shadow, f.x, f.y + 0.04, 0.22 + a * 0.3, 0.16 + a * 0.22, [0.88, 0.95, 1, 0.42 * (1 - a)]) }
+          sprites.picture(r, f.x, f.y + (still ? 0 : Math.sin(t * 4 + f.id) * 0.02), [-0.44, -0.44, 0.44, 0.44], { rot: f.head + Math.PI / 2 + (still ? 0 : Math.sin(t * 5 + f.id) * 0.18), sx: 0.82, sy: 0.82, flags: FLAG.graded, color: [0.82, 0.9, 1, 0.9] })
+          continue }
+        const walking = f.state === 'walk', work = f.state === 'harvest', bob = still ? 0 : walking ? Math.abs(Math.sin(t * 9 + f.id)) : work ? Math.abs(Math.sin(t * 7 + f.id)) : 0
         sprites.shape(SHAPE.shadow, f.x + 0.07, f.y + 0.1, 0.28, 0.21, [...SHADE, 0.3])
         if (f.crop) { const sk = atlas.get('farmer-sack', 0.4 * z); if (sk) sprites.picture(sk, f.x - Math.cos(f.head) * 0.12, f.y - Math.sin(f.head) * 0.12 - 0.04, [-0.24, -0.24, 0.24, 0.24], { rot: f.head + Math.PI / 2, flags: FLAG.graded }) }
         const sw = still ? 0 : walking ? Math.sin(t * 9 + f.id) * 0.12 : work ? Math.sin(t * 7 + f.id) * 0.25 : 0
@@ -642,9 +677,18 @@ export function startEngine(opts: EngineOptions): IslandView {
       if (Math.abs(Math.log(ratio)) < 0.003) { ZOOM.active = false; zoomNow(ratio, ZOOM.px, ZOOM.py) } else zoomNow(ratio ** (1 - Math.exp(-dt / 80)), ZOOM.px, ZOOM.py)
     }
     if (state.motion) { herd.step(dt / 1000); stepWhales(dt / 1000) }
-    farmers.step(dt / 1000); if (farmers.list.length || farmers.claimed.size) kick()   // the harvest goes on even when motion is reduced
+    farmers.step(); if (farmers.busy()) kick()   // the harvest goes on even when motion is reduced
+    // a crop the farmers have cut is gone: the tile is bare soil, to sow again at once (the chain agrees, claimed or not)
+    { let gone = false
+      for (const [i] of farmers.cutList()) { const b = done[i]; if (!b?.c || !farmers.cut(i, b.t ?? 0)) continue
+        const plan = builds[i], same = plan?.c === b.c && plan?.t === b.t
+        delete b.c; delete b.t; delete b.h; if (!Object.keys(b).length) delete done[i]
+        if (same && plan) { delete plan.c; delete plan.t; delete plan.h; if (!Object.keys(plan).length) delete builds[i] }
+        gone = true }
+      if (gone) { fieldsAt = 0; relay(null) } }
     placeTokens()
     placePens()
+    placeCropTip()
     resize()
     const d = dpr(), cam = { x: CAM.x, y: CAM.y, z: CAM.z * d }, W = size[0], H = size[1], t = now / 1000
     const f0 = performance.now()
@@ -704,7 +748,7 @@ export function startEngine(opts: EngineOptions): IslandView {
     view.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); view.classList.add('drag')
     press = ptrs.size === 1 ? { x: e.clientX, y: e.clientY, id: e.pointerId } : null
     // with a build tool picked, a drag with the main button (or one finger) marks tiles instead of panning
-    if (tool && ptrs.size === 1 && e.button === 0) { const [x, y] = cellAt(e.clientX, e.clientY); mark = [x, y, x, y]; stroke = (tool === 'fence' || tool === 'path') && !e.shiftKey ? [y * COLS + x] : null; eraseKind = tool === 'erase' ? eraseKindAt(planWorld, builds, y * COLS + x) : null; harvestOff = tool === 'harvest' && !!done[y * COLS + x]?.h; unmark = unmarks(y * COLS + x); kick() }
+    if (tool && ptrs.size === 1 && e.button === 0) { const [x, y] = cellAt(e.clientX, e.clientY); mark = [x, y, x, y]; stroke = (tool === 'fence' || tool === 'path') && !e.shiftKey ? [y * COLS + x] : null; eraseKind = tool === 'erase' ? eraseKindAt(planWorld, builds, y * COLS + x) : null; unmark = unmarks(y * COLS + x); kick() }
     else { mark = null; stroke = null }
     if (!tool && ptrs.size === 1 && e.button === 0) { const [wx, wy] = toWorld(e.clientX, e.clientY), c = herd.at(wx, wy, CAM.z); carry = c ? { c, dx: c.x - wx, dy: c.y - wy } : null } else carry = null
   })
@@ -743,6 +787,7 @@ export function startEngine(opts: EngineOptions): IslandView {
     if (ptrs.size) return; hoverAt = [e.clientX, e.clientY]
     if (!hoverRaf) hoverRaf = requestAnimationFrame(() => {
       hoverRaf = 0
+      { const [cx, cy] = cellAt(hoverAt[0], hoverAt[1]), i = cy * COLS + cx, t = !tool || tool === 'crop' || tool === 'harvest' ? (done[i]?.c ? i : -1) : -1; if (t !== tipTile) { tipTile = t; kick() } }
       if (tool) { const c = cellAt(hoverAt[0], hoverAt[1]); if (!hover || c[0] !== hover[0] || c[1] !== hover[1]) { hover = c; kick() } return }
       const [wx, wy] = toWorld(hoverAt[0], hoverAt[1]), want = herd.at(wx, wy, CAM.z) ? 'grab' : ''; if (want !== hoverCur) { hoverCur = want; view.style.cursor = want }
     })
@@ -753,7 +798,7 @@ export function startEngine(opts: EngineOptions): IslandView {
   document.getElementById('zout')?.addEventListener('click', () => zoomAt(1 / 1.4, view.clientWidth / 2, view.clientHeight / 2))
   document.getElementById('zfit')?.addEventListener('click', fit)
   document.addEventListener('keydown', (e) => { if ((e.key === 'r' || e.key === 'R') && tool && tool in BUILDINGS && !(e.target instanceof HTMLInputElement)) { rotateBuild(); return } if (e.key === 'Escape') { if (mark) { mark = null; kick() } else if (herd.selected) select(null) } })
-  view.addEventListener('pointerleave', () => { if (hover) { hover = null; kick() } })
+  view.addEventListener('pointerleave', () => { tipTile = -1; if (hover) { hover = null; kick() } kick() })
   view.addEventListener('contextmenu', (e) => e.preventDefault())   // no browser menu on the island (right-drag moves the map while building)
 
   // ---------- fences: where each post stands ----------
@@ -793,7 +838,7 @@ export function startEngine(opts: EngineOptions): IslandView {
   let eraseKind: EraseKind | null = null
   // starting on something already marked takes the mark back: with the eraser, what is marked to go; with a build
   // tool, what is planned to go up. The tiles go back to what stands.
-  let unmark = false, harvestOff = false
+  let unmark = false
   const same = (a: unknown, b: unknown) => JSON.stringify(a ?? {}) === JSON.stringify(b ?? {})
   const planned = (i: number) => { const p = builds[i], d = done[i] ?? {}; return !!p && !!((p.g && p.g !== d.g) || (p.f && !d.f) || (p.c && p.c !== d.c) || (p.p && !d.p) || (p.u !== undefined && p.u !== d.u) || (p.s && p.lv !== d.lv)) }
   const doomed = (i: number) => { const p = builds[i] ?? {}, d = done[i] ?? {}; return !!((d.g && p.g !== d.g) || (d.f && !p.f) || (d.c && p.c !== d.c) || (d.p && !p.p) || (d.u !== undefined && p.u !== d.u) || (p.x && !d.x)) }
@@ -815,7 +860,44 @@ export function startEngine(opts: EngineOptions): IslandView {
     return out
   }
   let crop: string = CROPS.includes('wheat' as never) ? 'wheat' : CROPS[0]
-  let onBuild: ((b: Builds, undoable: boolean, pending: number, kind: 'build' | 'erase' | 'both') => void) | null = null
+  let onBuild: ((b: Builds, undoable: boolean, pending: number, kind: 'build' | 'erase' | 'both', fenced: PenLoss, left: Inventory | null) => void) | null = null
+
+  // ---------- the inventory: what the island's owner holds (land.acre, table inventory); null: not read, no limit ----------
+  // Each tile of soil, path, fence or planted tree takes one, a building one; erasing gives it back. The island's own
+  // trees are nobody's. As land.acre counts it: by what stands (done) against the plan (builds).
+  let inv: Inventory | null = null, itemNames: Partial<Record<Building, string>> = {}
+  const itemOf = (b?: CellBuild): string | null => {
+    if (!b) return null
+    if (b.g) return b.g
+    if (b.f) return 'fence'
+    if (b.p) return b.p === WILD ? null : 'tree'
+    if (b.s) return itemNames[b.s] ?? b.s
+    return null
+  }
+  /** What is left of each thing once the plan is built. */
+  const left = (): Inventory | null => {
+    if (!inv) return null
+    const out: Inventory = { ...inv }
+    for (const k of new Set([...Object.keys(done), ...Object.keys(builds)])) {
+      const i = Number(k), a = itemOf(done[i]), b = itemOf(builds[i]); if (a === b) continue
+      if (a) out[a] = (out[a] ?? 0) + 1
+      if (b) out[b] = (out[b] ?? 0) - 1
+    }
+    return out
+  }
+  /** A budget to mark tiles against: afford(i, next) takes what tile i would become from it (and gives back what was
+   *  there), or says it is not there. Without an inventory everything is affordable. */
+  const budget = () => {
+    const b = left()
+    return (i: number, next: CellBuild) => {
+      if (!b) return true
+      const was = itemOf(builds[i]), now = itemOf(next); if (was === now) return true
+      if (now && (b[now] ?? 0) <= 0) return false
+      if (now) b[now] = (b[now] ?? 0) - 1
+      if (was) b[was] = (b[was] ?? 0) + 1
+      return true
+    }
+  }
   const history: string[] = []                                  // the builds before each change, for undo
   const added = new Set<string>()
   const buildingArt = (n: string) => { if (!added.has(n)) { added.add(n); atlas.add(n, /-o\d/.test(n) ? `art/tiles/${n}.png?v=12` : `art/tiles/${n}.svg?v=5`) } return n }
@@ -827,16 +909,19 @@ export function startEngine(opts: EngineOptions): IslandView {
     if (!tool) return []
     const m = mark ?? (hover ? [hover[0], hover[1], hover[0], hover[1]] as [number, number, number, number] : null); if (!m) return []
     const b = box(m), out: [number, number][] = []
-    if (tool === 'harvest') { const off = mark ? harvestOff : !!done[m[1] * COLS + m[0]]?.h; for (const i of inBox(b)) if (ripe(i) && !!done[i].h === off) out.push([i, off ? 3 : 0]); return out }
+    if (tool === 'harvest') { for (const i of inBox(b)) if (ripe(i) && !done[i].h) out.push([i, 0]); return out }
     if (mark ? unmark : hover && unmarks(hover[1] * COLS + hover[0])) { for (const i of unmarkTiles(stroke ? new Set(stroke) : inBox(b))) out.push([i, 3]); return out }
-    if (stroke) { const ok = tool === 'fence' ? can.fence : can.path; for (const i of new Set(stroke)) out.push([i, ok(i) ? 0 : 1]); return out }
+    const afford = budget()
+    if (stroke) { const ok = tool === 'fence' ? can.fence : can.path, put = (i: number): CellBuild => (tool === 'fence' ? { ...builds[i], f: 1 } : { ...builds[i], g: 'path' })
+      for (const i of new Set(stroke)) out.push([i, ok(i) && (tool === 'fence' && builds[i]?.f ? true : afford(i, put(i))) ? 0 : 1]); return out }
     if (tool === 'fence') {
-      const small = b[2] - b[0] + 1 < MIN_ENCLOSURE || b[3] - b[1] + 1 < MIN_ENCLOSURE
-      for (const i of ring(b, COLS)) out.push([i, !small && can.fence(i) ? 0 : 1])
+      const small = b[2] - b[0] + 1 < MIN_ENCLOSURE || b[3] - b[1] + 1 < MIN_ENCLOSURE, cells = ring(b, COLS)
+      const enough = cells.every((i) => builds[i]?.f || afford(i, { ...builds[i], f: 1 }))
+      for (const i of cells) out.push([i, !small && enough && can.fence(i) ? 0 : 1])
       return out
     }
     if (tool in BUILDINGS) {                                     // its footprint, and the path its door will be joined to
-      const k = tool as Building, at = placeAt(k, m[2], m[3]), fp = footprint(k, at, COLS, rot), link = linkPath(k, at, rot), ok = fp.every(can.building) && link !== null
+      const k = tool as Building, at = placeAt(k, m[2], m[3]), fp = footprint(k, at, COLS, rot), link = linkPath(k, at, rot), ok = fp.every(can.building) && link !== null && (insideOk.has(k) || !can.inPen(at)) && afford(at, { s: k }) && (link ?? []).every((i) => afford(i, { ...builds[i], g: 'path' }))
       const cells = fp.map((i) => [i, ok ? 0 : 1] as [number, number])
       if (link) for (const i of link) cells.push([i, ok ? 0 : 1])
       else { const e = entrance(k, at, COLS, ROWS, rot); if (e >= 0) cells.push([e, 1]) }
@@ -852,7 +937,8 @@ export function startEngine(opts: EngineOptions): IslandView {
       return out
     }
     const ok = tool === 'soil' ? can.soil : tool === 'path' ? can.path : tool === 'tree' ? can.tree : can.crop
-    for (const i of inBox(b)) out.push([i, ok(i) ? 0 : 1])
+    const put = (i: number): CellBuild => (tool === 'soil' ? { ...builds[i], g: 'soil' } : tool === 'path' ? { ...builds[i], g: 'path' } : tool === 'tree' ? { ...builds[i], p: 1 } : builds[i] ?? {})
+    for (const i of inBox(b)) out.push([i, ok(i) && afford(i, put(i)) ? 0 : 1])
     return out
   }
   /** Lays the builds over the island again; where the ground changed, it is re-drawn over that box. */
@@ -870,14 +956,30 @@ export function startEngine(opts: EngineOptions): IslandView {
   const planKind = (): 'build' | 'erase' | 'both' => { let up = false, down = false
     for (const k of new Set([...Object.keys(done), ...Object.keys(builds)])) { const i = Number(k); if (planned(i)) up = true; if (doomed(i)) down = true }
     return up && down ? 'both' : down ? 'erase' : 'build' }
+  /** A fence closed an enclosure: the soil inside it goes (with its crops), and so does every building not made to stand
+   *  in one, as land.acre does it. */
+  function clearPens() {
+    can.changed()
+    for (const k of Object.keys(builds)) { const i = Number(k), b = builds[i]; if (!b || !can.inPen(i)) continue
+      if (b.s && !insideOk.has(b.s)) erase(planWorld, builds, i, 'building')
+      if (builds[i]?.g === 'soil') erase(planWorld, builds, i, 'soil') }
+  }
+  /** What the plan's enclosures take away: soil and buildings that stand now, inside a fence of the plan. */
+  function penLoss(): PenLoss {
+    const out: PenLoss = { soil: 0, buildings: [] }
+    for (const k in done) { const i = Number(k), b = done[i]; if (!can.inPen(i)) continue
+      if (b.g === 'soil' && builds[i]?.g !== 'soil') out.soil++
+      if (b.s && !builds[i]?.s && !insideOk.has(b.s)) out.buildings.push(b.s) }
+    return out
+  }
   /** The plan changed: judge it anew and show it (the island itself waits for the plan to be confirmed). */
   function refreshPlan() {
     planFence = applyBuilds(planWorld, pristine, builds); can.changed()
-    kick(); onBuild?.(JSON.parse(JSON.stringify(done)), history.length > 0, pending(), planKind())
+    kick(); onBuild?.(JSON.parse(JSON.stringify(done)), history.length > 0, pending(), planKind(), penLoss(), left())
   }
   /** What stands changed: lay it over the island again; where the ground changed, it is re-drawn over that box. */
   function relay(groundBox: [number, number, number, number] | null) {
-    fence = applyBuilds(world, pristine, done); herd.setFences(walls()); setDoors()
+    fence = applyBuilds(world, pristine, done); herd.setFences(walls()); setDoors(); farmers.rethink()
     if (groundBox) { fields.refreshGrounds(); ground.rebuild(fields, groundBox) }
     refreshPlan()
   }
@@ -901,8 +1003,17 @@ export function startEngine(opts: EngineOptions): IslandView {
    *  two new ones if a path is that close and the ground takes them; null if it cannot be joined. A building without a
    *  door needs none, and neither does the main building (the market): it is joined if a path is close, else stands alone. */
   function linkPath(kind: Building, at: number, o: number): number[] | null {
-    if (BUILDINGS[kind].door === undefined) return []
-    const alone = BUILDINGS[kind].main ? [] : null
+    // one without a path rule may stand alone (joined if a path is close); one with it needs a path touching it, as
+    // land.acre checks: at its door if it has one, else anywhere along a side
+    const needs = needsPath(kind)
+    if (BUILDINGS[kind].door === undefined) {
+      if (!needs) return []
+      const [w, h] = dims(kind, o), x0 = at % COLS, y0 = (at - x0) / COLS, side: number[] = []
+      for (let x = x0; x < x0 + w; x++) side.push((y0 - 1) * COLS + x, (y0 + h) * COLS + x)
+      for (let y = y0; y < y0 + h; y++) side.push(y * COLS + x0 - 1, y * COLS + x0 + w)
+      return side.some((i) => i >= 0 && i < COLS * ROWS && planWorld.type[i] === T.path) ? [] : null
+    }
+    const alone = needs ? null : []
     const e = entrance(kind, at, COLS, ROWS, o); if (e < 0) return alone
     if (planWorld.type[e] === T.path) return []
     const fp = new Set(footprint(kind, at, COLS, o)), ex = e % COLS, ey = (e - ex) / COLS
@@ -918,18 +1029,17 @@ export function startEngine(opts: EngineOptions): IslandView {
   }
   function build() {
     if (!tool || !mark) return
-    if (tool === 'harvest') {                                    // not a plan: the farmers go at once (a drag starting on a mark takes marks back)
-      const cells = inBox(box(mark)).filter((i) => ripe(i) && !!done[i].h === harvestOff)
-      if (harvestOff) both((b) => { for (const i of cells) if (b[i] && !farmers.claimed.has(i)) delete b[i].h }); else both((b) => { for (const i of cells) b[i].h = 1 })
-      fieldsAt = 0; relay(null); return
+    if (tool === 'harvest') {                                    // not a plan: a farmer is sent at once (the chain decides who)
+      harvestTiles(inBox(box(mark))); return
     }
-    const b = box(mark), before = JSON.stringify(builds)
+    const b = box(mark), before = JSON.stringify(builds), afford = budget()
     let changed = false
     if (unmark) {                                                // taking marks back
       for (const i of unmarkTiles(stroke ? new Set(stroke) : inBox(b))) if (!same(builds[i], done[i])) { revert(i); changed = true }
     } else if (tool in BUILDINGS) {                                      // a building goes where the pointer was let go
       const k = tool as Building, at = placeAt(k, mark[2], mark[3]), link = linkPath(k, at, rot)
-      if (!footprint(k, at, COLS, rot).every(can.building) || link === null) return
+      if (!footprint(k, at, COLS, rot).every(can.building) || link === null || (!insideOk.has(k) && can.inPen(at))) return
+      if (!afford(at, { s: k }) || !link.every((i) => afford(i, { ...builds[i], g: 'path' }))) return   // not enough left
       placeBuilding(planWorld, builds, k, at, rot); changed = true
       for (const i of link) builds[i] = { ...builds[i], g: 'path' }
       if (link.length) builds[at] = { ...builds[at], l: link }   // remembered, so taking the building back takes its path too
@@ -940,26 +1050,30 @@ export function startEngine(opts: EngineOptions): IslandView {
     } else
     if (stroke) {                                                // a drawn fence or path: every tile it passed that can take it
       for (const i of new Set(stroke)) {
-        if (tool === 'fence' && can.fence(i) && !builds[i]?.f) { builds[i] = { ...builds[i], f: 1 }; changed = true }
-        if (tool === 'path' && can.path(i)) { builds[i] = { ...builds[i], g: 'path' }; changed = true }
+        if (tool === 'fence' && can.fence(i) && !builds[i]?.f && afford(i, { ...builds[i], f: 1 })) { builds[i] = { ...builds[i], f: 1 }; changed = true }
+        if (tool === 'path' && can.path(i) && afford(i, { ...builds[i], g: 'path' })) { builds[i] = { ...builds[i], g: 'path' }; changed = true }
       }
     } else if (tool === 'fence') {
       const ringCells = ring(b, COLS)
       if (b[2] - b[0] + 1 < MIN_ENCLOSURE || b[3] - b[1] + 1 < MIN_ENCLOSURE || !ringCells.every(can.fence)) return
+      if (!ringCells.every((i) => builds[i]?.f || afford(i, { ...builds[i], f: 1 }))) return   // the whole ring, or none of it
       for (const i of ringCells) if (!builds[i]?.f) { builds[i] = { ...builds[i], f: 1 }; changed = true }
     } else if (tool === 'erase') {
       for (const i of inBox(b)) if (erasable(planWorld, builds, i, eraseKind)) { erase(planWorld, builds, i, eraseKind); changed = true }
     } else if (tool === 'tree') {                                // a tree on each open grass tile: mostly broadleaf, now and then a conifer
-      for (const i of inBox(b)) if (can.tree(i)) { const p = Math.random() < 0.7 ? 1 + Math.floor(Math.random() * 3) : 4 + Math.floor(Math.random() * 3); builds[i] = { ...builds[i], p }; delete builds[i].x; changed = true }
+      for (const i of inBox(b)) if (can.tree(i) && afford(i, { ...builds[i], p: 1 })) { const p = Math.random() < 0.7 ? 1 + Math.floor(Math.random() * 3) : 4 + Math.floor(Math.random() * 3); builds[i] = { ...builds[i], p }; delete builds[i].x; changed = true }
     } else if (tool === 'crop') {
       const t = Date.now()
       for (const i of inBox(b)) if (can.crop(i)) { builds[i] = { ...builds[i], c: crop, t }; changed = true }
     } else {
       const ok = tool === 'soil' ? can.soil : can.path
       const g = tool === 'soil' ? 'soil' : 'path'
-      for (const i of inBox(b)) if (ok(i)) { builds[i] = { ...builds[i], g }; changed = true }
+      for (const i of inBox(b)) if (ok(i) && afford(i, { ...builds[i], g })) { builds[i] = { ...builds[i], g }; changed = true }
     }
     if (!changed) return
+    // one construct a tile: where something is built now, the island's own tree there makes way
+    for (const k in builds) { const q = builds[k]; if (q.p === WILD && (q.g || q.f || q.u !== undefined)) delete q.p }
+    if (tool === 'fence') clearPens()
     history.push(before); if (history.length > 100) history.shift()
     refreshPlan()
   }
@@ -967,6 +1081,7 @@ export function startEngine(opts: EngineOptions): IslandView {
   const confirmBuild = () => {
     if (!pending()) return
     const t = Date.now(); for (const k in builds) { const b = builds[k]; if (b.c && done[k]?.c !== b.c) b.t = t }
+    inv = left()
     const old = done; done = JSON.parse(JSON.stringify(builds)); history.length = 0
     relay(groundDiff(old, done))
   }
@@ -1036,9 +1151,11 @@ export function startEngine(opts: EngineOptions): IslandView {
     rotateBuild,
     undoBuild,
     onBuild: (fn) => { onBuild = fn },
-    harvest,
-    unharvest,
-    onStore: (fn) => { onStore = fn; fn({ ...store }) },
+    setInventory: (held, names) => { inv = held; itemNames = names; refreshPlan() },
+    onHarvest: (fn) => { onHarvest = fn },
+    setJobs,
+    setPlants,
+    setGrowth: (g) => { growth = g; fieldsAt = 0; kick() },
     debug: { farmers, seabed, sky, whales, floes, CAM, stats, ground, world, fields, atlas, sprites, herd, state, BEASTS, setBuilds: (b: Builds) => { const old = done; done = b; builds = JSON.parse(JSON.stringify(b)); history.length = 0; relay(groundDiff(old, done)) } },
   }
 }

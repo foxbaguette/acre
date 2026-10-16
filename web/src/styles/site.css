@@ -239,3 +239,13 @@
 .gen-card.is-picked { border-style: solid; border-color: var(--rust); background: rgba(253, 249, 239, .9); }
 .gen-card:hover { background: rgba(253, 249, 239, .8); }
 .gen-cards:disabled .gen-card { cursor: default; opacity: .7; }
+
+/* admin: a crop's sowing times */
+.crop-chips { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+
+/* clearing: player data apart from the configs */
+.clr-part { margin-top: 18px; padding: 14px 16px 6px; border: 1px solid var(--rule); border-radius: 4px; }
+.clr-part-h { margin: 0 0 8px; font: 400 1.35rem var(--display); color: var(--ink); }
+.clr-configs { background: rgba(120, 110, 90, .06); border-style: dashed; }
+.clr-wipe { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; margin-bottom: 10px; padding: 10px 12px; border-left: 3px solid #a3402c; background: rgba(163, 64, 44, .06); }
+@media (max-width: 640px) { .clr-wipe { grid-template-columns: 1fr; } }

@@ -1,4 +1,4 @@
-import { CONTRACT } from './config'
+import { CONTRACT, LIFE_CONTRACT } from './config'
 import { readTable } from './rpc'
 
 /** Whether a wallet is one of land.acre's authorizers (table uauth): only they may change the game's settings. */
@@ -81,5 +81,62 @@ export function genProblem(v: Record<string, number | boolean>): string | null {
   if (!(n('ponds_min') <= n('ponds_max'))) return 'ponds: at least must be no more than at most'
   if (!(n('mountain_min') <= n('mountain_max'))) return 'hills: at least must be no more than at most'
   if (!(n('forest_min') <= n('forest_max'))) return 'forest: at least must be no more than at most'
+  return null
+}
+
+/** Whether a wallet is one of life.acre's authorizers (its own table uauth). */
+export async function fetchIsLifeAuthorizer(account: string): Promise<boolean> {
+  try {
+    const rows = await readTable<{ wallet: string }>('uauth', LIFE_CONTRACT, () => true, { code: LIFE_CONTRACT })
+    return rows.some((r) => r.wallet === account)
+  } catch {
+    return false
+  }
+}
+
+/** One species as life.acre keeps it (table species). environments is not set by setspecies: it is only shown. */
+export type SpeciesRow = { species_id: string; environments: string[]; [field: string]: string | number | string[] }
+
+export async function fetchSpeciesRows(): Promise<SpeciesRow[]> {
+  const rows = await readTable<Record<string, unknown>>('species', LIFE_CONTRACT, () => true, { code: LIFE_CONTRACT })
+  return rows
+    .map((r) => {
+      const out: SpeciesRow = { species_id: String(r.species_id), environments: Array.isArray(r.environments) ? (r.environments as string[]) : [] }
+      for (const f of SPECIES_FIELDS) out[f.name] = f.kind === 'int' ? Number(r[f.name] ?? 0) : String(r[f.name] ?? '')
+      return out
+    })
+    .sort((a, b) => Number(a.species_id) - Number(b.species_id))
+}
+
+export interface SpeciesField { name: string; label: string; kind: 'int' | 'text' | 'name'; group: string; hint: string; max?: number }
+
+/** Every setting setspecies takes after the id, in the contract's order (from life.acre's species_t). */
+export const SPECIES_FIELDS: SpeciesField[] = [
+  { name: 'species_name', label: 'species name', kind: 'text', group: 'the species', hint: 'the name picks its picture on the island, e.g. pegasus or sea serpent' },
+  { name: 'food_type', label: 'food type', kind: 'name', group: 'the species', hint: 'what it eats: a WAX name (a–z, 1–5 and dots, up to 12)' },
+  { name: 'min_size', label: 'size, at least', kind: 'int', group: 'its body', hint: 'size of a new creature (1000 is the picture’s own size)', max: 65535 },
+  { name: 'max_size', label: 'size, at most', kind: 'int', group: 'its body', hint: 'size of a new creature', max: 65535 },
+  { name: 'min_mass', label: 'mass, at least', kind: 'int', group: 'its body', hint: 'mass of a new creature', max: 65535 },
+  { name: 'max_mass', label: 'mass, at most', kind: 'int', group: 'its body', hint: 'mass of a new creature', max: 65535 },
+  { name: 'min_speed', label: 'speed, at least', kind: 'int', group: 'its body', hint: 'speed of a new creature (1000 is the usual pace)', max: 65535 },
+  { name: 'max_speed', label: 'speed, at most', kind: 'int', group: 'its body', hint: 'speed of a new creature', max: 65535 },
+  { name: 'breeding_cooldown', label: 'breeding cooldown', kind: 'int', group: 'its rhythm', hint: 'seconds before it can breed again' },
+  { name: 'food_cooldown', label: 'food cooldown', kind: 'int', group: 'its rhythm', hint: 'seconds before it is hungry again' },
+]
+
+/** A species to start from when nothing is copied. */
+export const SPECIES_DEFAULTS: Record<string, number | string> = {
+  species_name: '', food_type: '', min_size: 800, max_size: 1200, min_mass: 800, max_mass: 1200, min_speed: 800, max_speed: 1200, breeding_cooldown: 86400, food_cooldown: 21600,
+}
+
+/** What setspecies would refuse (the same checks the contract makes, and a valid name), or null. */
+export function speciesProblem(v: Record<string, number | string>): string | null {
+  const n = (k: string) => Number(v[k])
+  for (const f of SPECIES_FIELDS) if (f.kind === 'int' && (!Number.isInteger(n(f.name)) || n(f.name) < 0 || (f.max !== undefined && n(f.name) > f.max))) return `${f.label}: a whole number${f.max !== undefined ? ` from 0 to ${f.max}` : ' of 0 or more'}`
+  if (!String(v.species_name).trim()) return 'the species needs a name'
+  if (!/^[a-z1-5.]{0,12}$/.test(String(v.food_type)) || String(v.food_type).endsWith('.')) return 'food type: a WAX name (a–z, 1–5 and dots, up to 12, not ending in a dot)'
+  if (!(n('min_size') <= n('max_size'))) return 'size: at least must be no more than at most'
+  if (!(n('min_mass') <= n('max_mass'))) return 'mass: at least must be no more than at most'
+  if (!(n('min_speed') <= n('max_speed'))) return 'speed: at least must be no more than at most'
   return null
 }
