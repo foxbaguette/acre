@@ -425,7 +425,7 @@ export function GamePage({ mapId, account, onLeave }: {
   )
 
   return (
-    <div className={`game ui-${layout}`}>
+    <div className={`game ui-${layout}`} onContextMenu={(e) => e.preventDefault()}>
       <h1 className="sr-only">{name}</h1>
       <div className="view" id="view" aria-label={`${name}, seen from above. Drag to look around, scroll or pinch to zoom.`} role="img">
       </div>

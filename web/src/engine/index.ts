@@ -754,7 +754,7 @@ export function startEngine(opts: EngineOptions): IslandView {
   document.getElementById('zfit')?.addEventListener('click', fit)
   document.addEventListener('keydown', (e) => { if ((e.key === 'r' || e.key === 'R') && tool && tool in BUILDINGS && !(e.target instanceof HTMLInputElement)) { rotateBuild(); return } if (e.key === 'Escape') { if (mark) { mark = null; kick() } else if (herd.selected) select(null) } })
   view.addEventListener('pointerleave', () => { if (hover) { hover = null; kick() } })
-  view.addEventListener('contextmenu', (e) => { if (tool) e.preventDefault() })   // right-drag moves the map while building
+  view.addEventListener('contextmenu', (e) => e.preventDefault())   // no browser menu on the island (right-drag moves the map while building)
 
   // ---------- fences: where each post stands ----------
   /** The fence tile a fence on tile i joins in direction k (0 east, 1 south, 2 south-east, 3 south-west), or -1.
