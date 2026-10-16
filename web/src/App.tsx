@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { AdminPage } from '@/components/AdminPage'
 import { Atlas } from '@/components/Atlas'
 import { GamePage } from '@/components/GamePage'
 import { Landing } from '@/components/Landing'
 import { JournalDefs } from '@/journal/Header'
+import { withAdmin } from '@/lib/adminUrl'
 import { hasStoredSession, login, logout, preloadWallet, restoreSession, walletName } from '@/wallet/session'
 
 /** Dev only: ?as=account shows that wallet's islands without signing in. */
@@ -11,6 +13,7 @@ const spectate = import.meta.env.DEV ? new URLSearchParams(location.search).get(
 
 const message = (err: unknown) => (err instanceof Error ? err.message : String(err))
 const islandParam = () => new URLSearchParams(location.search).get('island')
+const adminParam = () => new URLSearchParams(location.search).has('admin')
 
 /** This address with ?island set or removed, keeping anything else (like ?as=). */
 function withIsland(id: string | null, hash = '') {
@@ -20,6 +23,7 @@ function withIsland(id: string | null, hash = '') {
   const q = p.toString()
   return location.pathname + (q ? `?${q}` : '') + hash
 }
+
 
 export function App() {
   const [account, setAccount] = useState<string | null>(spectate)
@@ -99,6 +103,8 @@ export function App() {
         <Landing onConnect={connect} busy={busy} error={error} />
       </div>
     )
+  } else if (adminParam()) {
+    page = <AdminPage account={account} wallet={walletName()} onSignOut={signOut} onLeave={() => location.assign(withAdmin(false))} />
   } else if (island) {
     page = <GamePage mapId={island} account={account} onLeave={leave} />
   } else {

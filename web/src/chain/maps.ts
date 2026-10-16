@@ -85,6 +85,10 @@ export interface GenConfig {
   river_chance: number
   ponds_min: number
   ponds_max: number
+  islets_max: number
+  forests: boolean | number
+  forest_min: number
+  forest_max: number
 }
 
 /** The generator configs the contract has, by index. */

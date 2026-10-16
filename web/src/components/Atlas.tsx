@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 
+import { fetchIsAuthorizer } from '@/chain/admin'
 import { CONTRACT, GEN_CONFIG } from '@/chain/config'
 import { actionFields } from '@/chain/rpc'
 import { fetchMapTiles, fetchPlayerMaps, mapStats, type MapStats, type PlayerMap, fetchGenConfigs, type GenConfig } from '@/chain/maps'
@@ -7,6 +8,7 @@ import { friendlyError, signer, transact } from '@/wallet/session'
 import { coastlinePath } from '@/lib/outline'
 import { ArrowLeft, ArrowRight, Book, type Bookmark, type Spread } from '@/journal/Book'
 import { AccountTag, Header } from '@/journal/Header'
+import { withAdmin } from '@/lib/adminUrl'
 
 const PER_PAGE = 11
 /** How long the pointer (or keyboard focus) rests on an index line before its chart is loaded and drawn. */
@@ -120,6 +122,8 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
   onEnter: (mapId: string) => void
 }) {
   const [maps, setMaps] = useState<PlayerMap[] | null>(null)
+  const [authorizer, setAuthorizer] = useState(false)
+  useEffect(() => { let live = true; fetchIsAuthorizer(account).then((a) => live && setAuthorizer(a)); return () => { live = false } }, [account])
   const [error, setError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [current, setCurrent] = useState('contents-1')
@@ -195,7 +199,7 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
           </div>
           <div className="contents-h">
             <h2>{p === 0 ? 'Contents' : <>Contents, <em>cont.</em></>}</h2>
-            <p>{list.length === 1 ? 'one island, charted' : `${list.length} islands, charted`}</p>
+            <p>{list.length === 0 ? 'no islands yet' : list.length === 1 ? 'one island, charted' : `${list.length} islands, charted`}</p>
           </div>
           <ol className={`index${roomy ? ' roomy' : ''}`} onMouseLeave={leave}>
             {rows.map((m, k) => {
@@ -236,8 +240,8 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
                 <path d="M3 4c2 10 9 18 26 20M22 18c3 2 5 4 7 6-3 1-6 2-8 4" />
               </svg>
               <span>
-                {list.length === 1 ? 'One island so far. The rest of these lines are waiting.' : 'Plenty of lines left in this journal.'}
-                <span className="create-hint">Turn to the blank page to chart another one.</span>
+                {list.length === 0 ? 'Every line of this journal is still waiting.' : list.length === 1 ? 'One island so far. The rest of these lines are waiting.' : 'Plenty of lines left in this journal.'}
+                <span className="create-hint">{list.length === 0 ? 'Turn to the blank page to chart your first one.' : 'Turn to the blank page to chart another one.'}</span>
               </span>
             </p>
           )}
@@ -462,17 +466,19 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
                 roll another
               </button>
             </div>
-            {configs && configs.length > 1 && (
-              <label className="seed-box gen-box">
-                <span className="seed-lbl">generator</span>
-                <select className="gen-pick hand" value={gen} onChange={(e) => setGen(e.target.value)} disabled={busy}>
-                  {configs.map((c) => (
-                    <option key={c.index} value={c.index}>
-                      no. {c.index} · {c.width} × {c.height}, land {c.land_min}–{c.land_max}%, {c.ponds_min}–{c.ponds_max} ponds
-                    </option>
-                  ))}
-                </select>
-              </label>
+            {configs && configs.length > 0 && (
+              <fieldset className="gen-cards" disabled={busy}>
+                <legend className="seed-lbl">what kind of island</legend>
+                {configs.map((c) => (
+                  <label key={c.index} className={`gen-card${gen === c.index ? ' is-picked' : ''}`}>
+                    <input type="radio" name="genconfig" value={c.index} checked={gen === c.index} onChange={() => setGen(c.index)} />
+                    <b>no. {c.index}</b>
+                    <span>{c.width} × {c.height} tiles · land {c.land_min}–{c.land_max}%</span>
+                    <span>{c.ponds_min}–{c.ponds_max} ponds · lake {c.lake_chance}% · river {c.river_chance}%</span>
+                    <span>hills {c.mountain_chance}% · {c.forests ? `forest ${c.forest_min}–${c.forest_max}%` : 'no forest'} · up to {c.islets_max} islets</span>
+                  </label>
+                ))}
+              </fieldset>
             )}
             <p className="index-note">
               <svg viewBox="0 0 34 30" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
@@ -534,7 +540,7 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
 
   return (
     <div className="atlas">
-      <Header home="contents-1" right={<AccountTag account={account} wallet={wallet} onSignOut={onSignOut} />} />
+      <Header home="contents-1" right={<div className="top-right">{authorizer && <a className="admin-link hand" href={withAdmin(true)}>admin</a>}<AccountTag account={account} wallet={wallet} onSignOut={onSignOut} /></div>} />
       <main>
         <div className="wrap">
           <h1 className="sr-only">Your islands</h1>
@@ -549,14 +555,6 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
           ) : !maps ? (
             <div className="sheet atlas-msg">
               <p className="hand">Opening your journal…</p>
-            </div>
-          ) : list.length === 0 ? (
-            <div className="sheet atlas-msg">
-              <p className="kicker">An empty journal</p>
-              <h2>No islands charted yet.</h2>
-              <p className="lede">
-                The wallet <strong>{account}</strong> does not own an island yet. Once one is charted for you, its page appears here.
-              </p>
             </div>
           ) : (
             <Book className="atlas-book" spreads={spreads} current={spreads.some((s) => s.id === current) ? current : 'contents-1'} onTurn={turn} bookmarks={bookmarks} />
