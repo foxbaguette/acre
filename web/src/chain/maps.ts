@@ -9,6 +9,10 @@ export interface MapRow {
   /** where it lies on the world map (missing on maps from before) */
   x?: number
   y?: number
+  /** its soil (missing on maps from before) */
+  nutrients?: number
+  moisture?: number
+  acidity?: number
 }
 
 export interface PlayerMap {
@@ -18,7 +22,14 @@ export interface PlayerMap {
   playertag: string
   /** where it lies on the world map (land.acre maps: a square spiral out from 0, 0), null on maps from before */
   at: { x: number; y: number } | null
+  /** its soil, rolled when it was charted: nutrients and moisture 1-100, acidity as pH x 10 (10-140, 70 neutral); null on
+   *  maps from before */
+  soil: { nutrients: number; moisture: number; acidity: number } | null
 }
+
+/** A soil's acidity in words, from its pH. */
+export const acidWord = (acidity: number) => { const ph = acidity / 10
+  return ph < 4.5 ? 'very acid' : ph < 6 ? 'acid' : ph < 6.6 ? 'slightly acid' : ph <= 7.4 ? 'neutral' : ph <= 8.5 ? 'slightly alkaline' : ph <= 10 ? 'alkaline' : 'very alkaline' }
 
 /** A place on the world map, as players read it: "0, 0", "3 east, 2 north". y grows to the south, like the islands. */
 export const placeWords = (at: { x: number; y: number } | null) => {
@@ -36,7 +47,8 @@ const toMap = (row: MapRow): PlayerMap => ({
   owner: row.owner,
   name: row.map_name,
   playertag: row.playertag,
-  at: row.x === undefined || row.y === undefined ? null : { x: Number(row.x), y: Number(row.y) }
+  at: row.x === undefined || row.y === undefined ? null : { x: Number(row.x), y: Number(row.y) },
+  soil: row.nutrients === undefined ? null : { nutrients: Number(row.nutrients), moisture: Number(row.moisture), acidity: Number(row.acidity) }
 })
 
 /** The maps a wallet owns, oldest first. */
@@ -132,4 +144,23 @@ export function mapStats(tiles: Uint8Array): MapStats {
   }
   const n = tiles.length
   return { land: land / n, forest: forest / n, mountain: mountain / n, beach: beach / n, freshWater: freshWater / n }
+}
+
+/** Every map, all owners, by id. */
+export async function fetchAllMaps(): Promise<PlayerMap[]> {
+  const rows = await readTable<MapRow>('maps', CONTRACT)
+  return rows.map(toMap).sort((a, b) => Number(a.id) - Number(b.id))
+}
+
+/** Place n of the world map's square spiral out from 0, 0, as land.acre counts it (next_place): 0, 0 then 1, 0, 1, 1,
+ *  0, 1, -1, 1, -1, 0, -1, -1, 0, -1, 1, -1, then the next ring round. */
+export function spiralPlace(n: number): { x: number; y: number } {
+  let k = 0
+  while ((2 * k + 1) ** 2 <= n) k++
+  if (!k) return { x: 0, y: 0 }
+  const side = 2 * k, d = (2 * k + 1) ** 2 - 1 - n
+  if (d < side) return { x: k - d, y: -k }
+  if (d < 2 * side) return { x: -k, y: -k + (d - side) }
+  if (d < 3 * side) return { x: -k + (d - 2 * side), y: k }
+  return { x: k, y: k - (d - 3 * side) }
 }

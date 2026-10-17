@@ -54,6 +54,10 @@ float swell(vec2 p, float t) { return gnoise(p * 1.5 + vec2(t * .22, t * .08)) +
 void main() {
   vec2 px = vec2(gl_FragCoord.x, uView.y - gl_FragCoord.y), p = uCam.xy + px / uCam.z;
   float T = uCam.z, e = 1. / T, t = uT;               // one pixel, in tiles
+  // well inland (the coast's wobble moves the shore by under half a tile, the beach waves reach under one): nothing to
+  // draw, known from the height map alone before the coast's noise is worked out
+  vec4 hf = hfieldFast(p);
+  if (hf.r > 1.5 && hf.b < -1.) { o = vec4(0.); return; }
   vec4 tr = terrain(p, uPx);                         // the same shore the ground was baked with
   float water = clamp(wetness(tr) * T + .5, 0., 1.);
   if (water <= 0.) {

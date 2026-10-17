@@ -48,7 +48,7 @@ export function startEngine(opts: EngineOptions): IslandView {
   canvas.className = 'gl-scene'
   canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block'
   view.prepend(canvas)
-  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: 'high-performance' })
+  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, depth: false, stencil: false })
   if (!gl) throw new Error('This browser does not offer WebGL2.')
   gl.getExtension('EXT_color_buffer_float'); gl.getExtension('EXT_texture_filter_anisotropic'); gl.getExtension('OES_texture_float_linear')
 
@@ -76,7 +76,9 @@ export function startEngine(opts: EngineOptions): IslandView {
   // ---------- the harvest: what grows (land.acre plants), the farmers' jobs (its worker queue) ----------
   // A harvest is not a plan: it goes to the chain at once (onHarvest), and the farmers then walk as its jobs say.
   const both = (fn: (b: Builds) => void) => { fn(done); fn(builds) }      // it changes what stands and the plan alike
-  let onHarvest: ((tiles: number[]) => void) | null = null
+  let onHarvest: ((tiles: number[], forSeeds?: boolean) => void) | null = null
+  let onCancelHarvest: ((tiles: number[]) => void) | null = null
+  let jobsNow: Job[] = []
   /** how long each crop takes to grow, ms (cropcfg); a crop not in it grows at the old pace */
   let growth: Record<string, number> = {}
   const stageOf = (b: CellBuild, now: number) => cropStage(b.t ?? 0, now, growth[b.c ?? ''] ?? GROW_MS)
@@ -111,6 +113,42 @@ export function startEngine(opts: EngineOptions): IslandView {
   const tokenLayer = document.createElement('div'); tokenLayer.className = 'field-tokens'; view.append(tokenLayer)
   const tokens = new Map<string, HTMLButtonElement>()
   const SICKLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 19l5-5"/><path d="M10 14c1-6 6-9 10-8-3 1-6 4-6 8"/></svg>'
+  // clicking a field's token opens a ring round it: harvest, harvest for seeds, call off its harvest still waiting
+  const SEED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c-3 4-3 8 0 11 3-3 3-7 0-11z"/><path d="M6 14c0 4 3 7 6 7s6-3 6-7"/></svg>'
+  const CROSS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+  const fieldRing = document.createElement('div'); fieldRing.className = 'field-ring'; fieldRing.hidden = true
+  fieldRing.innerHTML = '<button type="button" class="ring-btn ring-harvest">' + SICKLE + '<span>harvest</span></button><button type="button" class="ring-btn ring-seeds">' + SEED + '<span>for seeds</span></button><button type="button" class="ring-btn ring-cancel">' + CROSS + '<span>call off</span></button><p class="ring-note"></p>'
+  tokenLayer.append(fieldRing)
+  let ringKey: string | null = null
+  const closeRing = () => { if (ringKey === null) return; ringKey = null; fieldRing.hidden = true; for (const el of tokens.values()) el.classList.remove('is-open'); kick() }
+  /** The field's tiles a farmer is down for but has not set out for yet (those a harvest can be called off for). */
+  const waitingTiles = (fl: Field) => { const now = Date.now(), out: number[] = []
+    for (const i of fl.tiles) if (done[i].h && jobsNow.some((j) => !j.claimed && j.start > now && j.tiles.includes(i))) out.push(i)
+    return out }
+  fieldRing.addEventListener('pointerdown', (e) => e.stopPropagation())
+  fieldRing.addEventListener('click', (e) => {
+    e.stopPropagation()
+    const b = (e.target as HTMLElement).closest('button'), fl = ripeList.find((q) => q.key === ringKey); if (!b || !fl || (b as HTMLButtonElement).disabled) return
+    if (b.classList.contains('ring-harvest')) harvestTiles(fl.tiles, false)
+    else if (b.classList.contains('ring-seeds')) harvestTiles(fl.tiles, true)
+    else if (b.classList.contains('ring-cancel')) { const w = waitingTiles(fl); if (w.length) onCancelHarvest?.(w) }
+    fieldsAt = 0; closeRing()
+  })
+  view.addEventListener('pointerdown', closeRing)
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRing() })
+  function placeRing() {
+    const fl = ringKey === null ? null : ripeList.find((q) => q.key === ringKey)
+    if (!fl) { if (ringKey !== null) closeRing(); return }
+    const w = waitingTiles(fl), out = fl.marked - w.length, z = CAM.z
+    const [h, sd, c] = ['.ring-harvest', '.ring-seeds', '.ring-cancel'].map((q) => fieldRing.querySelector(q) as HTMLButtonElement)
+    h.disabled = sd.disabled = !fl.open; c.disabled = !w.length
+    h.title = fl.open ? `harvest ${fl.open} tile${fl.open === 1 ? '' : 's'} for the island’s storage` : 'every tile is being harvested'
+    sd.title = fl.open ? `harvest ${fl.open} tile${fl.open === 1 ? '' : 's'} for seeds` : 'every tile is being harvested'
+    c.title = w.length ? `call off the harvest of ${w.length} tile${w.length === 1 ? '' : 's'} still waiting for a farmer` : fl.marked ? 'the farmers are already out for it: they finish the round' : 'nothing to call off'
+    fieldRing.querySelector('.ring-note')!.textContent = `${fl.crop.replace(/-/g, ' ')} · ${fl.open ? `${fl.open} ripe` : 'all being harvested'}${w.length ? ` · ${w.length} waiting` : ''}${out > 0 ? ` · ${out} with a farmer out` : ''}`
+    fieldRing.style.transform = `translate(${(fl.x - CAM.x) * z}px, ${(fl.y - CAM.y) * z}px)`
+    fieldRing.hidden = false
+  }
   function placeTokens() {
     const list = ripeFields(), live = new Set<string>(), z = CAM.z
     for (const f of list) {
@@ -119,18 +157,19 @@ export function startEngine(opts: EngineOptions): IslandView {
       if (!el) { el = document.createElement('button'); el.type = 'button'; el.className = 'field-token'; el.innerHTML = '<span class="tok">' + SICKLE + '</span><span class="n"></span><span class="note"></span><span class="stem"></span>'
         const key = f.key
         el.addEventListener('pointerdown', (e) => e.stopPropagation())
-        el.addEventListener('click', (e) => { e.stopPropagation(); const fl = ripeList.find((q) => q.key === key); if (fl && fl.open) { harvestTiles(fl.tiles); fieldsAt = 0 } })
+        el.addEventListener('click', (e) => { e.stopPropagation(); if (ringKey === key) { closeRing(); return } closeRing(); ringKey = key; el!.classList.add('is-open'); placeRing(); kick() })
         el.addEventListener('pointerenter', () => { hoverField = ripeList.find((q) => q.key === key) ?? null; kick() })
         el.addEventListener('pointerleave', () => { hoverField = null; kick() })
         tokenLayer.append(el); tokens.set(f.key, el) }
       const working = !f.open
       el.classList.toggle('working', working); el.classList.toggle('far', z < 16)
       el.querySelector('.n')!.textContent = String(working ? f.marked : f.open)
-      el.querySelector('.note')!.textContent = working ? 'being harvested' : `harvest the ${f.crop.replace(/-/g, ' ')} · ${f.open} tile${f.open === 1 ? '' : 's'}`
+      el.querySelector('.note')!.textContent = working ? 'being harvested · click to call it off' : `harvest the ${f.crop.replace(/-/g, ' ')} · ${f.open} tile${f.open === 1 ? '' : 's'}`
       el.setAttribute('aria-label', working ? `${f.crop} being harvested` : `Harvest the ${f.crop}, ${f.open} tiles`)
       el.style.transform = `translate(${(f.x - CAM.x) * z}px, ${(f.y - CAM.y) * z}px)`
     }
     for (const [k, el] of tokens) if (!live.has(k)) { el.remove(); tokens.delete(k); if (hoverField?.key === k) hoverField = null }
+    placeRing()
   }
   // the enclosures land.acre keeps: a small paper tag in the middle of each, with its number and size. Its tiles are
   // found from its first tile over what stands now (not reached past a fence); one that is not closed here is not shown.
@@ -163,9 +202,13 @@ export function startEngine(opts: EngineOptions): IslandView {
   const setEnclosures = (list: { id: string; tiles: number; at: number; water?: boolean }[]) => {
     for (const p of pens) p.el.remove()
     pens = []
-    for (const e of list) { const m = penMiddle(e.at, e.water); if (!m) continue
+    // numbered on this island, ponds and enclosures each from 1 in the order they came (the chain's ids count over every
+    // island); only those there are count (a row whose tiles are no pond or enclosure here any more is left out)
+    const shown = list.map((e) => ({ e, m: penMiddle(e.at, e.water) })).filter((x): x is { e: typeof list[number]; m: [number, number] } => !!x.m)
+    const no = new Map<string, number>(); for (const water of [true, false]) shown.filter((x) => !!x.e.water === water).sort((p, q) => Number(p.e.id) - Number(q.e.id)).forEach((x, k) => no.set(x.e.id, k + 1))
+    for (const { e, m } of shown) {
       const el = document.createElement('div'); el.className = 'pen-tag' + (e.water ? ' pond' : '')
-      el.innerHTML = '<i class="pen-seal"></i><b></b><small></small>'; el.querySelector('i')!.textContent = e.id; el.querySelector('b')!.textContent = (e.water ? 'pond no. ' : 'enclosure no. ') + e.id; el.querySelector('small')!.textContent = e.tiles + ' tile' + (e.tiles === 1 ? '' : 's')
+      el.innerHTML = '<i class="pen-seal"></i><b></b><small></small>'; el.querySelector('i')!.textContent = String(no.get(e.id)); el.querySelector('b')!.textContent = (e.water ? 'pond no. ' : 'enclosure no. ') + no.get(e.id); el.querySelector('small')!.textContent = e.tiles + ' tile' + (e.tiles === 1 ? '' : 's')
       penLayer.append(el); pens.push({ ...e, el, x: m[0], y: m[1] }) }
     kick()
   }
@@ -173,13 +216,13 @@ export function startEngine(opts: EngineOptions): IslandView {
     penLayer.classList.toggle('far', z < 10); penLayer.classList.toggle('near', z >= 30)   // close up the whole tags show; further out only their seals
     for (const p of pens) p.el.style.transform = `translate(${(p.x - CAM.x) * z}px, ${(p.y - CAM.y) * z}px)` }
   /** Fully grown tiles not yet being harvested go to the chain: a farmer is sent for them. */
-  const harvestTiles = (tiles: number[]) => { const ok = tiles.filter((i) => ripe(i) && !done[i].h); if (ok.length) onHarvest?.(ok) }
+  const harvestTiles = (tiles: number[], forSeeds?: boolean) => { const ok = tiles.filter((i) => ripe(i) && !done[i].h); if (ok.length) onHarvest?.(ok, forSeeds) }
   void fieldOf
   /** The farmers' jobs from the chain: their tiles are being harvested (until claimed), and the farmers walk them. */
   const setJobs = (jobs: Job[]) => {
     both((b) => { for (const k in b) if (b[k].h) delete b[k].h })
     for (const j of jobs) if (!j.claimed) both((b) => { for (const i of j.tiles) if (b[i]?.c) b[i].h = 1 })
-    farmers.setJobs(jobs); fieldsAt = 0; kick()
+    jobsNow = jobs; farmers.setJobs(jobs); fieldsAt = 0; kick()
   }
   /** What grows, from the chain (crop name and when sown, ms): it replaces the crops that stand; the plan's own
    *  unconfirmed sowing stays. */
@@ -338,7 +381,9 @@ export function startEngine(opts: EngineOptions): IslandView {
 
   // ---------- camera: z = CSS pixels per tile, x/y = the world tile at the view's top-left ----------
   const CAM = { z: 0, x: 0, y: 0 }
-  const dpr = () => Math.min(window.devicePixelRatio || 1, LOW ? 1 : 1.5)
+  const PIXEL_BUDGET = 2560 * 1440
+  const dpr = () => { const d = Math.min(window.devicePixelRatio || 1, LOW ? 1 : 1.5), css = Math.max(1, view.clientWidth * view.clientHeight)
+    return Math.max(Math.min(d, 1), Math.min(d, Math.sqrt(PIXEL_BUDGET / css))) }
   const zMin = () => Math.min(view.clientWidth / COLS, view.clientHeight / ROWS)
   const zMax = 260
   const clampCam = () => {
@@ -662,6 +707,12 @@ export function startEngine(opts: EngineOptions): IslandView {
 
   // ---------- the frame ----------
   let raf = 0, last = 0, size = [0, 0]
+  let lightKept: typeof sky.light = null                         // the light buffer, when it holds no light (cleared)
+  // while nobody touches the island it is drawn 30 times a second (its life looks the same, the GPU works half as hard or
+  // less on a fast screen); while it is dragged, zoomed, marked or a creature carried, at the screen's own rate
+  const IDLE_MS = 1000 / 30 - 3, AWAY_MS = 100
+  let lastInput = -1e9, lastDrawn = 0, paused = false
+  for (const ev of ['pointerdown', 'pointermove', 'wheel', 'keydown'] as const) view.addEventListener(ev, () => { lastInput = performance.now() }, { passive: true })
   const kick = () => { if (!raf) raf = requestAnimationFrame(frame) }
   const resize = () => {
     const d = dpr(), w = Math.round(view.clientWidth * d), h = Math.round(view.clientHeight * d)
@@ -670,6 +721,9 @@ export function startEngine(opts: EngineOptions): IslandView {
   function frame(now: number) {
     raf = 0
     if (!ground.tiles) { kick(); return }
+    if (paused) return                                           // under an overlay that covers it: drawn again once it is gone
+    if (!ZOOM.active && !ptrs.size && now - lastInput > 600 && now - lastDrawn < (document.hasFocus() ? IDLE_MS : AWAY_MS)) { kick(); return }   // idle (or the window in the background): not yet time for the next picture
+    lastDrawn = now
     const dt = Math.min(50, now - (last || now)); last = now
     for (const fd of [fade.day, fade.wx]) if (fd.p < 1) fd.p = Math.min(1, fd.p + dt / 1000 / FADE_S)
     if (ZOOM.active) {
@@ -707,8 +761,11 @@ export function startEngine(opts: EngineOptions): IslandView {
     const gust = lerp(WX[wFrom].gust, WX[wTo].gust, wk)
     const sp = (from: number, to: number, o: Record<string, unknown> = {}) => sprites.draw(fieldArgs[0], fieldArgs[1], fieldArgs[2], [fieldArgs[3][0], fieldArgs[3][1]], cam, W, H, { time: t, gust, from, to, soil: ground.f[0], ...o })
     // the cloud shadows and the fireflies' light, each in its own small target
-    gl!.bindFramebuffer(gl!.FRAMEBUFFER, sky.light!.fb); gl!.viewport(0, 0, sky.light!.w, sky.light!.h); gl!.clearColor(0, 0, 0, 1); gl!.clear(gl!.COLOR_BUFFER_BIT)
-    sp(lightAt, glowAt, { blend: 'light' })
+    if (glowAt > lightAt || lightKept !== sky.light) {          // (none, and its buffer already clear: nothing to do)
+      gl!.bindFramebuffer(gl!.FRAMEBUFFER, sky.light!.fb); gl!.viewport(0, 0, sky.light!.w, sky.light!.h); gl!.clearColor(0, 0, 0, 1); gl!.clear(gl!.COLOR_BUFFER_BIT)
+      sp(lightAt, glowAt, { blend: 'light' })
+      lightKept = glowAt > lightAt ? null : sky.light
+    }
     // the scene: ground, swimmers, the water's life, what stands on the ground, cloud shadows, flyers
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, sky.scene!.fb); gl!.viewport(0, 0, W, H)
     const pending = ground.draw(cam, W, H)
@@ -866,6 +923,19 @@ export function startEngine(opts: EngineOptions): IslandView {
   // Each tile of soil, path, fence or planted tree takes one, a building one; erasing gives it back. The island's own
   // trees are nobody's. As land.acre counts it: by what stands (done) against the plan (builds).
   let inv: Inventory | null = null, itemNames: Partial<Record<Building, string>> = {}
+  // the owner's seeds, by crop name (null: not counted, everything may be sown): a tile sown takes one, a crop taken off
+  // before it is harvested gives it back (as land.acre counts them)
+  let seeds: Record<string, number> | null = null
+  const seedsLeft = (): Record<string, number> | null => {
+    if (!seeds) return null
+    const out = { ...seeds }
+    for (const k of new Set([...Object.keys(done), ...Object.keys(builds)])) {
+      const i = Number(k), a = done[i]?.c, b = builds[i]?.c; if (a === b) continue
+      if (a && !done[i].h) out[a] = (out[a] ?? 0) + 1
+      if (b) out[b] = (out[b] ?? 0) - 1
+    }
+    return out
+  }
   const itemOf = (b?: CellBuild): string | null => {
     if (!b) return null
     if (b.g) return b.g
@@ -938,7 +1008,10 @@ export function startEngine(opts: EngineOptions): IslandView {
     }
     const ok = tool === 'soil' ? can.soil : tool === 'path' ? can.path : tool === 'tree' ? can.tree : can.crop
     const put = (i: number): CellBuild => (tool === 'soil' ? { ...builds[i], g: 'soil' } : tool === 'path' ? { ...builds[i], g: 'path' } : tool === 'tree' ? { ...builds[i], p: 1 } : builds[i] ?? {})
-    for (const i of inBox(b)) out.push([i, ok(i) && afford(i, put(i)) ? 0 : 1])
+    const have = tool === 'crop' ? seedsLeft() : null   // sowing: as many tiles as there are seeds
+    for (const i of inBox(b)) { let sown = true
+      if (have && ok(i) && builds[i]?.c !== crop) { if ((have[crop] ?? 0) <= 0) sown = false; else have[crop]-- }
+      out.push([i, ok(i) && sown && afford(i, put(i)) ? 0 : 1]) }
     return out
   }
   /** Lays the builds over the island again; where the ground changed, it is re-drawn over that box. */
@@ -1063,8 +1136,11 @@ export function startEngine(opts: EngineOptions): IslandView {
     } else if (tool === 'tree') {                                // a tree on each open grass tile: mostly broadleaf, now and then a conifer
       for (const i of inBox(b)) if (can.tree(i) && afford(i, { ...builds[i], p: 1 })) { const p = Math.random() < 0.7 ? 1 + Math.floor(Math.random() * 3) : 4 + Math.floor(Math.random() * 3); builds[i] = { ...builds[i], p }; delete builds[i].x; changed = true }
     } else if (tool === 'crop') {
-      const t = Date.now()
-      for (const i of inBox(b)) if (can.crop(i)) { builds[i] = { ...builds[i], c: crop, t }; changed = true }
+      const t = Date.now(), have = seedsLeft()
+      for (const i of inBox(b)) if (can.crop(i)) {
+        if (have && builds[i]?.c !== crop) { if ((have[crop] ?? 0) <= 0) continue; have[crop]--; const was = builds[i]?.c; if (was && was !== done[i]?.c) have[was] = (have[was] ?? 0) + 1 }   // a seed a tile
+        builds[i] = { ...builds[i], c: crop, t }; changed = true
+      }
     } else {
       const ok = tool === 'soil' ? can.soil : can.path
       const g = tool === 'soil' ? 'soil' : 'path'
@@ -1152,7 +1228,11 @@ export function startEngine(opts: EngineOptions): IslandView {
     undoBuild,
     onBuild: (fn) => { onBuild = fn },
     setInventory: (held, names) => { inv = held; itemNames = names; refreshPlan() },
+    setSeeds: (held) => { seeds = held; refreshPlan() },
+    seedsLeft,
     onHarvest: (fn) => { onHarvest = fn },
+    onCancelHarvest: (fn) => { onCancelHarvest = fn },
+    setPaused: (p) => { if (p === paused) return; paused = p; if (!p) { last = 0; kick() } },
     setJobs,
     setPlants,
     setGrowth: (g) => { growth = g; fieldsAt = 0; kick() },

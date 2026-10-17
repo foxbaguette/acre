@@ -140,3 +140,13 @@ export function speciesProblem(v: Record<string, number | string>): string | nul
   if (!(n('min_speed') <= n('max_speed'))) return 'speed: at least must be no more than at most'
   return null
 }
+
+/** Whether a wallet is one of lab.acre's authorizers (its own table uauth); false while the lab is not on the chain. */
+export async function fetchIsLabAuthorizer(account: string): Promise<boolean> {
+  try {
+    const rows = await readTable<{ wallet: string }>('uauth', 'lab.acre', () => true, { code: 'lab.acre' })
+    return rows.some((r) => r.wallet === account)
+  } catch {
+    return false
+  }
+}

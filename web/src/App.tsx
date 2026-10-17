@@ -4,8 +4,9 @@ import { AdminPage } from '@/components/AdminPage'
 import { Atlas } from '@/components/Atlas'
 import { GamePage } from '@/components/GamePage'
 import { Landing } from '@/components/Landing'
+import { WorldMap } from '@/components/WorldMap'
 import { JournalDefs } from '@/journal/Header'
-import { withAdmin } from '@/lib/adminUrl'
+import { withAdmin, withWorld } from '@/lib/adminUrl'
 import { hasStoredSession, login, logout, preloadWallet, restoreSession, walletName } from '@/wallet/session'
 
 /** Dev only: ?as=account shows that wallet's islands without signing in. */
@@ -14,6 +15,7 @@ const spectate = import.meta.env.DEV ? new URLSearchParams(location.search).get(
 const message = (err: unknown) => (err instanceof Error ? err.message : String(err))
 const islandParam = () => new URLSearchParams(location.search).get('island')
 const adminParam = () => new URLSearchParams(location.search).has('admin')
+const worldParam = () => new URLSearchParams(location.search).has('world')
 
 /** This address with ?island set or removed, keeping anything else (like ?as=). */
 function withIsland(id: string | null, hash = '') {
@@ -97,6 +99,8 @@ export function App() {
         <p>Opening your journal…</p>
       </div>
     )
+  } else if (worldParam()) {   // the world map: open to anyone, the signed-in player's islands marked
+    page = <WorldMap account={account} onLeave={() => location.assign(withWorld(false) + '#contents-1')} onOpen={(id) => { const p = new URLSearchParams(location.search); p.delete('world'); p.set('island', id); location.assign(location.pathname + '?' + p.toString()) }} />
   } else if (!account) {
     page = (
       <div onPointerEnter={preloadWallet} onFocus={preloadWallet}>

@@ -30,7 +30,7 @@ export function StorageTag({ storage, stored, jobs, buildings, store, cropName }
   // what it holds, what is on its way (with the farmers, not claimed yet), both by crop; and what the player holds over
   // all their islands, when they have more than this one with anything in it
   const here = Object.entries(stored).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1])
-  const onWay: Record<string, number> = {}; for (const j of jobs) if (!j.claimed) onWay[j.crop] = (onWay[j.crop] ?? 0) + j.amount
+  const onWay: Record<string, number> = {}; for (const j of jobs) if (!j.claimed && !j.seeds) onWay[j.crop] = (onWay[j.crop] ?? 0) + j.amount
   const coming = Object.values(onWay).reduce((n, v) => n + v, 0)
   const held = Object.entries(store).filter(([, n]) => n > 0)
   const elsewhere = held.some(([id, n]) => n !== (stored[id] ?? 0))

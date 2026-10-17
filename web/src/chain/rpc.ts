@@ -20,6 +20,11 @@ export interface TableQuery {
 
 let preferred = 0
 
+/** What a node says went wrong (its error's first detail), or nothing. */
+async function nodeReason(response: Response): Promise<string> {
+  try { const j = (await response.json()) as { error?: { what?: string; details?: { message?: string }[] } }; return j.error?.details?.[0]?.message ?? j.error?.what ?? '' } catch { return '' }
+}
+
 /**
  * Every row of a contract table. Busy nodes sometimes answer with an empty or cut-off table instead
  * of an error, so `complete` decides whether an answer can be trusted; if not, the next node is asked.
@@ -43,7 +48,7 @@ export async function readTable<T>(table: string, scope: string, complete: (rows
             ...(query.upper !== undefined ? { upper_bound: query.upper } : {})
           })
         })
-        if (!response.ok) throw new Error(`${node} answered ${response.status}`)
+        if (!response.ok) throw new Error(`${node} answered ${response.status}: ${await nodeReason(response)}`)
         const json = (await response.json()) as TableResponse<T>
         if (!Array.isArray(json.rows)) throw new Error(`${node} sent no rows`)
         rows.push(...json.rows)
@@ -56,7 +61,9 @@ export async function readTable<T>(table: string, scope: string, complete: (rows
       }
       lastError = new Error('The WAX nodes sent an incomplete table. Please try again.')
     } catch (err) {
-      lastError = err
+      // keep the most telling error: a node's own reason over a request that failed on the way (CORS, timeouts)
+      const told = (e: unknown) => e instanceof Error && / answered \d+: ./.test(e.message)
+      if (told(err) || !told(lastError)) lastError = err
     }
   }
   throw lastError

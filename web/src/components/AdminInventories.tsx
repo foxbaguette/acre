@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { CONTRACT } from '@/chain/config'
 import { contractActions, contractTables, readTable } from '@/chain/rpc'
+import { fetchCropCfg, fetchSeeds } from '@/chain/farming'
 import { friendlyError, signer, transact } from '@/wallet/session'
 
 type Row = { wallet: string; items: { building_name: string; amount: number }[] }
@@ -14,11 +15,18 @@ export function AdminInventories() {
   const [readError, setReadError] = useState<string | null>(null)
   const [actions, setActions] = useState<string[] | null>(null)
   const [status, setStatus] = useState<Status>({ state: 'idle' })
+  // each player's seeds by crop name (land.acre seeds, scope = the player); null: the table is not deployed yet
+  const [seeds, setSeeds] = useState<Record<string, Record<string, number>> | null>(null)
 
   const load = async () => {
     try {
       const t = await contractTables(); if (t && !t.includes('inventory')) { setRows([]); return }
-      setRows((await readTable<Row>('inventory', CONTRACT)).sort((a, b) => a.wallet.localeCompare(b.wallet))); setReadError(null)
+      const list = (await readTable<Row>('inventory', CONTRACT)).sort((a, b) => a.wallet.localeCompare(b.wallet))
+      setRows(list); setReadError(null)
+      if (t && !t.includes('seeds')) { setSeeds(null); return }
+      const crops = await fetchCropCfg().catch(() => []), name = (id: string) => crops.find((c) => c.id === id)?.name ?? `crop ${id}`
+      const held = await Promise.all(list.map((r) => fetchSeeds(r.wallet).catch(() => null)))
+      setSeeds(Object.fromEntries(list.map((r, k) => [r.wallet, Object.fromEntries(Object.entries(held[k] ?? {}).map(([id, n]) => [name(id), n]))])))
     } catch (e) { setReadError(friendlyError(e)) }
   }
   useEffect(() => { load(); contractActions().then(setActions) }, [])
@@ -41,7 +49,7 @@ export function AdminInventories() {
         <h1>Inventories</h1>
         <button type="button" className="btn small danger" disabled={busy || !rows?.length || !can('clrinventory')} onClick={() => send('clrinventory', {}, 'Every inventory cleared.')}>clear all</button>
       </div>
-      <p className="admin-lede">What every player holds (land.acre, table inventory). Clearing a player’s row takes everything they hold, and their next island counts as their first: it brings what Lands › First island lists.</p>
+      <p className="admin-lede">What every player holds (land.acre, table inventory) and their seeds (table seeds; Lands › Clear clears them). Clearing a player’s row takes everything they hold, and their next island counts as their first: it brings what Lands › First island lists.</p>
       {actions && !can('delinventory') && <p className="admin-note">The deployed contract cannot clear inventories yet (delinventory and clrinventory come with its update).</p>}
       {readError && <p className="admin-error" role="alert">Could not read the inventories: {readError}</p>}
       {rows === null && !readError && <p className="hand">Reading the inventories…</p>}
@@ -51,7 +59,8 @@ export function AdminInventories() {
           {rows.map((r) => (
             <li key={r.wallet}>
               <span className="gen-no">{r.wallet}</span>
-              <span className="gen-sum">{r.items.length ? r.items.map((i) => `${i.amount} ${i.building_name}`).join(' · ') : <i>holds nothing</i>}</span>
+              <span className="gen-sum">{r.items.length ? r.items.map((i) => `${i.amount} ${i.building_name}`).join(' · ') : <i>holds nothing</i>}
+                {seeds && <small className="inv-seeds">seeds: {Object.keys(seeds[r.wallet] ?? {}).length ? Object.entries(seeds[r.wallet]).map(([c, n]) => `${n} ${c}`).join(' · ') : 'none'}</small>}</span>
               <span className="gen-acts">
                 <button type="button" className="build-link danger" disabled={busy || !can('delinventory')} onClick={() => send('delinventory', { owner: r.wallet }, `${r.wallet}’s inventory cleared: their next island brings the starting items.`)}>clear</button>
               </span>

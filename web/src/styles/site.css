@@ -249,3 +249,51 @@
 .clr-configs { background: rgba(120, 110, 90, .06); border-style: dashed; }
 .clr-wipe { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; margin-bottom: 10px; padding: 10px 12px; border-left: 3px solid #a3402c; background: rgba(163, 64, 44, .06); }
 @media (max-width: 640px) { .clr-wipe { grid-template-columns: 1fr; } }
+
+/* the world map: the sea chart, the islands on it */
+.world { min-height: 100vh; display: flex; flex-direction: column; background: var(--paper); }
+.world-view { position: relative; flex: 1; min-height: 420px; overflow: hidden; touch-action: none; cursor: grab; border-top: 1px solid var(--rule); }
+.world-view:active { cursor: grabbing; }
+.world-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.world-tag, .world-mine, .world-card { position: absolute; background: var(--card); background-image: var(--noise); border-radius: 4px; box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); }
+.world-tag { left: 16px; top: 16px; padding: 8px 14px 9px; max-width: calc(100vw - 32px); }
+.world-tag b { display: block; font: 400 1.5rem/1.05 var(--display); color: var(--ink); }
+.world-tag small { display: block; font: .78rem var(--sc); letter-spacing: .12em; color: var(--rust); }
+.world-tag .world-note { color: var(--ink-soft); letter-spacing: .04em; font-family: inherit; font-size: .8rem; max-width: 280px; }
+.world-zoom { position: absolute; right: 16px; top: 16px; display: grid; gap: 4px; }
+.world-zoom .zoom-btn { width: 36px; height: 36px; border: 0; border-radius: 4px; background: var(--card); box-shadow: 0 2px 6px rgba(20, 15, 5, .25); font: 1.3rem var(--display); color: var(--ink); cursor: pointer; }
+.world-zoom .zoom-btn:hover { background: var(--paper); }
+.world-mine { left: 16px; bottom: 16px; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; max-width: calc(100vw - 32px); }
+.world-mine .build-group { width: 100%; }
+.world-card { right: 16px; bottom: 16px; width: min(280px, calc(100vw - 32px)); padding: 12px 14px; }
+.world-card small { font: .74rem var(--sc); letter-spacing: .14em; color: var(--rust); }
+.world-card h2 { margin: 2px 0 2px; font: 400 1.5rem/1.1 var(--display); color: var(--ink); }
+.world-card p { margin: 0 0 4px; color: var(--ink-soft); }
+.world-card .world-place { font-size: .9rem; }
+.world-card .build-confirm { margin-top: 6px; }
+.world-close { position: absolute; right: 10px; top: 6px; font-size: 1.2rem; }
+@media (max-width: 640px) { .world-card { left: 16px; right: 16px; width: auto; bottom: 16px; } .world-mine { bottom: 190px; } }
+
+/* the world map's seals: the enclosures' tags, an island's number on a seal, its name and owner close up or pointed at */
+.isle-seals { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.isle-seal { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+.isle-seal i { position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; pointer-events: auto; cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #fffaf0, #efe2c4 70%, #d8c69e); color: var(--ink); font: normal .8rem var(--sc); box-shadow: 0 0 0 1.5px #b48a3a, 0 4px 8px -3px rgba(20, 14, 4, .6); }
+.isle-seal.mine i { color: var(--rust); box-shadow: 0 0 0 1.5px var(--rust), 0 4px 8px -3px rgba(20, 14, 4, .6); }
+.isle-seal b, .isle-seal small { position: absolute; left: 0; transform: translateX(-50%); white-space: nowrap; display: none; pointer-events: none; }
+.isle-seal b { top: 18px; padding: 2px 9px 1px; border-radius: 3px; background: rgba(251, 247, 238, .92); color: var(--ink); font: 400 .78rem var(--sc); letter-spacing: .1em; box-shadow: 0 3px 8px rgba(20, 14, 4, .3); }
+.isle-seal small { top: 40px; color: #fbf7ee; font-family: var(--hand); font-size: 1rem; text-shadow: 0 1px 3px rgba(0, 0, 0, .8); }
+.isle-seal:hover b, .isle-seal:hover small, .isle-seals.near .isle-seal b, .isle-seals.near .isle-seal small { display: block; }
+.isle-seal i:hover { transform: scale(1.08); }
+
+/* the island's soil, on its page in the journal */
+.soil-record { margin-top: 14px; }
+.crop-liked { display: block; margin: -2px 0 6px; color: var(--ink-soft); font-size: .85rem; }
+.inv-seeds { display: block; margin-top: 2px; opacity: .75; }
+.crop-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 4px; max-height: 220px; overflow-y: auto; padding: 4px 2px; margin: 2px 0 6px; }
+.crop-icon { display: grid; place-items: center; aspect-ratio: 1; padding: 4px; border: 1px solid transparent; border-radius: 3px; background: none; cursor: pointer; }
+.crop-icon img { width: 100%; height: 100%; object-fit: contain; }
+.crop-icon:hover { background: rgba(255, 252, 242, .8); }
+.crop-icon[aria-checked="true"] { background: var(--paper); border-color: var(--rust); box-shadow: inset 0 -2px 0 var(--rust); }
+.crop-icon.is-taken { opacity: .38; filter: grayscale(.6); }
+.crop-picked { margin: 0 0 8px; font-size: .9rem; }

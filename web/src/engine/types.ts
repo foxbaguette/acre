@@ -50,7 +50,12 @@ export interface IslandView {
   /** Takes back the last build; false when there was none. */
   undoBuild(): boolean
   /** The player asks for a harvest of these fully grown tiles (map indexes): the page sends it to the chain. */
-  onHarvest(fn: (tiles: number[]) => void): void
+  /** ripe tiles to harvest: for seeds or for the storage when a field's ring says so, otherwise as the page's tool has it */
+  onHarvest(fn: (tiles: number[], forSeeds?: boolean) => void): void
+  /** tiles whose harvest still waiting for a farmer is called off */
+  onCancelHarvest(fn: (tiles: number[]) => void): void
+  /** stops drawing while something covers the whole island (the bestiary), and goes on after */
+  setPaused(paused: boolean): void
   /** The farmers' jobs (land.acre workqueue), crops named. */
   setJobs(jobs: import('./farmers').Job[]): void
   /** What grows, by map index: crop name and when it was sown (ms). */
@@ -62,6 +67,10 @@ export interface IslandView {
   onBuild(fn: (builds: Builds, undoable: boolean, pending: number, kind: 'build' | 'erase' | 'both', fenced: PenLoss, left: Inventory | null) => void): void
   /** What the island's owner holds (null: no limit), and the inventory name of each building (buildcfg's building_name). */
   setInventory(held: Inventory | null, names: Partial<Record<string, string>>): void
+  /** The owner's seeds by crop name (null: not counted): sowing is held to them. */
+  setSeeds(held: Record<string, number> | null): void
+  /** What is left of the seeds once the plan is sown (null: not counted). */
+  seedsLeft(): Record<string, number> | null
   /** What would stand once the plan is confirmed (a copy). */
   plan(): Builds
   /** Builds what was planned. */

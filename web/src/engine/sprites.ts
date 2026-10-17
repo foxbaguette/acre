@@ -1,7 +1,7 @@
 // Everything that stands on the ground or moves over it, drawn as instanced quads in one batch: atlas pictures (trees,
 // decor, creatures, butterflies) and shapes made in the shader (shadows, the selection ring, ripples, glows).
 // Wind sway, breathing and the sprite grade happen on the GPU; swimmers are clipped and tinted where the terrain is under water.
-import { program, type GL, type Program } from './gl'
+import { program, quad, type GL, type Program } from './gl'
 import { GLSL_TERRAIN } from './terrain'
 import type { Region } from './atlas'
 
@@ -39,19 +39,8 @@ void main() {
   gl_Position = vec4(sc.x, uFlip * sc.y, 0., 1.);
 }`
 
-const FS = `#version 300 es
-precision highp float; precision highp sampler2DArray;
-uniform sampler2DArray uAtlas;
-uniform sampler2D uH;              // the terrain's height map: where the water is
-uniform sampler2D uSoil;           // the ground's field 0 (fields.ts): b is the soil's smooth shape
-uniform vec2 uHSize, uMap;
-uniform vec3 uCam;
-uniform float uTime, uGust;
-uniform float uSeason;             // 0 spring, 1 summer, 2 autumn, 3 winter
-uniform vec4 uCloud;               // the far clouds (sky.ts): how far out (0 none), cover, their time
-in vec2 vUV; in vec2 vLocal; in vec2 vWorld; flat in float vLayer; flat in vec4 vColor; flat in float vFlags; flat in vec4 vRegion;
-out vec4 o;
-${GLSL_TERRAIN}
+/** The painted trees (and what the sprites share with them): grade, the bare winter tree, the far clouds' cover, treeCol. */
+const GLSL_TREES = `
 vec3 grade(vec3 c) {                // the sprite layer's look: a touch less saturated, a touch more contrast
   float l = dot(c, vec3(.213, .715, .072));
   c = mix(vec3(l), c, .88);
@@ -187,6 +176,38 @@ vec4 treeCol(vec2 p, float seed, float kind, float hue, float aa) {
   float a = clamp(-edge / max(aa, 1e-4) * .8 + .5, 0., 1.);
   return vec4(col * a, a);
 }
+`
+
+// the trees are painted once a season into a texture, a picture for each of TREE_VARIANTS seeds of each kind (broadleaf,
+// conifer), and drawn from it: painting every tree's every pixel every frame was most of the island's GPU time
+const TREE_VARIANTS = 24, TREE_SIZE = 256
+const TREE_BAKE_VS = `#version 300 es
+in vec2 aPos; out vec2 vUV; void main() { vUV = aPos; gl_Position = vec4(aPos * 2. - 1., 0., 1.); }`
+const TREE_BAKE_FS = `#version 300 es
+precision highp float;
+uniform sampler2D uH; uniform vec2 uHSize, uMap; uniform vec3 uCam; uniform float uSeason; uniform vec4 uCloud;
+uniform vec2 uTree;                // the seed and kind to paint
+in vec2 vUV; out vec4 o;
+${GLSL_TERRAIN}
+${GLSL_TREES}
+void main() { o = treeCol(vUV * 2. - 1., uTree.x, uTree.y, .5, 2. / ${TREE_SIZE}.); }`
+
+const FS = `#version 300 es
+precision highp float; precision highp sampler2DArray;
+uniform sampler2DArray uAtlas;
+uniform sampler2D uH;              // the terrain's height map: where the water is
+uniform sampler2D uSoil;           // the ground's field 0 (fields.ts): b is the soil's smooth shape
+uniform vec2 uHSize, uMap;
+uniform vec3 uCam;
+uniform float uTime, uGust;
+uniform float uSeason;             // 0 spring, 1 summer, 2 autumn, 3 winter
+uniform vec4 uCloud;               // the far clouds (sky.ts): how far out (0 none), cover, their time
+uniform sampler2DArray uTrees;     // the trees painted this season (TREE_VARIANTS a kind); uTreesOn 0: paint them here
+uniform float uTreesOn;
+in vec2 vUV; in vec2 vLocal; in vec2 vWorld; flat in float vLayer; flat in vec4 vColor; flat in float vFlags; flat in vec4 vRegion;
+out vec4 o;
+${GLSL_TERRAIN}
+${GLSL_TREES}
 float ring(float r, float at, float w) { return clamp(w * .5 - abs(r - at) / fwidth(r) * w * .5 + .5, 0., 1.); }
 void main() {
   int flags = int(vFlags + .5);
@@ -194,6 +215,7 @@ void main() {
   if (vLayer >= 0.) {
     vec2 uv = vUV; float m = 1., gust = 0.;
     float edge = 1.;
+#ifndef LITE
     if ((flags & 4) != 0) {          // a field tile: its picture repeats, so it can run past the tile, and its outline is one smooth shape
       vec2 t = vLocal;               // FIELD_REACH (1): tile coordinates around the tile's middle (y down)
       // wind: slow gusts rolling across the fields, a soft lift of light and a hair of sway as each one passes
@@ -228,8 +250,11 @@ void main() {
       m = clamp(e / w + .5, 0., 1.) * clamp(so / ws + .5, 0., 1.) * clamp(po / wpv + .5, 0., 1.) * (mine ? 1. : 0.);   // a neighbour of the same crop draws its own part (perhaps at another stage)
       edge = smoothstep(0., .12, min(min(e, so), po * .5));                     // the outermost plants a little darker
     }
+#endif
     c = texture(uAtlas, vec3(uv, vLayer)) * m;
+#ifndef LITE
     if ((flags & 4) != 0) c.rgb *= (1. + .07 * gnoise(vWorld * 1.3) - .035 + .2 * gust) * (.82 + .18 * edge);   // not one flat colour; a gust lifts the light; shade at the rim
+#endif
     if ((flags & 1) != 0 && c.a > 0.) c.rgb = grade(c.rgb / c.a) * c.a;
     c *= vec4(vColor.rgb, 1.) * vColor.a;
   } else if (vLayer > -1.5) {        // a soft, blurry shadow
@@ -289,6 +314,7 @@ void main() {
     float r = length(vLocal), a = smoothstep(1., .1, r);
     vec3 col = vColor.rgb * (1.04 - .1 * clamp(vLocal.x + vLocal.y, -1., 1.));
     c = vec4(col, 1.) * vColor.a * a * a;
+#ifndef LITE
   } else if (vLayer < -12.5) {       // an ice floe (seed, -, -, alpha): an angular plate, white on top, its sunk rim showing turquoise through the water
     vec2 q = vLocal; float sd = vColor.x, r = length(q), ang = atan(q.y, q.x);
     // an irregular plate: 5-8 corners at uneven angles and distances; the rim is the nearest edge along the ray from the
@@ -322,8 +348,20 @@ void main() {
     col = mix(col, vec3(1., .86, .45), smoothstep(.35, .7, heat));
     col = mix(col, vec3(1., .98, .9), smoothstep(.72, .95, heat));
     c = vec4(col, 1.) * inside * vColor.a * (.85 + .15 * heat);
+#endif
   } else {                           // a tree, painted (seed, kind 0 broadleaf / 1 conifer, its own shade, alpha)
-    c = treeCol(vLocal, vColor.x, vColor.y, vColor.z, fwidth(vLocal.x)) * vColor.a;
+    if (uTreesOn > .5) {             // its picture from the bake: the variant its seed falls on, in its own shade
+      float k = min(floor(fract(vColor.x) * ${TREE_VARIANTS}.), ${TREE_VARIANTS - 1}.) + (vColor.y > .5 ? ${TREE_VARIANTS}. : 0.);
+      vec4 t = texture(uTrees, vec3(vLocal * .5 + .5, k));
+      // its tint over the baked one (hue .5); not in winter: the snow on the conifers stays white, the bare trees have none
+      vec3 shade = uSeason > 2.5 ? vec3(1.) : mix(vec3(.9, .96, 1.08), vec3(1.1, 1.05, .82), vColor.z) / vec3(1., 1.005, .95);
+      c = vec4(min(t.rgb * shade, vec3(t.a)), t.a) * vColor.a;
+    }
+#ifndef LITE
+    else c = treeCol(vLocal, vColor.x, vColor.y, vColor.z, fwidth(vLocal.x)) * vColor.a;
+#else
+    else c = vec4(0.);
+#endif
   }
   if (vColor.a < 0.) {               // a hologram (alpha -1 blue: planned, -2 red: to be erased): its light, in one colour, with scan lines
     float s = -vColor.a; c /= -s;
@@ -333,6 +371,7 @@ void main() {
     float al = a * (.58 + .06 * sin(uTime * 2.3));
     c = vec4(tint * (.5 + .8 * l) * scan * al, al);
   }
+#ifndef LITE
   if ((flags & 4194304) != 0 && c.a > 0.) {   // on the sea floor, seen through the water: a dark shape more than a picture, fainter the deeper it lies
     vec4 tw = terrain(vWorld, uCam.z);
     float l = dot(c.rgb / c.a, vec3(.299, .587, .114)), deep = smoothstep(.1, 1.2, tw.w);
@@ -352,6 +391,7 @@ void main() {
     if ((flags & 4194304) == 0) c.rgb = mix(c.rgb, vec3(40., 110., 170.) / 255. * c.a, .35);   // (the sea floor has its own depth tint)
     c *= cov;
   }
+#endif
   o = c;
 }`
 
@@ -362,11 +402,22 @@ export class Sprites {
   private buf: WebGLBuffer
   data = new Float32Array(STRIDE * 4096)
   n = 0
+  private liteP: Program            // the sprite shader without the field tiles, the painted trees, the floes, flames and water
+  /** draw the sprites that need none of the heavy parts with the light build (false: everything with the full one) */
+  split = true
+  private bakeP: Program
+  private bakeVao: WebGLVertexArrayObject
+  private trees: WebGLTexture | null = null
+  private treesFor = -1                // the season the trees were painted for (-1: not yet)
+  private bakeFb: WebGLFramebuffer | null = null
 
   constructor(gl: GL) {
     this.gl = gl
     const attrs = ['aPos', 'iOrigin', 'iRect', 'iRot', 'iScale', 'iSway', 'iUV', 'iLayer', 'iColor', 'iFlags']
     this.P = program(gl, VS, FS, attrs)
+    this.liteP = program(gl, VS, FS.replace('#version 300 es', '#version 300 es\n#define LITE'), attrs)
+    this.bakeP = program(gl, TREE_BAKE_VS, TREE_BAKE_FS)
+    this.bakeVao = quad(gl)
     this.vao = gl.createVertexArray()!
     gl.bindVertexArray(this.vao)
     const q = gl.createBuffer()!
@@ -375,18 +426,54 @@ export class Sprites {
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
     this.buf = gl.createBuffer()!
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buf)
-    const sizes = [2, 4, 1, 2, 2, 4, 1, 4, 1]
-    let off = 0
-    sizes.forEach((n, i) => {
-      gl.enableVertexAttribArray(i + 1)
-      gl.vertexAttribPointer(i + 1, n, gl.FLOAT, false, STRIDE * 4, off * 4)
-      gl.vertexAttribDivisor(i + 1, 1)
-      off += n
-    })
+    for (let i = 1; i <= 9; i++) { gl.enableVertexAttribArray(i); gl.vertexAttribDivisor(i, 1) }
+    this.pointAt(0)
     gl.bindVertexArray(null)
   }
 
   begin() { this.n = 0 }
+
+  /** Points the instance attributes at the uploaded instances from this one on (WebGL 2 has no base instance). */
+  private pointAt(first: number) {
+    const gl = this.gl, sizes = [2, 4, 1, 2, 2, 4, 1, 4, 1]
+    let off = first * STRIDE
+    sizes.forEach((n, i) => { gl.vertexAttribPointer(i + 1, n, gl.FLOAT, false, STRIDE * 4, off * 4); off += n })
+  }
+
+  /** Whether a sprite needs the full shader: a field tile, one under water or on the sea floor, a floe, a flame, or a tree
+   *  while the trees are not baked. */
+  private heavy(i: number) {
+    const d = this.data, o = i * STRIDE, L = d[o + 15]
+    if (L >= 0) return (d[o + 20] & (FLAG.field | FLAG.water | FLAG.seabed)) !== 0
+    return L === SHAPE.flame || L === SHAPE.ice || (L === SHAPE.tree && !this.trees)
+  }
+
+  /** Paints the trees for the season into the texture array (once a season), then makes its mipmaps. */
+  private bakeTrees(field: WebGLTexture, fieldSize: [number, number], map: [number, number]) {
+    const gl = this.gl, P = this.bakeP, N = TREE_VARIANTS * 2
+    if (!this.trees) {
+      this.trees = gl.createTexture()!
+      gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.trees)
+      gl.texStorage3D(gl.TEXTURE_2D_ARRAY, Math.log2(TREE_SIZE) + 1, gl.RGBA8, TREE_SIZE, TREE_SIZE, N)
+      gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+      this.bakeFb = gl.createFramebuffer()
+    }
+    const fb = gl.getParameter(gl.FRAMEBUFFER_BINDING) as WebGLFramebuffer | null, vp = gl.getParameter(gl.VIEWPORT) as Int32Array
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.bakeFb); gl.viewport(0, 0, TREE_SIZE, TREE_SIZE)
+    gl.useProgram(P.p); gl.bindVertexArray(this.bakeVao); gl.disable(gl.BLEND)
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, field); gl.uniform1i(P.u.uH, 1); gl.activeTexture(gl.TEXTURE0)
+    gl.uniform2f(P.u.uHSize, fieldSize[0], fieldSize[1]); gl.uniform2f(P.u.uMap, map[0], map[1]); gl.uniform1f(P.u.uSeason, this.season); gl.uniform4f(P.u.uCloud, 0, 0, 0, 0)
+    for (let k = 0; k < N; k++) {
+      gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.trees, 0, k)
+      gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT)
+      gl.uniform2f(P.u.uTree, ((k % TREE_VARIANTS) + 0.5) / TREE_VARIANTS, k < TREE_VARIANTS ? 0 : 1)
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+    }
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.trees); gl.generateMipmap(gl.TEXTURE_2D_ARRAY)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.viewport(vp[0], vp[1], vp[2], vp[3]); gl.bindVertexArray(null)
+    this.treesFor = this.season
+  }
 
   private grow() { const d = new Float32Array(this.data.length * 2); d.set(this.data); this.data = d }
 
@@ -421,20 +508,38 @@ export class Sprites {
   draw(atlas: WebGLTexture, field: WebGLTexture, fieldSize: [number, number], map: [number, number], cam: { x: number; y: number; z: number }, W: number, H: number, o: { flip?: boolean; time?: number; gust?: number; from?: number; to?: number; blend?: 'premult' | 'max' | 'light'; soil?: WebGLTexture; cloud?: number[] } = {}) {
     const from = o.from ?? 0, to = o.to ?? this.n; if (to <= from) return
     const gl = this.gl, P = this.P
-    gl.useProgram(P.p); gl.bindVertexArray(this.vao)
+    if (this.treesFor !== this.season) this.bakeTrees(field, fieldSize, map)
+    gl.bindVertexArray(this.vao)
+    gl.activeTexture(gl.TEXTURE10); gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.trees)
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buf)
     gl.bufferData(gl.ARRAY_BUFFER, this.data.subarray(from * STRIDE, to * STRIDE), gl.STREAM_DRAW)
-    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D_ARRAY, atlas); gl.uniform1i(P.u.uAtlas, 0)
-    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, field); gl.uniform1i(P.u.uH, 1)
-    gl.activeTexture(gl.TEXTURE9); gl.bindTexture(gl.TEXTURE_2D, o.soil ?? field); gl.uniform1i(P.u.uSoil, 9); gl.activeTexture(gl.TEXTURE0)   // a unit of its own: the ground bake keeps its textures on the low ones
-    gl.uniform2f(P.u.uHSize, fieldSize[0], fieldSize[1]); gl.uniform2f(P.u.uMap, map[0], map[1])
-    gl.uniform3f(P.u.uCam, cam.x, cam.y, cam.z); gl.uniform2f(P.u.uView, W, H)
-    gl.uniform1f(P.u.uFlip, o.flip === false ? 1 : -1); gl.uniform1f(P.u.uTime, o.time ?? 0); gl.uniform1f(P.u.uGust, o.gust ?? 1); gl.uniform1f(P.u.uSeason, this.season); gl.uniform4f(P.u.uCloud, ...(o.cloud ?? [0, 0, 0, 0]) as [number, number, number, number])
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D_ARRAY, atlas)
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, field)
+    gl.activeTexture(gl.TEXTURE9); gl.bindTexture(gl.TEXTURE_2D, o.soil ?? field); gl.activeTexture(gl.TEXTURE0)   // a unit of its own: the ground bake keeps its textures on the low ones
+    for (const Q of [P, this.liteP]) {
+      gl.useProgram(Q.p)
+      gl.uniform1i(Q.u.uTrees, 10); gl.uniform1f(Q.u.uTreesOn, this.trees ? 1 : 0); gl.uniform1i(Q.u.uAtlas, 0); gl.uniform1i(Q.u.uH, 1); gl.uniform1i(Q.u.uSoil, 9)
+      gl.uniform2f(Q.u.uHSize, fieldSize[0], fieldSize[1]); gl.uniform2f(Q.u.uMap, map[0], map[1])
+      gl.uniform3f(Q.u.uCam, cam.x, cam.y, cam.z); gl.uniform2f(Q.u.uView, W, H)
+      gl.uniform1f(Q.u.uFlip, o.flip === false ? 1 : -1); gl.uniform1f(Q.u.uTime, o.time ?? 0); gl.uniform1f(Q.u.uGust, o.gust ?? 1); gl.uniform1f(Q.u.uSeason, this.season); gl.uniform4f(Q.u.uCloud, ...(o.cloud ?? [0, 0, 0, 0]) as [number, number, number, number])
+    }
     gl.enable(gl.BLEND)
     if (o.blend === 'max') gl.blendEquation(gl.MAX)
     else if (o.blend === 'light') gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE_MINUS_SRC_ALPHA)   // light adds up; the dark's remaining strength multiplies down
     else gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, to - from)
+    // runs of sprites, each with the build it needs (drawn in order, so what overlaps stays as it was)
+    if (!this.split) { gl.useProgram(P.p); this.pointAt(0); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, to - from) }
+    else {
+      let start = from, heavy = this.heavy(from), using: Program | null = null
+      for (let i = from + 1; i <= to; i++) {
+        const h = i < to ? this.heavy(i) : !heavy
+        if (h === heavy) continue
+        const Q = heavy ? P : this.liteP; if (Q !== using) { gl.useProgram(Q.p); using = Q }
+        this.pointAt(start - from); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, i - start)
+        start = i; heavy = h
+      }
+      this.pointAt(0)
+    }
     gl.blendEquation(gl.FUNC_ADD); gl.disable(gl.BLEND)
     gl.bindVertexArray(null)
   }

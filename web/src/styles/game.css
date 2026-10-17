@@ -55,7 +55,8 @@
 
 .build { display: grid; gap: 8px; justify-items: start; }
 .build-toggle { transform: rotate(-1.5deg); }
-.build-toggle[aria-expanded="true"] { background-color: var(--card); color: var(--ink); box-shadow: 0 8px 18px -6px rgba(10, 8, 2, .6), inset 0 -3px 0 var(--rust); }
+.sow-toggle { transform: rotate(1deg); }
+.build-toggle[aria-expanded="true"], .sow-toggle[aria-expanded="true"] { background-color: var(--card); color: var(--ink); box-shadow: 0 8px 18px -6px rgba(10, 8, 2, .6), inset 0 -3px 0 var(--rust); }
 .build-card { width: 350px; padding: 12px 14px 12px; background: var(--card); background-image: var(--noise); border-radius: 3px; transform: rotate(-.6deg);
   box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 12px 26px -8px rgba(10, 8, 2, .6); }
 .build-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
@@ -155,7 +156,7 @@
 .splash p { font-family: var(--hand); color: var(--blue); font-size: 1.7rem; margin: 0; }
 
 /* ---------- the bestiary: every species on the pages of the field journal ---------- */
-.bestiary-toggle svg, .build-toggle svg { width: 16px; height: 16px; }
+.bestiary-toggle svg, .build-toggle svg, .sow-toggle svg { width: 16px; height: 16px; }
 .bestiary-shade { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; background: rgba(20, 16, 8, .45); animation: shade-in .2s ease-out; }
 @keyframes shade-in { from { opacity: 0; } }
 .bestiary { width: min(980px, 100%); max-height: min(86vh, 900px); display: flex; flex-direction: column; background: var(--card); background-image: var(--noise); border-radius: 4px;
@@ -435,3 +436,146 @@
 .give-row select { flex: 1; min-width: 0; }
 .give-row input { width: 64px; }
 .give-note { display: block; margin-top: 4px; color: var(--ink-soft); }
+
+/* the research lab's card */
+.lab-card { max-width: min(380px, calc(100vw - 32px)); max-height: calc(100vh - 160px); overflow: auto; }
+.lab-card h3 { margin: 12px 0 4px; font: .74rem var(--sc); letter-spacing: .16em; color: var(--rust); }
+.lab-now { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 0; padding: 7px 9px; border-radius: 4px; background: rgba(37, 70, 127, .08); }
+.lab-now.is-done { background: rgba(214, 233, 196, .7); }
+.lab-now b, .lab-list b { display: block; font-family: var(--display); font-weight: 400; font-size: 1.02rem; color: var(--ink); }
+.lab-now small, .lab-list small { display: block; font-size: .84rem; color: var(--ink-soft); line-height: 1.25; }
+.lab-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lab-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 8px; border-radius: 4px; background: rgba(253, 249, 239, .6); }
+.lab-list .build-link { white-space: nowrap; }
+.lab-crop { display: flex; align-items: center; gap: 8px; }
+.lab-crop img { width: 26px; height: 26px; object-fit: contain; flex: none; }
+.lab-empty { color: var(--ink-soft); font-size: .88rem; }
+
+/* why a crop grows and yields as it does here, and how long a farmer's round takes */
+.crop-why { margin: 2px 0 6px; display: grid; gap: 4px; }
+.crop-why p { margin: 0; padding: 4px 8px; border-radius: 4px; background: rgba(253, 249, 239, .6); }
+.crop-why p > b { display: block; font-family: var(--display); font-weight: 400; font-size: 1rem; color: var(--ink); }
+.crop-why small { display: block; font-size: .82rem; color: var(--ink-soft); line-height: 1.3; }
+.crop-why small b { font-weight: 600; color: var(--blue); }
+.farm-why { margin: 8px 0 0; font-size: .9rem; color: var(--ink-soft); }
+.farm-why summary { cursor: pointer; font: .74rem var(--sc); letter-spacing: .14em; color: var(--rust); }
+.farm-why ul { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 2px; }
+.farm-why li b { font-family: var(--display); font-weight: 400; color: var(--ink); }
+.farm-why > small { display: block; font-size: .78rem; line-height: 1.3; }
+.lab-crop-row { display: grid !important; gap: 4px; }
+.lab-track { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-left: 34px; }
+.lab-track i { font-style: normal; font-family: var(--sc); letter-spacing: .1em; color: var(--rust); }
+.crop-seed-word { font: .62rem var(--sc); letter-spacing: .06em; color: var(--ink); text-align: center; line-height: 1.1; }
+.crop-seed { position: relative; }
+.crop-seed.is-out img, .crop-seed.is-out .crop-seed-word { opacity: .4; filter: grayscale(.8); }
+/* the ring round a ripe field's token: harvest, harvest for seeds, call off */
+.field-ring { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: auto; z-index: 2; }
+.field-ring[hidden] { display: none; }
+.field-ring .ring-btn { position: absolute; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; border: 0; display: grid; place-items: center; align-content: center; gap: 1px; padding: 0; cursor: pointer; color: #6e4a1a;
+  background: radial-gradient(circle at 38% 32%, #fffaf0, #efe2c4 70%, #d8c69e); box-shadow: 0 0 0 2px #b48a3a, 0 6px 12px -4px rgba(20, 14, 4, .6); animation: ring-out .16s ease-out both; transition: transform .12s ease; }
+.field-ring .ring-btn svg { width: 20px; height: 20px; }
+.field-ring .ring-btn span { font: 600 9px/1 var(--sc); letter-spacing: .06em; text-transform: uppercase; }
+.field-ring .ring-btn:hover:not(:disabled), .field-ring .ring-btn:focus-visible { transform: scale(1.1); box-shadow: 0 0 0 2px #b48a3a, 0 0 0 6px rgba(255, 220, 140, .45), 0 8px 14px -4px rgba(20, 14, 4, .6); }
+.field-ring .ring-btn:disabled { opacity: .45; cursor: not-allowed; filter: grayscale(.6); }
+.field-ring .ring-harvest { left: -62px; top: -34px; }
+.field-ring .ring-seeds { left: 62px; top: -34px; animation-delay: .03s; }
+.field-ring .ring-cancel { left: 0; top: 60px; color: #a3402c; animation-delay: .06s; }
+.field-ring .ring-note { position: absolute; left: 0; top: -92px; transform: translateX(-50%); margin: 0; padding: 3px 10px; border-radius: 4px; background: rgba(251, 247, 238, .96); color: var(--blue); font-family: var(--hand); font-size: 1.1rem; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,.25); pointer-events: none; }
+.field-token.is-open .tok { transform: scale(1.08); box-shadow: 0 0 0 2px #b48a3a, 0 0 0 7px rgba(255, 220, 140, .55); animation: none; }
+.field-token.is-open .note { opacity: 0 !important; }
+.field-token.working { cursor: pointer; }
+@keyframes ring-out { from { opacity: 0; scale: .4; } }
+@media (prefers-reduced-motion: reduce) { .field-ring .ring-btn { animation: none; } }
+.crop-seed.is-off img, .crop-seed.is-off .crop-seed-word { opacity: .35; filter: grayscale(.7); }
+.crop-seed.is-off[aria-checked="true"] { border-color: #a3402c; box-shadow: inset 0 -2px 0 #a3402c; }
+.crop-not p > b { color: #a3402c; }
+/* the card of the crop picked: can it be sown, what it yields and how long it grows here, and why */
+.crop-card { margin: 4px 0 8px; padding: 10px 12px 8px; border-radius: 5px; background: rgba(253, 249, 239, .7); box-shadow: inset 0 0 0 1px rgba(110, 74, 26, .14); }
+.crop-card h4 { margin: 10px 0 4px; font: 600 .66rem/1 var(--sc); letter-spacing: .14em; text-transform: uppercase; color: var(--rust); }
+.cc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cc-head > b { font-family: var(--display); font-weight: 400; font-size: 1.25rem; color: var(--ink); text-transform: capitalize; }
+.cc-chip { flex: none; padding: 3px 8px; border-radius: 10px; font: 600 .62rem/1 var(--sc); letter-spacing: .1em; text-transform: uppercase; }
+.cc-chip.is-good { background: #e2ecd3; color: #3f6a28; }
+.cc-chip.is-warn { background: #f4e5c4; color: #8a5a12; }
+.cc-chip.is-bad { background: #f3d9cf; color: #a3402c; }
+.cc-status { margin: 4px 0 8px; font-size: .9rem; line-height: 1.35; color: var(--ink); }
+.cc-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cc-nums > div { display: grid; padding: 6px 8px; border-radius: 4px; background: rgba(255, 252, 244, .9); box-shadow: inset 0 0 0 1px rgba(110, 74, 26, .1); }
+.cc-nums small { font-size: .72rem; color: var(--ink-soft); line-height: 1.2; }
+.cc-nums b { font-family: var(--display); font-weight: 400; font-size: 1.35rem; line-height: 1.15; color: var(--blue); }
+.cc-nums b.is-bad { color: #a3402c; }
+.cc-soil { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.cc-soil th, .cc-soil td { padding: 4px 4px; text-align: left; vertical-align: top; border-top: 1px solid rgba(110, 74, 26, .1); }
+.cc-soil thead th { border-top: 0; padding-top: 0; font: 600 .6rem/1 var(--sc); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.cc-soil tbody th { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.cc-soil td { white-space: nowrap; color: var(--ink-soft); }
+.cc-soil td:last-child { white-space: normal; font-weight: 600; }
+.cc-soil tr.is-good td:last-child { color: #3f6a28; }
+.cc-soil tr.is-warn td:last-child { color: #8a5a12; }
+.cc-soil tr.is-bad td:last-child { color: #a3402c; }
+.cc-list { list-style: none; margin: 0; padding: 0; font-size: .82rem; }
+.cc-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 3px 0; border-top: 1px solid rgba(110, 74, 26, .1); }
+.cc-list li:first-child { border-top: 0; }
+.cc-list span { min-width: 84px; font-weight: 600; color: var(--ink); }
+.cc-list b { font-weight: 400; color: var(--blue); }
+.cc-list small { margin-left: auto; color: var(--ink-soft); }
+.cc-list li.is-bad small { color: #a3402c; font-weight: 600; }
+.cc-seeds { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 10px 0 0; padding-top: 6px; border-top: 1px solid rgba(110, 74, 26, .14); font-size: .82rem; }
+.cc-seeds span { font-weight: 600; color: var(--ink); }
+.cc-seeds b { font-family: var(--display); font-weight: 400; font-size: 1.1rem; color: var(--blue); }
+.cc-seeds.is-bad b { color: #a3402c; }
+.cc-seeds small { color: var(--ink-soft); }
+.cc-nums b, .cc-seeds b { font-variant-numeric: lining-nums; }
+/* the farmers' card: one row a crop, a line for each of its farmers */
+.farm-jobs li.farm-group { display: block; }
+.farm-group .farm-row { display: flex; align-items: center; gap: 8px; }
+.farm-group .farm-row .farm-what { flex: 1; }
+.farm-hands { list-style: none; margin: 4px 0 0 38px; padding: 0; font-size: .74rem; color: var(--ink-soft); }
+.farm-hands li { display: flex; gap: 6px; padding: 1px 0; background: none !important; border: 0 !important; box-shadow: none !important; }
+.farm-hands li span { min-width: 18px; font-weight: 600; color: var(--ink); text-align: right; }
+.farm-hands li.is-ready { color: #3f6a28; }
+.farm-hands li.is-claimed { opacity: .6; }
+.farm-group .farm-off { display: block; margin: 4px 0 0 38px; font-size: .72rem; }
+/* the cards' scroll bars: a thin rounded thumb in the journal's ink, no arrows or square track */
+.farm-jobs, .crop-pick, .build-card, .lab-card, .store-card { scrollbar-width: thin; scrollbar-color: rgba(110, 74, 26, .35) transparent; }
+.farm-jobs::-webkit-scrollbar, .crop-pick::-webkit-scrollbar, .build-card::-webkit-scrollbar, .lab-card::-webkit-scrollbar, .store-card::-webkit-scrollbar { width: 6px; }
+.farm-jobs::-webkit-scrollbar-thumb, .crop-pick::-webkit-scrollbar-thumb, .build-card::-webkit-scrollbar-thumb, .lab-card::-webkit-scrollbar-thumb, .store-card::-webkit-scrollbar-thumb { border-radius: 3px; background: rgba(110, 74, 26, .35); }
+.farm-jobs::-webkit-scrollbar-track, .crop-pick::-webkit-scrollbar-track, .build-card::-webkit-scrollbar-track, .lab-card::-webkit-scrollbar-track, .store-card::-webkit-scrollbar-track { background: transparent; }
+.farm-jobs::-webkit-scrollbar-button, .crop-pick::-webkit-scrollbar-button, .build-card::-webkit-scrollbar-button, .lab-card::-webkit-scrollbar-button, .store-card::-webkit-scrollbar-button { display: none; }
+.farm-jobs { padding-right: 4px; }
+/* the research lab: the research under way on a card of its own, the rest in tabs */
+.lab-now { display: block; margin: 8px 0 4px; padding: 9px 11px 10px; border-radius: 5px; background: linear-gradient(180deg, rgba(37, 70, 127, .1), rgba(37, 70, 127, .05)); box-shadow: inset 0 0 0 1px rgba(37, 70, 127, .22); }
+.lab-now.is-done { background: rgba(214, 233, 196, .75); box-shadow: inset 0 0 0 1px rgba(63, 106, 40, .3); }
+.lab-now-tag { display: block; margin-bottom: 4px; font: 600 .62rem/1 var(--sc); letter-spacing: .16em; text-transform: uppercase; color: var(--blue); }
+.lab-now.is-done .lab-now-tag { color: #3f6a28; }
+.lab-now-main { display: flex; align-items: center; gap: 10px; }
+.lab-now-main > span { flex: 1; min-width: 0; }
+.lab-now-main img { width: 34px; height: 34px; object-fit: contain; flex: none; }
+.lab-now-main b { font-size: 1.15rem !important; }
+.lab-now-main b::first-letter { text-transform: uppercase; }
+.lab-progress { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.lab-progress > small { min-width: 34px; text-align: right; font: 600 .7rem/1 var(--sc); letter-spacing: .06em; color: var(--blue); }
+.lab-now.is-done .lab-progress > small { color: #3f6a28; }
+.lab-bar { position: relative; flex: 1; height: 10px; border-radius: 7px; background: rgba(110, 74, 26, .12); overflow: hidden; }
+.lab-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 7px; background: linear-gradient(90deg, #6f8fc4, var(--blue)); transition: width 1s linear; }
+.lab-now.is-done .lab-bar i { background: linear-gradient(90deg, #8fb06c, #4f7d34); }
+.lab-idle { margin: 8px 0 4px; color: var(--ink-soft); }
+.lab-tabs { display: flex; gap: 2px; margin: 12px 0 8px; border-bottom: 1px solid rgba(110, 74, 26, .25); }
+.lab-tab { flex: 1; padding: 7px 4px 6px; border: 0; border-radius: 4px 4px 0 0; background: none; font: .74rem var(--sc); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); cursor: pointer; margin-bottom: -1px; border-bottom: 2px solid transparent; }
+.lab-tab:hover { color: var(--ink); background: rgba(253, 249, 239, .5); }
+.lab-tab[aria-selected="true"] { color: var(--rust); background: rgba(253, 249, 239, .8); border-bottom-color: var(--rust); }
+.lab-card h3:first-of-type { margin-top: 4px; }
+.lab-now .lab-one { margin-top: 6px; }
+/* the crop picked: its card beside the farming card (under it on a narrow screen) */
+.build-card { position: relative; }
+@media (min-width: 761px) {
+  .crop-side { position: absolute; left: calc(100% + 14px); top: 0; width: 330px; max-height: calc(100vh - 140px); overflow: auto; transform: rotate(1deg);
+    background: var(--card); background-image: var(--noise); border-radius: 3px; box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 12px 26px -8px rgba(10, 8, 2, .6); scrollbar-width: thin; scrollbar-color: rgba(110, 74, 26, .35) transparent; }
+  .crop-side .crop-card { margin: 0; background: none; box-shadow: none; padding: 12px 14px 10px; }
+}
+/* the clock is also the switch for the tools needed now and then (weather, bestiary) */
+button.isle-clock { border: 0; font: inherit; text-align: left; cursor: pointer; transition: box-shadow .15s ease, transform .15s ease; }
+button.isle-clock:hover, button.isle-clock:focus-visible { box-shadow: 0 0 0 2px #b48a3a, 0 5px 12px rgba(20, 14, 4, .35); }
+button.isle-clock.is-open { box-shadow: 0 0 0 2px var(--rust), 0 5px 12px rgba(20, 14, 4, .35); }
+.isle-clock-more { width: 14px; height: 14px; margin-left: -2px; fill: none; stroke: #7a6f5c; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s ease; }
+.isle-clock.is-open .isle-clock-more { transform: rotate(180deg); }

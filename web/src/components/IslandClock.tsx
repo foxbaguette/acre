@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { islandTime, type HomeClock } from '@/chain/home'
 
 /** A small paper clock face with the island's time (home.acre's clock), and which day of the season it is. */
-export function IslandClock({ clock, season }: { clock: HomeClock; season: string }) {
+/** The island's clock; clicking it shows or hides the tools needed now and then (onToggle, open). */
+export function IslandClock({ clock, season, open, onToggle }: { clock: HomeClock; season: string; open?: boolean; onToggle?: () => void }) {
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
     // redraw exactly when the next island minute begins (a fixed interval beats against the island minute's length)
@@ -16,7 +17,8 @@ export function IslandClock({ clock, season }: { clock: HomeClock; season: strin
   const { h, m, day, days } = islandTime(clock, now)
   const hourA = ((h % 12) + m / 60) * 30, minA = m * 6, hh = String(h).padStart(2, '0'), mm = String(m).padStart(2, '0')
   return (
-    <div className="isle-clock" role="timer" tabIndex={0} aria-label={`Island time ${hh}:${mm}, day ${day} of ${season}`}>
+    <button type="button" className={`isle-clock${open ? ' is-open' : ''}`} aria-expanded={onToggle ? !!open : undefined} onClick={onToggle}
+      title={onToggle ? (open ? 'hide the weather and the bestiary' : 'show the weather and the bestiary') : undefined} aria-label={`Island time ${hh}:${mm}, day ${day} of ${season}${onToggle ? (open ? ': hide the weather and the bestiary' : ': show the weather and the bestiary') : ''}`}>
       <svg viewBox="0 0 40 40" aria-hidden="true">
         <circle cx="20" cy="20" r="18" className="face" />
         {Array.from({ length: 12 }, (_, k) => (
@@ -30,6 +32,7 @@ export function IslandClock({ clock, season }: { clock: HomeClock; season: strin
         <b>{hh}:{mm}</b>
         <small>day {day} of {days} · {season}</small>
       </span>
-    </div>
+      {onToggle && <svg className="isle-clock-more" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" /></svg>}
+    </button>
   )
 }

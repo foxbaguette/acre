@@ -3,12 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { fetchIsAuthorizer, fetchIsLifeAuthorizer } from '@/chain/admin'
 import { CONTRACT, GEN_CONFIG } from '@/chain/config'
 import { actionFields } from '@/chain/rpc'
-import { fetchMapTiles, fetchPlayerMaps, mapStats, placeWords, type MapStats, type PlayerMap, fetchGenConfigs, type GenConfig } from '@/chain/maps'
+import { acidWord, fetchMapTiles, fetchPlayerMaps, mapStats, placeWords, type MapStats, type PlayerMap, fetchGenConfigs, type GenConfig } from '@/chain/maps'
 import { friendlyError, signer, transact } from '@/wallet/session'
 import { coastlinePath } from '@/lib/outline'
 import { ArrowLeft, ArrowRight, Book, type Bookmark, type Spread } from '@/journal/Book'
 import { AccountTag, Header } from '@/journal/Header'
-import { withAdmin } from '@/lib/adminUrl'
+import { withAdmin, withWorld } from '@/lib/adminUrl'
 
 const PER_PAGE = 11
 /** How long the pointer (or keyboard focus) rests on an index line before its chart is loaded and drawn. */
@@ -367,6 +367,17 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
               </ul>
               <p className="rec-foot">Shares of the whole chart, sea included.</p>
             </div>
+            {m.soil && (
+              <div className="record soil-record">
+                <h3>Soil</h3>
+                <ul className="rec" aria-label="The island's soil">
+                  <li><b>nutrients</b><span className="bar" aria-hidden="true"><i style={{ '--v': `${m.soil.nutrients}%`, '--c': '#7a5a2e' } as CSSProperties} /></span><span>{m.soil.nutrients}%</span></li>
+                  <li><b>moisture</b><span className="bar" aria-hidden="true"><i style={{ '--v': `${m.soil.moisture}%`, '--c': '#2f6f86' } as CSSProperties} /></span><span>{m.soil.moisture}%</span></li>
+                  <li><b>acidity</b><span className="bar" aria-hidden="true"><i style={{ '--v': `${((m.soil.acidity - 10) / 130) * 100}%`, '--c': '#8a6a9e' } as CSSProperties} /></span><span>pH {(m.soil.acidity / 10).toFixed(1)}</span></li>
+                </ul>
+                <p className="rec-foot">{acidWord(m.soil.acidity)} soil, rolled when the island was charted.</p>
+              </div>
+            )}
             <p className="isle-notes hand">{s ? describe(s) : 'Reading the survey…'}</p>
             <div className="enter-row">
               <a
@@ -542,7 +553,7 @@ export function Atlas({ account, wallet, onSignOut, onEnter }: {
 
   return (
     <div className="atlas">
-      <Header home="contents-1" right={<div className="top-right">{authorizer && <a className="admin-link hand" href={withAdmin(true)}>admin</a>}<AccountTag account={account} wallet={wallet} onSignOut={onSignOut} /></div>} />
+      <Header home="contents-1" right={<div className="top-right"><a className="admin-link hand" href={withWorld(true)}>world map</a>{authorizer && <a className="admin-link hand" href={withAdmin(true)}>admin</a>}<AccountTag account={account} wallet={wallet} onSignOut={onSignOut} /></div>} />
       <main>
         <div className="wrap">
           <h1 className="sr-only">Your islands</h1>

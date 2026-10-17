@@ -18,6 +18,8 @@ export interface Farmer {
 /** One job of the worker queue, as the page reads it: times in ms, tiles and buildings as map indexes (y * 100 + x). */
 export interface Job {
   id: string; farmhouse: number; worker: number; silo: number; crop: string; tiles: number[]; amount: number; claimed: boolean
+  /** harvested for seeds: amount is seeds, for the owner (not the island's storage) */
+  seeds?: boolean
   start: number; atField: number; harvested: number; atSilo: number; offloaded: number; home: number; rested: number
 }
 

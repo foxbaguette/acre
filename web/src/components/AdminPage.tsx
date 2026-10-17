@@ -6,24 +6,26 @@ import { AdminStartItems } from '@/components/AdminStart'
 import { AdminCrops, AdminHarvest } from '@/components/AdminFarm'
 import { AdminBuildings } from '@/components/AdminBuildings'
 import { AdminInventories } from '@/components/AdminInventories'
-import { fetchGenRows, fetchIsAuthorizer, fetchIsLifeAuthorizer, GEN_DEFAULTS, GEN_FIELDS, genProblem, type GenRow } from '@/chain/admin'
+import { AdminLabClear, AdminLabCropUnlocks, AdminLabCrops, AdminLabSpecies, AdminLabUpgrades } from '@/components/AdminLab'
+import { fetchGenRows, fetchIsAuthorizer, fetchIsLabAuthorizer, fetchIsLifeAuthorizer, GEN_DEFAULTS, GEN_FIELDS, genProblem, type GenRow } from '@/chain/admin'
 import { CONTRACT } from '@/chain/config'
 import { actionFields } from '@/chain/rpc'
 import { AccountTag, Header } from '@/journal/Header'
 import { friendlyError, signer, transact } from '@/wallet/session'
 
-type Section = 'genconfig' | 'buildings' | 'start' | 'inventories' | 'clear' | 'crops' | 'harvest' | 'species' | 'lifeclear'
-const NAV: { title: string; contract: 'land' | 'life'; items: [Section, string][] }[] = [
+type Section = 'genconfig' | 'buildings' | 'start' | 'inventories' | 'labup' | 'labcrops' | 'labunlock' | 'labspecies' | 'labclear' | 'clear' | 'crops' | 'harvest' | 'species' | 'lifeclear'
+const NAV: { title: string; contract: 'land' | 'life' | 'lab'; items: [Section, string][] }[] = [
   { title: 'Lands', contract: 'land', items: [['genconfig', 'Genconfig'], ['buildings', 'Buildings'], ['start', 'First island'], ['inventories', 'Inventories'], ['clear', 'Clearing']] },
   { title: 'Farming', contract: 'land', items: [['crops', 'Crops'], ['harvest', 'Harvest']] },
+  { title: 'Lab', contract: 'lab', items: [['labup', 'Upgrades'], ['labcrops', 'Crops'], ['labunlock', 'Crops to unlock'], ['labspecies', 'Species'], ['labclear', 'Clearing']] },
   { title: 'Life', contract: 'life', items: [['species', 'Species'], ['lifeclear', 'Clearing']] },
 ]
 
 /** The admin panel: the game's settings, for the contracts' authorizers. Lands (land.acre) and Life (life.acre). */
 export function AdminPage({ account, wallet, onSignOut, onLeave }: { account: string; wallet: string | null; onSignOut: () => void; onLeave: () => void }) {
-  const [authorized, setAuthorized] = useState<{ land: boolean; life: boolean } | null>(null)
+  const [authorized, setAuthorized] = useState<{ land: boolean; life: boolean; lab: boolean } | null>(null)
   const [section, setSection] = useState<Section>('genconfig')
-  useEffect(() => { Promise.all([fetchIsAuthorizer(account), fetchIsLifeAuthorizer(account)]).then(([land, life]) => setAuthorized({ land, life })) }, [account])
+  useEffect(() => { Promise.all([fetchIsAuthorizer(account), fetchIsLifeAuthorizer(account), fetchIsLabAuthorizer(account)]).then(([land, life, lab]) => setAuthorized({ land, life, lab })) }, [account])
   const group = NAV.find((g) => g.items.some(([k]) => k === section))!
   return (
     <div className="admin">
@@ -44,7 +46,7 @@ export function AdminPage({ account, wallet, onSignOut, onLeave }: { account: st
         </nav>
         <main className="admin-main">
           {authorized && !authorized[group.contract] && <p className="admin-note">This wallet is not one of {group.contract}.acre’s authorizers: you can look, but the contract will refuse any change.</p>}
-          {section === 'genconfig' ? <GenConfigs /> : section === 'buildings' ? <AdminBuildings /> : section === 'start' ? <AdminStartItems /> : section === 'inventories' ? <AdminInventories /> : section === 'clear' ? <AdminClear /> : section === 'crops' ? <AdminCrops /> : section === 'harvest' ? <AdminHarvest /> : section === 'species' ? <AdminSpecies /> : <AdminLifeClear />}
+          {section === 'genconfig' ? <GenConfigs /> : section === 'buildings' ? <AdminBuildings /> : section === 'start' ? <AdminStartItems /> : section === 'inventories' ? <AdminInventories /> : section === 'clear' ? <AdminClear /> : section === 'crops' ? <AdminCrops /> : section === 'harvest' ? <AdminHarvest /> : section === 'labup' ? <AdminLabUpgrades /> : section === 'labcrops' ? <AdminLabCrops /> : section === 'labunlock' ? <AdminLabCropUnlocks /> : section === 'labspecies' ? <AdminLabSpecies /> : section === 'labclear' ? <AdminLabClear /> : section === 'species' ? <AdminSpecies /> : <AdminLifeClear />}
         </main>
       </div>
     </div>
