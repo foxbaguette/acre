@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fenmark Ideas II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, main { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 4px; font-size: 27px; font-weight: 400; }
+  header p { margin: 0; color: var(--soft); max-width: 900px; }
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; padding-top: 18px; padding-bottom: 40px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 16px 12px; }
+  .big { display: block; width: 200px; height: 200px; margin: 0 auto; }
+  .ic { display: inline-block; flex: none; }
+  .ic svg, .big svg { display: block; width: 100%; height: 100%; }
+  .small { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0 8px; }
+  .small > span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; }
+  .small > .light { background: #fff; border: 1px solid var(--line); }
+  .small > .dark { background: #1d2329; }
+  figcaption { font-size: 14px; color: var(--soft); }
+  figcaption b { display: block; color: var(--ink); font-weight: 400; font-size: 16px; }
+  figcaption i { font-style: normal; color: var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <h1>The Fenmark (FEN), round two: in the spirit of 5, 7, 11 and 13</h1>
+  <p>The four chosen from round one come first (5, 7, 11, 13), then the new ideas, A to P. What those four share: one clear emblem struck in relief on plain metal, mostly silver; nature, not the fox's face; the calm of the journal. Each new idea large in silver, and small in silver and in gold, on a light and a dark wallet.</p>
+</header>
+<main id="sheet"></main>
+<script>
+const METAL = {
+  gold:   { a: '#f1d58a', b: '#c99a3e', c: '#8a6424', rim: '#a87a2e', dark: '#6e4e1c', light: '#fbecc0' },
+  silver: { a: '#eef0ee', b: '#b9bcb6', c: '#7e827c', rim: '#9a9d97', dark: '#55584f', light: '#ffffff' },
+}
+let uid = 0
+const grad = (id, m) => `<radialGradient id="${id}" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="${m.a}"/><stop offset=".6" stop-color="${m.b}"/><stop offset="1" stop-color="${m.c}"/></radialGradient>`
+function coin(m, o = {}) {
+  const id = 'g' + (++uid), rid = 'r' + uid
+  let s = `<defs>${grad(id, m)}<path id="${rid}" d="M100 100 m-74 0 a74 74 0 1 1 148 0 a74 74 0 1 1 -148 0"/></defs>`
+  s += `<circle cx="100" cy="100" r="96" fill="${m.rim}"/>`
+  for (let k = 0; k < 120; k++) { const a = k / 120 * Math.PI * 2; s += `<line x1="${100 + Math.cos(a) * 92}" y1="${100 + Math.sin(a) * 92}" x2="${100 + Math.cos(a) * 96}" y2="${100 + Math.sin(a) * 96}" stroke="${m.dark}" stroke-width="1.2" opacity=".5"/>` }
+  s += `<circle cx="100" cy="100" r="90" fill="url(#${id})"/>`
+  if (o.ring !== false) s += `<circle cx="100" cy="100" r="${o.inner ?? 82}" fill="none" stroke="${m.dark}" stroke-width="1.4" opacity=".55"/>`
+  if (o.text) s += `<text font-family="IM Fell English SC, serif" font-size="13" letter-spacing="3" fill="${m.dark}" opacity=".85"><textPath href="#${rid}" startOffset="${o.offset ?? '25%'}" text-anchor="middle">${o.text}</textPath></text>`
+  return s
+}
+const emboss = (m, g, op = 1) => `<g transform="translate(0 1.4)" fill="${m.light}" stroke="${m.light}" opacity=".55">${g}</g><g fill="${m.dark}" stroke="${m.dark}" opacity="${op}">${g}</g>`
+
+// ---------- motifs ----------
+const leaf = (x, y, a, l = 26, w = 10) => `<path transform="translate(${x} ${y}) rotate(${a})" d="M0 0 C${w} ${-l * .3} ${w} ${-l * .75} 0 ${-l} C${-w} ${-l * .75} ${-w} ${-l * .3} 0 0Z"/>`
+// a branch up one side of the coin (side -1 left, 1 right), its leaves along it
+const branch = (side, r = 62, n = 9, l = 18, w = 6, from = 100, step = 16) => { let g = ''; for (let k = 0; k < n; k++) { const a = (from + k * step) * Math.PI / 180
+    const x = 100 + Math.cos(a) * r, y = 100 + Math.sin(a) * r, rot = Math.atan2(Math.cos(a), -Math.sin(a)) * 180 / Math.PI + 90
+    g += side < 0 ? leaf(x, y, rot, l, w) : leaf(200 - x, y, -rot, l, w) } return g }
+const acorn = (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="0" cy="8" rx="15" ry="19"/><path d="M-19 -4 C-19 -18 19 -18 19 -4 Z"/><rect x="-2" y="-26" width="4" height="10"/></g>`
+const paw = (x = 100, y = 100, s = 1) => `<g transform="translate(${x} ${y}) scale(${s}) translate(-100 -100)"><ellipse cx="100" cy="118" rx="22" ry="18"/><ellipse cx="72" cy="92" rx="9" ry="12" transform="rotate(-20 72 92)"/><ellipse cx="90" cy="76" rx="9" ry="12" transform="rotate(-6 90 76)"/><ellipse cx="110" cy="76" rx="9" ry="12" transform="rotate(6 110 76)"/><ellipse cx="128" cy="92" rx="9" ry="12" transform="rotate(20 128 92)"/></g>`
+const seedIn = (m, x = 100, y = 118) => `<path d="M${x} ${y - 14} C${x + 10} ${y - 14} ${x + 14} ${y} ${x} ${y + 14} C${x - 14} ${y} ${x - 10} ${y - 14} ${x} ${y - 14}Z" fill="${m.light}" opacity=".7"/><line x1="${x}" y1="${y - 12}" x2="${x}" y2="${y + 10}" stroke="${m.b}" stroke-width="1.5"/>`
+const reed = (x, base, h, a = 0, cat = true) => `<line x1="${x}" y1="${base}" x2="${x + a}" y2="${base - h}" stroke-width="2.2" stroke-linecap="round"/>${cat ? `<ellipse cx="${x + a * .8}" cy="${base - h + 4}" rx="3.4" ry="9"/>` : ''}`
+const blade = (x, base, h, bend) => `<path d="M${x - 2} ${base} C${x - 1} ${base - h * .5} ${x + bend * .5} ${base - h * .8} ${x + bend} ${base - h} C${x + bend * .4} ${base - h * .75} ${x + 2} ${base - h * .5} ${x + 2} ${base}Z"/>`
+const water = (y, x0, n, w = 20) => { let d = `M${x0} ${y}`; for (let k = 0; k < n; k++) d += ` q${w / 4} -5 ${w / 2} 0 t${w / 2} 0`; return `<path d="${d}" fill="none" stroke-width="2.4"/>` }
+const compass = (L = 62, l = 40, W = 11, w = 7) => { let g = ''; for (let k = 0; k < 8; k++) { const big = k % 2 === 0; g += `<path transform="rotate(${k * 45} 100 100)" d="M100 100 L${100 - (big ? W : w)} 100 L100 ${100 - (big ? L : l)} Z"/><path transform="rotate(${k * 45} 100 100)" d="M100 100 L${100 + (big ? W : w)} 100 L100 ${100 - (big ? L : l)} Z" opacity=".6"/>` } return g }
+const OAK = 'M0 0 C-4 -6 -10 -6 -9 -12 C-14 -14 -14 -20 -9 -22 C-14 -26 -12 -32 -7 -32 C-8 -38 -3 -42 0 -46 C3 -42 8 -38 7 -32 C12 -32 14 -26 9 -22 C14 -20 14 -14 9 -12 C10 -6 4 -6 0 0Z'
+const oak = (x, y, a, s = 1) => `<path transform="translate(${x} ${y}) rotate(${a}) scale(${s})" d="${OAK}"/>`
+
+// the four chosen from round one, kept for comparison
+const KEPT = [
+  ['5', 'Acorn wreath', 'From round one: an acorn inside a laurel wreath.',
+    (m) => coin(m) + emboss(m, branch(-1) + branch(1), .85) + emboss(m, `<ellipse cx="100" cy="112" rx="18" ry="22"/><path d="M78 98 C78 82 122 82 122 98 Z"/><rect x="98" y="72" width="4" height="12"/>`)],
+  ['7', 'The fen', 'From round one: reeds and bulrushes standing in still water.',
+    (m) => coin(m) + emboss(m, [[78, 62, -6], [90, 74, -2], [104, 80, 3], [118, 66, 7], [128, 52, 10]].map(([x, h, a]) => reed(x, 132, h, a)).join('')) + emboss(m, water(138, 58, 5, 20) + water(150, 68, 4, 20), .8)],
+  ['11', 'Paw and seed', 'From round one: a paw print, its big pad a seed about to sprout.',
+    (m) => coin(m) + emboss(m, paw()) + seedIn(m)],
+  ['13', 'Compass rose', 'From round one: the journal\'s compass rose, F marking the north.',
+    (m) => { let g = ''; for (let k = 0; k < 8; k++) { const l = k % 2 ? 40 : 62, w = k % 2 ? 7 : 11; g += `<path transform="rotate(${k * 45} 100 100)" d="M100 100 L${100 - w} 100 L100 ${100 - l} Z"/>` }
+      return coin(m) + emboss(m, g) + `<circle cx="100" cy="100" r="7" fill="${m.light}"/><text x="100" y="34" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="16" fill="${m.dark}">F</text>` }],
+]
+const IDEAS = [
+  ['Reeds in a wreath', '7 inside 5: the fen\'s reeds standing in still water, framed by a laurel wreath. Calm and official at once.',
+    (m) => coin(m) + emboss(m, branch(-1, 66, 8, 16, 5.5) + branch(1, 66, 8, 16, 5.5), .85) + emboss(m, reed(86, 128, 52, -4) + reed(98, 128, 64, -1) + reed(110, 128, 58, 3) + reed(120, 128, 42, 6, false)) + emboss(m, water(134, 72, 3, 18), .85)],
+  ['Wreath of reeds', 'The wreath itself made of the fen: blades of reed and bulrushes curving up both sides, FEN in the middle.',
+    (m) => { let g = ''; for (const s of [-1, 1]) for (let k = 0; k < 7; k++) { const a = (100 + k * 20) * Math.PI / 180, r = 64, x = 100 + Math.cos(a) * r, y = 100 + Math.sin(a) * r, rot = Math.atan2(Math.cos(a), -Math.sin(a)) * 180 / Math.PI + 90
+        const X = s < 0 ? x : 200 - x, R = s < 0 ? rot : -rot; g += `<g transform="translate(${X} ${y}) rotate(${R})">${blade(0, 0, 24, s * -3)}${k % 2 ? '<ellipse cx="0" cy="-26" rx="2.6" ry="6"/>' : ''}</g>` }
+      return coin(m) + emboss(m, g, .9) + `<text x="100" y="114" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="40" letter-spacing="2" fill="${m.light}" opacity=".55" transform="translate(0 1.4)">FEN</text><text x="100" y="114" text-anchor="middle" font-family="IM Fell English SC, serif" font-size="40" letter-spacing="2" fill="${m.dark}">FEN</text>` }],
+  ['Paw compass', '11 at the heart of 13: a paw print in the middle of the compass rose, the north point longest. Finding your way, on foot.',
+    (m) => coin(m) + emboss(m, compass(70, 50, 8, 5), .55) + emboss(m, paw(100, 104, .62))],
+  ['Acorn compass', '5 and 13: the compass rose with an acorn at its centre: every direction starts from something small.',
+    (m) => coin(m) + emboss(m, compass(68, 46, 9, 6), .6) + `<circle cx="100" cy="100" r="26" fill="${m.b}"/>` + emboss(m, acorn(100, 98, .9))],
+  ['Seed in a wheat wreath', '11 and 5: a single seed in the middle, a wreath of wheat ears round it. What the fields grow from.',
+    (m) => { let g = ''; for (const s of [-1, 1]) for (let k = 0; k < 8; k++) { const a = (100 + k * 18) * Math.PI / 180, r = 62, x = 100 + Math.cos(a) * r, y = 100 + Math.sin(a) * r, rot = Math.atan2(Math.cos(a), -Math.sin(a)) * 180 / Math.PI + 90
+        const X = s < 0 ? x : 200 - x, R = s < 0 ? rot : -rot; g += `<g transform="translate(${X} ${y}) rotate(${R})"><ellipse cx="-4" cy="-6" rx="3.4" ry="7" transform="rotate(-26 -4 -6)"/><ellipse cx="4" cy="-6" rx="3.4" ry="7" transform="rotate(26 4 -6)"/></g>` }
+      return coin(m) + emboss(m, g, .85) + emboss(m, `<path d="M100 72 C124 72 134 104 100 136 C66 104 76 72 100 72Z"/>`) + `<path d="M100 78 C102 96 102 114 100 128" stroke="${m.light}" stroke-width="2" fill="none" opacity=".7"/>` }],
+  ['Fen at dawn', '7, with a low sun rising behind the reeds and its rays fanning up: the island\'s days turning.',
+    (m) => { let rays = ''; for (let k = 0; k < 9; k++) { const a = (180 + k * 22.5) * Math.PI / 180; rays += `<line x1="${100 + Math.cos(a) * 30}" y1="${118 + Math.sin(a) * 30}" x2="${100 + Math.cos(a) * 52}" y2="${118 + Math.sin(a) * 52}" stroke-width="2.6" stroke-linecap="round"/>` }
+      return coin(m) + emboss(m, `<path d="M74 118 a26 26 0 0 1 52 0Z"/>${rays}`, .55) + emboss(m, reed(70, 132, 50, -5) + reed(80, 132, 62, -2) + reed(124, 132, 56, 4) + reed(134, 132, 44, 7, false)) + emboss(m, water(130, 60, 4, 20) + water(142, 70, 3, 20), .85) }],
+  ['Paw in the reeds', '11 and 7: a fox\'s paw print in the soft ground at the water\'s edge, reeds rising behind it.',
+    (m) => coin(m) + emboss(m, reed(60, 110, 46, -6) + reed(70, 110, 56, -3) + reed(132, 110, 52, 4) + reed(142, 110, 40, 6, false), .7) + emboss(m, paw(100, 118, .52)) + emboss(m, water(150, 66, 3, 22), .6)],
+  ['Oak and acorns', '5, grown: two oak leaves and a pair of acorns on one twig. Old, sturdy, slow-growing value.',
+    (m) => coin(m) + emboss(m, `<path d="M70 142 C92 124 108 112 126 72" fill="none" stroke-width="3" stroke-linecap="round"/>${oak(104, 112, -40, 1.1)}${oak(118, 90, 40, .9)}${acorn(80, 108, .7)}${acorn(96, 132, .62)}`)],
+  ['Compass of reeds', '13 drawn with 7: the eight points of the compass are reed blades and bulrushes, the north one standing tallest.',
+    (m) => { let g = ''; for (let k = 0; k < 8; k++) { const big = k % 2 === 0, h = k === 0 ? 70 : big ? 58 : 40; g += `<g transform="rotate(${k * 45} 100 100)">${blade(100, 100, h, 0)}${big ? `<ellipse cx="100" cy="${100 - h + 6}" rx="3.6" ry="9"/>` : ''}</g>` }
+      return coin(m) + emboss(m, g) + `<circle cx="100" cy="100" r="8" fill="${m.light}"/><circle cx="100" cy="100" r="8" fill="none" stroke="${m.dark}" stroke-width="2"/>` }],
+  ['Seed paw, wreathed', '11 inside 5: the paw with its seed pad, in a laurel wreath. The two favourites in one.',
+    (m) => coin(m) + emboss(m, branch(-1, 66, 8, 16, 5.5) + branch(1, 66, 8, 16, 5.5), .85) + emboss(m, paw(100, 102, .66)) + seedIn(m, 100, 112)],
+  ['The fen map', '13 and 7, as the journal draws it: an island\'s coast in contour lines, a fen of reeds on it, a small compass star in the corner.',
+    (m) => coin(m) + emboss(m, `<path d="M58 112 C54 88 76 70 96 76 C110 58 140 64 144 88 C156 98 150 124 132 128 C124 146 92 148 82 136 C66 138 60 126 58 112Z" fill="none" stroke-width="2.4"/><path d="M68 110 C66 92 82 80 96 86 C108 72 132 76 134 92 C142 100 138 118 126 120 C120 134 96 136 88 126 C76 128 70 120 68 110Z" fill="none" stroke-width="1.4" opacity=".7"/>`) + emboss(m, reed(94, 116, 26, -2) + reed(102, 116, 32, 0) + reed(110, 116, 24, 3)) + emboss(m, `<g transform="translate(-30 -32) scale(.32) translate(214 214)">${compass(60, 36, 12, 8)}</g>`)],
+  ['Dragonfly', 'The fen\'s jewel hovering over the reeds: the island\'s creatures, light and quick.',
+    (m) => coin(m) + emboss(m, `<circle cx="100" cy="62" r="6"/><ellipse cx="100" cy="76" rx="5" ry="8"/>${[0, 1, 2, 3, 4, 5, 6, 7].map((k) => `<ellipse cx="100" cy="${90 + k * 6.5}" rx="${3.2 - k * .2}" ry="3.4"/>`).join('')}<ellipse cx="74" cy="68" rx="25" ry="5.5" transform="rotate(-22 74 68)" opacity=".8"/><ellipse cx="126" cy="68" rx="25" ry="5.5" transform="rotate(22 126 68)" opacity=".8"/><ellipse cx="76" cy="86" rx="22" ry="5" transform="rotate(18 76 86)" opacity=".8"/><ellipse cx="124" cy="86" rx="22" ry="5" transform="rotate(-18 124 86)" opacity=".8"/>`) + emboss(m, reed(66, 150, 30, -4, false) + reed(134, 150, 34, 4), .6)],
+  ['Lily pad', 'A water lily open on its pad: the ponds where the water creatures live, from above.',
+    (m) => coin(m) + emboss(m, `<path d="M100 100 L132 64 A50 50 0 1 1 112 52 Z" opacity=".55"/>`) + emboss(m, (() => { let p = ''; for (let k = 0; k < 8; k++) p += leaf(100, 102, k * 45, 26, 9); return p })()) + `<circle cx="100" cy="102" r="7" fill="${m.light}"/>`],
+  ['Crossed bulrushes', '7 made heraldic: two bulrushes crossed like the keys on an old seal, a small star above. Formal and unmistakably the fen.',
+    (m) => coin(m, { text: 'FENMARK', offset: '75%' }) + emboss(m, `<g transform="rotate(-28 100 112)">${reed(100, 160, 96, 0)}</g><g transform="rotate(28 100 112)">${reed(100, 160, 96, 0)}</g>`) + emboss(m, `<path d="M100 44 l4 10 l10 0 l-8 6 l3 10 l-9 -6 l-9 6 l3 -10 l-8 -6 l10 0Z"/>`)],
+  ['North star acorn', '5 and 13, simpler: a four-pointed star with an acorn hanging under it like a lantern. Fewer lines, reads well tiny.',
+    (m) => { let g = ''; for (let k = 0; k < 4; k++) g += `<path transform="rotate(${k * 90} 100 82)" d="M100 82 L92 82 L100 36 L108 82Z"/>`; return coin(m) + emboss(m, g, .75) + emboss(m, acorn(100, 124, .9)) }],
+  ['Sprouting seed', '11\'s seed alone, opening: two first leaves and a root, struck large. The simplest of all, and the most legible.',
+    (m) => coin(m) + emboss(m, `<path d="M100 120 C112 120 118 134 100 150 C82 134 88 120 100 120Z"/><path d="M100 124 C100 110 100 98 100 84" fill="none" stroke-width="4" stroke-linecap="round"/>${leaf(100, 92, -52, 40, 14)}${leaf(100, 98, 54, 34, 12)}<path d="M100 150 C98 158 104 162 102 168" fill="none" stroke-width="2.4" stroke-linecap="round"/>`)],
+]
+
+const svg = (body) => `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${body}</svg>`
+const sheet = document.getElementById('sheet')
+;[...KEPT, ...IDEAS.map((d, i) => [String.fromCharCode(65 + i), ...d])].forEach(([label, title, note, draw]) => {
+  const s = draw(METAL.silver), g = draw(METAL.gold), f = document.createElement('figure')
+  const chip = (cls) => `<span class="${cls}"><span class="ic" style="width:48px;height:48px">${svg(s)}</span><span class="ic" style="width:24px;height:24px">${svg(s)}</span><span class="ic" style="width:48px;height:48px">${svg(g)}</span><span class="ic" style="width:24px;height:24px">${svg(g)}</span></span>`
+  f.innerHTML = `<div class="big">${svg(s)}</div><div class="small">${chip('light')}${chip('dark')}</div><figcaption><b>${label}. ${title}</b>${note}</figcaption>`
+  sheet.append(f)
+})
+</script>
+</body>
+</html>

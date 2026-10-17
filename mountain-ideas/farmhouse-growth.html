@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farmhouse Growth</title>
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, section { max-width: 1500px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 4px; font-size: 27px; font-weight: 400; }
+  h2 { margin: 26px 0 2px; font-size: 21px; font-weight: 400; }
+  header p, section > p { margin: 0; color: var(--soft); }
+  .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; padding: 12px 0 4px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  figure img { display: block; width: 100%; height: auto; background: #6b7a42; }
+  figcaption { padding: 7px 11px 9px; font-size: 14px; color: var(--soft); }
+  figcaption b { color: var(--ink); font-weight: 400; }
+  footer { height: 40px; }
+</style>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
+</head>
+<body>
+<header>
+  <h1>How the farmhouse could grow, inside its plot</h1>
+  <p>Ways to grow through the five stages, each rendered the way the game shows it. The dashed line is the 3 × 4 tile plot: nothing leaves it; when the house needs room, it grows upward. The front wall stays on the same line, so the path always meets the door.</p>
+</header>
+<div id="sheet"></div>
+<footer></footer>
+<script type="module">
+import * as THREE from 'three'
+import { build, TILT } from './buildings3d.js'
+
+const PX = 64, PAD = [1, 2.4, 2.2, 1.6], W = 3, H = 4
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.outputColorSpace = THREE.SRGBColorSpace
+const grass = new THREE.MeshStandardMaterial({ color: '#6e8040', roughness: 1 })
+function shot(variant, stage) {
+  const scene = new THREE.Scene()
+  const sun = new THREE.DirectionalLight('#fff1dc', 2.6); sun.position.set(-12, 30, -9); sun.castShadow = true
+  sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10, near: 1, far: 80 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02
+  scene.add(sun, sun.target, new THREE.HemisphereLight('#cfe0ee', '#4e5a34', .9))
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), grass); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground)
+  // the path to the door
+  const path = new THREE.Mesh(new THREE.PlaneGeometry(.5, 1.2), new THREE.MeshStandardMaterial({ color: '#9a8460', roughness: 1 })); path.rotation.x = -Math.PI / 2; path.position.set(0, .005, 2.3); path.receiveShadow = true; scene.add(path)
+  scene.add(build('farmhouse', stage, variant).group)
+  const Wt = W + PAD[0] + PAD[2], Dt = H + PAD[1] + PAD[3], cx = (PAD[2] - PAD[0]) / 2, cz = (PAD[3] - PAD[1]) / 2
+  const cam = new THREE.OrthographicCamera(-Wt / 2, Wt / 2, Dt * Math.cos(TILT) / 2, -Dt * Math.cos(TILT) / 2, .1, 200)
+  cam.position.set(cx, 50 * Math.cos(TILT), cz + 50 * Math.sin(TILT)); cam.lookAt(cx, 0, cz)
+  renderer.setSize(Math.round(Wt * PX), Math.round(Dt * PX), false); renderer.render(scene, cam)
+  // the plot, dashed, over the picture
+  const c = document.createElement('canvas'); c.width = renderer.domElement.width; c.height = renderer.domElement.height; const g = c.getContext('2d')
+  g.drawImage(renderer.domElement, 0, 0); g.setLineDash([8, 6]); g.lineWidth = 2; g.strokeStyle = 'rgba(255,248,226,.9)'
+  g.strokeRect(PAD[0] * PX, PAD[1] * PX, W * PX, H * PX)
+  g.setLineDash([]); g.strokeStyle = 'rgba(255,248,226,.25)'; g.lineWidth = 1
+  for (let x = 1; x < W; x++) { g.beginPath(); g.moveTo((PAD[0] + x) * PX, PAD[1] * PX); g.lineTo((PAD[0] + x) * PX, (PAD[1] + H) * PX); g.stroke() }
+  for (let y = 1; y < H; y++) { g.beginPath(); g.moveTo(PAD[0] * PX, (PAD[1] + y) * PX); g.lineTo((PAD[0] + W) * PX, (PAD[1] + y) * PX); g.stroke() }
+  return c.toDataURL('image/png')
+}
+const OPTIONS = [
+  ['homestead', 'D. A homestead', 'Every stage is a new kind of house in a new material, so each is told apart at once: a log hut under a roof of rough boards, a plank cabin under shingles, a plastered cottage under clay tiles with a well, a two-floor farmhouse with a porch, and a stately stone farmhouse under slate: a main block with a front wing (a T), dormers, two chimneys and a bell turret.',
+    ['a log hut', 'a plank cabin', 'a cottage, a well', 'a farmhouse with a porch', 'a stone farmhouse, a T']],
+  ['courtyard', 'E. A farmstead round a yard', 'The house is joined by more buildings until they close round a yard: a shed, a cart, a barn along the back, and at the last a third range down the side, a U round the yard.',
+    ['one small house', 'a shed beside it', 'a bigger house, a cart', 'a barn along the back', 'a U round the yard']],
+  ['garden', 'F. A garden house', 'The cottage stays small; its garden grows instead: flower beds, then a glasshouse, a second floor, hedges round the plot, and at the last flowering shrubs and a dormer.',
+    ['a cottage', 'flower beds', 'a glasshouse', 'a second floor, hedges', 'the garden in bloom']],
+  ['up', 'A. Upward (from before)', 'Fills its plot, then gains floors.', ['a cottage', 'the whole plot', 'a second floor', 'dormers', 'a third floor']],
+]
+const sheet = document.getElementById('sheet')
+for (const [v, title, note, caps] of OPTIONS) {
+  const sec = document.createElement('section'); sec.innerHTML = `<h2>${title}</h2><p>${note}</p><div class="row"></div>`; sheet.append(sec)
+  for (let st = 1; st <= 5; st++) { const f = document.createElement('figure'); f.innerHTML = `<img src="${shot(v, st)}" alt="${title}, stage ${st}"><figcaption><b>Stage ${st}</b> · ${caps[st - 1]}</figcaption>`; sec.querySelector('.row').append(f) }
+}
+window.ready = true
+</script>
+</body>
+</html>

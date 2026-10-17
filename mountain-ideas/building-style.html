@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building Style</title>
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, main { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 28px; }
+  h1 { margin: 0 0 4px; font-size: 28px; font-weight: 400; }
+  header p { margin: 0; color: var(--soft); max-width: 900px; }
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 18px; padding-top: 18px; padding-bottom: 40px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  canvas { display: block; width: 100%; height: auto; }
+  figcaption { padding: 10px 14px 12px; }
+  figcaption b { font-size: 17px; font-weight: 400; }
+  figcaption div { color: var(--soft); font-size: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>A more serious building style</h1>
+  <p>Six examples in the direction of the reference: real materials on every roof plane (clay tiles, wooden shingles, standing-seam copper, corrugated iron), no outlines, muted colours, light from the upper left with proper cast shadows, and yards that are lived in. Seen almost straight down, with only a sliver of the front walls.</p>
+</header>
+<main id="sheet"></main>
+<script>
+let S = 1
+const rnd = () => (S = S * 16807 % 2147483647) / 2147483647
+const seed = (n) => { S = (n * 9301 + 49297) % 2147483647 || 1 }
+const TAU = Math.PI * 2
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+const mix = (a, b, t) => { const A = hex(a), B = hex(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * Math.max(0, Math.min(1, t))).toString(16).padStart(2, '0')).join('') }
+const shade = (c, k) => (k >= 1 ? mix(c, '#fff2dc', (k - 1) * 1.2) : mix(c, '#0c0e10', (1 - k) * 1.1))
+const path = (g, pts) => { g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath() }
+function blob(g, cx, cy, rx, ry, wob = .25, n = 12) {
+  const pts = [...Array(n)].map((_, k) => { const a = k / n * TAU, r = 1 + (rnd() - .5) * 2 * wob; return [cx + Math.cos(a) * rx * r, cy + Math.sin(a) * ry * r] })
+  const m = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; g.beginPath(); const s = m(pts[n - 1], pts[0]); g.moveTo(s[0], s[1])
+  for (let k = 0; k < n; k++) { const e = m(pts[k], pts[(k + 1) % n]); g.quadraticCurveTo(pts[k][0], pts[k][1], e[0], e[1]) } g.closePath()
+}
+const soft = (g, b, fn) => { g.save(); g.filter = `blur(${b}px)`; fn(); g.restore() }
+function canvas(W, H) { const c = document.createElement('canvas'); c.width = W * 2; c.height = H * 2; const g = c.getContext('2d'); g.scale(2, 2); return [c, g] }
+
+// ---------- the ground ----------
+function ground(g, W, H) {
+  g.fillStyle = '#5c6a3c'; g.fillRect(0, 0, W, H)
+  for (let k = 0; k < 40; k++) soft(g, 18, () => { g.fillStyle = rnd() < .5 ? 'rgba(40,52,26,.35)' : 'rgba(140,146,90,.25)'; g.beginPath(); g.ellipse(rnd() * W, rnd() * H, 30 + rnd() * 70, 20 + rnd() * 40, rnd() * 3, 0, TAU); g.fill() })
+  for (let k = 0; k < W * H / 14; k++) { g.fillStyle = rnd() < .55 ? `rgba(28,36,18,${.1 + rnd() * .15})` : `rgba(176,176,120,${.06 + rnd() * .1})`; g.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 1.6, 1 + rnd() * 2.4) }
+}
+function dirt(g, cx, cy, rx, ry, col = '#8c7b5a') {
+  soft(g, 7, () => { g.fillStyle = col; blob(g, cx, cy, rx, ry, .22, 14); g.fill() })
+  g.save(); blob(g, cx, cy, rx * .95, ry * .95, .2, 14); g.clip()
+  for (let k = 0; k < rx * ry / 6; k++) { g.fillStyle = rnd() < .5 ? 'rgba(60,48,30,.18)' : 'rgba(210,196,160,.16)'; g.fillRect(cx + (rnd() * 2 - 1) * rx, cy + (rnd() * 2 - 1) * ry, 1 + rnd() * 2, 1 + rnd() * 2) }
+  for (let k = 0; k < 4; k++) { g.strokeStyle = 'rgba(70,56,36,.25)'; g.lineWidth = 3; g.beginPath(); const y = cy + (rnd() - .5) * ry; g.moveTo(cx - rx, y); g.bezierCurveTo(cx - rx / 3, y + (rnd() - .5) * 20, cx + rx / 3, y + (rnd() - .5) * 20, cx + rx, y + (rnd() - .5) * 10); g.stroke() }
+  g.restore()
+}
+function castShadow(g, pts, dx = 16, dy = 12, a = .5) {
+  soft(g, 6, () => { g.fillStyle = `rgba(14,18,10,${a})`; path(g, pts.map(([x, y]) => [x + dx, y + dy])); g.fill(); path(g, pts.map(([x, y]) => [x + dx * .5, y + dy * .5])); g.fill() })
+}
+
+// ---------- roof planes ----------
+// pts: the plane; light: how much it faces the sun; kind: tile, shingle, slate, seam (standing seam), iron (corrugated);
+// dir 'h': courses run left to right (the plane slopes up or down the picture), 'v': they run up and down
+function plane(g, pts, base, light, kind, dir) {
+  g.save(); path(g, pts); g.clip()
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]), x0 = Math.min(...xs) - 3, x1 = Math.max(...xs) + 3, y0 = Math.min(...ys) - 3, y1 = Math.max(...ys) + 3
+  const c = shade(base, light); g.fillStyle = c; g.fillRect(x0, y0, x1 - x0, y1 - y0)
+  const h = dir === 'h', a0 = h ? x0 : y0, a1 = h ? x1 : y1, b0 = h ? y0 : x0, b1 = h ? y1 : x1
+  const rect = (a, b, la, lb) => (h ? g.fillRect(a, b, la, lb) : g.fillRect(b, a, lb, la))
+  if (kind === 'seam' || kind === 'iron') {
+    const step = kind === 'seam' ? 7.5 : 3
+    for (let a = a0; a < a1; a += step) {
+      if (kind === 'seam') { g.fillStyle = mix(c, '#000', rnd() * .08); rect(a, b0, step, b1 - b0); g.fillStyle = shade(c, 1.18); rect(a, b0, 1.1, b1 - b0); g.fillStyle = shade(c, .78); rect(a + 1.1, b0, .9, b1 - b0) }
+      else { g.fillStyle = shade(c, 1.1); rect(a, b0, 1.2, b1 - b0); g.fillStyle = shade(c, .82); rect(a + 1.5, b0, 1.2, b1 - b0) }
+    }
+  } else {
+    const rh = { tile: 5.2, shingle: 5, slate: 4.4 }[kind], tw = { tile: 5.6, shingle: 7.5, slate: 8.5 }[kind]
+    for (let b = b0, row = 0; b < b1; b += rh, row++) {
+      for (let a = a0 - (row % 2) * tw / 2; a < a1; ) { const w = tw * (kind === 'tile' ? 1 : .75 + rnd() * .5); g.fillStyle = mix(c, rnd() < .5 ? '#000000' : '#fff4e0', rnd() * (kind === 'tile' ? .16 : .12)); rect(a, b, w - .8, rh - .6)
+        if (kind === 'tile') { g.fillStyle = shade(c, 1.12); rect(a, b, 1, rh - .6) }
+        a += w }
+      g.fillStyle = 'rgba(0,0,0,.32)'; rect(a0, b + rh - 1.1, a1 - a0, 1.1)
+    }
+  }
+  // weather: moss, soot, sun-bleached patches, streaks running down the slope
+  for (let k = 0; k < (x1 - x0) * (y1 - y0) / 220; k++) { g.fillStyle = `rgba(${['34,40,26', '210,200,170', '70,84,46'][Math.floor(rnd() * 3)]},${.04 + rnd() * .08})`; g.beginPath(); g.ellipse(x0 + rnd() * (x1 - x0), y0 + rnd() * (y1 - y0), 3 + rnd() * 12, 2 + rnd() * 7, rnd() * 3, 0, TAU); g.fill() }
+  for (let k = 0; k < 6; k++) { g.fillStyle = 'rgba(20,20,16,.08)'; const a = a0 + rnd() * (a1 - a0); rect(a, b0, 2 + rnd() * 4, b1 - b0) }
+  g.restore()
+  g.strokeStyle = 'rgba(16,14,12,.35)'; g.lineWidth = .8; path(g, pts); g.stroke()
+}
+// a gable roof (ridge left to right) over a wall whose front shows as a strip
+function gable(g, x, y, w, h, o) {
+  const r = y + h / 2, wall = o.wall ?? '#b4aa94', strip = o.strip ?? 9
+  castShadow(g, [[x, y], [x + w, y], [x + w, y + h + strip], [x, y + h + strip]])
+  frontWall(g, x + 5, y + h, w - 10, strip, wall, o.openings)
+  plane(g, [[x, y], [x + w, y], [x + w, r], [x, r]], o.roof, 1.06, o.kind, 'h')
+  plane(g, [[x, r], [x + w, r], [x + w, y + h], [x, y + h]], o.roof, .7, o.kind, 'h')
+  g.fillStyle = shade(o.roof, .55); g.fillRect(x, r - 1.6, w, 3.2); g.fillStyle = shade(o.roof, 1.25); g.fillRect(x, r - 1.6, w, 1)
+  g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x, y + h - 1.5, w, 1.5)
+  for (const ex of [x, x + w - 2.2]) { g.fillStyle = shade(o.roof, .6); g.fillRect(ex, y, 2.2, h) }
+}
+// a hip roof: four planes rising to a short ridge
+function hip(g, x, y, w, h, o) {
+  const r = y + h / 2, d = Math.min(h / 2, w / 2) * .95, strip = o.strip ?? 10
+  castShadow(g, [[x, y], [x + w, y], [x + w, y + h + strip], [x, y + h + strip]])
+  frontWall(g, x + 6, y + h, w - 12, strip, o.wall ?? '#a8a090', o.openings)
+  plane(g, [[x, y], [x + w, y], [x + w - d, r], [x + d, r]], o.roof, 1.0, o.kind, 'h')
+  plane(g, [[x + d, r], [x + w - d, r], [x + w, y + h], [x, y + h]], o.roof, .66, o.kind, 'h')
+  plane(g, [[x, y], [x + d, r], [x, y + h]], o.roof, 1.14, o.kind, 'v')
+  plane(g, [[x + w, y], [x + w, y + h], [x + w - d, r]], o.roof, .52, o.kind, 'v')
+  g.strokeStyle = shade(o.roof, 1.3); g.lineWidth = 1.6; g.beginPath(); g.moveTo(x + d, r); g.lineTo(x + w - d, r); g.moveTo(x, y); g.lineTo(x + d, r); g.lineTo(x, y + h); g.stroke()
+  g.strokeStyle = shade(o.roof, .5); g.beginPath(); g.moveTo(x + w, y); g.lineTo(x + w - d, r); g.lineTo(x + w, y + h); g.stroke()
+}
+function frontWall(g, x, y, w, h, col, openings = []) {
+  g.fillStyle = shade(col, .82); g.fillRect(x, y, w, h)
+  for (let k = 0; k < w * h / 4; k++) { g.fillStyle = rnd() < .5 ? 'rgba(0,0,0,.08)' : 'rgba(255,250,236,.07)'; g.fillRect(x + rnd() * w, y + rnd() * h, 1.5, 1) }
+  for (const [ox, ow, kind] of openings) { g.fillStyle = kind === 'door' ? '#3a2a1e' : '#2a3036'; g.fillRect(x + ox, y + (kind === 'door' ? 1 : 2), ow, h - (kind === 'door' ? 1 : 4)); if (kind !== 'door') { g.fillStyle = 'rgba(200,210,214,.25)'; g.fillRect(x + ox + 1, y + 2.5, ow / 2 - 1, 1.2) } }
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(x, y, w, 1.6)
+}
+function chimney(g, x, y, s = 9, col = '#7a6e62') {
+  soft(g, 2, () => { g.fillStyle = 'rgba(10,12,8,.45)'; g.fillRect(x + 6, y + 5, s + 6, s * .8) })
+  g.fillStyle = shade(col, .75); g.fillRect(x, y + s * .6, s, 4)
+  g.fillStyle = col; g.fillRect(x, y, s, s * .7); g.fillStyle = shade(col, 1.2); g.fillRect(x, y, s, 1.2); g.fillRect(x, y, 1.2, s * .7)
+  g.fillStyle = '#1a1612'; g.fillRect(x + 2, y + 1.8, s - 4, s * .7 - 3.6)
+}
+function dormer(g, x, y, w, roof, kind) {
+  soft(g, 2, () => { g.fillStyle = 'rgba(10,12,8,.35)'; g.fillRect(x + 4, y + 3, w + 2, 12) })
+  plane(g, [[x, y], [x + w / 2, y], [x + w / 2, y + 12], [x, y + 12]], roof, 1.1, kind, 'v')
+  plane(g, [[x + w / 2, y], [x + w, y], [x + w, y + 12], [x + w / 2, y + 12]], roof, .62, kind, 'v')
+  g.fillStyle = '#c2bcae'; g.fillRect(x + 2, y + 12, w - 4, 5); g.fillStyle = '#28303a'; g.fillRect(x + 4, y + 12.8, w - 8, 3.4)
+}
+
+// ---------- the yard ----------
+function crate(g, x, y, s = 9, a = rnd() - .5) {
+  g.save(); g.translate(x, y); g.rotate(a)
+  g.fillStyle = 'rgba(12,14,8,.4)'; g.fillRect(-s / 2 + 3, -s / 2 + 3, s, s)
+  g.fillStyle = mix('#8a6a46', '#a8865c', rnd()); g.fillRect(-s / 2, -s / 2, s, s)
+  g.fillStyle = 'rgba(40,28,16,.45)'; for (let k = 1; k < 3; k++) g.fillRect(-s / 2, -s / 2 + k * s / 3, s, .7)
+  g.fillStyle = 'rgba(255,236,200,.25)'; g.fillRect(-s / 2, -s / 2, s, 1); g.fillRect(-s / 2, -s / 2, 1, s)
+  g.restore()
+}
+function barrel(g, x, y, r = 4.2) {
+  g.fillStyle = 'rgba(12,14,8,.45)'; g.beginPath(); g.ellipse(x + 2.5, y + 2.5, r, r, 0, 0, TAU); g.fill()
+  g.fillStyle = '#5e4630'; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill()
+  g.fillStyle = '#7e6244'; g.beginPath(); g.arc(x - .4, y - .4, r * .72, 0, TAU); g.fill()
+  g.strokeStyle = '#3a342c'; g.lineWidth = .9; g.beginPath(); g.arc(x, y, r * .9, 0, TAU); g.stroke()
+}
+function sack(g, x, y) { g.fillStyle = 'rgba(12,14,8,.35)'; g.beginPath(); g.ellipse(x + 2, y + 2, 4, 3, .4, 0, TAU); g.fill(); g.fillStyle = mix('#b8a888', '#cbbd9c', rnd()); g.beginPath(); g.ellipse(x, y, 4, 3, .4, 0, TAU); g.fill(); g.fillStyle = 'rgba(255,250,236,.3)'; g.beginPath(); g.ellipse(x - 1, y - 1, 1.8, 1.1, .4, 0, TAU); g.fill() }
+function bale(g, x, y, a = 0) {
+  g.save(); g.translate(x, y); g.rotate(a)
+  g.fillStyle = 'rgba(12,14,8,.4)'; g.fillRect(-7 + 3, -4.5 + 3, 14, 9)
+  g.fillStyle = '#b39a5a'; g.fillRect(-7, -4.5, 14, 9)
+  for (let k = 0; k < 20; k++) { g.fillStyle = rnd() < .5 ? 'rgba(90,70,30,.35)' : 'rgba(230,214,150,.35)'; g.fillRect(-7 + rnd() * 14, -4.5 + rnd() * 9, 2, .6) }
+  g.fillStyle = 'rgba(60,44,20,.6)'; g.fillRect(-3, -4.5, .8, 9); g.fillRect(2.4, -4.5, .8, 9)
+  g.restore()
+}
+function cart(g, x, y, a = 0) {
+  g.save(); g.translate(x, y); g.rotate(a)
+  g.fillStyle = 'rgba(12,14,8,.4)'; g.fillRect(-10, -6, 24, 15)
+  g.fillStyle = '#2e2824'; g.fillRect(-6, -9, 7, 2.4); g.fillRect(-6, 6.6, 7, 2.4)
+  g.fillStyle = '#7a5e40'; g.fillRect(-12, -6.5, 22, 13); g.fillStyle = '#5e4630'; g.fillRect(-10, -4.5, 18, 9)
+  g.strokeStyle = '#5e4630'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(10, -2); g.lineTo(22, -2); g.moveTo(10, 2); g.lineTo(22, 2); g.stroke()
+  for (let k = 0; k < 4; k++) sack(g, -6 + (k % 2) * 7, -2 + Math.floor(k / 2) * 4)
+  g.restore()
+}
+function logs(g, x, y) { for (let k = 0; k < 7; k++) { const lx = x + (k % 4) * 5.5 + (k >= 4 ? 2.6 : 0), ly = y - (k >= 4 ? 4 : 0); g.fillStyle = 'rgba(12,14,8,.3)'; g.beginPath(); g.arc(lx + 1.5, ly + 1.5, 2.8, 0, TAU); g.fill(); g.fillStyle = '#b08a5c'; g.beginPath(); g.arc(lx, ly, 2.8, 0, TAU); g.fill(); g.fillStyle = '#7a5a38'; g.beginPath(); g.arc(lx, ly, 1.1, 0, TAU); g.fill() } }
+function bush(g, x, y, r = 9) {
+  soft(g, 3, () => { g.fillStyle = 'rgba(10,14,6,.5)'; g.beginPath(); g.ellipse(x + 5, y + 5, r, r * .85, 0, 0, TAU); g.fill() })
+  for (let k = 0; k < 9; k++) { const a = rnd() * TAU, d = rnd() * r * .5, rr = r * (.4 + rnd() * .3); const gr = g.createRadialGradient(x + Math.cos(a) * d - rr * .3, y + Math.sin(a) * d - rr * .3, 0, x + Math.cos(a) * d, y + Math.sin(a) * d, rr); gr.addColorStop(0, '#7e8a4e'); gr.addColorStop(1, '#3a4a26'); g.fillStyle = gr; g.beginPath(); g.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, rr, 0, TAU); g.fill() }
+}
+function fenceLine(g, pts) { g.strokeStyle = 'rgba(12,14,8,.35)'; g.lineWidth = 1.5; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x + 2, y + 2) : g.moveTo(x + 2, y + 2))); g.stroke(); g.strokeStyle = '#7a6a54'; g.lineWidth = 1.3; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke()
+  for (let i = 1; i < pts.length; i++) { const [a, b] = [pts[i - 1], pts[i]], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 12); for (let k = 0; k <= n; k++) { const x = a[0] + (b[0] - a[0]) * k / n, y = a[1] + (b[1] - a[1]) * k / n; g.fillStyle = '#5a4c3c'; g.fillRect(x - 1.2, y - 1.2, 2.4, 2.4) } } }
+function crops(g, x, y, w, h) { g.fillStyle = '#5a4630'; g.fillRect(x, y, w, h); for (let yy = y + 2; yy < y + h; yy += 4) for (let xx = x + 1; xx < x + w; xx += 3 + rnd()) { g.fillStyle = mix('#4e6a30', '#7e8e48', rnd()); g.fillRect(xx, yy - 1, 2.4, 2.4) } }
+
+// ---------- the buildings ----------
+const CARDS = [
+  ['Farmhouse', 'Clay-tiled gable roof, a stone chimney, plastered walls; a yard of beaten earth with a cart, crates and barrels, a vegetable patch behind a rail fence.', (g, W, H) => {
+    dirt(g, 230, 200, 150, 90)
+    crops(g, 40, 40, 90, 70); fenceLine(g, [[36, 36], [134, 36], [134, 114], [36, 114], [36, 40]])
+    gable(g, 160, 70, 170, 96, { roof: '#8a5844', kind: 'tile', wall: '#bcb29c', openings: [[18, 10], [50, 12, 'door'], [96, 10], [130, 10]] })
+    chimney(g, 280, 84)
+    cart(g, 120, 220, -.3); crate(g, 300, 196); crate(g, 312, 204); crate(g, 305, 214, .4); barrel(g, 336, 190); barrel(g, 344, 200); bush(g, 370, 90, 14); bush(g, 386, 250, 10)
+  }],
+  ['Barn', 'A long barn under weathered wooden shingles, its big doors open; hay bales stacked by the wall, sacks waiting for the cart.', (g, W, H) => {
+    dirt(g, 220, 215, 170, 75)
+    gable(g, 90, 60, 250, 110, { roof: '#5e4c3e', kind: 'shingle', wall: '#7a5a42', openings: [[60, 16], [104, 34, 'door'], [190, 16]] })
+    for (let k = 0; k < 6; k++) bale(g, 360 + (k % 2) * 16, 90 + Math.floor(k / 2) * 11, (rnd() - .5) * .2)
+    bale(g, 372, 140, .5); for (let k = 0; k < 6; k++) sack(g, 200 + k * 7, 222 + (k % 2) * 4)
+    cart(g, 290, 230, .2); logs(g, 60, 220); bush(g, 50, 70, 13)
+  }],
+  ['Research hall', 'A large hall under a hip roof of standing-seam copper gone green, with dormers; a gravel forecourt and crates of instruments.', (g, W, H) => {
+    dirt(g, 220, 235, 160, 60, '#9a9282')
+    hip(g, 110, 40, 220, 150, { roof: '#5e7a6e', kind: 'seam', wall: '#9c9486', openings: [[30, 14], [70, 14], [96, 16, 'door'], [130, 14], [170, 14]] })
+    for (const dx of [140, 180, 220, 260]) dormer(g, dx, 150, 20, '#5e7a6e', 'seam')
+    chimney(g, 150, 70, 10, '#6e665c'); chimney(g, 280, 70, 10, '#6e665c')
+    for (let k = 0; k < 5; k++) crate(g, 90 + k * 13, 240 + (k % 2) * 6, 10); barrel(g, 340, 235); barrel(g, 350, 244); bush(g, 70, 60, 14); bush(g, 380, 70, 12)
+  }],
+  ['Grain silos', 'Two riveted steel silos on a concrete pad, a corrugated-iron shed beside them, sacks and a cart for the harvest.', (g, W, H) => {
+    soft(g, 4, () => { g.fillStyle = '#8e8a80'; g.fillRect(70, 50, 300, 190) })
+    for (let k = 0; k < 500; k++) { g.fillStyle = rnd() < .5 ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.06)'; g.fillRect(70 + rnd() * 300, 50 + rnd() * 190, 2, 1) }
+    const silo = (cx, cy, r) => {
+      soft(g, 6, () => { g.fillStyle = 'rgba(12,14,10,.55)'; g.beginPath(); g.ellipse(cx + 20, cy + 15, r, r * .95, 0, 0, TAU); g.fill() })
+      const gr = g.createRadialGradient(cx - r * .4, cy - r * .4, r * .05, cx, cy, r); gr.addColorStop(0, '#d0d2cc'); gr.addColorStop(.55, '#8e928e'); gr.addColorStop(1, '#4e5250')
+      g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill()
+      g.strokeStyle = 'rgba(30,32,30,.35)'; g.lineWidth = .8; for (let k = 0; k < 24; k++) { const a = k / 24 * TAU; g.beginPath(); g.moveTo(cx + Math.cos(a) * 8, cy + Math.sin(a) * 8); g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); g.stroke() }
+      for (const f of [.45, .75]) { g.beginPath(); g.arc(cx, cy, r * f, 0, TAU); g.stroke() }
+      g.fillStyle = '#5a5e5a'; g.beginPath(); g.arc(cx, cy, 8, 0, TAU); g.fill(); g.fillStyle = '#9a9e98'; g.beginPath(); g.arc(cx - 1.5, cy - 1.5, 5, 0, TAU); g.fill()
+      for (let k = 0; k < 6; k++) soft(g, 2, () => { g.fillStyle = 'rgba(120,80,50,.25)'; const a = rnd() * TAU, d = r * (.5 + rnd() * .4); g.beginPath(); g.ellipse(cx + Math.cos(a) * d, cy + Math.sin(a) * d, 5, 2, a, 0, TAU); g.fill() })
+    }
+    silo(150, 130, 52); silo(262, 130, 52)
+    gable(g, 300, 180, 70, 50, { roof: '#7a7c78', kind: 'iron', wall: '#8a7a64', strip: 7, openings: [[20, 18, 'door']] })
+    for (let k = 0; k < 8; k++) sack(g, 120 + (k % 4) * 8, 210 + Math.floor(k / 4) * 6); cart(g, 220, 222, 0)
+  }],
+  ['Windmill', 'A stone tower mill under a shingled cap, its four sails of timber lattice with the canvas furled on two; the shadow of the sails falls across the yard.', (g, W, H) => {
+    dirt(g, 210, 160, 120, 95)
+    const cx = 210, cy = 150
+    soft(g, 6, () => { g.fillStyle = 'rgba(12,14,10,.5)'; g.beginPath(); g.ellipse(cx + 22, cy + 16, 50, 48, 0, 0, TAU); g.fill() })
+    // the tower's top course of stone, then the cap
+    g.fillStyle = '#8e877a'; g.beginPath(); g.arc(cx, cy, 48, 0, TAU); g.fill()
+    for (let k = 0; k < 60; k++) { const a = k / 60 * TAU; g.fillStyle = mix('#7a7468', '#b0a896', rnd() * .7 + .15 * Math.cos(a + 2.3)); g.save(); g.translate(cx + Math.cos(a) * 44, cy + Math.sin(a) * 44); g.rotate(a); g.fillRect(-2, -3, 5, 6); g.restore() }
+    const cap = [...Array(9)].map((_, k) => k)
+    for (const k of cap) { const r = 40 * (1 - k / 9) + 2, ox = -k * .8, oy = -k * 1.2
+      const gr = g.createRadialGradient(cx - r * .5 + ox, cy - r * .5 + oy, 0, cx + ox, cy + oy, r); gr.addColorStop(0, '#8e7a62'); gr.addColorStop(1, '#4a3c30'); g.fillStyle = gr; g.beginPath(); g.arc(cx + ox, cy + oy, r, 0, TAU); g.fill()
+      g.strokeStyle = 'rgba(20,16,12,.35)'; g.lineWidth = .7; for (let j = 0; j < 28; j++) { const a = j / 28 * TAU + k * .1; g.beginPath(); g.moveTo(cx + ox + Math.cos(a) * r * .9, cy + oy + Math.sin(a) * r * .9); g.lineTo(cx + ox + Math.cos(a) * r, cy + oy + Math.sin(a) * r); g.stroke() } }
+    // the sails, on a hub to the front of the cap; their shadows first
+    const sail = (dx, dy, alpha, color, furled) => { for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + .35; g.save(); g.translate(cx + dx, cy + 30 + dy); g.rotate(a); g.globalAlpha = alpha
+      g.fillStyle = color ?? '#5a4a3a'; g.fillRect(0, -2.4, 118, 4.8)
+      if (!color) { g.fillStyle = furled && k % 2 ? 'rgba(200,188,160,.85)' : 'rgba(0,0,0,0)'; g.fillRect(22, 3, 94, 3)
+        if (!(furled && k % 2)) { g.fillStyle = 'rgba(210,198,170,.82)'; g.fillRect(22, 3, 94, 20) }
+        g.fillStyle = '#6a5640'; for (let u = 22; u <= 116; u += 11.75) g.fillRect(u, 2.4, 1.6, 21); g.fillRect(22, 21.4, 94, 1.8); g.fillRect(22, 12, 94, 1) }
+      else g.fillRect(22, 2.4, 94, 21)
+      g.restore() } }
+    soft(g, 3, () => sail(26, 22, .45, 'rgba(12,14,10,1)', true))
+    sail(0, 0, 1, null, true)
+    g.fillStyle = '#3a2e24'; g.beginPath(); g.arc(cx, cy + 30, 8, 0, TAU); g.fill(); g.fillStyle = '#6a5640'; g.beginPath(); g.arc(cx - 1.5, cy + 28.5, 4, 0, TAU); g.fill()
+    for (let k = 0; k < 8; k++) sack(g, 300 + (k % 4) * 8, 220 + Math.floor(k / 4) * 6); cart(g, 120, 235, .4); bush(g, 60, 60, 14)
+  }],
+  ['Outdoor kitchen', 'A lean-to of slate on timber posts over a stone bread oven and a long table; firewood, a water barrel and a hearth in the open beside it.', (g, W, H) => {
+    dirt(g, 210, 165, 160, 100, '#94866a')
+    // flagstone floor
+    for (let y = 80; y < 220; y += 15) for (let x = 90 + (y % 30 ? 8 : 0); x < 320; x += 17 + rnd() * 5) { g.fillStyle = mix('#9a9282', '#b6ae9c', rnd()); g.fillRect(x, y, 14 + rnd() * 4, 12) }
+    // the hearth in the open: a ring of stones, the cauldron
+    for (let k = 0; k < 10; k++) { const a = k / 10 * TAU; g.fillStyle = mix('#6e685e', '#a09a8c', .5 + .4 * Math.cos(a + 2.3)); g.beginPath(); g.ellipse(270 + Math.cos(a) * 15, 185 + Math.sin(a) * 12, 5, 4, 0, 0, TAU); g.fill() }
+    g.fillStyle = '#2a201a'; g.beginPath(); g.ellipse(270, 185, 10, 8, 0, 0, TAU); g.fill(); g.fillStyle = '#26282a'; g.beginPath(); g.arc(270, 182, 8, 0, TAU); g.fill(); g.fillStyle = '#4e5a3a'; g.beginPath(); g.arc(270, 182, 5.6, 0, TAU); g.fill()
+    // the long table and benches
+    g.fillStyle = 'rgba(12,14,8,.35)'; g.fillRect(130, 175, 90, 22); g.fillStyle = '#7a5e40'; g.fillRect(126, 170, 90, 20); g.fillStyle = '#6a5038'; g.fillRect(126, 162, 90, 5); g.fillRect(126, 193, 90, 5)
+    for (let k = 0; k < 5; k++) { g.fillStyle = '#b8ae98'; g.beginPath(); g.arc(136 + k * 17, 180, 3.6, 0, TAU); g.fill() }
+    // the lean-to roof over the back, sloping toward the front, on posts
+    castShadow(g, [[80, 60], [330, 60], [330, 130], [80, 130]])
+    plane(g, [[80, 60], [330, 60], [330, 130], [80, 130]], '#5a5e62', .8, 'slate', 'h')
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(80, 128, 250, 2)
+    for (const px of [86, 166, 246, 322]) { g.fillStyle = '#4e3e2e'; g.fillRect(px, 130, 4, 4) }
+    // the bread oven, stone, half under the roof, its flue up through it
+    soft(g, 4, () => { g.fillStyle = 'rgba(12,14,8,.45)'; g.beginPath(); g.ellipse(132, 150, 26, 20, 0, 0, TAU); g.fill() })
+    const gr = g.createRadialGradient(112, 128, 2, 120, 138, 26); gr.addColorStop(0, '#b8a690'); gr.addColorStop(1, '#6e6254'); g.fillStyle = gr; g.beginPath(); g.ellipse(120, 140, 26, 20, 0, 0, TAU); g.fill()
+    g.fillStyle = '#1a1410'; g.beginPath(); g.ellipse(120, 156, 8, 4, 0, Math.PI, TAU); g.fill()
+    logs(g, 340, 200); barrel(g, 70, 190, 6); barrel(g, 82, 196, 5); crate(g, 340, 150); bush(g, 380, 70, 13)
+  }],
+]
+
+const sheet = document.getElementById('sheet')
+CARDS.forEach(([name, note, draw], i) => {
+  seed(17 + i * 31)
+  const W = 440, H = 300, [c, g] = canvas(W, H)
+  ground(g, W, H); draw(g, W, H)
+  // a touch of the game's warm grade over everything
+  g.save(); g.globalCompositeOperation = 'soft-light'; g.fillStyle = 'rgba(255,226,180,.25)'; g.fillRect(0, 0, W, H); g.restore()
+  const fig = document.createElement('figure'); fig.append(c)
+  fig.insertAdjacentHTML('beforeend', `<figcaption><b>${i + 1}. ${name}</b><div>${note}</div></figcaption>`)
+  sheet.append(fig)
+})
+</script>
+</body>
+</html>

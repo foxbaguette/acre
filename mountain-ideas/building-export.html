@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Building Export</title>
+<style>body { margin: 0; background: #556b3a; } img { margin: 4px; background: rgba(0,0,0,.1); max-width: 300px; }</style>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
+</head>
+<body>
+<div id="out"></div>
+<script type="module">
+// Renders every building's pictures for the game, from buildings3d.js: each kind (and farmhouse stage) in its four
+// facings, and its night-glow layer. Called by tools/render-buildings.mjs through the
+// debugging browser: window.exportAll() resolves to { files: { name: dataURL }, meta }.
+import * as THREE from 'three'
+import { build, FOOT, TILT } from './buildings3d.js'
+
+const PX = 80                                              // pixels per tile
+const PAD = [2, 2.6, 3.2, 3]                               // tiles round the footprint: left, top, right, bottom (tall tops, shadows)
+const SHPAD = [5, 3.2, 5, 3.6]                             // the shadows' pictures reach further: low suns throw long shadows
+// where the sun stands for each time of day's shadows (the buildings themselves are lit by midday's)
+const SUNS = { morning: [20, 15, -5], day: [-12, 30, -9], evening: [-20, 15, -5] }
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.outputColorSpace = THREE.SRGBColorSpace
+renderer.setClearColor(0x000000, 0)
+
+function stage(group, w, h, pad = PAD, sunAt = SUNS.day) {
+  const scene = new THREE.Scene()
+  const sun = new THREE.DirectionalLight('#fff1dc', 2.6); sun.position.set(...sunAt); sun.castShadow = true
+  sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 90 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02; sun.shadow.radius = 3
+  scene.add(sun, sun.target, new THREE.HemisphereLight('#cfe0ee', '#4e5a34', .9))
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: .42 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground)
+  scene.add(group)
+  // the camera sees the region round the footprint; a ground row maps straight to a row of the picture (heights rise north by tan(TILT))
+  const Wt = w + pad[0] + pad[2], Dt = h + pad[1] + pad[3], cx = (pad[2] - pad[0]) / 2, cz = (pad[3] - pad[1]) / 2
+  const cam = new THREE.OrthographicCamera(-Wt / 2, Wt / 2, Dt * Math.cos(TILT) / 2, -Dt * Math.cos(TILT) / 2, .1, 200)
+  cam.position.set(cx, 50 * Math.cos(TILT), cz + 50 * Math.sin(TILT)); cam.up.set(0, 1, 0); cam.lookAt(cx, 0, cz)
+  renderer.setSize(Math.round(Wt * PX), Math.round(Dt * PX), false)
+  return { scene, cam, ground }
+}
+const shoot = (s) => { renderer.render(s.scene, s.cam); return renderer.domElement.toDataURL('image/png') }
+// a model point, turned, to picture tiles from the footprint's top-left
+const toPicture = (p, w, h) => [+(p.x + w / 2).toFixed(2), +(p.z + h / 2 - p.y * Math.tan(TILT)).toFixed(2)]
+
+window.exportAll = async () => {
+  const files = {}, meta = { pad: PAD, shpad: SHPAD, chimneys: {}, fountains: {}, lights: {}, lit: [] }
+  const jobs = [...[1, 2, 3, 4, 5].map((s) => ['farmhouse', s]), ['lab', 1], ['bakery', 1], ['silo', 1], ['kitchen', 1], ['nest', 1], ['market', 1]]
+  for (const [kind, st] of jobs) {
+    const base = kind === 'farmhouse' ? `building-farmhouse-${st}` : `building-${kind}`
+    for (let o = 0; o < 4; o++) {
+      const m = build(kind, st), [fw, fh] = FOOT[kind], [w, h] = o % 2 ? [fh, fw] : [fw, fh]
+      m.group.rotation.y = -o * Math.PI / 2
+      const s = stage(m.group, w, h); m.group.updateMatrixWorld(true)
+      const name = `${base}-o${o}`
+      s.ground.visible = false; files[name] = shoot(s); s.ground.visible = true
+      // its shadow alone, under each time of day's sun (the game picks one; at night, midday's, faint)
+      for (const [t, sunAt] of Object.entries(SUNS)) {
+        // hidden, but not in the way: writing no depth, the building cannot cover its own shadow (its ground plate, reaching
+        // past the footprint, cut a strip out of it); it still casts it
+        const keep = new Map(), hide = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false })
+        m.group.traverse((q) => { if (q.isMesh) { keep.set(q, q.material); q.material = hide } })
+        m.group.removeFromParent(); const ss = stage(m.group, w, h, SHPAD, sunAt); m.group.updateMatrixWorld(true)
+        files[`${name}-shadow-${t}`] = shoot(ss)
+        for (const [q, mat] of keep) q.material = mat
+        m.group.removeFromParent(); s.scene.add(m.group)
+      }
+      renderer.setSize(Math.round((w + PAD[0] + PAD[2]) * PX), Math.round((h + PAD[1] + PAD[3]) * PX), false)
+      meta.chimneys[name] = m.smoke.map((p) => toPicture(p.isObject3D ? p.getWorldPosition(new THREE.Vector3()) : p.clone().applyMatrix4(m.group.matrixWorld), w, h))
+      // a fountain: its basin's middle in the picture, its radius, and how far above that its spout shows (tiles)
+      if (m.fountains.length) meta.fountains[name] = m.fountains.map(([wa, tp]) => { const a = wa.getWorldPosition(new THREE.Vector3()), b = tp.getWorldPosition(new THREE.Vector3()); return [...toPicture(a, w, h), .44, +((b.y - a.y) * Math.tan(TILT)).toFixed(2)] })
+      if (o === 0) { meta.lights[base] = m.lights.map(([x, z, ...r]) => [+(x + fw / 2).toFixed(2), +(z + fh / 2).toFixed(2), ...r]) }
+      // the glow layer: everything else only hides what is behind it
+      if (m.glow.length) {
+        if (o === 0) meta.lit.push(base)
+        const keep = new Map(), hide = new THREE.MeshBasicMaterial({ colorWrite: false }), glow = new THREE.MeshBasicMaterial({ color: '#ffc46a' })
+        m.group.traverse((q) => { if (q.isMesh) { keep.set(q, q.material); q.material = m.glow.includes(q) ? glow : hide } }); s.ground.visible = false
+        renderer.render(s.scene, s.cam)
+        const c = document.createElement('canvas'); c.width = renderer.domElement.width; c.height = renderer.domElement.height; const g = c.getContext('2d')
+        g.filter = 'blur(10px)'; g.globalAlpha = .9; g.drawImage(renderer.domElement, 0, 0); g.filter = 'blur(3px)'; g.globalAlpha = 1; g.drawImage(renderer.domElement, 0, 0); g.filter = 'none'; g.drawImage(renderer.domElement, 0, 0)
+        files[name + '-lights'] = c.toDataURL('image/png')
+        for (const [q, mat] of keep) q.material = mat; s.ground.visible = true
+      }
+    }
+  }
+  return { files, meta }
+}
+// a look at what comes out, when opened by hand
+if (!location.hash.includes('quiet')) window.exportAll().then(({ files }) => { for (const [n, u] of Object.entries(files)) { const i = new Image(); i.src = u; i.title = n; document.getElementById('out').append(i) } })
+window.ready = true
+</script>
+</body>
+</html>

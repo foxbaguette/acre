@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fenmark Crisp Medal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, section { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 4px; font-size: 27px; font-weight: 400; }
+  h2 { margin: 28px 0 10px; font-size: 20px; font-weight: 400; }
+  header p { margin: 0; color: var(--soft); max-width: 900px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+  .card.dark { background: #1d2329; border-color: #1d2329; color: #e8e2d4; }
+  .version { display: grid; grid-template-columns: 220px 1fr; align-items: center; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .card.dark .version { border-color: #2e363e; }
+  .version:first-of-type { border-top: 0; }
+  .version b { display: block; font-weight: 400; font-size: 16px; }
+  .version small { color: var(--soft); font-size: 13px; }
+  .card.dark .version small { color: #8a8478; }
+  .sizes { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 18px; }
+  .sizes figure { margin: 0; text-align: center; font-size: 11px; color: var(--soft); }
+  .sizes figure.firm { color: #9a6a2a; }
+  .card.dark .sizes figure { color: #8a8478; } .card.dark .sizes figure.firm { color: #d8a860; }
+  .ic { display: block; margin: 0 auto 4px; }
+  .ic svg { display: block; width: 100%; height: 100%; }
+  .wallets { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 900px; }
+  .row { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; font: 14px system-ui, sans-serif; margin-bottom: 2px; }
+  .row b { display: block; font-weight: 600; } .row small { color: #8a8478; } .row .amt { text-align: right; font-variant-numeric: tabular-nums; }
+  .light .row { background: #fff; } .dark .row { background: #262d34; }
+  .dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 700 11px system-ui; color: #fff; }
+  .market { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; font: 14px system-ui, sans-serif; margin-top: 8px; }
+  .light .market { background: #fff; } .dark .market { background: #262d34; }
+  .hero { display: flex; gap: 24px; align-items: center; justify-content: center; padding: 10px 0; }
+  footer { height: 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>The Fenmark: crisp medal, firm when small</h1>
+  <p>One icon, two cuts: the crisp medal from 48 pixels up; at 32 and below the firm cut of the same medal, its reeds, bulrushes, line and FEN a little heavier so they hold. The sizes in gold-brown numbers are the firm cut. Below, each cut alone at every size for comparison, then in a wallet and on an exchange.</p>
+</header>
+<section><h2>Large</h2><div class="card"><div class="hero" id="hero"></div></div></section>
+<section><h2>Sizes</h2><div id="sizes"></div></section>
+<section><h2>In place</h2><div id="inplace"></div></section>
+<footer></footer>
+<script type="module">
+// the icon itself lives in fenmark-icon.js (also used to write the files)
+import { crisp, firm, forSize } from './fenmark-icon.js'
+const svg = (body, px) => `<span class="ic" style="width:${px}px;height:${px}px"><svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${body}</svg></span>`
+const SIZES = [128, 64, 48, 32, 24, 16]
+function render() {
+  document.getElementById('hero').innerHTML = svg(crisp(), 256) + svg(firm(), 128)
+  for (const bg of ['light', 'dark']) {
+    const card = document.createElement('div'); card.className = 'card ' + bg
+    const line = (name, note, draw) => `<div class="version"><span><b>${name}</b><small>${note}</small></span><div class="sizes">${SIZES.map((px) => `<figure class="${draw === forSize && px <= 32 ? 'firm' : ''}">${svg(draw(px), px)}${px}px</figure>`).join('')}</div></div>`
+    card.innerHTML = line('Crisp medal, firm when small', 'the icon as it would ship: crisp from 48 px, firm at 32 and below', forSize)
+      + line('Crisp only', 'the crisp cut at every size', () => crisp()) + line('Firm only', 'the firm cut at every size', () => firm())
+    document.getElementById('sizes').append(card)
+    const ip = document.createElement('div'); ip.className = 'card ' + bg
+    const row = (icon, name, sym, amt) => `<div class="row">${icon}<span><b>${name}</b><small>${sym}</small></span><span class="amt">${amt}</span></div>`
+    ip.innerHTML = `<div class="wallets"><div>${row('<span class="dot" style="background:#f5a623">W</span>', 'WAX', 'WAXP', '312.44210000')}${row(svg(forSize(32), 32), 'Fenmark', 'FEN', '1,250.00000000')}<div class="market">${svg(forSize(20), 20)}<b>FEN</b><span style="color:#8a8478">/ WAX</span><span style="margin-left:auto">0.04120</span></div></div>
+      <div style="display:flex;gap:14px;align-items:center">${svg(forSize(64), 64)}<span style="font:14px system-ui"><b style="font-size:18px">Fenmark</b><br><span style="color:#8a8478">FEN · token on WAX</span></span></div></div>`
+    document.getElementById('inplace').append(ip)
+  }
+}
+render()
+
+</script>
+</body>
+</html>

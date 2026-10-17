@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wrecks and Reefs</title>
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, section { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 28px; }
+  h1 { margin: 0 0 4px; font-size: 28px; font-weight: 400; }
+  h2 { margin: 30px 0 4px; font-size: 22px; font-weight: 400; }
+  header p, section > p { margin: 0; color: var(--soft); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding: 14px 0 10px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  canvas { display: block; width: 100%; height: auto; }
+  figcaption { padding: 9px 13px 11px; }
+  figcaption b { font-size: 16px; font-weight: 400; }
+  figcaption div { color: var(--soft); font-size: 13.5px; }
+  .reefs { grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); }
+  footer { height: 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Wrecks and reefs, seen through the water</h1>
+  <p>Ideas for the sea floor. Everything is shown as the game would show it: on sand, under water that takes the colour out and tints it blue-green with depth, with light rippling over it.</p>
+</header>
+<section>
+  <h2>Shipwrecks</h2>
+  <p>Ten wrecks, drawn from their real build: planking, ribs, keel, silt drifted over them, growth on them.</p>
+  <div class="grid" id="wrecks"></div>
+</section>
+<section>
+  <h2>Reefs</h2>
+  <p>Ten kinds of reef. Each is a way of growing, not a fixed drawing: it fills whatever shape it is given. Left a small patch, right a large stretch.</p>
+  <div class="grid reefs" id="reefs"></div>
+</section>
+<footer></footer>
+<script>
+// ---------- tools ----------
+let S = 1
+const rnd = () => { S = (S * 16807) % 2147483647; return S / 2147483647 }
+const seed = (n) => { S = n * 7919 % 2147483647 || 1 }
+const TAU = Math.PI * 2
+const lerp = (a, b, t) => a + (b - a) * t
+const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join('') }
+// value noise, for silt, light and edges
+const hash = (x, y) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s) }
+const vnoise = (x, y) => { const i = Math.floor(x), j = Math.floor(y), u = x - i, v = y - j, a = hash(i, j), b = hash(i + 1, j), c = hash(i, j + 1), d = hash(i + 1, j + 1), su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v); return lerp(lerp(a, b, su), lerp(c, d, su), sv) }
+const fbm = (x, y) => vnoise(x, y) * .55 + vnoise(x * 2.1, y * 2.1) * .3 + vnoise(x * 4.3, y * 4.3) * .15
+
+function canvas(w, h) { const c = document.createElement('canvas'); c.width = w * 2; c.height = h * 2; const g = c.getContext('2d'); g.scale(2, 2); return [c, g] }
+// an organic closed shape as a path
+function blobPath(g, cx, cy, rx, ry, wob = .2, n = 12, rot = 0) {
+  const pts = [...Array(n)].map((_, k) => { const a = k / n * TAU, r = 1 + (rnd() - .5) * 2 * wob; const x = Math.cos(a) * rx * r, y = Math.sin(a) * ry * r; return [cx + x * Math.cos(rot) - y * Math.sin(rot), cy + x * Math.sin(rot) + y * Math.cos(rot)] })
+  g.beginPath()
+  const m = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], s = m(pts[n - 1], pts[0]); g.moveTo(s[0], s[1])
+  for (let k = 0; k < n; k++) { const e = m(pts[k], pts[(k + 1) % n]); g.quadraticCurveTo(pts[k][0], pts[k][1], e[0], e[1]) }
+  g.closePath()
+}
+function soft(g, blur, fn) { g.save(); g.filter = `blur(${blur}px)`; fn(); g.restore() }
+
+// the sea floor: rippled sand, darker patches of silt and weed
+function seabed(g, w, h, s = 1) {
+  const img = g.createImageData(w * 2, h * 2)
+  for (let y = 0; y < h * 2; y++) for (let x = 0; x < w * 2; x++) {
+    const X = x / 2 / s, Y = y / 2 / s, n = fbm(X * .025 + 3, Y * .025), rip = Math.sin((X + Y * .4) * .32 + fbm(X * .04, Y * .04) * 5) * .5 + .5
+    const k = (y * w * 2 + x) * 4, base = rgb('#C9B98C'), dark = rgb('#8E8662')
+    const t = Math.min(1, Math.max(0, (n - .45) * 2.2)) * .8 + rip * .12
+    img.data[k] = lerp(base[0], dark[0], t); img.data[k + 1] = lerp(base[1], dark[1], t); img.data[k + 2] = lerp(base[2], dark[2], t); img.data[k + 3] = 255
+  }
+  g.putImageData(img, 0, 0)
+}
+// looking through the water: colour taken out, tinted toward the sea with depth, light rippling over the floor
+function water(c, g, w, h, depth = .45) {
+  const [t, tg] = canvas(w, h)
+  tg.filter = `saturate(${1 - depth * .5}) brightness(${1 - depth * .12})`; tg.drawImage(c, 0, 0, w, h)
+  g.clearRect(0, 0, w, h); g.drawImage(t, 0, 0, w, h)
+  g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = mix('#F2FCFA', '#5EC4CC', depth); g.fillRect(0, 0, w, h); g.restore()
+  g.save(); g.globalAlpha = depth * .28; g.fillStyle = '#1E8A9C'; g.fillRect(0, 0, w, h); g.restore()
+  // caustics: bright wavy lines of light
+  g.save(); g.globalCompositeOperation = 'screen'; g.strokeStyle = 'rgba(220,250,244,.09)'; g.lineWidth = 2.2; g.filter = 'blur(1.2px)'
+  for (let k = 0; k < 26; k++) { g.beginPath(); const y0 = rnd() * h; g.moveTo(-10, y0); for (let x = 0; x <= w + 10; x += 8) g.lineTo(x, y0 + Math.sin(x * .05 + k) * 9 + Math.sin(x * .13 + k * 2.7) * 4 + (vnoise(x * .03, k) - .5) * 14); g.stroke() }
+  g.restore()
+}
+
+// ---------- shipwrecks ----------
+// a hull outline along its length: width at t (0 stern .. 1 bow)
+const hullW = (t, sq = .3) => Math.pow(Math.sin(Math.min(1, t * 1.12) * Math.PI * .5 + .05), .6) * (t > .72 ? Math.max(0, 1 - Math.pow((t - .72) / .28, 1.7)) : 1) * (t < .06 ? .6 + t / .06 * .4 * (1 - sq) + sq * .4 : 1)
+function hullPath(g, L, W, sq = .3, cut0 = 0, cut1 = 1) {
+  const n = 40, top = [], bot = []
+  for (let k = 0; k <= n; k++) { const t = lerp(cut0, cut1, k / n), x = -L / 2 + t * L, w = W / 2 * hullW(t, sq); top.push([x, -w]); bot.push([x, w]) }
+  g.beginPath(); g.moveTo(top[0][0], top[0][1]); for (const p of top) g.lineTo(p[0], p[1]); for (const p of bot.reverse()) g.lineTo(p[0], p[1]); g.closePath()
+}
+function wood(g, L, W, c1, c2, n = 9) { for (let k = 0; k < n; k++) { const y = -W / 2 + (k + .5) * W / n; g.strokeStyle = mix(c1, c2, rnd() * .7); g.lineWidth = W / n * .82; g.beginPath(); g.moveTo(-L / 2, y + (rnd() - .5)); g.lineTo(L / 2, y + (rnd() - .5)); g.stroke() } }
+function encrust(g, L, W, n, cols = ['#7E8A5A', '#6E7A54', '#A88E7A', '#C8C2A8']) {
+  for (let k = 0; k < n; k++) { const x = (rnd() - .5) * L, y = (rnd() - .5) * W, r = 1 + rnd() * 3.5; g.fillStyle = cols[Math.floor(rnd() * cols.length)]; g.globalAlpha = .5 + rnd() * .4; g.beginPath(); g.ellipse(x, y, r, r * .8, rnd() * 3, 0, TAU); g.fill() }
+  g.globalAlpha = 1
+}
+function silt(g, w, h, amount, rx = 1, ry = 1) {   // sand drifted over parts of the wreck: soft-edged, from noise
+  g.save(); g.filter = 'blur(3px)'; g.fillStyle = '#C2B286'
+  for (let k = 0; k < amount; k++) { const x = rnd() * w, y = rnd() * h; g.globalAlpha = .55 + rnd() * .4; blobPath(g, x, y, (14 + rnd() * 26) * rx, (8 + rnd() * 16) * ry, .35); g.fill() }
+  g.restore()
+}
+function shadowUnder(g, draw) { g.save(); g.translate(6, 8); g.filter = 'blur(5px)'; g.globalAlpha = .45; g.fillStyle = '#20281E'; draw(); g.fill(); g.restore() }
+function ribs(g, x0, x1, W, step, col = '#5A4A38', w = 3.4) { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; for (let x = x0; x <= x1; x += step) { const t = (x + 120) / 240, hw = W / 2 * hullW(Math.min(1, Math.max(0, t))); g.beginPath(); g.moveTo(x, -hw); g.quadraticCurveTo(x + 3, 0, x, hw); g.stroke() } }
+
+const WRECKS = [
+  ['Upturned rowboat', 'A small boat lying keel up, half sunk in the sand.', (g) => {
+    g.rotate(.4); shadowUnder(g, () => hullPath(g, 120, 44, .4))
+    hullPath(g, 120, 44, .4); g.save(); g.clip(); g.fillStyle = '#6A5A46'; g.fillRect(-70, -30, 140, 60); wood(g, 130, 44, '#7A6650', '#5A4A3A', 6)
+    g.strokeStyle = '#4A3C2E'; g.lineWidth = 5; g.beginPath(); g.moveTo(-60, 0); g.lineTo(60, 0); g.stroke()  // the keel
+    const sh = g.createLinearGradient(0, -22, 0, 22); sh.addColorStop(0, 'rgba(255,240,210,.2)'); sh.addColorStop(1, 'rgba(0,0,0,.3)'); g.fillStyle = sh; g.fillRect(-70, -30, 140, 60)
+    encrust(g, 110, 36, 40); g.restore(); g.rotate(-.4) }],
+  ['Fishing sloop', 'A single-masted boat on an even keel; its mast and boom lie across the sand.', (g) => {
+    g.rotate(-.3); shadowUnder(g, () => hullPath(g, 170, 56))
+    hullPath(g, 170, 56); g.fillStyle = '#5E4E3C'; g.fill(); g.save(); hullPath(g, 158, 46); g.clip(); g.fillStyle = '#7A6852'; g.fillRect(-90, -30, 180, 60); wood(g, 170, 46, '#8A765E', '#6A5844', 8)
+    g.fillStyle = '#2A241C'; g.fillRect(-10, -12, 30, 24); encrust(g, 150, 44, 50); g.restore()
+    g.strokeStyle = '#4E4232'; g.lineWidth = 6; g.lineCap = 'round'; g.beginPath(); g.moveTo(20, 0); g.lineTo(60, 95); g.stroke(); g.lineWidth = 4; g.beginPath(); g.moveTo(20, 0); g.lineTo(-60, 38); g.stroke()
+    g.rotate(.3) }],
+  ['Brig, broken in two', 'A merchant brig that broke its back; the halves lie apart, barrels spilled between.', (g) => {
+    g.rotate(.25)
+    const half = (c0, c1, dx, dr) => { g.save(); g.translate(dx, 0); g.rotate(dr); shadowUnder(g, () => hullPath(g, 240, 70, .3, c0, c1)); hullPath(g, 240, 70, .3, c0, c1); g.fillStyle = '#5A4A3A'; g.fill(); g.clip(); wood(g, 260, 70, '#7E6A52', '#5A4836', 11); g.fillStyle = 'rgba(30,24,18,.85)'; hullPath(g, 200, 44, .3, c0, c1); g.fill(); ribs(g, -110, 110, 52, 11); encrust(g, 240, 66, 70); g.restore() }
+    half(0, .46, -22, -.08); half(.54, 1, 24, .1)
+    for (let k = 0; k < 7; k++) { const x = (rnd() - .5) * 60, y = 30 + rnd() * 50; g.fillStyle = '#6A5038'; g.beginPath(); g.ellipse(x, y, 7, 5.5, rnd(), 0, TAU); g.fill(); g.fillStyle = '#4A3826'; g.beginPath(); g.ellipse(x, y, 4.4, 3.4, 0, 0, TAU); g.fill() }
+    g.rotate(-.25) }],
+  ['Galleon', 'A great warship: its stern castle collapsed, the bow stripped to the ribs, cannons fallen out on the sand.', (g) => {
+    g.rotate(-.18); shadowUnder(g, () => hullPath(g, 280, 84, .5))
+    hullPath(g, 280, 84, .5, 0, .62); g.fillStyle = '#4E4032'; g.fill(); g.save(); g.clip(); wood(g, 300, 84, '#6E5C48', '#4E3E2E', 12); g.fillStyle = 'rgba(28,22,16,.8)'; g.fillRect(-60, -26, 70, 52); g.restore()
+    ribs(g, 40, 128, 84, 9, '#5E4C3A', 4)
+    g.strokeStyle = '#3E3428'; g.lineWidth = 6; g.beginPath(); g.moveTo(-140, 0); g.lineTo(140, 0); g.stroke()   // the keel running through
+    for (let k = 0; k < 5; k++) { const x = -90 + k * 40 + rnd() * 10, y = (k % 2 ? 1 : -1) * (58 + rnd() * 16); g.strokeStyle = '#2E302C'; g.lineWidth = 7; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 22 * Math.cos(rnd() * 3), y + 10 * Math.sin(rnd() * 3)); g.stroke() }
+    g.save(); hullPath(g, 280, 84, .5, 0, .62); g.clip(); encrust(g, 170, 80, 110); g.restore()
+    g.rotate(.18) }],
+  ['Longship skeleton', 'Only the keel and ribs of an old longship are left, a fish-bone shape in the sand.', (g) => {
+    g.rotate(.5); g.strokeStyle = '#5A4C3A'; g.lineCap = 'round'
+    shadowUnder(g, () => { g.beginPath(); g.rect(-130, -4, 260, 8) })
+    g.lineWidth = 7; g.beginPath(); g.moveTo(-130, 0); g.quadraticCurveTo(0, 4, 130, 0); g.stroke()
+    for (let x = -112; x <= 112; x += 14) { const hw = 34 * Math.sin((x + 130) / 260 * Math.PI) * (.6 + rnd() * .5); g.lineWidth = 3.4; g.beginPath(); g.moveTo(x, 0); g.quadraticCurveTo(x - 4, -hw * .7, x - 6, -hw); g.stroke(); if (rnd() > .25) { g.beginPath(); g.moveTo(x, 0); g.quadraticCurveTo(x - 4, hw * .7, x - 6, hw); g.stroke() } }
+    g.lineWidth = 6; g.beginPath(); g.moveTo(130, 0); g.quadraticCurveTo(146, -6, 150, -24); g.stroke(); g.beginPath(); g.moveTo(-130, 0); g.quadraticCurveTo(-146, -6, -150, -22); g.stroke()
+    encrust(g, 250, 60, 50); g.rotate(-.5) }],
+  ['Steamship', 'An iron hull, rusted through in places; its funnel has fallen and lies beside it, the portholes still in a row.', (g) => {
+    g.rotate(-.1); shadowUnder(g, () => hullPath(g, 290, 70, .9))
+    hullPath(g, 290, 70, .9); g.fillStyle = '#5E4636'; g.fill(); g.save(); g.clip()
+    for (let k = 0; k < 900; k++) { const x = (rnd() - .5) * 300, y = (rnd() - .5) * 72; g.fillStyle = rnd() > .5 ? '#8A5A3A' : '#4A3A30'; g.globalAlpha = .35; g.fillRect(x, y, 3 + rnd() * 6, 2 + rnd() * 3) }
+    g.globalAlpha = 1; g.strokeStyle = 'rgba(30,24,20,.55)'; g.lineWidth = 1; for (let x = -130; x < 130; x += 18) { g.beginPath(); g.moveTo(x, -40); g.lineTo(x, 40); g.stroke() }
+    g.fillStyle = '#2A221C'; g.fillRect(-30, -16, 50, 32); g.fillRect(50, -12, 26, 24)
+    for (let x = -120; x < 110; x += 15) { g.fillStyle = '#2A2420'; g.beginPath(); g.arc(x, -29, 2.4, 0, TAU); g.fill() }
+    encrust(g, 280, 66, 70, ['#7E8A5A', '#A86E4A', '#C8C2A8']); g.restore()
+    g.save(); g.translate(30, 62); g.rotate(.2); g.fillStyle = '#4A3A30'; g.fillRect(-36, -11, 72, 22); g.fillStyle = '#2A2220'; g.beginPath(); g.ellipse(36, 0, 6, 11, 0, 0, TAU); g.fill(); g.restore()
+    g.rotate(.1) }],
+  ['Junk', 'A sea-going junk; its battened sail has come down and lies spread on the sand like a fan.', (g) => {
+    g.rotate(.2); shadowUnder(g, () => hullPath(g, 200, 70, .95))
+    g.save(); g.translate(-10, -70); g.rotate(-.25); g.fillStyle = 'rgba(160,110,80,.75)'; g.beginPath(); g.moveTo(0, 0); for (let k = 0; k <= 6; k++) { const a = -.9 + k * .3; g.lineTo(Math.cos(a) * 90, Math.sin(a) * 90 - 10) } g.closePath(); g.fill()
+    g.strokeStyle = '#4A3A2A'; g.lineWidth = 2; for (let k = 0; k <= 6; k++) { const a = -.9 + k * .3; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * 90, Math.sin(a) * 90 - 10); g.stroke() } g.restore()
+    hullPath(g, 200, 70, .95); g.fillStyle = '#5A4434'; g.fill(); g.save(); g.clip(); wood(g, 220, 70, '#7A6048', '#56402E', 10); g.fillStyle = '#2A2018'; g.fillRect(-40, -18, 60, 36); encrust(g, 190, 66, 60); g.restore()
+    g.rotate(-.2) }],
+  ['Sailboat on its side', 'A small yacht lying over on its side; the mast runs out across the sand, rigging trailing.', (g) => {
+    g.rotate(-.4); g.save(); g.scale(1, .55); shadowUnder(g, () => hullPath(g, 150, 60)); hullPath(g, 150, 60); g.fillStyle = '#A8A296'; g.fill(); g.restore()
+    g.save(); g.scale(1, .55); hullPath(g, 150, 60); g.clip(); const sh = g.createLinearGradient(0, -30, 0, 30); sh.addColorStop(0, '#C8C2B4'); sh.addColorStop(1, '#6E6A60'); g.fillStyle = sh; g.fillRect(-80, -40, 160, 80); encrust(g, 140, 56, 60, ['#7E8A5A', '#6E7A54', '#9A9A8A']); g.restore()
+    g.strokeStyle = '#8A8478'; g.lineWidth = 4; g.lineCap = 'round'; g.beginPath(); g.moveTo(10, -6); g.lineTo(30, -130); g.stroke()
+    g.strokeStyle = 'rgba(80,76,66,.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(30, -130); g.quadraticCurveTo(70, -60, 70, -10); g.stroke(); g.beginPath(); g.moveTo(30, -130); g.quadraticCurveTo(-30, -70, -60, -14); g.stroke()
+    g.rotate(.4) }],
+  ['Barge', 'A flat-bottomed barge: its deck has caved in, leaving a long open box of dark water.', (g) => {
+    g.rotate(.12); shadowUnder(g, () => { g.beginPath(); g.roundRect(-130, -42, 260, 84, 10) })
+    g.beginPath(); g.roundRect(-130, -42, 260, 84, 10); g.fillStyle = '#4E4234'; g.fill(); g.save(); g.clip(); wood(g, 260, 84, '#6E5E48', '#4E4030', 12)
+    g.fillStyle = 'rgba(24,20,16,.88)'; g.beginPath(); g.roundRect(-110, -28, 200, 56, 4); g.fill()
+    g.strokeStyle = '#5E4E3A'; g.lineWidth = 5; for (let x = -100; x < 90; x += 26) { if (rnd() > .3) { g.beginPath(); g.moveTo(x, -28); g.lineTo(x + (rnd() - .5) * 8, 28); g.stroke() } }
+    encrust(g, 250, 80, 70); g.restore(); g.rotate(-.12) }],
+  ['Debris field', 'What is left when a wreck has broken up: planks and ribs strewn about, an anchor, a sea chest.', (g) => {
+    g.lineCap = 'round'
+    for (let k = 0; k < 22; k++) { const x = (rnd() - .5) * 260, y = (rnd() - .5) * 150, a = rnd() * 3, l = 20 + rnd() * 50; g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = 'rgba(20,26,20,.35)'; g.fillRect(-l / 2 + 3, -2, l, 7); g.fillStyle = mix('#7A6650', '#4E4030', rnd()); g.fillRect(-l / 2, -4, l, 6.5); g.restore() }
+    for (let k = 0; k < 4; k++) { const x = -80 + k * 50, y = 20 + rnd() * 30; g.strokeStyle = '#5A4A38'; g.lineWidth = 3.5; g.beginPath(); g.arc(x, y, 18, Math.PI * 1.1, Math.PI * 1.9); g.stroke() }
+    g.save(); g.translate(70, -30); g.rotate(.6); g.strokeStyle = '#3A3A36'; g.lineWidth = 5; g.beginPath(); g.moveTo(0, -30); g.lineTo(0, 22); g.moveTo(-16, -22); g.lineTo(16, -22); g.stroke(); g.beginPath(); g.arc(0, 8, 16, .2, Math.PI - .2); g.stroke(); g.restore()
+    g.save(); g.translate(-60, -40); g.rotate(-.3); g.fillStyle = '#5A3E28'; g.fillRect(-16, -11, 32, 22); g.strokeStyle = '#3A2A1A'; g.lineWidth = 2; g.strokeRect(-16, -11, 32, 22); g.beginPath(); g.moveTo(-16, 0); g.lineTo(16, 0); g.stroke(); g.restore()
+    encrust(g, 260, 150, 60) }],
+]
+
+// ---------- reefs: ways of growing, filling any shape ----------
+// a shape to fill, with a test for whether a point lies inside it
+function area(cx, cy, rx, ry) {
+  const lobes = [...Array(5)].map(() => [rnd() * TAU, .15 + rnd() * .25, 1 + Math.floor(rnd() * 3)])
+  const rAt = (a) => 1 + lobes.reduce((s, [p, amp, f]) => s + Math.sin(a * f + p) * amp / f, 0) * .6
+  const inside = (x, y) => { const dx = (x - cx) / rx, dy = (y - cy) / ry, a = Math.atan2(dy, dx); return Math.hypot(dx, dy) / rAt(a) }   // < 1 inside; how far in
+  const path = (g, grow = 1) => { g.beginPath(); for (let k = 0; k <= 60; k++) { const a = k / 60 * TAU, r = rAt(a) * grow; const x = cx + Math.cos(a) * rx * r, y = cy + Math.sin(a) * ry * r; k ? g.lineTo(x, y) : g.moveTo(x, y) } g.closePath() }
+  return { cx, cy, rx, ry, inside, path }
+}
+// points scattered over an area, denser toward its middle
+function scatter(A, n, edge = .9) { const out = []; for (let k = 0; k < n * 6 && out.length < n; k++) { const x = A.cx + (rnd() * 2 - 1) * A.rx * 1.4, y = A.cy + (rnd() * 2 - 1) * A.ry * 1.4, d = A.inside(x, y); if (d < edge && rnd() > d * d * .7) out.push([x, y, d]) } return out.sort((a, b) => a[1] - b[1]) }
+function dome(g, x, y, r, c, ry = r * .85) {
+  g.fillStyle = 'rgba(20,30,24,.4)'; g.beginPath(); g.ellipse(x + r * .25, y + r * .3, r, ry, 0, 0, TAU); g.fill()
+  const gr = g.createRadialGradient(x - r * .35, y - r * .35, r * .1, x, y, r * 1.05); gr.addColorStop(0, mix(c, '#FFF4E4', .35)); gr.addColorStop(.6, c); gr.addColorStop(1, mix(c, '#20201A', .4))
+  g.fillStyle = gr; g.beginPath(); g.ellipse(x, y, r, ry, 0, 0, TAU); g.fill()
+}
+const REEF_IDEAS = [
+  ['Brain coral garden', 'Rounded brain and boulder corals of many sizes; a large reef is simply more of them, crowded closer in the middle.', (g, A) => {
+    const cols = ['#B8907A', '#A89A6E', '#8E9672', '#A88878', '#BCA67E']
+    for (const [x, y, d] of scatter(A, Math.round(A.rx * A.ry / 90))) { const r = (5 + rnd() * 12) * (1.2 - d * .5); dome(g, x, y, r, cols[Math.floor(rnd() * cols.length)])
+      g.strokeStyle = 'rgba(60,40,30,.35)'; g.lineWidth = .9; for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(x, y, r * (.3 + k * .22), r * (.25 + k * .18), rnd(), 0, TAU * .8); g.stroke() } } }],
+  ['Staghorn thicket', 'A thicket of branching coral that knits into one mass; small patches are single bushes, large areas a dense tangle.', (g, A) => {
+    const tip = (x, y, a, l, w, d, c) => { const bx = x + Math.cos(a) * l, by = y + Math.sin(a) * l; g.strokeStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x, y); g.lineTo(bx, by); g.stroke(); if (d > 0) { tip(bx, by, a - .5 + (rnd() - .5) * .3, l * .72, w * .78, d - 1, c); if (rnd() > .25) tip(bx, by, a + .5 + (rnd() - .5) * .3, l * .72, w * .78, d - 1, c) } else { g.fillStyle = mix(c, '#F2E6D2', .4); g.beginPath(); g.arc(bx, by, w * .7, 0, TAU); g.fill() } }
+    g.lineCap = 'round'; soft(g, 4, () => { A.path(g, .95); g.fillStyle = 'rgba(40,44,30,.45)'; g.fill() })
+    for (const [x, y, d] of scatter(A, Math.round(A.rx * A.ry / 60))) { const c = mix('#B49A78', '#C8A884', rnd()); for (let k = 0; k < 4; k++) tip(x, y, rnd() * TAU, 6 + rnd() * 6, 2.6, 2, c) } }],
+  ['Table corals', 'Broad flat plates stacked in tiers, each lit on its rim; they overlap like lily pads on a big reef.', (g, A) => {
+    for (const [x, y, d] of scatter(A, Math.round(A.rx * A.ry / 160))) { const r = 9 + rnd() * 16, c = mix('#9AA48A', '#B8A890', rnd())
+      g.fillStyle = 'rgba(16,26,20,.45)'; g.beginPath(); g.ellipse(x + 5, y + 6, r, r * .8, 0, 0, TAU); g.fill()
+      g.fillStyle = c; g.beginPath(); g.ellipse(x, y, r, r * .8, 0, 0, TAU); g.fill()
+      g.strokeStyle = mix(c, '#3A3A2E', .35); g.lineWidth = .7; for (let k = 0; k < 14; k++) { const a = k / 14 * TAU; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * r * .95, y + Math.sin(a) * r * .76); g.stroke() }
+      g.strokeStyle = mix(c, '#FFF6E0', .4); g.lineWidth = 1.6; g.beginPath(); g.ellipse(x, y, r, r * .8, 0, Math.PI * .9, Math.PI * 1.7); g.stroke() } }],
+  ['Spur and groove', 'A fringing reef: fingers of coral reach seaward with sand channels between, the way waves shape a reef front.', (g, A) => {
+    soft(g, 3, () => { A.path(g, 1); g.fillStyle = '#6E7058'; g.fill() })
+    g.save(); A.path(g, 1); g.clip(); g.globalCompositeOperation = 'source-atop'
+    for (let k = -20; k < 20; k++) { const x0 = A.cx + k * 11 + rnd() * 4; g.fillStyle = 'rgba(200,186,140,.85)'; g.beginPath(); g.moveTo(x0, A.cy - A.ry * 1.5); g.bezierCurveTo(x0 + 8, A.cy, x0 - 6, A.cy + A.ry * .5, x0 + 3, A.cy + A.ry * 1.5); g.lineTo(x0 + 6, A.cy + A.ry * 1.5); g.bezierCurveTo(x0 - 2, A.cy + A.ry * .5, x0 + 12, A.cy, x0 + 5, A.cy - A.ry * 1.5); g.fill() }
+    g.restore()
+    for (const [x, y] of scatter(A, Math.round(A.rx * A.ry / 70), .85)) dome(g, x, y, 2.5 + rnd() * 4, mix('#9A8E70', '#B49480', rnd())) }],
+  ['Patch reef with halo', 'A mound of coral with a ring of bare pale sand around it, grazed clean by the fish that live on the reef.', (g, A) => {
+    soft(g, 8, () => { A.path(g, 1.45); g.fillStyle = 'rgba(232,222,186,.85)'; g.fill() })
+    soft(g, 4, () => { A.path(g, .95); g.fillStyle = '#5E6450'; g.fill() })
+    for (const [x, y, d] of scatter(A, Math.round(A.rx * A.ry / 75))) dome(g, x, y, (3 + rnd() * 9) * (1.2 - d * .6), mix('#8E9070', '#B6967E', rnd())) }],
+  ['Seagrass and bommies', 'A meadow of seagrass rippling one way, with single coral heads standing in it here and there.', (g, A) => {
+    g.lineCap = 'round'
+    for (let k = 0; k < A.rx * A.ry / 3; k++) { const x = A.cx + (rnd() * 2 - 1) * A.rx * 1.3, y = A.cy + (rnd() * 2 - 1) * A.ry * 1.3, d = A.inside(x, y); if (d > 1 + rnd() * .15) continue
+      g.strokeStyle = mix('#5E7044', '#8A9A5A', rnd()); g.globalAlpha = .7; g.lineWidth = 1.3; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + 4, y - 4, x + 9, y - 3); g.stroke() }
+    g.globalAlpha = 1; for (const [x, y] of scatter(A, Math.max(1, Math.round(A.rx * A.ry / 900)), .8)) dome(g, x, y, 7 + rnd() * 9, mix('#A88E78', '#B4A27A', rnd())) }],
+  ['Kelp bed', 'Tall kelp from the rocky bottom, its fronds streaming with the current and floats along them; it grows as a forest.', (g, A) => {
+    g.lineCap = 'round'; soft(g, 5, () => { A.path(g, 1); g.fillStyle = 'rgba(40,46,30,.5)'; g.fill() })
+    for (const [x, y] of scatter(A, Math.round(A.rx * A.ry / 110))) { const l = 22 + rnd() * 30, c = mix('#6E6A36', '#8E8240', rnd())
+      g.strokeStyle = c; g.lineWidth = 3; g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + l * .3, y - 8, x + l * .6, y + 6, x + l, y - 2); g.stroke()
+      for (let k = 1; k < 5; k++) { const t = k / 5, px = x + l * t, py = y + Math.sin(t * 6) * 3; g.fillStyle = mix(c, '#4E4A24', .3); g.beginPath(); g.ellipse(px, py - 3, 5, 2, -.4, 0, TAU); g.fill(); g.beginPath(); g.ellipse(px, py + 3, 5, 2, .4, 0, TAU); g.fill() } } }],
+  ['Ring reef', 'Coral grows round the rim and leaves a pale lagoon of sand inside; small ones are a ring, large ones a broken atoll.', (g, A) => {
+    for (let k = 0; k < A.rx * A.ry / 20; k++) { const a = rnd() * TAU, x = A.cx + Math.cos(a) * A.rx * (.72 + rnd() * .3), y = A.cy + Math.sin(a) * A.ry * (.72 + rnd() * .3); if (A.inside(x, y) > 1.05) continue; dome(g, x, y, 2.5 + rnd() * 5, mix('#8E9070', '#B49A7E', rnd())) }
+    soft(g, 6, () => { A.path(g, .55); g.fillStyle = 'rgba(226,216,176,.7)'; g.fill() }) }],
+  ['Sponge garden', 'Barrel, tube and fan sponges in soft dull purples, ochres and greys, standing apart on rock.', (g, A) => {
+    soft(g, 4, () => { A.path(g, .9); g.fillStyle = 'rgba(70,70,60,.45)'; g.fill() })
+    for (const [x, y] of scatter(A, Math.round(A.rx * A.ry / 140))) { const t = rnd(), c = ['#8A7690', '#A89466', '#7E8478', '#9A7A6E'][Math.floor(rnd() * 4)]
+      if (t < .4) { dome(g, x, y, 6 + rnd() * 6, c); g.fillStyle = mix(c, '#1A1410', .6); g.beginPath(); g.ellipse(x, y, 3.2, 2.6, 0, 0, TAU); g.fill() }
+      else if (t < .75) for (let k = 0; k < 4; k++) { const a = rnd() * TAU, d = rnd() * 6; dome(g, x + Math.cos(a) * d, y + Math.sin(a) * d, 2.4 + rnd() * 2, c); g.fillStyle = mix(c, '#1A1410', .6); g.beginPath(); g.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, 1.1, 0, TAU); g.fill() }
+      else { g.fillStyle = c; g.globalAlpha = .8; g.beginPath(); g.moveTo(x, y); g.arc(x, y, 12, -2.4, -.7); g.closePath(); g.fill(); g.globalAlpha = 1 } } }],
+  ['Rocky reef', 'Dark boulders furred with algae turf, crusted pink where coralline algae grows, urchins tucked in the cracks.', (g, A) => {
+    for (const [x, y, d] of scatter(A, Math.round(A.rx * A.ry / 100))) { const r = (6 + rnd() * 14) * (1.2 - d * .5)
+      g.fillStyle = 'rgba(20,24,18,.45)'; blobPath(g, x + r * .25, y + r * .3, r, r * .8, .25); g.fill()
+      g.fillStyle = mix('#5A5E4C', '#76705A', rnd()); blobPath(g, x, y, r, r * .8, .25); g.fill()
+      g.fillStyle = 'rgba(176,130,128,.55)'; blobPath(g, x - r * .2, y - r * .2, r * .45, r * .3, .4); g.fill()
+      for (let k = 0; k < 2; k++) if (rnd() > .5) { const ux = x + (rnd() - .5) * r * 1.6, uy = y + r * .7; g.fillStyle = '#2A2228'; g.beginPath(); g.arc(ux, uy, 2.4, 0, TAU); g.fill() } } }],
+]
+
+// ---------- the sheet ----------
+const wrecks = document.getElementById('wrecks')
+WRECKS.forEach(([name, note, draw], i) => {
+  seed(31 + i * 17)
+  const W = 360, H = 260, [c, g] = canvas(W, H)
+  seabed(g, W, H)
+  g.save(); g.translate(W / 2, H / 2); g.lineJoin = 'round'; draw(g); g.restore()
+  seed(77 + i); silt(g, W, H, 7, 1, .8)
+  seed(5 + i); water(c, g, W, H, .42)
+  const fig = document.createElement('figure'); fig.append(c); fig.insertAdjacentHTML('beforeend', `<figcaption><b>${i + 1}. ${name}</b><div>${note}</div></figcaption>`); wrecks.append(fig)
+})
+const reefs = document.getElementById('reefs')
+REEF_IDEAS.forEach(([name, note, draw], i) => {
+  const W = 480, H = 240, [c, g] = canvas(W, H)
+  seabed(g, W, H)
+  seed(101 + i * 13); g.save(); draw(g, area(78, 120, 34, 26)); g.restore()                 // a small patch
+  seed(203 + i * 13); g.save(); draw(g, area(310, 120, 135, 82)); g.restore()               // a large stretch
+  seed(9 + i); water(c, g, W, H, .4)
+  const fig = document.createElement('figure'); fig.append(c); fig.insertAdjacentHTML('beforeend', `<figcaption><b>${String.fromCharCode(65 + i)}. ${name}</b><div>${note}</div></figcaption>`); reefs.append(fig)
+})
+// ---------- export for the game: a wreck or a table-coral plate on a clear background ----------
+window.exportWreck = (i) => { seed(31 + i * 17); const W = 360, H = 260, [c, g] = canvas(W, H); g.save(); g.translate(W / 2, H / 2); g.lineJoin = 'round'; WRECKS[i][2](g); g.restore(); return c.toDataURL('image/png') }
+window.exportPlate = (k) => {
+  seed(500 + k * 7); const W = 72, H = 72, [c, g] = canvas(W, H), x = 34, y = 34, r = 27, col = ['#9AA48A', '#A8A88E', '#B4A890', '#8E9E8A', '#A89C86'][k % 5]
+  g.fillStyle = 'rgba(16,26,20,.45)'; g.filter = 'blur(2px)'; g.beginPath(); g.ellipse(x + 4, y + 5, r, r * .82, 0, 0, TAU); g.fill(); g.filter = 'none'
+  blobPath(g, x, y, r, r * .82, .08, 14); g.fillStyle = col; g.fill()
+  g.save(); blobPath(g, x, y, r, r * .82, .08, 14); g.clip()
+  const gr = g.createRadialGradient(x - r * .3, y - r * .3, r * .1, x, y, r); gr.addColorStop(0, 'rgba(255,248,228,.22)'); gr.addColorStop(1, 'rgba(30,40,30,.2)'); g.fillStyle = gr; g.fillRect(0, 0, W, H)
+  g.strokeStyle = mix(col, '#3A3A2E', .35); g.lineWidth = .8; for (let j = 0; j < 22; j++) { const a = j / 22 * TAU; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r * .82); g.stroke() }
+  g.fillStyle = mix(col, '#3A3A2E', .3); g.beginPath(); g.arc(x, y, 2.2, 0, TAU); g.fill(); g.restore()
+  g.strokeStyle = mix(col, '#FFF6E0', .45); g.lineWidth = 1.8; g.beginPath(); g.ellipse(x, y, r - 1, r * .82 - 1, 0, Math.PI * .9, Math.PI * 1.7); g.stroke()
+  return c.toDataURL('image/png') }
+</script>
+</body>
+</html>

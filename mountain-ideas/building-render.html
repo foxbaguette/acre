@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Island Showcase</title>
+<style>
+  :root { --paper: #efe6d2; --ink: #2f2a22; --soft: #7a6f5c; }
+  html, body { margin: 0; height: 100%; background: #1d3440; color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  #view { position: fixed; inset: 0; }
+  .note { position: fixed; left: 16px; top: 16px; max-width: 420px; padding: 12px 16px; background: rgba(239, 230, 210, .94); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }
+  .note h1 { margin: 0 0 4px; font-size: 21px; font-weight: 400; }
+  .note p { margin: 0; color: var(--soft); font-size: 14px; }
+  .note .row { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .note button { border: 1px solid #c8b998; background: #fbf7ee; border-radius: 5px; padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+  .note button[aria-pressed="true"] { background: #a5452d; color: #fbf7ee; border-color: #a5452d; }
+</style>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }</script>
+</head>
+<body>
+<div id="view"></div>
+<div class="note">
+  <h1>All our buildings, on one island</h1>
+  <p>Modelled in 3D with real materials and rendered from the game's camera: farmhouse, research lab, windmill, two silos, outdoor kitchen, egg nest in its pen, torches along the path. Drag to look around, scroll to zoom.</p>
+  <div class="row"><button data-t="day" aria-pressed="true">day</button><button data-t="evening">evening</button><button data-t="night">night</button></div>
+</div>
+<script type="module">
+import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+// ---------- tools ----------
+let S = 7
+const rnd = () => (S = S * 16807 % 2147483647) / 2147483647
+const TAU = Math.PI * 2
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+const mix = (a, b, t) => { const A = hex(a), B = hex(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * Math.max(0, Math.min(1, t))).toString(16).padStart(2, '0')).join('') }
+function canvasTex(w, h, draw, rep = [1, 1]) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); draw(g, w, h)
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.repeat.set(...rep); return t
+}
+const speck = (g, w, h, n, cols, s = [1, 3]) => { for (let k = 0; k < n; k++) { g.fillStyle = cols[Math.floor(rnd() * cols.length)]; g.fillRect(rnd() * w, rnd() * h, s[0] + rnd() * (s[1] - s[0]), s[0] + rnd() * (s[1] - s[0])) } }
+
+// ---------- materials (each texture is one world unit square unless said otherwise) ----------
+const T = {
+  // roof courses run up and down the canvas (along the ridge); four to a unit
+  clay: () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#7e4a38'; g.fillRect(0, 0, w, h)
+    for (let c = 0; c < 4; c++) for (let y = (c % 2) * 18; y < h + 40; y += 36) { const col = mix('#8e5a44', rnd() < .5 ? '#5e3428' : '#a87458', rnd() * .5); g.fillStyle = col; g.fillRect(c * 64 + 2, y - 36, 60, 34); g.fillStyle = 'rgba(255,230,200,.18)'; g.fillRect(c * 64 + 2, y - 36, 6, 34); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(c * 64 + 56, y - 36, 6, 34) }
+    speck(g, w, h, 900, ['rgba(40,30,20,.15)', 'rgba(90,100,60,.18)', 'rgba(230,210,180,.1)']) }),
+  shingle: () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#4e4238'; g.fillRect(0, 0, w, h)
+    for (let c = 0; c < 5; c++) for (let y = -rnd() * 30; y < h; ) { const l = 22 + rnd() * 26; g.fillStyle = mix('#5e5044', rnd() < .5 ? '#2e2620' : '#8a7a64', rnd() * .5); g.fillRect(c * 51 + 1, y, 49, l - 2); g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(c * 51 + 45, y, 5, l - 2); y += l }
+    speck(g, w, h, 1200, ['rgba(20,16,12,.2)', 'rgba(110,120,80,.2)', 'rgba(200,190,160,.08)']) }),
+  slate: () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#4a5058'; g.fillRect(0, 0, w, h)
+    for (let c = 0; c < 5; c++) for (let y = (c % 2) * 24; y < h + 48; y += 48) { g.fillStyle = mix('#58606a', rnd() < .5 ? '#2e343a' : '#7a828a', rnd() * .4); g.fillRect(c * 51 + 1, y - 48, 49, 46); g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(c * 51 + 44, y - 48, 6, 46) }
+    speck(g, w, h, 900, ['rgba(20,20,20,.2)', 'rgba(200,200,190,.1)']) }),
+  plaster: () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#c4b89c'; g.fillRect(0, 0, w, h); speck(g, w, h, 3000, ['rgba(120,100,70,.12)', 'rgba(255,250,230,.12)'], [1, 4])
+    for (let k = 0; k < 8; k++) { g.fillStyle = 'rgba(110,90,60,.08)'; g.beginPath(); g.ellipse(rnd() * w, rnd() * h, 20 + rnd() * 40, 10 + rnd() * 30, 0, 0, TAU); g.fill() } }),
+  stone: () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#5a554c'; g.fillRect(0, 0, w, h)
+    for (let y = 0, r = 0; y < h; y += 32, r++) for (let x = -(r % 2) * 24; x < w; ) { const sw = 34 + rnd() * 26; g.fillStyle = mix('#8a8274', rnd() < .5 ? '#5e584e' : '#aea490', rnd() * .6); g.beginPath(); g.roundRect(x + 2, y + 2, sw - 4, 28, 6); g.fill(); x += sw }
+    speck(g, w, h, 1500, ['rgba(0,0,0,.12)', 'rgba(255,250,230,.08)']) }),
+  planks: () => canvasTex(256, 256, (g, w, h) => { for (let x = 0; x < w; x += 32) { g.fillStyle = mix('#6e5440', rnd() < .5 ? '#4a3828' : '#8e7054', rnd() * .5); g.fillRect(x, 0, 31, h); g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(x + 30, 0, 2, h) }
+    for (let k = 0; k < 200; k++) { g.fillStyle = 'rgba(30,20,10,.15)'; g.fillRect(rnd() * w, rnd() * h, 1, 10 + rnd() * 30) } }),
+  metal: () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#8e9290'; g.fillRect(0, 0, w, h)
+    for (let x = 0; x < w; x += 32) { g.fillStyle = mix('#9a9e9a', '#6e7270', rnd() * .4); g.fillRect(x, 0, 30, h); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(x, 0, 2, h); g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(x + 29, 0, 2, h) }
+    for (let y = 30; y < h; y += 64) for (let x = 6; x < w; x += 16) { g.fillStyle = 'rgba(40,40,40,.5)'; g.fillRect(x, y, 3, 3) }
+    for (let k = 0; k < 14; k++) { g.fillStyle = 'rgba(130,80,40,.18)'; g.fillRect(rnd() * w, rnd() * h, 4 + rnd() * 6, 30 + rnd() * 80) } }),
+  straw: () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#a88e4e'; g.fillRect(0, 0, w, h); for (let k = 0; k < 2500; k++) { const x = rnd() * w, y = rnd() * h, a = rnd() * TAU; g.strokeStyle = mix('#6e5a2a', '#e2cc86', rnd()); g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * 14, y + Math.sin(a) * 14); g.stroke() } }),
+  flag: () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#6a645a'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 52) for (let x = -rnd() * 30; x < w; ) { const sw = 50 + rnd() * 40; g.fillStyle = mix('#9a9284', '#bab2a0', rnd()); g.beginPath(); g.roundRect(x + 3, y + 3, sw - 6, 46, 8); g.fill(); x += sw } speck(g, w, h, 1500, ['rgba(0,0,0,.1)', 'rgba(80,100,50,.2)']) }),
+  clayDome: () => canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#a8785a'; g.fillRect(0, 0, w, h); speck(g, w, h, 3000, ['rgba(80,50,30,.18)', 'rgba(240,210,170,.15)', 'rgba(30,20,10,.12)'], [2, 6]) }),
+  bark: () => canvasTex(128, 128, (g, w, h) => { g.fillStyle = '#4e3e2e'; g.fillRect(0, 0, w, h); for (let k = 0; k < 300; k++) { g.fillStyle = rnd() < .5 ? 'rgba(20,14,8,.3)' : 'rgba(140,110,80,.2)'; g.fillRect(rnd() * w, rnd() * h, 2, 8 + rnd() * 16) } }),
+}
+const repeated = (t, x, y) => { t.repeat.set(x, y); return t }
+const M = (map, o = {}) => new THREE.MeshStandardMaterial({ map, roughness: .92, metalness: 0, ...o })
+const flat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: .9, ...o })
+
+// ---------- scene ----------
+const W = 40, D = 28
+const scene = new THREE.Scene()
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.outputColorSpace = THREE.SRGBColorSpace
+document.getElementById('view').append(renderer.domElement)
+// the game's camera: almost straight down, tipped a little toward the north so walls show as a sliver
+const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 400)
+const TILT = 18 * Math.PI / 180
+cam.position.set(W / 2, 80, D / 2 + 80 * Math.tan(TILT)); cam.lookAt(W / 2, 0, D / 2); cam.zoom = 1
+const controls = new OrbitControls(cam, renderer.domElement); controls.target.set(W / 2, 0, D / 2); controls.update(); controls.enableRotate = false; controls.screenSpacePanning = true; controls.zoomSpeed = 1.2
+const fit = () => { const a = innerWidth / innerHeight, hh = 15; cam.left = -hh * a; cam.right = hh * a; cam.top = hh; cam.bottom = -hh; cam.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight) }
+addEventListener('resize', fit); fit(); window.__s = { cam, controls, THREE }
+
+const sun = new THREE.DirectionalLight('#fff1dc', 2.6); sun.position.set(W / 2 - 22, 30, D / 2 - 16); sun.target.position.set(W / 2, 0, D / 2)
+sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 100 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02; sun.shadow.radius = 3
+scene.add(sun, sun.target)
+const sky = new THREE.HemisphereLight('#cfe0ee', '#4e5a34', .9); scene.add(sky)
+
+// ---------- the ground: one painted texture for the whole island ----------
+const PX = 48
+const island = (() => { const lobes = [...Array(6)].map(() => [rnd() * TAU, .05 + rnd() * .09, 2 + Math.floor(rnd() * 4)]); return (a) => 1 + lobes.reduce((s, [p, m, f]) => s + Math.sin(a * f + p) * m, 0) })()
+const coast = (g, s) => { g.beginPath(); for (let k = 0; k <= 120; k++) { const a = k / 120 * TAU, r = island(a) * s; const x = (W / 2 + Math.cos(a) * 18 * r) * PX, y = (D / 2 + Math.sin(a) * 12.2 * r) * PX; k ? g.lineTo(x, y) : g.moveTo(x, y) } g.closePath() }
+const PATHS = [[[5, 16.5], [36, 16.5]], [[9.5, 14], [9.5, 16.5]], [[17, 13], [17, 16.5]], [[23.5, 13], [23.5, 16.5]], [[29.5, 13.2], [29.5, 16.5]], [[11, 16.5], [11, 18]]]
+const groundTex = canvasTex(W * PX, D * PX, (g, w, h) => {
+  const sea = g.createRadialGradient(w / 2, h / 2, 100, w / 2, h / 2, h * .62); sea.addColorStop(0, '#2a6c78'); sea.addColorStop(1, '#173a4c'); g.fillStyle = sea; g.fillRect(0, 0, w, h)
+  g.filter = 'blur(30px)'; g.fillStyle = '#4ea0a2'; coast(g, 1.1); g.fill()
+  g.filter = 'blur(6px)'; g.fillStyle = '#c4b088'; coast(g, 1.0); g.fill()
+  g.filter = 'blur(10px)'; g.fillStyle = '#5a6a36'; coast(g, .92); g.fill(); g.filter = 'none'
+  g.save(); coast(g, .93); g.clip()
+  for (let k = 0; k < 90; k++) { g.filter = 'blur(40px)'; g.fillStyle = rnd() < .5 ? 'rgba(40,52,24,.4)' : 'rgba(140,146,80,.25)'; g.beginPath(); g.ellipse(rnd() * w, rnd() * h, 60 + rnd() * 150, 40 + rnd() * 100, rnd() * 3, 0, TAU); g.fill() }
+  g.filter = 'none'; speck(g, w, h, 160000, ['rgba(26,34,16,.18)', 'rgba(170,170,110,.12)', 'rgba(60,80,30,.2)'], [1, 3])
+  // yards of beaten earth, the field, the paths
+  for (const [x, y, rx, ry] of [[9.5, 15.2, 3.2, 1.6], [24, 14.5, 3, 1.8], [11, 19.5, 2.8, 1.8], [30, 14.2, 3.2, 1.6]]) { g.filter = 'blur(10px)'; g.fillStyle = 'rgba(132,114,82,.9)'; g.beginPath(); g.ellipse(x * PX, y * PX, rx * PX, ry * PX, 0, 0, TAU); g.fill() }
+  g.filter = 'none'; g.fillStyle = '#4e3c2a'; g.fillRect(21 * PX, 18.6 * PX, 11 * PX, 5.4 * PX)
+  for (let y = 18.8; y < 24; y += .26) { g.fillStyle = 'rgba(30,20,12,.5)'; g.fillRect(21 * PX, y * PX, 11 * PX, 4) }
+  g.lineCap = 'round'; g.lineJoin = 'round'
+  for (const p of PATHS) { g.filter = 'blur(3px)'; g.strokeStyle = '#8e7a58'; g.lineWidth = .95 * PX; g.beginPath(); p.forEach(([x, y], i) => (i ? g.lineTo(x * PX, y * PX) : g.moveTo(x * PX, y * PX))); g.stroke(); g.filter = 'none'; g.strokeStyle = 'rgba(176,156,118,.6)'; g.lineWidth = .45 * PX; g.stroke() }
+  speck(g, w, h, 6000, ['rgba(120,100,70,.0)'])
+  g.restore()
+})
+const groundMesh = new THREE.Mesh(new THREE.PlaneGeometry(W * 3, D * 3), M(groundTex, { roughness: .95 }))
+groundTex.repeat.set(1, 1); groundTex.wrapS = groundTex.wrapT = THREE.ClampToEdgeWrapping
+groundMesh.geometry = new THREE.PlaneGeometry(W, D); groundMesh.rotation.x = -Math.PI / 2; groundMesh.position.set(W / 2, 0, D / 2); groundMesh.receiveShadow = true; scene.add(groundMesh)
+const seaOut = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), flat('#173a4c')); seaOut.rotation.x = -Math.PI / 2; seaOut.position.set(W / 2, -.02, D / 2); scene.add(seaOut)
+
+// ---------- building parts ----------
+const add = (parent, mesh, x = 0, y = 0, z = 0) => { mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh }
+const box = (w, h, d, mat) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat)
+// a gable roof, ridge along z, over walls w wide and d deep, the eaves at y
+function gableRoof(parent, w, d, y, rise, mat, ov = .22) {
+  const half = w / 2 + ov, L = Math.hypot(half, rise), a = Math.atan2(rise, half), dd = d + ov * 2
+  for (const s of [-1, 1]) { const grp = new THREE.Group(); grp.position.set(s * half / 2, y + rise / 2 - .06, 0); grp.rotation.z = -s * a
+    const t = mat(); repeated(t.map, L, dd); const m = add(grp, new THREE.Mesh(new THREE.BoxGeometry(L, .08, dd), t)); parent.add(grp) }
+  const ridge = add(parent, new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, dd, 8), flat('#3e3428')), 0, y + rise + .01, 0); ridge.rotation.x = Math.PI / 2
+}
+function gableEnds(parent, w, d, y, rise, mat) {
+  const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(0, rise * .96); sh.closePath()
+  for (const z of [-d / 2, d / 2]) { const m = add(parent, new THREE.Mesh(new THREE.ShapeGeometry(sh), mat), 0, y, z); m.material.side = THREE.DoubleSide }
+}
+const windowGlow = []
+function opening(parent, x, y, z, w, h, door = false, face = 1) {
+  const f = add(parent, box(w + .08, h + .08, .05, flat('#4a3a2a')), x, y, z + face * .02)
+  const pane = new THREE.MeshStandardMaterial({ color: door ? '#5a3e26' : '#232c34', roughness: door ? .9 : .3, emissive: '#ffb050', emissiveIntensity: 0 })
+  add(parent, box(w, h, .06, pane), x, y, z + face * .035); if (!door) windowGlow.push(pane)
+}
+function crate(x, z, s = .32) { const m = add(scene, box(s, s, s, M(repeated(T.planks(), 1, 1))), x, s / 2, z); m.rotation.y = rnd() }
+function barrel(x, z) { const m = add(scene, new THREE.Mesh(new THREE.CylinderGeometry(.17, .17, .42, 14), M(repeated(T.planks(), 2, 1))), x, .21, z); add(scene, new THREE.Mesh(new THREE.CylinderGeometry(.175, .175, .03, 14), flat('#3a3632', { metalness: .4 })), x, .32, z) }
+function sack(x, z) { const m = add(scene, new THREE.Mesh(new THREE.SphereGeometry(.16, 10, 8), flat(mix('#b8a888', '#cbbd9c', rnd()))), x, .1, z); m.scale.set(1.2, .7, .9); m.rotation.y = rnd() * 3 }
+function tree(x, z, s = 1, conifer = false) {
+  add(scene, new THREE.Mesh(new THREE.CylinderGeometry(.08 * s, .12 * s, .9 * s, 7), M(T.bark())), x, .45 * s, z)
+  const leaf = flat(conifer ? mix('#2a4430', '#3a5a3a', rnd()) : mix('#3e5a2a', '#5a7438', rnd()), { roughness: 1 })
+  if (conifer) for (let k = 0; k < 3; k++) add(scene, new THREE.Mesh(new THREE.ConeGeometry((.9 - k * .22) * s, 1 * s, 9), leaf), x, (1 + k * .55) * s, z)
+  else for (let k = 0; k < 7; k++) { const a = rnd() * TAU, d = rnd() * .45 * s; add(scene, new THREE.Mesh(new THREE.IcosahedronGeometry((.45 + rnd() * .3) * s, 1), leaf), x + Math.cos(a) * d, (1.2 + rnd() * .5) * s, z + Math.sin(a) * d) }
+}
+
+// ---------- the buildings, on their tiles (x0, z0 the footprint's top-left; south is +z) ----------
+// farmhouse 3x4: plastered walls on a stone plinth, a clay-tiled gable roof, a chimney
+{ const g = new THREE.Group(); g.position.set(8 + 1.5, 0, 9.6 + 2); scene.add(g)
+  const w = 2.5, d = 3.4, wh = 1.35
+  add(g, box(w + .1, .35, d + .1, M(repeated(T.stone(), 2.6, .35))), 0, .175, 0)
+  add(g, box(w, wh - .35, d, M(repeated(T.plaster(), 2.5, 1))), 0, .35 + (wh - .35) / 2, 0)
+  gableEnds(g, w, d, wh, 1.0, M(repeated(T.plaster(), 2.5, 1)))
+  gableRoof(g, w, d, wh, 1.0, () => M(T.clay()))
+  add(g, box(.42, 1.0, .42, M(repeated(T.stone(), .5, 1))), .62, wh + .9, -.6)
+  opening(g, 0, .55, d / 2, .44, .9, true); opening(g, -.8, .85, d / 2, .38, .36); opening(g, .8, .85, d / 2, .38, .36); opening(g, 0, 1.75, d / 2, .3, .3)
+  for (const z of [-1, 0, 1]) { opening(g, w / 2 + .01, .85, z, .05, .36); }
+  crate(8.2, 14.9); crate(8.55, 15.1); barrel(11.1, 14.8); barrel(11.4, 15.05); sack(10.8, 15.3) }
+
+// research lab 4x4: a round stone workshop under a slate cone, a glass lantern on top
+{ const g = new THREE.Group(); g.position.set(15 + 2, 0, 9 + 2); scene.add(g)
+  add(g, new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.65, 1.6, 40), M(repeated(T.stone(), 10, 1.6))), 0, .8, 0)
+  const roof = M(repeated(T.slate(), 6, 2)); add(g, new THREE.Mesh(new THREE.ConeGeometry(1.95, 1.7, 40, 1, true), roof), 0, 1.6 + .85, 0).material.side = THREE.DoubleSide
+  const glass = new THREE.MeshStandardMaterial({ color: '#7e9a9a', roughness: .15, metalness: .3, emissive: '#ffc070', emissiveIntensity: 0 }); windowGlow.push(glass)
+  add(g, new THREE.Mesh(new THREE.CylinderGeometry(.32, .32, .4, 16), glass), 0, 3.15, 0); add(g, new THREE.Mesh(new THREE.ConeGeometry(.42, .36, 16), flat('#4e6a5e', { metalness: .5, roughness: .5 })), 0, 3.53, 0)
+  for (const a of [Math.PI / 2, Math.PI / 2 - .7, Math.PI / 2 + .7]) { const x = Math.cos(a) * 1.58, z = Math.sin(a) * 1.58, door = a === Math.PI / 2; const o = new THREE.Group(); o.position.set(x, 0, z); o.rotation.y = -a + Math.PI / 2; g.add(o); opening(o, 0, door ? .5 : .95, 0, door ? .5 : .32, door ? .9 : .4, door) }
+  add(g, new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .9, 8), flat('#8a5a34', { metalness: .6, roughness: .5 })), .9, 2.3, .4)
+  crate(14.9, 14.4); crate(15.3, 14.6); crate(19, 14.5) }
+
+// windmill 3x3: a tapering stone tower, a shingled cap, four sails standing upright into the wind
+let sails
+{ const g = new THREE.Group(); g.position.set(22 + 1.5, 0, 9.8 + 1.5); scene.add(g)
+  add(g, new THREE.Mesh(new THREE.CylinderGeometry(.85, 1.25, 3.4, 32), M(repeated(T.stone(), 8, 3.4))), 0, 1.7, 0)
+  const cap = add(g, new THREE.Mesh(new THREE.SphereGeometry(1.0, 24, 12, 0, TAU, 0, Math.PI / 2), M(repeated(T.shingle(), 5, 1.5))), 0, 3.4, 0); cap.scale.set(1, .85, 1.12)
+  opening(g, 0, .55, 1.22, .45, .9, true); opening(g, 0, 1.8, 1.05, .28, .34); opening(g, 0, 2.7, .93, .26, .3)
+  // the windshaft runs out of the cap to the south; the sails turn about it in an upright plane
+  const shaft = add(g, new THREE.Mesh(new THREE.CylinderGeometry(.09, .09, .9, 10), flat('#3e3226')), 0, 3.85, .95); shaft.rotation.x = Math.PI / 2 + .12
+  sails = new THREE.Group(); sails.position.set(0, 3.9, 1.38); sails.rotation.x = -.12; g.add(sails)
+  const wood = flat('#5a4634'), cloth = new THREE.MeshStandardMaterial({ color: '#cfc2a2', roughness: 1, side: THREE.DoubleSide })
+  for (let k = 0; k < 4; k++) { const arm = new THREE.Group(); arm.rotation.z = k * Math.PI / 2 + .35; sails.add(arm)
+    add(arm, box(3.0, .1, .08, wood), 1.5, 0, 0)
+    for (let u = .5; u <= 3.0; u += .25) add(arm, box(.035, .5, .04, wood), u, .27, 0)
+    add(arm, box(2.5, .035, .04, wood), 1.75, .52, 0)
+    if (k % 2 === 0) add(arm, new THREE.Mesh(new THREE.PlaneGeometry(2.45, .44), cloth), 1.75, .28, .03) }
+  add(sails, new THREE.Mesh(new THREE.SphereGeometry(.16, 12, 8), flat('#3e3226')))
+  for (let k = 0; k < 6; k++) sack(22.6 + (k % 3) * .3, 14.2 + Math.floor(k / 3) * .3) }
+
+// two silos 2x2: riveted steel on a concrete pad, domed tops, a ladder up each
+{ add(scene, box(5.2, .12, 2.4, flat('#8a8680')), 30, .06, 12.2)
+  for (const x of [28.6, 31.4]) { const g = new THREE.Group(); g.position.set(x, .12, 12.2); scene.add(g)
+    add(g, new THREE.Mesh(new THREE.CylinderGeometry(.92, .92, 3.4, 32), M(repeated(T.metal(), 6, 3.4), { metalness: .35, roughness: .55 })), 0, 1.7, 0)
+    add(g, new THREE.Mesh(new THREE.SphereGeometry(.94, 32, 12, 0, TAU, 0, Math.PI / 2), M(repeated(T.metal(), 6, 1), { metalness: .4, roughness: .5 })), 0, 3.4, 0).scale.y = .45
+    for (const y of [.8, 1.7, 2.6]) add(g, new THREE.Mesh(new THREE.TorusGeometry(.93, .03, 6, 40), flat('#4e5250', { metalness: .6 })), 0, y, 0).rotation.x = Math.PI / 2
+    for (const dx of [-.1, .1]) add(g, box(.03, 3.4, .03, flat('#3e3e3c', { metalness: .6 })), dx, 1.7, .95)
+    add(g, new THREE.Mesh(new THREE.CylinderGeometry(.12, .16, .2, 12), flat('#5e625e', { metalness: .5 })), 0, 3.85, 0) }
+  for (let k = 0; k < 6; k++) sack(29.4 + (k % 3) * .32, 13.9 + Math.floor(k / 3) * .3) }
+
+// outdoor kitchen 3x2: a flagstone patio, a clay bread oven with its flue, a hearth with a cauldron, a table and benches
+const fires = []
+{ const g = new THREE.Group(); g.position.set(9 + 1.5, 0, 18 + 1); scene.add(g)
+  add(g, box(3, .08, 2, M(repeated(T.flag(), 3, 2))), 0, .04, 0)
+  add(g, box(1.2, .35, 1.0, M(repeated(T.stone(), 1.2, .35))), -.8, .26, -.35)
+  const oven = add(g, new THREE.Mesh(new THREE.SphereGeometry(.55, 24, 12, 0, TAU, 0, Math.PI / 2), M(T.clayDome())), -.8, .43, -.35); oven.scale.set(1, .8, .9)
+  add(g, new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, .5, 10), flat('#5a4636')), -.8, .95, -.6)
+  const mouth = new THREE.MeshStandardMaterial({ color: '#2a160e', emissive: '#ff7020', emissiveIntensity: .6 }); fires.push(mouth); add(g, box(.24, .18, .05, mouth), -.8, .55, .12)
+  for (let k = 0; k < 9; k++) { const a = k / 9 * TAU; add(g, new THREE.Mesh(new THREE.DodecahedronGeometry(.08), flat('#7a746a')), .55 + Math.cos(a) * .28, .1, -.35 + Math.sin(a) * .22) }
+  const embers = new THREE.MeshStandardMaterial({ color: '#3a1a0e', emissive: '#ff6a20', emissiveIntensity: .8 }); fires.push(embers); add(g, new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, .03, 14), embers), .55, .1, -.35)
+  add(g, new THREE.Mesh(new THREE.SphereGeometry(.17, 14, 10), flat('#2a2a2a', { metalness: .5, roughness: .4 })), .55, .42, -.35)
+  for (const a of [0, 2.1, 4.2]) { const l = add(g, box(.025, .8, .025, flat('#2a2a2a')), .55 + Math.cos(a) * .2, .45, -.35 + Math.sin(a) * .2); l.rotation.set(Math.sin(a) * .3, 0, -Math.cos(a) * .3) }
+  add(g, box(1.6, .06, .55, M(repeated(T.planks(), 1.6, .55))), .2, .48, .5); for (const [x, z] of [[-.5, .3], [.9, .3], [-.5, .7], [.9, .7]]) add(g, box(.06, .45, .06, flat('#4e3a28')), x, .23, z)
+  for (const z of [.12, .88]) add(g, box(1.5, .05, .18, flat('#6a5038')), .2, .3, z)
+  for (let k = 0; k < 4; k++) add(g, new THREE.Mesh(new THREE.CylinderGeometry(.07, .05, .04, 12), flat('#b8a888')), -.3 + k * .35, .53, .5)
+  for (let k = 0; k < 8; k++) add(scene, new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .55, 8), M(T.bark())), 8.3, .08 + Math.floor(k / 4) * .14, 18.4 + (k % 4) * .15).rotation.x = Math.PI / 2
+  barrel(12.3, 18.3) }
+
+// egg nest 2x2 in a fenced pen: a deep ring of straw on hay
+{ const cx = 16, cz = 20.2
+  add(scene, new THREE.Mesh(new THREE.CylinderGeometry(.9, .95, .06, 30), M(repeated(T.straw(), 2, 2))), cx, .03, cz)
+  add(scene, new THREE.Mesh(new THREE.TorusGeometry(.55, .26, 14, 32), M(repeated(T.straw(), 4, 1))), cx, .2, cz).rotation.x = Math.PI / 2
+  add(scene, box(.5, .28, .32, M(T.straw())), cx + .95, .14, cz + .6)
+  const post = flat('#6a5644'), rail = flat('#7e6a54')
+  const pen = [[13.8, 18.4], [18.3, 18.4], [18.3, 22.2], [13.8, 22.2]]
+  for (let i = 0; i < 4; i++) { const [a, b] = [pen[i], pen[(i + 1) % 4]], len = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.round(len / .7)
+    if (i === 0) continue                                          // the side to the path is open
+    for (let k = 0; k <= n; k++) add(scene, box(.08, .5, .08, post), a[0] + (b[0] - a[0]) * k / n, .25, a[1] + (b[1] - a[1]) * k / n)
+    for (const y of [.22, .4]) { const r = add(scene, box(len, .045, .045, rail), (a[0] + b[0]) / 2, y, (a[1] + b[1]) / 2); r.rotation.y = -Math.atan2(b[1] - a[1], b[0] - a[0]) } } }
+
+// torches along the path
+const flames = []
+for (const x of [14, 20.3, 26.5, 33]) { add(scene, new THREE.Mesh(new THREE.CylinderGeometry(.04, .05, .9, 8), flat('#4e3a28')), x, .45, 17.2)
+  add(scene, new THREE.Mesh(new THREE.CylinderGeometry(.11, .07, .12, 10, 1, true), flat('#2e2c2a', { metalness: .5, side: THREE.DoubleSide })), x, .93, 17.2)
+  const fm = new THREE.MeshStandardMaterial({ color: '#ffb040', emissive: '#ff8a20', emissiveIntensity: 2.2 }); const f = add(scene, new THREE.Mesh(new THREE.ConeGeometry(.07, .26, 10), fm), x, 1.1, 17.2); f.castShadow = false
+  const pl = new THREE.PointLight('#ffa040', 0, 4.5, 1.6); pl.position.set(x, 1.2, 17.2); scene.add(pl); flames.push([f, pl]) }
+
+// the field: rows of wheat, a rail fence round it
+{ const n = 900, stalk = new THREE.InstancedMesh(new THREE.ConeGeometry(.06, .34, 5), flat('#b8a048', { roughness: 1 }), n), m = new THREE.Matrix4(); let k = 0
+  for (let z = 18.9; z < 23.9 && k < n; z += .26) for (let x = 21.2; x < 31.9 && k < n; x += .3 + rnd() * .1) { m.makeTranslation(x, .17, z); stalk.setMatrixAt(k++, m) }
+  stalk.count = k; stalk.castShadow = true; stalk.receiveShadow = true; scene.add(stalk) }
+// trees and bushes round the edges
+for (const [x, z, s, c] of [[5, 9, 1.1, 0], [6.4, 7.5, 1, 1], [7.5, 6.2, 1.2, 0], [5.2, 12, .9, 0], [34, 10, 1.1, 1], [35.2, 12.5, 1, 0], [33.5, 8, .9, 0], [36, 18, 1.1, 1], [34.5, 21, 1, 0], [6, 20, 1, 1], [7, 22.5, 1.1, 0], [19.5, 7.2, .9, 0], [26, 7, 1, 1]]) tree(x, z, s, !!c)
+
+// ---------- daytime ----------
+const TIMES = { day: { sun: 2.6, sky: .9, col: '#fff1dc', exp: 1.05, glow: 0, fire: .6, torch: 0 }, evening: { sun: 1.4, sky: .55, col: '#ffb070', exp: 1.0, glow: .9, fire: 1.2, torch: 2.5 }, night: { sun: .15, sky: .22, col: '#8090c0', exp: 1.1, glow: 1.6, fire: 2, torch: 6 } }
+let time = TIMES.day
+const setTime = (k) => { time = TIMES[k]; sun.intensity = time.sun; sun.color.set(time.col); sky.intensity = time.sky; renderer.toneMappingExposure = time.exp; for (const m of windowGlow) m.emissiveIntensity = time.glow; for (const m of fires) m.emissiveIntensity = time.fire; document.querySelectorAll('[data-t]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.t === k))) }
+document.querySelectorAll('[data-t]').forEach((b) => b.addEventListener('click', () => setTime(b.dataset.t)))
+
+renderer.setAnimationLoop((ms) => {
+  const t = ms / 1000
+  if (sails) sails.rotation.z = t * .5
+  for (const [f, pl] of flames) { const k = 1 + .15 * Math.sin(t * 13 + f.position.x) * Math.sin(t * 7.3); f.scale.set(1, k, 1); pl.intensity = time.torch * k }
+  renderer.render(scene, cam)
+})
+</script>
+</body>
+</html>

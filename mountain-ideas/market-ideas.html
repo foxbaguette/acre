@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Ideas</title>
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.45 Georgia, serif; }
+  header, section { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 4px; font-size: 27px; font-weight: 400; }
+  header p { margin: 0; color: var(--soft); max-width: 900px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 16px 0 6px; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .pair { display: grid; grid-template-columns: 1.55fr 1fr; background: #6b7a42; }
+  .pair img { display: block; width: 100%; height: auto; }
+  figcaption { padding: 8px 12px 11px; font-size: 14px; color: var(--soft); }
+  figcaption b { color: var(--ink); font-weight: 400; font-size: 16px; }
+  footer { height: 40px; }
+</style>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
+</head>
+<body>
+<header>
+  <h1>The Market: four ideas, 4 × 5 tiles</h1>
+  <p>Each rendered the way the game shows it: by day on the left (the dashed line is the 4 × 5 plot), and at dusk on the right, smaller, about as big as it would be on screen. Canvas in muted, sun-faded colours, no stripes. All four are open to the south, where the path comes in.</p>
+</header>
+<section><div class="grid" id="grid"></div></section>
+<footer></footer>
+<script type="module">
+import * as THREE from 'three'
+import { build, TILT } from './buildings3d.js'
+
+const W = 4, H = 5, PAD = [1, 2.6, 1.6, 1.4]
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.outputColorSpace = THREE.SRGBColorSpace
+function shot(variant, PX, dusk) {
+  const scene = new THREE.Scene()
+  const sun = new THREE.DirectionalLight(dusk ? '#ffb27a' : '#fff1dc', dusk ? 1.1 : 2.6); sun.position.set(dusk ? -20 : -12, dusk ? 12 : 30, -5); sun.castShadow = true
+  sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10, near: 1, far: 80 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .02
+  scene.add(sun, sun.target, new THREE.HemisphereLight(dusk ? '#5a6a8a' : '#cfe0ee', '#3a4428', dusk ? .55 : .9))
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: dusk ? '#4e5c34' : '#6e8040', roughness: 1 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground)
+  const path = new THREE.Mesh(new THREE.PlaneGeometry(.9, 1.6), new THREE.MeshStandardMaterial({ color: '#9a8460', roughness: 1 })); path.rotation.x = -Math.PI / 2; path.position.set(0, .004, 3.2); path.receiveShadow = true; scene.add(path)
+  const m = build('market', 1, variant); scene.add(m.group)
+  if (dusk) for (const p of m.glow) { p.material = p.material.clone(); p.material.emissive = new THREE.Color('#ffb05a'); p.material.emissiveIntensity = 1.6 }
+  const Wt = W + PAD[0] + PAD[2], Dt = H + PAD[1] + PAD[3], cx = (PAD[2] - PAD[0]) / 2, cz = (PAD[3] - PAD[1]) / 2
+  const cam = new THREE.OrthographicCamera(-Wt / 2, Wt / 2, Dt * Math.cos(TILT) / 2, -Dt * Math.cos(TILT) / 2, .1, 200)
+  cam.position.set(cx, 50 * Math.cos(TILT), cz + 50 * Math.sin(TILT)); cam.lookAt(cx, 0, cz)
+  renderer.setSize(Math.round(Wt * PX), Math.round(Dt * PX), false); renderer.render(scene, cam)
+  const c = document.createElement('canvas'); c.width = renderer.domElement.width; c.height = renderer.domElement.height; const g = c.getContext('2d')
+  g.drawImage(renderer.domElement, 0, 0)
+  if (!dusk) { g.setLineDash([8, 6]); g.lineWidth = 2; g.strokeStyle = 'rgba(255,248,226,.9)'; g.strokeRect(PAD[0] * PX, PAD[1] * PX, W * PX, H * PX)
+    g.setLineDash([]); g.strokeStyle = 'rgba(255,248,226,.22)'; g.lineWidth = 1
+    for (let x = 1; x < W; x++) { g.beginPath(); g.moveTo((PAD[0] + x) * PX, PAD[1] * PX); g.lineTo((PAD[0] + x) * PX, (PAD[1] + H) * PX); g.stroke() }
+    for (let y = 1; y < H; y++) { g.beginPath(); g.moveTo(PAD[0] * PX, (PAD[1] + y) * PX); g.lineTo((PAD[0] + W) * PX, (PAD[1] + y) * PX); g.stroke() } }
+  return c.toDataURL('image/png')
+}
+const IDEAS = [
+  ['hall', 'A. Market hall and square', 'A town-hall-like market hall across the back: an open stone arcade below with stalls in its shade, a half-timbered floor above, clay roof and a little bell turret. In front, a cobbled square with stalls down both sides and a fountain in the middle.'],
+  ['square', 'B. Open market square', 'No building at all: cobbles over the whole plot, nine stalls all round under muted canvas, a fountain in the middle, a cart and goods, low stone posts along the south edge where you walk in.'],
+  ['covered', 'C. Covered market', 'One long open roof of shingles on timber posts, its ridge north to south, its back gable boarded and its front open: stalls in its shade along both sides, two more spilling out in front.'],
+  ['trader', 'D. Trading house and yard', 'A two-floor merchant house across the back with a loading door and a hoist above its door; a walled yard in front with a cart, crates, sacks, barrels and a weighing beam, and two stalls by the gate.'],
+]
+const grid = document.getElementById('grid')
+for (const [v, title, note] of IDEAS) {
+  const f = document.createElement('figure')
+  f.innerHTML = `<div class="pair"><img src="${shot(v, 72, false)}" alt="${title} by day"><img src="${shot(v, 36, true)}" alt="${title} at dusk" style="align-self:center"></div><figcaption><b>${title}</b><br>${note}</figcaption>`
+  grid.append(f)
+}
+window.ready = true
+</script>
+</body>
+</html>

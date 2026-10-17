@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Island UI Ideas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=EB+Garamond:wght@400;500&family=IM+Fell+English&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root { --paper: #efe6d2; --card: #fbf7ee; --ink: #2f2a22; --soft: #7a6f5c; --line: #d9ccb2; --rust: #a5452d; --blue: #2e4a6e; --moss: #5e7a3a; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 'EB Garamond', Georgia, serif; }
+  header, section { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 26px; }
+  h1 { margin: 0 0 6px; font-size: 28px; font-weight: 400; }
+  h2 { margin: 34px 0 4px; font-size: 22px; font-weight: 400; }
+  header p, section > p { margin: 0; color: var(--soft); max-width: 960px; }
+  header ul { margin: 8px 0 0; padding-left: 20px; color: var(--soft); max-width: 960px; }
+  .note { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 10px 0 0; }
+  .note div { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 14.5px; }
+  .note b { display: block; font-weight: 500; }
+  /* a view of the game: the screenshot (1440 x 900) and the mock-up drawn over it, scaled to fit */
+  .view { position: relative; width: 100%; aspect-ratio: 1440 / 900; overflow: hidden; border-radius: 10px; margin-top: 12px; box-shadow: 0 10px 30px -14px rgba(0,0,0,.5); }
+  .view > .stage { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; transform-origin: 0 0; }
+  .stage > img { position: absolute; inset: 0; }
+  .stage * { box-sizing: border-box; }
+  footer { height: 50px; }
+
+  /* the island's paper parts, as the game draws them */
+  .paper { background: linear-gradient(180deg, #fdfaf2, #f6efe0); color: var(--ink); box-shadow: 0 2px 2px rgba(20, 15, 5, .18), 0 10px 22px -8px rgba(10, 8, 2, .55); }
+  .sc { font-family: 'IM Fell English SC', serif; letter-spacing: .1em; }
+  .hand { font-family: 'Caveat', cursive; }
+  .abs { position: absolute; }
+  .ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .seal { position: absolute; transform: translate(-50%, -50%); width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font: 13px 'IM Fell English SC', serif;
+    background: radial-gradient(circle at 35% 30%, #fffaf0, #efe2c4 70%, #d8c69e); color: var(--ink); box-shadow: 0 0 0 1.5px #b48a3a, 0 4px 8px -3px rgba(20,14,4,.6); }
+  .seal.big { width: auto; height: auto; border-radius: 4px; padding: 3px 9px; transform: translate(-50%, -50%); }
+  .seal.big i { display: block; font: 15px 'Caveat', cursive; letter-spacing: 0; color: var(--blue); text-align: center; }
+  .callout { position: absolute; font: 22px 'Caveat', cursive; color: #fff7d8; text-shadow: 0 1px 3px rgba(0,0,0,.8); white-space: nowrap; }
+  .callout::before { content: '↖ '; }
+</style>
+</head>
+<body>
+<header>
+  <h1>The island's UI: five ideas</h1>
+  <p>Today's screen first, then five ways it could go, drawn over the same island. All keep the look you like: paper, IM Fell small caps, the hand in blue. In every idea:</p>
+  <ul>
+    <li>the enclosure tags shrink to small numbered seals; the full tag (number and size) shows on hover, or when zoomed in close;</li>
+    <li>the FPS counter is gone (a developer's readout);</li>
+    <li>"back to the journal" is no longer a bold link of its own, but a quiet way out tucked into the island's name.</li>
+  </ul>
+</header>
+
+<section>
+  <h2>Now</h2>
+  <p>What reads a little busy: the enclosure tags crowd the middle; the top left mixes three shapes (a tilted name tag, a pill link, small square tags) and the buttons are small and pale; the top right pairs a rectangle with a rounded pill.</p>
+  <div class="view" data-shot="now"></div>
+</section>
+
+<section>
+  <h2>1. Tidy corners</h2>
+  <p>The smallest change. The name tag gets a folded corner with a small arrow: that is the way back to the journal (it reads "back to the journal" on hover). Under it, build, weather and bestiary become three tags of one size, a touch larger. On the right, one plate for the Fenmarks and the island's time, a fine rule between.</p>
+  <div class="view" data-shot="clean" id="i1"></div>
+  <div class="note"><div><b>Good</b>Familiar, almost nothing moves; every corner speaks one shape.</div><div><b>Less good</b>Still two busy corners at the top; the map's top edge stays covered.</div></div>
+</section>
+
+<section>
+  <h2>2. Bookmark ribbons</h2>
+  <p>The tools hang from the top edge like the ribbon bookmarks of the journal: rust for build, blue for weather, moss for the bestiary, each with its sign. The island's name sits centred at the top on a small engraved plate, with a tiny "journal" tab at its left end.</p>
+  <div class="view" data-shot="clean" id="i2"></div>
+  <div class="note"><div><b>Good</b>Very much the journal's own idea; colour tells the tools apart at a glance.</div><div><b>Less good</b>Ribbons take height at the top; on a phone they need to shrink to tabs.</div></div>
+</section>
+
+<section>
+  <h2>3. A tray below</h2>
+  <p>The tools move to one paper tray at the bottom centre, larger, with the weather written in the tray ("autumn · night · light rain"). Cards open upward from it. Top left keeps only a slim name tag with a small arrow at its left: the way back. The top of the map is left almost clear.</p>
+  <div class="view" data-shot="clean" id="i3"></div>
+  <div class="note"><div><b>Good</b>The tools sit where thumbs and eyes rest; the map reads widest; works well on phones.</div><div><b>Less good</b>A creature's card and the tray share the bottom: the card moves to the right.</div></div>
+</section>
+
+<section>
+  <h2>4. The journal's margin</h2>
+  <p>A slim paper margin down the left edge, ruled with the journal's red line: the island's name at the top, the three tools stacked with their names, the island's time at the foot, and below it in small hand "back to the journal". The rest of the map is free; the Fenmarks sit alone at the top right.</p>
+  <div class="view" data-shot="clean" id="i4"></div>
+  <div class="note"><div><b>Good</b>Everything in one calm place; the clearest sense of "a page of the journal, the island beside it".</div><div><b>Less good</b>Takes a strip of the map at all times (it could fold away to its edge).</div></div>
+</section>
+
+<section>
+  <h2>5. Medallions</h2>
+  <p>The most game-like: a brass seal at the top left carries the island's number; tap it and the tools fan out round it as small tokens (build, weather, bestiary, and the journal). At the top right a pocket watch shows the island's time, the Fenmarks on a tag hung from its chain.</p>
+  <div class="view" data-shot="clean" id="i5"></div>
+  <div class="note"><div><b>Good</b>Almost nothing on screen until wanted; strong character, like a game's own instruments.</div><div><b>Less good</b>The tools are one tap further away; the names show only when the fan is open.</div></div>
+</section>
+<footer></footer>
+
+<script>
+const ICON = {
+  build: '<path d="M14 6l4 4M3 21l9-9M12.5 4.5l3-1.5 5.5 5.5-1.5 3-3-3-1 1-3-3 1-1z"/>',
+  weather: '<circle cx="9" cy="9" r="3.2"/><path d="M9 2.5v1.5M2.5 9H4M4.4 4.4l1 1M13.6 4.4l-1 1M8 20h9a3.5 3.5 0 0 0 .4-7 5 5 0 0 0-9.6 1.4A2.8 2.8 0 0 0 8 20z"/>',
+  bestiary: '<path d="M4 5c3-1.5 5.5-1.5 8 0v14c-2.5-1.5-5-1.5-8 0zM20 5c-3-1.5-5.5-1.5-8 0v14c2.5-1.5 5-1.5 8 0z"/>',
+  back: '<path d="M14 6l-6 6 6 6"/>',
+  journal: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z M5 17a3 3 0 0 1 3-3h11"/>',
+}
+const ic = (k, size = 20, extra = '') => `<svg class="ic" viewBox="0 0 24 24" style="width:${size}px;height:${size}px${extra}">${ICON[k]}</svg>`
+const coin = (px) => `<img src="../art/token/fenmark-small.svg" width="${px}" height="${px}" style="display:block">`
+const clockFace = (px, h = 9, m = 37) => { const ha = ((h % 12) + m / 60) * 30, ma = m * 6
+  let ticks = ''; for (let k = 0; k < 12; k++) ticks += `<line x1="20" y1="${k % 3 ? 4.5 : 3.5}" x2="20" y2="${k % 3 ? 6.5 : 8}" transform="rotate(${k * 30} 20 20)" stroke="#7a6f5c" stroke-width="1" stroke-linecap="round"/>`
+  return `<svg viewBox="0 0 40 40" width="${px}" height="${px}" style="display:block"><circle cx="20" cy="20" r="18" fill="#fbf7ee" stroke="#b48a3a" stroke-width="1.4"/>${ticks}<line x1="20" y1="20" x2="20" y2="10.5" transform="rotate(${ha} 20 20)" stroke="#2f2a22" stroke-width="2.2" stroke-linecap="round"/><line x1="20" y1="20" x2="20" y2="6.5" transform="rotate(${ma} 20 20)" stroke="#2f2a22" stroke-width="1.3" stroke-linecap="round"/><circle cx="20" cy="20" r="1.6" fill="#a5452d"/></svg>` }
+const stamp = (px) => `<svg viewBox="0 0 40 40" width="${px}" height="${px}" style="display:block"><circle cx="20" cy="20" r="17" fill="none" stroke="#a5452d" stroke-width="1.6"/><circle cx="20" cy="20" r="13.5" fill="none" stroke="#a5452d" stroke-width=".8"/><path d="M12 22c3-6 9-8 16-4-4 1-6 4-7 7-3-2-6-2-9-3z" fill="none" stroke="#a5452d" stroke-width="1.3"/></svg>`
+// where the enclosures' tags stand in the screenshot: drawn as small seals (one shown open, as on hover)
+const PENS = [[805, 210, 8], [570, 315, 3], [710, 309, 9], [885, 355, 12], [752, 424, 10], [636, 443, 2], [502, 464, 7], [712, 484, 11], [860, 467, 13], [976, 505, 14], [740, 515, 16], [810, 515, 15], [674, 607, 6], [855, 627, 17]]
+const seals = (open = 12) => PENS.map(([x, y, n]) => n === open ? `<div class="seal big sc" style="left:${x}px;top:${y + 10}px">enclosure no. ${n}<i>86 tiles</i></div>` : `<div class="seal" style="left:${x}px;top:${y + 10}px">${n}</div>`).join('')
+const zoomTag = (x = 1380, y = 412) => `<div class="abs paper" style="left:${x}px;top:${y}px;width:40px;border-radius:4px;padding:3px;display:grid"><div style="height:34px;display:grid;place-items:center;font-size:22px">+</div><div style="height:1px;margin:1px 7px;background:rgba(60,45,20,.25)"></div><div style="height:34px;display:grid;place-items:center;font-size:22px">−</div></div>`
+const purseAndTime = (x, y) => `<div class="abs paper" style="left:${x}px;top:${y}px;width:200px;border-radius:4px;padding:8px 12px">
+  <div style="display:flex;align-items:center;gap:9px">${coin(26)}<span class="sc" style="font-size:18px">0.0000</span><span class="sc" style="font-size:12px;color:var(--soft)">FEN</span></div>
+  <div style="height:1px;background:rgba(60,45,20,.2);margin:7px -2px"></div>
+  <div style="display:flex;align-items:center;gap:9px">${clockFace(26)}<span><span class="sc" style="font-size:16px">09:37</span> <span class="hand" style="font-size:16px;color:var(--soft)">day 6 · autumn</span></span></div></div>`
+
+const IDEAS = {
+  i1: () => `
+    <div class="abs paper" style="left:18px;top:16px;width:296px;height:70px;border-radius:3px;transform:rotate(-1.2deg);display:flex;align-items:center;gap:12px;padding:0 14px">
+      ${stamp(44)}<span><span class="sc" style="display:block;font-size:11px;color:var(--rust)">map no. 3</span><span style="font:400 30px 'IM Fell English',serif">Island 3</span></span>
+      <span style="position:absolute;left:0;bottom:0;width:30px;height:30px;background:linear-gradient(225deg,#efe6d2 50%,#d9ccb2 50%);display:grid;place-items:end start;color:var(--blue);border-radius:0 0 0 3px">${ic('back', 16, ';margin:0 0 3px 3px')}</span></div>
+    <div class="callout" style="left:22px;top:94px">a fold to the journal</div>
+    ${['build', 'weather', 'bestiary'].map((k, i) => `<div class="abs paper sc" style="left:${18 + i * 101}px;top:128px;width:94px;height:40px;border-radius:3px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:12.5px;color:var(--blue)">${ic(k, 18)}<span style="color:var(--ink)">${k}</span></div>`).join('')}
+    ${purseAndTime(1222, 18)}${zoomTag()}${seals()}`,
+  i2: () => {
+    const rib = (x, col, k, label, h) => `<div class="abs" style="left:${x}px;top:0;width:58px;height:${h}px;background:${col};clip-path:polygon(0 0,100% 0,100% 100%,50% calc(100% - 14px),0 100%);box-shadow:0 6px 12px rgba(0,0,0,.35);display:grid;justify-items:center;align-content:start;gap:6px;padding-top:16px;color:#fbf2de">${ic(k, 22)}<span class="sc" style="font-size:11px;writing-mode:vertical-rl;transform:rotate(180deg)">${label}</span></div>`
+    return `${rib(34, '#a5452d', 'build', 'build', 140)}${rib(102, '#2e4a6e', 'weather', 'weather', 160)}${rib(170, '#5e7a3a', 'bestiary', 'bestiary', 150)}
+    <div class="abs paper" style="left:570px;top:14px;width:300px;height:54px;border-radius:4px;display:flex;align-items:center;justify-content:center;gap:12px;outline:1px solid rgba(180,138,58,.6);outline-offset:-5px">
+      <span class="abs sc" style="left:-1px;top:-1px;bottom:-1px;width:52px;background:#efe6d2;border-radius:4px 0 0 4px;display:grid;place-items:center;font-size:9px;color:var(--soft);border-right:1px solid var(--line)">${ic('back', 14)}</span>
+      <span style="margin-left:40px;font:400 26px 'IM Fell English',serif">Island 3</span><span class="sc" style="font-size:11px;color:var(--rust)">map no. 3</span></div>
+    <div class="callout" style="left:574px;top:74px">the end tab: back to the journal</div>
+    ${purseAndTime(1222, 18)}${zoomTag()}${seals()}`
+  },
+  i3: () => `
+    <div class="abs paper" style="left:18px;top:16px;height:52px;border-radius:3px;display:flex;align-items:center;gap:0;padding:0 14px 0 0">
+      <span style="height:100%;width:42px;display:grid;place-items:center;color:var(--blue);border-right:1px solid var(--line);margin-right:12px">${ic('back', 18)}</span>
+      <span style="font:400 24px 'IM Fell English',serif">Island 3</span><span class="sc" style="font-size:10.5px;color:var(--rust);margin-left:10px">map no. 3</span></div>
+    <div class="callout" style="left:22px;top:76px">the arrow: back to the journal</div>
+    <div class="abs paper" style="left:520px;top:806px;width:400px;height:76px;border-radius:6px;display:grid;grid-template-columns:1fr 1.5fr 1fr;align-items:center;padding:0 6px">
+      ${[['build', 'build'], ['weather', 'autumn · night · rain'], ['bestiary', 'bestiary']].map(([k, label], i) => `<div style="display:grid;justify-items:center;gap:4px;color:var(--blue);${i ? 'border-left:1px solid var(--line);' : ''}">${ic(k, 26)}<span class="${k === 'weather' ? 'hand' : 'sc'}" style="font-size:${k === 'weather' ? 17 : 12}px;color:var(--ink)">${label}</span></div>`).join('')}</div>
+    ${purseAndTime(1222, 18)}${zoomTag()}${seals()}`,
+  i4: () => `
+    <div class="abs" style="left:0;top:0;width:112px;height:900px;background:linear-gradient(90deg,#f6efe0,#fbf7ee);box-shadow:6px 0 18px -6px rgba(0,0,0,.5)">
+      <div class="abs" style="left:96px;top:0;width:1.5px;height:900px;background:rgba(165,69,45,.55)"></div>
+      <div style="padding:22px 12px 0;text-align:center">${stamp(44).replace('display:block', 'display:block;margin:0 auto')}<div style="font:400 22px 'IM Fell English',serif;margin-top:6px">Island 3</div><div class="sc" style="font-size:10px;color:var(--rust)">map no. 3</div></div>
+      <div style="display:grid;gap:22px;margin-top:40px;padding-right:16px">${['build', 'weather', 'bestiary'].map((k) => `<div style="display:grid;justify-items:center;gap:5px;color:var(--blue)">${ic(k, 28)}<span class="sc" style="font-size:11.5px;color:var(--ink)">${k}</span></div>`).join('')}</div>
+      <div class="abs" style="left:0;right:16px;bottom:72px;display:grid;justify-items:center;gap:4px">${clockFace(44)}<span class="sc" style="font-size:15px">09:37</span><span class="hand" style="font-size:15px;color:var(--soft);line-height:1">day 6 · autumn</span></div>
+      <div class="abs hand" style="left:0;right:16px;bottom:22px;text-align:center;font-size:16px;color:var(--blue)">← back to the journal</div>
+    </div>
+    <div class="abs paper" style="left:1250px;top:18px;border-radius:4px;padding:6px 14px 6px 8px;display:flex;align-items:center;gap:9px">${coin(28)}<span class="sc" style="font-size:18px">0.0000</span><span class="sc" style="font-size:12px;color:var(--soft)">FEN</span></div>
+    ${zoomTag()}${seals()}`,
+  i5: () => {
+    const token = (cx, cy, k, label) => `<div class="abs" style="left:${cx - 25}px;top:${cy - 25}px;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;color:var(--blue);background:radial-gradient(circle at 35% 30%,#fffaf0,#efe2c4 70%,#d8c69e);box-shadow:0 0 0 2px #b48a3a,0 6px 12px -4px rgba(20,14,4,.6)">${ic(k, 24)}</div><div class="abs sc" style="left:${cx - 50}px;top:${cy + 30}px;width:100px;text-align:center;font-size:11px;color:#fff7d8;text-shadow:0 1px 3px rgba(0,0,0,.85)">${label}</div>`
+    return `<div class="abs" style="left:24px;top:20px;width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#f1d58a,#c99a3e 60%,#8a6424);box-shadow:0 0 0 3px #a87a2e,0 10px 20px -6px rgba(0,0,0,.6);display:grid;place-items:center;text-align:center;color:#5a3e14">
+        <span><span class="sc" style="display:block;font-size:10px">map no.</span><span style="font:400 36px/1 'IM Fell English',serif">3</span></span></div>
+      ${token(176, 44, 'build', 'build')}${token(166, 118, 'weather', 'weather')}${token(116, 168, 'bestiary', 'bestiary')}${token(44, 176, 'journal', 'journal')}
+      <div class="callout" style="left:150px;top:200px">open: the tools fan out round the seal</div>
+      <div class="abs" style="left:1322px;top:14px;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#eef0ee,#b9bcb6 60%,#7e827c);box-shadow:0 0 0 3px #9a9d97,0 10px 20px -6px rgba(0,0,0,.6);display:grid;place-items:center">${clockFace(76)}</div>
+      <div class="abs" style="left:1369px;top:110px;width:2px;height:34px;background:repeating-linear-gradient(#9a9d97 0 4px,transparent 4px 6px)"></div>
+      <div class="abs paper" style="left:1300px;top:142px;border-radius:4px;padding:5px 12px 5px 7px;display:flex;align-items:center;gap:8px">${coin(24)}<span class="sc" style="font-size:16px">0.0000</span><span class="sc" style="font-size:11px;color:var(--soft)">FEN</span></div>
+      ${zoomTag()}${seals()}`
+  },
+}
+for (const v of document.querySelectorAll('.view')) {
+  const stage = document.createElement('div'); stage.className = 'stage'
+  stage.innerHTML = `<img src="ui/${v.dataset.shot}.png" width="1440" height="900" alt="">` + (IDEAS[v.id] ? IDEAS[v.id]() : '')
+  v.append(stage)
+  const fit = () => { stage.style.transform = `scale(${v.clientWidth / 1440})` }
+  fit(); addEventListener('resize', fit)
+}
+</script>
+</body>
+</html>

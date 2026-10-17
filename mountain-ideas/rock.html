@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crumpled Rock</title>
+<style>
+  :root { --bg: #efe6d2; --ink: #2f2a22; --muted: #7a6f5c; --card: #fbf7ee; --line: #d9ccb2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 Georgia, "Times New Roman", serif; }
+  header { padding: 28px 24px 8px; max-width: 1500px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  header p { margin: 0; color: var(--muted); max-width: 980px; }
+  main { display: grid; gap: 18px; padding: 18px 24px 40px; max-width: 1500px; margin: 0 auto; }
+  figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--line); }
+  canvas { display: block; width: 100%; aspect-ratio: 3 / 2; }
+  figcaption { padding: 10px 14px 12px; }
+  figcaption b { font-size: 16px; }
+  figcaption b span { display: inline-block; min-width: 26px; color: #a0522d; }
+  figcaption div { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } main { padding: 12px 16px 32px; } header { padding: 20px 16px 4px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Crumpled rock, after your picture</h1>
+  <p>A rock mass that follows the footprint: folded into angular faces, a broad lit ridge across it, moss in the hollows and at the foot, no cone and no snow. On island 0: left the big mountain, right the small patch in the east.</p>
+</header>
+<main id="grid"></main>
+<script>
+const STYLES = [["G1  Crumpled rock","After your picture: grey rock folded into angular faces, a broad lit ridge across the top, moss in the hollows and at the foot."],["G2  Mossier","G1 with more green: moss spreading over the flatter faces, rock showing on the steep ones."],["G3  Bigger faces","Larger, calmer faces: fewer creases, reads cleanly from far out."],["G4  Finer crumple","Smaller faces, more creases: rougher and more detailed up close."],["G5  Warmer stone","G1 in a warmer, sandier grey, closer to the tan peaks of the first picture."]];
+const VARS = [[1.5,1,1,0.15],[1.5,1,1,0.15],[1.5,1,1,0.15],[1.5,1,1,0.15],[1.5,1,1,0.15]];
+const RIDGE = [11,12,13,14,15];
+const GV = [[0.42,1.1,0.7,0],[0.42,1.2,1.7,0],[0.26,1.3,0.7,0],[0.7,0.9,0.7,0],[0.42,1.1,0.7,1]];
+const VS = `#version 300 es
+in vec2 aPos; void main() { gl_Position = vec4(aPos, 0., 1.); }`;
+const FS = `#version 300 es
+precision highp float;
+uniform vec2 uRes, uSize, uC; uniform int uS, uPass; uniform float uScale, uHk; uniform vec4 uT; uniform int uR; uniform vec4 uG; uniform sampler2D uMask2;
+uniform sampler2D uHt, uBg, uMask;
+out vec4 o;
+const vec2 C = vec2(12., 8.2);
+const vec3 LIT = normalize(vec3(-.55, -.7, .62));
+const vec2 LD = vec2(-.6181, -.7861);
+vec3 rgb(float r, float g, float b) { return vec3(r, g, b) / 255.; }
+float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+vec2 grd(vec2 i) { float a = h12(i) * 6.2831853; return vec2(cos(a), sin(a)); }
+float gn(vec2 p) { vec2 i = floor(p), f = fract(p), u = f * f * f * (f * (f * 6. - 15.) + 10.);
+  float a = dot(grd(i), f), b = dot(grd(i + vec2(1., 0.)), f - vec2(1., 0.)), c = dot(grd(i + vec2(0., 1.)), f - vec2(0., 1.)), d = dot(grd(i + 1.), f - 1.);
+  return .5 + .7 * mix(mix(a, b, u.x), mix(c, d, u.x), u.y); }
+float fbm(vec2 p) { return gn(p) * .57 + gn(p * 2.03 + 17.1) * .29 + gn(p * 4.1 + 9.2) * .14; }
+float smax(float a, float b, float k) { float h = clamp(.5 + .5 * (a - b) / k, 0., 1.); return mix(b, a, h) + k * h * (1. - h); }
+float smin(float a, float b, float k) { return -smax(-a, -b, k); }
+// eroded detail: ridged noise whose finer octaves fade where the slope is already steep, so gullies stay big and calm
+float eroded(vec2 p, int oct) {
+  float s = 0., a = .5, w = 1.; vec2 q = p;
+  for (int i = 0; i < 5; i++) {
+    if (i >= oct) break;
+    float n = 1. - abs(gn(q) * 2. - 1.); n *= n;
+    s += n * a * w; w = clamp(n * 1.4, 0., 1.);
+    a *= .45; q = mat2(.8, -.6, .6, .8) * q * 2.1 + 3.7;
+  }
+  return s;
+}
+// a footprint 0..1: lumpy oval
+float foot(vec2 p, vec2 c, vec2 r, float seed) {
+  vec2 d = (p - c) / r; float a = atan(d.y, d.x);
+  float k = length(d) * (1. + .2 * (gn(vec2(cos(a), sin(a)) * 1.3 + seed) - .5));
+  return clamp(1. - k, 0., 1.);
+}
+float dome(float f, float e) { return pow(f, e); }
+
+// the ridges, five other ways (uR), C2's eroded noise as 0
+float crest(float n) { float x = n * 2. - 1.; return 1. - sqrt(x * x + .03); }   // rounded, never a crease
+float shape(vec2 w, float f);
+vec2 hh2(vec2 p) { return vec2(h12(p), h12(p + 19.19)); }
+// crumpled rock: each cell of a scattered grid is a flat face tilted its own way; where faces meet, the higher one wins,
+// so the surface is all planes and sharp creases, like folded paper
+float faces(vec2 p) {
+  vec2 i = floor(p), f = p - i; float best = -1e9;
+  for (int k = 0; k < 9; k++) {
+    vec2 o = vec2(float(k % 3 - 1), float(k / 3 - 1)), c = o + .15 + .7 * hh2(i + o), g = (hh2(i + o + 3.7) - .5) * 1.6;
+    float d = length(f - c);
+    float v = .55 - d * .9 + dot(f - c, g) * .5; float hk = clamp(.5 + .5 * (v - best) / .08, 0., 1.); best = mix(best, v, hk) + .08 * hk * (1. - hk);   // soft max: creases without a dark seam
+  }
+  return best;
+}
+float crumple(vec2 w) { return faces(w * uG.x) * .6 + faces(w * uG.x * 2.1 + 7.) * .3 + faces(w * uG.x * 4.3 + 3.) * .1; }
+float ridges(vec2 w, float f) {
+  float base = eroded(w * .17, 3) * 1.45 * smoothstep(uT.w, .7 + uT.w * .3, f);
+  if (uR >= 11) {                                                             // the crumpled rock mass
+    float on = smoothstep(.04, .4, f);
+    float spine = (gn(w * .09 + 4.) - .5) * 2.6 + (gn(w * .2 + 1.) - .5) * .8;                                // a broad ridge across it, not a cone
+    float m = pow(f, 1.2) * 4.2 + (spine + crumple(w) * uG.y) * on;
+    return m - dome(f, uT.x) * 4.2;
+  }
+  if (uR == 0) return base * .6 + shape(w, f);          // R5 as picked
+  float on = smoothstep(uT.w, .7 + uT.w * .3, f);
+  vec2 d = (w - C) / vec2(8.8, 6.8);
+  float spine = exp(-d.y * d.y * 7.) * 1.;
+  float sp = crest(gn(vec2(d.x * 3.2, abs(d.y) * 1.4) + 4.));
+  float spurs = sp * sp * .35 * smoothstep(.04, .3, abs(d.y));
+  float body = (spine + spurs) * on;
+  if (uR == 1) return body + .35 * on;                                         // smooth: the shape alone
+  if (uR == 2) return (spine * 1.15 + .3) * on;                                // one smooth spine, no spurs
+  if (uR == 3) return body + .2 * on + (gn(w * .38) * .6 + gn(w * .8 + 9.) * .4 - .5) * .7 * on;   // soft rolling bumps
+  if (uR == 4) return body + .35 * on + (gn(w * 2.2) * .6 + gn(w * 4.6 + 3.) * .4 - .5) * .12 * on; // a rough, rocky skin, no ridges
+  // 5: boulders: round rocks scattered over the slopes, more of them up high
+  vec2 g = floor(w * .9), b = vec2(0.);
+  float rocks = 0.;
+  for (int k = 0; k < 9; k++) { vec2 c = g + vec2(float(k % 3 - 1), float(k / 3 - 1)); vec2 ctr = (c + .2 + .6 * vec2(h12(c), h12(c + 7.))) / .9;
+    float rr = (.25 + .3 * h12(c + 3.)) / .9, dd = length(w - ctr) / rr; if (h12(c + 5.) < .22 && dd < 1.) rocks = max(rocks, (1. - dd * dd) * rr * .35); }
+  return body + .3 * on + rocks * on;
+}
+float shape(vec2 w, float f) {
+  vec2 d = (w - C) / vec2(8.8, 6.8); float r = length(d);
+  float on = smoothstep(uT.w, .7 + uT.w * .3, f);
+  // noise read around the mountain (fast) and down its slope (slow): long shapes that run downhill. The direction
+  // only wobbles by a fixed amount, never more with distance, so nothing curls.
+  float th = atan(d.y, d.x) + (gn(w * .12 + 3.) - .5) * 1.4;
+  float away = smoothstep(.08, .4, r);                                         // nothing meets in a point at the summit
+  vec2 cs = vec2(cos(th), sin(th));
+  #define RAD(k, m, o) (gn(vec2(cs.x * (k) + (o), r * (m))) * .5 + gn(vec2(cs.y * (k) + (o) + 7., r * (m) + 3.)) * .5)
+  if (uR == 1) { float g = pow(crest(RAD(1.3, 1.6, 0.)), 4.); return -g * 1.1 * on * away; }     // gullies carved down the slopes
+  if (uR == 2) { float c1 = crest(RAD(1.2, 1., 0.)), c2 = crest(RAD(2.6, 2.2, 11.));                                             // spurs: a few long arms, branching low down
+    return (c1 * c1 * .85 + c2 * c2 * c1 * .4 * (1. - smoothstep(.25, .7, f))) * 1.2 * on * away; }
+  if (uR == 3) return (gn(w * .14) * .65 + gn(w * .3 + 5.) * .35 - .45) * 2.4 * on;                                              // soft folds: rounded, no sharp crests
+  if (uR == 4) { float c = crest(gn(w * .085 + 2.)); return (pow(c, 2.) * 1.3 + (gn(w * .3) - .5) * .25) * on; }                // one or two big main ridges, calm between
+  // 5: a spine along the mountain's long side, short spurs falling off both flanks
+  float sp = crest(gn(vec2(d.x * 3.2, abs(d.y) * 1.4) + 4.));
+  return (exp(-d.y * d.y * 7.) * 1. + sp * sp * .35 * smoothstep(.04, .3, abs(d.y))) * on;
+}
+float H(vec2 p) {
+  vec2 w = p + (vec2(gn(p * .2 + 1.), gn(p * .2 + 9.)) - .5) * 1.4;      // a gentle warp: nothing is a perfect circle
+  if (uS == 0) { float f = foot(w, C, vec2(8.5, 6.5), 1.); return dome(f, 1.6) * 3.2 + eroded(w * .22, 3) * 1.1 * smoothstep(.1, .7, f); }
+  if (uS == 1) { float f = foot(w, C, vec2(8.8, 6.8) * (1. + uT.y * .25), 4.); return dome(f, uT.x) * 4.2 + ridges(w, f); }
+  if (uS == 2) { float f = foot(w, C, vec2(9., 7.), 2.); return dome(f, 1.7) * 3.6 + eroded(w * .22, 3) * 1.2 * smoothstep(.2, .7, f); }
+  if (uS == 3) { float f = foot(w, C, vec2(8.5, 6.4), 6.); float h = dome(f, 1.3) * 3. + eroded(w * .2, 2) * .6 * f;
+    float st = .55, t = h / st, fl = floor(t); return (fl + smoothstep(.55, .85, t - fl)) * st * .9 + h * .1; }
+  if (uS == 4) { float a = dome(foot(w, C + vec2(-3.6, -.5), vec2(5.5, 5.), 3.), 1.6) * 3.6, b = dome(foot(w, C + vec2(4., 1.), vec2(4.8, 4.4), 8.), 1.6) * 2.6;
+    return smax(a, b, .9) + eroded(w * .25, 3) * .9 * smoothstep(.2, 1.5, max(a, b)); }
+  if (uS == 5) { float x = w.x - C.x, cy = C.y + 1.5 * sin(x * .28);
+    float along = clamp(1. - x * x / 110., 0., 1.), d = abs(w.y - cy) / (3.6 + .8 * gn(w * .2));
+    float f = clamp(along * (1. - d), 0., 1.); return dome(f, 1.5) * 3.2 + eroded(w * vec2(.32, .2), 3) * 1.1 * smoothstep(.1, .6, f); }
+  if (uS == 6) { float f = foot(w, C, vec2(8., 6.), 5.); float top = smoothstep(.32, .5, f + (gn(w * .5) - .5) * .08);
+    return top * 2.2 + smoothstep(0., .4, f) * .5 + eroded(w * .3, 3) * .35 * smoothstep(.2, .4, f) * (1. - top * .8); }
+  if (uS == 7) { float h = 0.;
+    for (int i = 0; i < 5; i++) { float fi = float(i); vec2 c = C + vec2(cos(fi * 2.4 + .5), sin(fi * 2.4 + .5)) * vec2(4.5, 3.2) * (i == 0 ? 0. : 1.);
+      float f = foot(w, c, vec2(3.4, 3.) * (i == 0 ? 1.3 : .9 + .2 * h12(vec2(fi))), fi * 3.); h = smax(h, dome(f, 1.4) * (i == 0 ? 2.4 : 1.4 + .6 * h12(vec2(fi, 2.))), .4); }
+    float f = foot(w, C, vec2(9., 7.), 7.); return h + dome(f, 1.2) * .6 + eroded(w * .4, 3) * .5 * smoothstep(.5, 1.5, h); }
+  if (uS == 8) { float r = length((w - C) / vec2(1., .9)); float f = clamp(1. - r / 8.5, 0., 1.);
+    float cone = dome(f, 1.4) * 4.; float crater = smoothstep(2.3, 1.2, r) * (cone - 2.7); float h = cone - max(crater, 0.) * .9;
+    float a = atan(w.y - C.y, w.x - C.x); float rav = pow(abs(sin(a * 3.5 + gn(w * .3) * 1.5)), 6.) * smoothstep(.2, .6, f) * (1. - smoothstep(.8, .95, f));
+    return h - rav * .35 + (gn(w * .6) - .5) * .15 * f; }
+  // 9: mountain lake
+  float f = foot(w, C, vec2(8.8, 6.8), 9.); float h = dome(f, 1.5) * 3.8 + eroded(w * .22, 3) * 1.2 * smoothstep(.1, .7, f);
+  float basin = exp(-pow(length((p - C - vec2(1.6, -.6)) / vec2(2., 1.5)), 2.) * 1.6);
+  return h - basin * 1.3;
+}
+
+
+float T(vec2 q) {                                                          // bilinear by hand: float textures need not filter
+  vec2 st = q / uSize * uRes - .5; st.y = uRes.y - 1. - st.y; ivec2 i = ivec2(floor(st)), m = ivec2(uRes) - 1; vec2 f = fract(st);
+  float a = texelFetch(uHt, clamp(i, ivec2(0), m), 0).r, b = texelFetch(uHt, clamp(i + ivec2(1, 0), ivec2(0), m), 0).r;
+  float c = texelFetch(uHt, clamp(i + ivec2(0, 1), ivec2(0), m), 0).r, d = texelFetch(uHt, clamp(i + 1, ivec2(0), m), 0).r;
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+vec2 toSheet(vec2 p) { return C + (p - uC) / uScale; }                     // island tiles -> the sheet's own coordinates
+void main() {
+  vec2 px = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y), p = px / uRes * uSize, uv = px / uRes;
+  vec4 mk = mix(texture(uMask, uv), texture(uMask2, uv), uT.y);                                             // r: the mountain's footprint, softened
+  if (uPass == 0) { o = vec4(H(toSheet(p)) * uScale * uHk * mix(smoothstep(.02, .55, mk.r), smoothstep(0., .6, mk.r), uT.z), 0., 0., 1.); return; }
+  vec3 bg = texture(uBg, uv).rgb;
+  float e = uSize.x / uRes.x * 1.5, h = T(p), hx = T(p + vec2(e, 0.)), hy = T(p + vec2(0., e)), hx2 = T(p - vec2(e, 0.)), hy2 = T(p - vec2(0., e));
+  vec3 N = normalize(vec3(-(hx - hx2) / (2. * e), -(hy - hy2) / (2. * e), 1.));
+  float slope = 1. - N.z, cav = (hx + hx2 + hy + hy2 - 4. * h) / (e * e);
+  float sh = 1., tanA = LIT.z / length(LIT.xy);
+  for (int i = 1; i <= 40; i++) { float d = float(i) * .2; sh = min(sh, 1. - smoothstep(0., .25, T(p + LD * d) - (h + d * tanA))); }
+  float ao = 0.;
+  for (int i = 0; i < 8; i++) { float a = float(i) * .785; ao += max(0., T(p + vec2(cos(a), sin(a)) * .9) - h); }
+  ao = clamp(1. - ao * .09, .55, 1.);
+  vec2 q = toSheet(p);
+  float n = fbm(q * .6), n2 = gn(q * 3.2), K = uScale * uHk;
+  int s = uS;
+  float hr = h / ((s == 1 ? 4.6 : s == 8 ? 4. : s == 6 ? 2.7 : 3.6) * K);
+  // the sheet's materials, with the island's own grass in place of the sheet's grass
+  vec3 grass = mix(bg, bg * vec3(1.08, 1.02, .9) + vec3(.03, .02, .01), smoothstep(.35, .75, hr) * mix(step(.02, h), smoothstep(0., .2, h), uT.z));
+  vec3 rock = mix(rgb(120., 112., 100.), rgb(168., 158., 140.), gn(q * 1.4)) * (.88 + .2 * n2);
+  if (s == 3 || s == 6) rock = mix(rgb(150., 118., 88.), rgb(186., 154., 116.), gn(q * 1.4)) * (.88 + .2 * n2);
+  if (s == 8) rock = mix(rgb(92., 84., 80.), rgb(130., 120., 112.), gn(q * 1.4)) * (.9 + .18 * n2);
+  float rockT = (s == 3 || s == 6) ? .1 : .16;
+  float rockA = smoothstep(rockT - .03, rockT + .05, slope + (n - .5) * .08 + hr * .08) * mix(step(.03, h), smoothstep(.01, .12, h), uT.z);
+  if (s == 7) rockA = max(rockA, smoothstep(.45, .6, hr + (n - .5) * .1));
+  vec3 col = mix(grass, rock, rockA);
+  float snowLine = s == 1 ? .55 : s == 2 ? .78 : s == 0 ? .8 : s == 4 ? .82 : s == 9 ? .8 : s == 5 ? .82 : 9.;
+  float snow = smoothstep(snowLine, snowLine + .06, hr + cav * .02 / K + (n - .5) * .08) * (1. - smoothstep(.2, .32, slope));
+  col = mix(col, rgb(238., 242., 247.), snow);
+  if (uR >= 11) {
+    vec3 rockG = mix(rgb(112., 110., 104.), rgb(186., 182., 172.), gn(q * 1.2)) * (.9 + .14 * n2);
+    rockG = mix(rockG, rockG * vec3(1.1, 1.0, .86), uG.w);
+    float up = smoothstep(.04, .14, hr + (n - .5) * .06);
+    // moss: in the hollows and on flatter spots, in patches, thicker near the foot
+    float moss = clamp(smoothstep(.0, .6, cav * .5) * .8 + (1. - smoothstep(.1, .25, slope)) * .5, 0., 1.) * smoothstep(.42, .62, gn(q * 1.6 + 2.) + (1. - hr) * .25);
+    moss = clamp(moss * uG.z + (1. - smoothstep(.1, .3, hr)) * .6 * uG.z, 0., 1.);
+    vec3 mossC = mix(rgb(78., 108., 52.), rgb(116., 140., 70.), gn(q * 3.));
+    col = mix(grass, mix(rockG, mossC, moss), up);
+  }
+  if (s == 2 || s == 0 || s == 9) {
+    float band = (s == 2 ? 1. : .45) * smoothstep(.05, .12, hr) * (1. - smoothstep(s == 2 ? .48 : .35, s == 2 ? .56 : .42, hr + (n - .5) * .12)) * (1. - rockA);
+    vec2 g = floor(p * 2.6); vec2 fc = fract(p * 2.6) - .5 + (vec2(h12(g), h12(g + 7.)) - .5) * .45;
+    float tree = step(length(fc), .38) * step(.2, h12(g + 3.));
+    vec3 canopy = mix(rgb(46., 82., 44.), rgb(66., 104., 52.), h12(g + 11.)) * (1. - .3 * smoothstep(0., .38, length(fc + vec2(.14, .17))));
+    col = mix(col, rgb(62., 92., 48.), band * .55);
+    col = mix(col, canopy, band * tree);
+  }
+  float water = 0.;
+  if (s == 8) water = smoothstep(.15, .05, h - 2.6 * K) * step(length(q - C), 2.4) * step(.5, mk.r);
+  if (s == 9) { vec2 lc = C + vec2(1.6, -.6); water = smoothstep(.1, -.05, h - (T(uC + (lc - C) * uScale) + .45 * K)) * step(length((q - lc) / vec2(2.2, 1.7)), 1.); }
+  // the sheet's light, divided by what flat ground gets, so the island's grass keeps its colour where nothing rises
+  float diff = max(dot(N, LIT), 0.) * sh;
+  vec3 amb = vec3(.42, .47, .58), sun = vec3(1.05, .99, .88) * 1.08;
+  vec3 lit = col * (amb + sun * diff) / (amb + sun * LIT.z) * ao;
+  lit *= 1. + clamp(-cav * .012 / K, 0., .12);
+  lit *= 1. - clamp(cav * .03 / K, 0., .18) * (uR >= 11 ? .25 : 1.);
+  // where nothing rises, the island ground as it is, only darkened by shadows cast onto it (no noise from tiny heights)
+  vec3 flat_ = bg * (amb + sun * LIT.z * sh) / (amb + sun * LIT.z);
+  lit = mix(flat_, lit, mix(smoothstep(.02, .12, h), smoothstep(0., .25, h), uT.z));
+  if (water > 0.) lit = mix(lit, mix(rgb(54., 120., 136.), rgb(110., 170., 176.), n2) * (.85 + .2 * sh), water * .95);
+  o = vec4(lit, 1.);
+}`;
+
+(async () => {
+  const crops = await (await fetch('crops.json')).json();
+  const load = (src) => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+  const bgs = { big: await load('big.png'), small: await load('small.png') };
+  // one WebGL canvas draws everything; each result is copied out (browsers only allow a few WebGL canvases)
+  const W = 1200, Hh = 800, glc = document.createElement('canvas'); glc.width = W; glc.height = Hh;
+  const gl = glc.getContext('webgl2', { preserveDrawingBuffer: true }); gl.getExtension('EXT_color_buffer_float');
+  const sh = (t, s) => { const x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(x)); return x; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) console.error(gl.getProgramInfoLog(pr));
+  gl.useProgram(pr);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  const U = n => gl.getUniformLocation(pr, n);
+  const tex = (src) => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+    if (src) gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src); else gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, W, Hh, 0, gl.RED, gl.FLOAT, null);
+    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, src ? gl.LINEAR : gl.NEAREST], [gl.TEXTURE_MAG_FILTER, src ? gl.LINEAR : gl.NEAREST], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v); return t; };
+  const ht = tex(null), fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, ht, 0); gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  // per crop: the island picture, the footprint (its cells painted and blurred), its centre and size
+  const setup = {};
+  for (const k of ['big', 'small']) {
+    const cr = crops[k], Z = cr.cam.z, m = document.createElement('canvas'); m.width = W; m.height = Hh; const g = m.getContext('2d');
+    g.fillStyle = '#000'; g.fillRect(0, 0, W, Hh); g.filter = 'blur(' + Z * 1.8 + 'px)';  /* wide: the shapes fade out over a couple of tiles, never a cut edge */ g.fillStyle = '#fff';
+    for (const [x, y] of cr.rock) g.fillRect((x - cr.cam.x) * Z - Z * .2, (y - cr.cam.y) * Z - Z * .2, Z * 1.4, Z * 1.4);
+    const cx = cr.rock.reduce((s, c) => s + c[0] + .5, 0) / cr.rock.length - cr.cam.x, cy = cr.rock.reduce((s, c) => s + c[1] + .5, 0) / cr.rock.length - cr.cam.y;
+    const R = Math.sqrt(cr.rock.length / Math.PI);
+    const m2 = document.createElement('canvas'); m2.width = W; m2.height = Hh; const g2 = m2.getContext('2d'); g2.fillStyle = '#000'; g2.fillRect(0, 0, W, Hh); g2.filter = 'blur(' + Z * 3.4 + 'px)'; g2.fillStyle = '#fff';
+    for (const [x, y] of cr.rock) g2.fillRect((x - cr.cam.x) * Z - Z * .4, (y - cr.cam.y) * Z - Z * .4, Z * 1.8, Z * 1.8);
+    setup[k] = { bg: tex(bgs[k]), mask: tex(m), mask2: tex(m2), c: [cx, cy], scale: R / 7.5, hk: k === 'big' ? 1 : 1.4 };
+  }
+  const grid = document.getElementById('grid');
+  STYLES.forEach(([name, note], i) => {
+    const fig = document.createElement('figure');
+    fig.innerHTML = `<div class="pair"><canvas width="${W}" height="${Hh}"></canvas><canvas width="${W}" height="${Hh}"></canvas></div><figcaption><b><span></span>${name}</b><div>${note}</div></figcaption>`;
+    grid.appendChild(fig);
+    fig.querySelectorAll('canvas').forEach((cv, j) => {
+      const S = setup[j ? 'small' : 'big'];
+      gl.uniform2f(U('uRes'), W, Hh); gl.uniform2f(U('uSize'), W / 40, Hh / 40); gl.uniform2f(U('uC'), S.c[0], S.c[1]);
+      gl.uniform1f(U('uScale'), S.scale); gl.uniform1f(U('uHk'), S.hk); gl.uniform1i(U('uS'), 1); gl.uniform4f(U('uT'), ...VARS[i]); gl.uniform1i(U('uR'), RIDGE[i]); gl.uniform4f(U('uG'), ...GV[i]);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, S.bg); gl.uniform1i(U('uBg'), 1);
+      gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, S.mask); gl.uniform1i(U('uMask'), 2);
+      gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, S.mask2); gl.uniform1i(U('uMask2'), 3);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, null);   // never sample the target while drawing into it
+      gl.viewport(0, 0, W, Hh); gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.uniform1i(U('uPass'), 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.bindTexture(gl.TEXTURE_2D, ht); gl.uniform1i(U('uHt'), 0);
+      gl.uniform1i(U('uPass'), 1); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      cv.getContext('2d').drawImage(glc, 0, 0);
+    });
+  });
+})();
+</script>
+</body>
+</html>
